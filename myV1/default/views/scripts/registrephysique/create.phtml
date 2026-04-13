@@ -1,0 +1,135 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("controller" =>"registrephysique", "action" => "create"), "default" );
+$backList     = $this->url(array("controller" =>"registrephysique", "action" => "list")  , "default" );
+$basePath     = VIEW_BASE_PATH;
+$domaines     = $this->domaines;
+$localites    = $this->localites;
+$situations   = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#docmini').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#docoriginal').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#createRegistreForm');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      var  numero       = jQuery.trim(formSelector.find('#numero').val());
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty( libelle )){
+          SIRAH.error.raise('createRegistreForm','Entrez un nom commercial valide');
+          return;
+      }
+      if( SIRAH.util.isEmpty( numero )){
+          SIRAH.error.raise('createRegistreForm','Entrez un numéro de registre valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('createRegistreForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Les informations du registre </small></h3>
+    <form method="post"  id="createRegistreForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">  
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Numéro* : </label>
+           <div   class="col-sm-6"> <input style="text-transform:uppercase" maxlength="13" type="text" name="numero" id="numero" class="form-control" placeholder="Numéro du registre" value="<?php echo $data["numero"]; ?>" /></div>        
+      </div>     
+     <div class="form-group">  
+         <label class="col-sm-3 control-label"> Type de registre* : </label>
+         <div   class="col-sm-6"> <?php echo $this->formSelect("category", $data["category"], array("class" => "form-control"), array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B")); ?>  </div>           
+     </div>   
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom commercial* : </label>
+           <div   class="col-sm-6"> <input type="text" name="libelle" id="libelle" class="form-control" placeholder="Nom commercial" value="<?php echo $data["libelle"]; ?>" /></div>        
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Localité* : </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("localiteid", intval( $data["localiteid"]  ), array("class"=>"form-control"), $localites); ?> </div>   
+      </div> 
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Domaine d'activité : </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"] ), array("class" => "form-control"), $domaines ); ?> </div>       
+      </div>     
+      <div class="form-group">    
+            <label class="col-sm-3 control-label"> Date d'inscription : </label>
+            <div   class="col-md-2"><?php echo $this->formSelect("date_day"  , $data["date_day"] ,array("class" => "form-control"),array("00"=>"Jour")+createDatesArray());?></div>
+            <div   class="col-md-2"><?php echo $this->formSelect('date_month', $data["date_month"], array("class" => "form-control"),array(0 =>"Mois")+$this->months()); ?></div>
+            <div   class="col-md-2"><?php echo $this->formSelect('date_year' , $data["date_year"] , array("class" => "form-control"),array(0 =>"Année")+createYearsArray( ( intval(date("Y")) - 50 ), intval(date("Y")) ) );?></div>             
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Document formulaire * : </label>
+           <div   class="col-sm-7"> <input type="file" name="docmini" id="docmini"    /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Document complet * : </label>
+           <div   class="col-sm-7"> <input type="file" name="docoriginal"  id="docoriginal"    /></div>        
+     </div>   
+      <h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Les informations de l'exploitant </small></h3>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom/Prénom*: </label>
+           <div   class="col-sm-3"> <input type="text" name="nom"    id="nom"    class="form-control" value="<?php echo $data["nom"]; ?>" placeholder="Nom de famille" /></div>
+           <div   class="col-sm-4"> <input type="text" name="prenom" id="prenom" class="form-control" value="<?php echo $data["prenom"]; ?>" placeholder="Prénom" /></div>        
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Adresse: </label>
+           <div   class="col-sm-6"> <input type="text" name="adresse" id="adresse" class="form-control" value="<?php echo $data["adresse"]; ?>" placeholder="Adresse" /></div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Situation matrimoniale: </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("marital_status", $data["marital_status"], array("class" => "form-control"), $situations); ?> </div>        
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Lieu de naissance: </label>
+           <div   class="col-sm-6"> <input type="text" name="lieunaissance" id="lieunaissance" class="form-control" value="<?php echo $data["lieunaissance"]; ?>" placeholder="Lieu de naissance" /></div>        
+      </div>
+      <div class="form-group">    
+            <label class="col-sm-3 control-label"> Date de naissance: </label>
+            <div   class="col-md-2"><?php echo $this->formSelect("date_naissance_day"  , $data["date_naissance_day"]  , array("class" => "form-control"),array("00"=>"Jour")+createDatesArray());?></div>
+            <div   class="col-md-2"><?php echo $this->formSelect('date_naissance_month', $data["date_naissance_month"], array("class" => "form-control"),array(0 =>"Mois")+$this->months()); ?></div>
+            <div   class="col-md-2"><?php echo $this->formSelect('date_naissance_year' , $data["date_naissance_year"] , array("class" => "form-control"),array(0 =>"Année")+createYearsArray( ( intval(date("Y")) - 50 ), intval(date("Y")) ) );?></div>             
+      </div>                           
+    
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Enregistrer le registre","save")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"createButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

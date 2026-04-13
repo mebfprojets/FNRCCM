@@ -1,0 +1,138 @@
+<?php
+$me          = Sirah_Fabric::getUser(); 
+$videos      = $this->videos;
+$filters     = $this->filters;
+$paginator   = $this->paginator;
+
+$blankPhoto  = VIEW_BASE_PATH ."/images/blank.png";
+$jq          = $this->jQuery();
+
+$linkSearch  = $this->url(array("controller" => "gallerie", "action" => "list", "type" => "videos"), "default");
+
+$onLoad      ="  
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+		   var formSelector     = jQuery('#advanced-searchform');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum - 1);
+		   }
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch', '".$linkSearch."', 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);	});";
+
+$jq->addOnload( $onLoad );
+
+$basePath  = str_replace("default", "fao", VIEW_BASE_PATH);
+$jq->addJavascriptFile( $basePath . '/gallerypack/js/bootstrap-image-gallery.js');
+$jq->addStyleSheet(     $basePath . "/gallerypack/css/bootstrap-image-gallery.css");
+$jq->addStyleSheet(     $basePath . "/css/main.css");
+
+?>
+<div class="row pagerow">
+<?php $this->headStyle()->captureStart() ?>
+#listOfvideos{margin-top:10px !important;}
+p.buttons .btn{padding:3px 10px;margin-left:5px;}
+p.buttons .pull-top{top:5px !important;position:absolute;color:#dfe3e8;}
+p.buttons .pull-right{right:5px !important;position:absolute;}
+
+a.imageLink{font-size:12px;}
+.thumb{margin-bottom:30px;}
+.thumbnail{padding:5px}
+.thumbnail img{margin-top:0;}
+<?php $this->headStyle()->captureEnd()   ?>           
+                                                 
+<?php          
+ $output  = "<div id=\"listOfVideos\" style=\"display:block;width:99%;clear:both;overflow:hidden;\" > 
+                           <div class=\"row\"> ";
+                               if( count(   $videos ) ) {
+                               	   foreach( $videos as $rowVideo ) {
+                               	   	        $videoid            = intval( $rowVideo["videoid"] );
+                               	   	        $videoLibelle       = substr( $rowVideo["libelle"], 0 , 20 )."[...]";
+                               	   	        $video              = $rowVideo["video"];
+                               	   	        
+                               	   	        $videoData          = "";
+                               	   	        $videoFile          = "";
+                               	   	        $videoSrc           = $rowVideo["videourl"] ;
+                               	   	        $outputVideo        = " <div class=\"embed-responsive embed-responsive-4by3\">
+                               	   	                                    <iframe width=\"100%\" height=\"225\" class=\"embed-responsive-item\" src=\"".$videoSrc."\"></iframe>
+                               	   	                                </div>";                              	   	        
+                               	   	        if( !empty( $video ) ) {
+                               	   	        	$videoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $video );
+                               	   	        	if( Sirah_Filesystem::exists( $video ) ) {
+                               	   	        		$videoFile  = str_replace( DS, "/", $videoPathname );
+                               	   	        	}
+                               	   	        	if( !empty( $videoFile )) {
+                               	   	        		$videoSrc    = str_replace( ROOT_PATH ."/", $this->hostName, $videoFile );
+                               	   	        		$outputVideo = " <div align=\"center\" class=\"embed-responsive embed-responsive-4by3\">
+                               	   	        		                    <video width=\"100%\" height=\"225\" class=\"embed-responsive-item\">
+                               	   	        		                       <source  src=\"".$videoSrc."\"  > 
+                               	   	        		                    </video>
+                               	   	        		                 </div>";
+                               	   	        	} 
+                               	   	        } else {
+                               	   	        		switch( strtolower( $rowVideo["videourl"] )) {
+                               	   	        			case "youtube":
+                               	   	        			default:
+                               	   	        				$dataYoutube = str_replace("//www.youtube.com/embed/", "", $rowVideo["videourl"] );
+                               	   	        				$videoData   = " data-youtube=\"".$dataYoutube."\" ";
+                               	   	        				break;
+                               	   	        			case "vimeo":
+                               	   	        				$dataVimeo   = str_replace("//www.vimeo.com/embed/", "", $rowVideo["videourl"] );
+                               	   	        				$videoData   = " data-vimeo=\"".$dataVimeo."\" ";
+                               	   	        				break;
+                               	   	        			case "dailymotion":
+                               	   	        				$dataDailymotion = str_replace("//www.dailymotion.com/embed/", "", $rowVideo["videourl"] );
+                               	   	        				$videoData       = " data-vimeo=\"".$dataDailymotion."\" ";
+                               	   	        				break;
+                               	   	        		}
+                               	   	        }
+                               	   	                                      	   	        
+                               	   	        $output  .=" <div id=\"videoid-".$videoid."\" class=\"col-xs-18 col-sm-6 col-md-4\"> ";
+                               	   	                 $output  .=" <div class=\"thumbnail\"> ";
+                               	   	                          $output  .= $outputVideo;
+                               	   	                          $output  .=" <div class=\"caption\"> ";
+                               	   	                                   $output  .="<h3> <a title=\"".$rowVideo["libelle"]."\" class=\"lightboxLink\" href=\"".$videoSrc."\"
+                               	   	                                                       type=\"text/html\" ".$videoData."
+                                                                                           data-gallery> ".$videoLibelle." </a> </h3>";                              	   	                                                           	   	                                   	                                	   	                                   
+                               	   	                          $output  .=" </div> ";
+                               	   	                 $output  .=" </div> ";
+                               	   	        $output  .=" </div> ";
+                               	   }                              	
+                               }  else {
+                               	$output  .="<div class=\"panel panel-default\"><div class=\"panel-body\" style=\"text-align:center;\"> Aucune video n'a été retrouvée. </div> </div> ";
+                               }        
+              $output .= "</div> </div> ";
+              
+              echo $output;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headScript();             	  
+              	  echo $this->headStyle();
+              }                   
+    ?>
+ </div>

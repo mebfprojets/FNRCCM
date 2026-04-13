@@ -1,0 +1,213 @@
+<?php
+   $users          = $this->users;
+   $formSubmit     = $this->url(array("module" => "admin", "controller" => "accounts" , "action" => "import" ) , "default" ) ;
+   $linkCancel     = $this->url(array("module" => "admin", "controller" => "accounts" , "action" => "list")    , "default" ) ;
+   $linkUserProfil = $this->url(array("module" => "admin", "controller" => "profil" ) , "profile" ) ;
+
+   $basePath   = VIEW_BASE_PATH;   
+   $jq         = $this->jQuery();
+   
+   $jq->addStyleSheet($basePath . "/js/fileupload/css/jquery.fileupload.css");
+   $jq->addStyleSheet($basePath . "/js/fileupload/css/jquery.fileupload-ui.css");
+   $jq->addStyleSheet($basePath . "/css/sirahfileupload.css");
+   $jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+   $jq->addJavascriptFile($basePath . "/js/fileupload/js/vendor/jquery.ui.widget.js");
+   $jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.iframe-transport.js");
+   $jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.fileupload.js");
+   $jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.fileupload-ui.js");
+   $jq->addOnLoad("
+   		  jQuery('#accounts').filestyle({
+   		                                   buttonText  : ' Choisir un fichier',
+   		                                   classButton : 'btn btn-default',
+   		                                   classIcon   : 'glyphicon glyphicon-folder-open',
+   		                                   icon        : true
+   		                                });
+   		  jQuery('#importUsersList').fileupload({
+   		                                          url      : '".$formSubmit."' ,
+                                                  dropZone : jQuery('#dropzone'),
+   		                                          type     : 'POST',
+                                                  dataType : 'json',
+                                                  add      : function ( e , data ) {
+                                                      jQuery('#importUserBtn').on('click' , function( event ) {
+   		                                                 event.preventDefault();
+   		                                                 SIRAH.loading.on( jQuery('.modal-body').first() , 'Patientez , import des nouveaux comptes utilisateurs, cette opération peut prendre beaucoup de temps...' );
+   		                                                 var jqXhr    = data.submit();
+                                                         jqXhr.success( function( result , textStatus , jqXHR ){
+                                                              if( result.success != undefined ) {
+   		                                                           SIRAH.error.raise( jQuery('#importUsersList') , result.success , 'success');
+   		                                                          
+   		                                                      } else if( result.error != undefined ) {
+   		                                                         SIRAH.error.raise( jQuery('#importUsersList') , result.error , 'error');
+   		                                                         SIRAH.loading.off( true );
+   		                                                         return false;
+   		                                                      } else {
+   		                                                         SIRAH.error.raise( jQuery('#importUsersList') , result , 'error');
+   		                                                         SIRAH.loading.off( true );
+   		                                                         return false;
+   		                                                      }
+   		                                                     var usersListTable = jQuery('#usersListTable');
+   		                                                     var importDialog   = jQuery('#dialogImportAccounts');
+   		                                                     var users          = result.users;
+   		                                                     if( usersListTable ) {
+   		                                                         jQuery.each( users , function( index , user ) {
+   		                                                           var userid          = parseInt( user.userid );
+   		                                                           var dateInscription = user.registeredDate;
+   		                                                           var dateConnexion   = user.lastConnectedDate;
+   		                                                           var email           = user.email;
+   		                                                           var username        = user.username;
+   		                                                           var lastname        = user.lastname;
+   		                                                           var firstname       = user.firstname;
+   		
+   		                                                           var userRow         = jQuery('<tr/>').attr('id' , 'userRowId-'+userid );
+   		                                                           var userRowCheckBox = jQuery('<td/>').attr('id' , 'checkboxCell-'+userid )
+   		                                                                                                .append(jQuery('<input type=\'checkbox\' name=\'userids[]\' id=\'userids-'+userid+'\' />'));
+   		                                                           var userNameCol     = jQuery('<td/>').attr('id' , 'name-'+userid )
+   		                                                                                                       .append( lastname+' '+firstname );
+   		                                                           var userIdentifiantCol = jQuery('<td/>').attr('id' , 'userIdentifiant-'+userid)
+   		                                                                                          .append( jQuery('<a href=\'".$linkUserProfil."/username/'+username+'\'> '+username+' <a/>'));
+   		                                                           var userEmailCol    = jQuery('<td/>').attr('id' , 'userEmail-'+userid )
+   		                                                                                                       .append( email );
+   		                                                           var registeredDateCol = jQuery('<td/>').attr('id' , 'registeredDate-'+userid )
+   		                                                                                                         .append( dateInscription );
+   		                                                           var dateConnexionCol  = jQuery('<td/>').attr('id' , 'lastConnectedDate-'+userid )
+   		                                                                                                         .append( dateConnexion );
+   		                                                           userRow.append( userRowCheckBox ) . append( userNameCol ) . append( userIdentifiantCol )
+   		                                                                  .append( userEmailCol ) . append( registeredDateCol ) . append( dateConnexionCol );
+   		                                                                   
+   		                                                           usersListTable.find('tbody').prepend( userRow );   		                            
+   		                                                               });
+   		                                                           }
+   		                                                       SIRAH.loading.off( true );
+   		                                                       setTimeout(function(){ jQuery('#dialogImportAccounts').dialog2('close'); } , 5000 );
+   		                                                  });
+   		                                                 jqXhr.error(function(jqXHR, textStatus, errorThrown){
+                                                                  SIRAH.error.raise( jQuery('#importUsersList') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+                                                                 return false;           
+                                                          });
+                                                      }); 
+                                                  }
+   		                                       }); 
+
+jQuery('#importUsersList').bind('fileuploaddrop', function (event , data) {
+           event.preventDefault();
+   		   SIRAH.loading.on( jQuery('.modal-body').first() , 'Patientez , import des nouveaux comptes utilisateurs, cette opération peut prendre beaucoup de temps...' );
+   		   var jqXhr    = jQuery(this).fileupload('send' , data);
+           jqXhr.success( function( result , textStatus , jqXHR ){
+                          if( result.success != undefined ) {
+   		                      SIRAH.error.raise( jQuery('#importUsersList') , result.success , 'success');
+   		                                                          
+   		                  } else if( result.error != undefined ) {
+   		                      SIRAH.error.raise( jQuery('#importUsersList') , result.error , 'error');
+   		                      SIRAH.loading.off( true );
+   		                      return false;
+   		                 } else {
+   		                      SIRAH.error.raise( jQuery('#importUsersList') , result , 'error');
+   		                      SIRAH.loading.off( true );
+   		                 }
+   		                      var usersListTable = jQuery('#usersListTable');
+   		                      var importDialog   = jQuery('#dialogImportAccounts');
+   		                      var users          = result.users;
+   		                      if( usersListTable ) {
+   		                          jQuery.each( users , function( index , user ) {
+   		                                       var userid          = parseInt( user.userid );
+   		                                       var dateInscription = user.registeredDate;
+   		                                       var dateConnexion   = user.lastConnectedDate;
+   		                                       var email           = user.email;
+   		                                       var username        = user.username;
+   		                                       var lastname        = user.lastname;
+   		                                       var firstname       = user.firstname;
+   		
+   		                                       var userRow         = jQuery('<tr/>').attr('id' , 'userRowId-'+userid );
+   		                                       var userRowCheckBox = jQuery('<td/>').attr('id' , 'checkboxCell-'+userid )
+   		                                                                            .append(jQuery('<input type=\'checkbox\' name=\'userids[]\' id=\'userids-'+userid+'\' />'));
+   		                                       var userNameCol     = jQuery('<td/>').attr('id' , 'name-'+userid )
+   		                                                                                                       .append( lastname+' '+firstname );
+   		                                       var userIdentifiantCol = jQuery('<td/>').attr('id' , 'userIdentifiant-'+userid)
+   		                                                                               .append( jQuery('<a href=\'".$linkUserProfil."/username/'+username+'\'> '+username+' <a/>'));
+   		                                       var userEmailCol    = jQuery('<td/>').attr('id' , 'userEmail-'+userid )
+   		                                                                            .append( email );
+   		                                       var registeredDateCol = jQuery('<td/>').attr('id' , 'registeredDate-'+userid )
+   		                                                                              .append( dateInscription );
+   		                                       var dateConnexionCol  = jQuery('<td/>').attr('id' , 'lastConnectedDate-'+userid )
+   		                                                                                                         .append( dateConnexion );
+   		                                       userRow.append( userRowCheckBox ) . append( userNameCol ) . append( userIdentifiantCol )
+   		                                              .append( userEmailCol )    . append( registeredDateCol ) . append( dateConnexionCol );
+   		                                                                   
+   		                                       usersListTable.find('tbody').prepend( userRow );   		                            
+   		                          });
+   		                   }
+   		                     SIRAH.loading.off( true );
+   		                     setTimeout(function(){ jQuery('#dialogImportAccounts').dialog2('close'); } , 5000 );
+   		   });
+   		   jqXhr.error(function( jqXHR, textStatus, errorThrown){
+                                 SIRAH.error.raise( jQuery('#importUsersList') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+                                 return false;           
+           });
+   });
+jQuery(document).bind('dragover', function (e) {
+          var dropZone = jQuery('#dropzone'),
+          timeout = window.dropZoneTimeout;
+          if (!timeout) {
+              dropZone.addClass('in');
+           } else {
+              clearTimeout(timeout);
+           }
+         var found = false,
+      	         node = e.target;
+          do {
+               if (node === dropZone[0]) {
+       		   found = true;
+       		   break;
+       	    }
+       	     node = node.parentNode;
+              } while (node != null);
+              if (found) {
+                 dropZone.addClass('hover');
+               } else {
+                  dropZone.removeClass('hover');
+               }
+           window.dropZoneTimeout = setTimeout(function () {
+                 window.dropZoneTimeout = null;
+                  dropZone.removeClass('in hover');
+            }, 100);
+    }); 
+   		
+   		");
+?>
+
+<?php $this->headStyle()->captureStart() ?>
+     .bar 
+      {
+          height: 18px;
+          background: green;
+        }
+        div.bootstrap-filestyle input[type="text"]
+        {
+          width:auto;
+          margin-left:5px;
+          margin-right:5px;
+          margin-bottom:0;
+        }
+        div.bootstrap-filestyle
+        {
+          margin-bottom:10px;
+         }
+<?php $this->headStyle()->captureEnd()   ?> 
+<div id="importModal" class="row" style="width:auto">
+  <form style="margin-bottom:10px;" class="form-horizontal" id="importUsersList"  action="<?php echo $formSubmit; ?>" enctype="multipart/form-data" method="post">
+      <div class="row col-md-12 fileUploadRow">
+           <div class="col-md-4"> <label class="control-label" for="accounts"> Choisir un fichier ( csv , xls , xlxs ) </label> </div>
+           <div class="col-md-8"> <input name="accounts" type="file" id="accounts" /> <button type="submit" class="btn btn-primary" id="importUserBtn"> Importer </button> </div>		   
+	  </div>
+	  <div id="dropzone" class="row well fade">
+           Vous pouvez aussi glisser-deposer votre fichier dans ce cadre puis cliquer sur le bouton importer
+     </div>   
+  </form>   
+    <?php
+      if( $this->isAjax ) {
+          echo $this->jQuery();
+          echo $this->headStyle();
+      }
+      ?>
+ </div>  
+   

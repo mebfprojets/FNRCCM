@@ -1,0 +1,85 @@
+<?php 
+   $videos      = $this->videos;
+   $videoSources= $this->videoSources;
+   $article     = $this->article;
+   $articleid   = $this->articleid;
+   $galleryid   = $this->galleryid;
+ 
+   $linkCreate  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"addvideo","articleid"=>$articleid,"galleryid"=>$galleryid), "default") ;
+   $linkArticle = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"infos","articleid"=>$articleid,"galleryid"=>$galleryid), "default") ;
+   $linkDelete  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"delvideos","articleid"=>$articleid,"galleryid"=>$galleryid), "default") ;
+   $linkInfos   = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"infos")   , "default") ;
+ 
+   $buttonbar   = $this->buttonbar;
+   $output      = " <table id=\"articleVideos\" class=\"table table-hover table-striped\" align=\"left\" style=\"text-align:left;\">
+                        <thead><tr><th width=\"35%\"> Type de vidéos </th><th width=\"55%\"> Désignations </th><th width=\"10%\"> Actions </th> </tr></thead>
+						<tbody>";
+                    if( count(   $videos ) ) {
+						foreach( $videos  as $video ) {
+							     $videoid      = intval($video["videoid"]);
+								 $videoSrc     = (isset($videoSources[$video["videosrc"]]))?$videoSources[$video["videosrc"]] : "";
+								 $videoLib     = $video["libelle"];
+								 $bgColorClass = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+								 
+								 $linkViewVideo= $this->url(array("module"=>"admin","controller"=>"galleryvideos","action"=>"infos","id"=>$videoid,"galleryid"=>$galleryid,"articleid"=>$articleid), "default") ;
+								 $output      .= "<tr id=\"videoId-".$videoid."\" class=\" ".$bgColorClass."\">";
+								 $output      .= "
+												<td style=\"text-align:left;\" class=\" ".$bgColorClass."\"><a title=\"Visualiser cette vidéo\" class=\"dialogViewInfos\" href=\"".$linkViewVideo."\">".$videoSrc ."</a> </td>
+												<td style=\"text-align:left;\" class=\" ".$bgColorClass."\"><a title=\"Visualiser cette vidéo\" class=\"dialogViewInfos\" href=\"".$linkViewVideo."\">".$videoLib ."</a> </td>
+												<td style=\"text-align:left;\" class=\" ".$bgColorClass."\"> 
+													<div class=\"btn-group\" role=\"group\">
+														<button type=\"button\" class=\"btn btn-danger pull-left delVideo\" title=\"Supprimer cette vidéo\" id=\"delVideoId-".$videoid."\"><span class=\"glyph-icon icon-remove\"> </span> </button>										    
+													</div>
+												</td>";
+							     $output   .= "</tr>";
+						}
+					}  else {
+						         $output   .=" <tr><td colspan=\"4\"> AUCUNE VIDEO N'A ETE RETROUVEE DANS CET ARTICLE <a href=\"".$linkCreate."\" title=\"Ajouter une nouvelle vidéo\"> CLIQUEZ SUR CE LIEN POUR AJOUTER UNE VIDEO...</a> </td></tr>";
+					}						
+	$output     .= "    </tbody>
+	                </table>
+	                 ";
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+	            jQuery(document).delegate('.documentDialog,.pdfDialog,#documentDialog','dialog2.closed',function(){
+					   var e = jQuery(this);			   
+					   if( e.find('video').eq(0).attr('id')!==undefined) {
+						   e.find('video').each(function(){this.pause();this.src='';this.innerHTML='&nbsp;'; });
+						   document.location.href='".$linkArticle."';
+					   }		   
+				});
+	            jQuery('.delVideo').css('cursor','pointer');	  
+				jQuery('.delVideo').click(function(){ 
+						event.preventDefault();        
+						var videoid = parseInt(jQuery(this).attr('id').replace('delVideoId-',''));
+						jQuery('#dialogDeleteVideo').remove();
+						var dialogDeleteVideo = jQuery('<div> Voulez-vous vraiment supprimer cette vidéo ? </div>').attr('id','dialogDeleteVideo');
+						dialogDeleteVideo.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick: true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+						dialogDeleteVideo.dialog2('addButton','<span class=\'glyph-icon icon-trash-o\'></span> Supprimer une vidéo',{primary : true , click :
+														  function(){
+															jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',type:'GET',data:{'videoids[]':[videoid]},            		                                                               
+																		success:function(data) {
+																			if( data.error !== undefined) {
+																				SIRAH.error.raise(jQuery('#dialogDeleteVideo') , data.error);
+																				return;
+																			} else if(data.success !== undefined) {
+																				SIRAH.error.raise(    jQuery('#dialogDeleteVideo'), data.success , 'success');
+																				setTimeout(function(){jQuery('#dialogDeleteVideo').dialog2('close');jQuery('#videoId-'+videoid).remove();},1000);
+																			}
+																		}
+															});
+												}
+						});
+						dialogDeleteVideo.dialog2('addButton','Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');jQuery(this).remove();}});
+						dialogDeleteVideo.dialog2('open');
+																							   
+				});
+ 
+       ";    
+    $jq->addOnLoad($onLoad);
+	
+ 
+?>
+             

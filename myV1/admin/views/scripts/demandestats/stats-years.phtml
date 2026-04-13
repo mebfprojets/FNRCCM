@@ -1,0 +1,37 @@
+<?php
+    $statyears  = $this->rows;
+?>
+<table id="statYear"  class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th width="80%"> Années </th>
+			<th width="20%"> Nombre </th>
+		</tr>         
+	</thead>          
+	<tbody>
+    <?php 
+		$output      = "";
+		$total       = 0;
+		if( count(   $statyears )) {
+			foreach( $statyears as $statYear ) {
+					  if( empty( $statYear['annee'] ))
+						  continue;
+					 $rowBg    = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+					 $linkList = $this->url(array("module"=>"admin","controller"=> "demandes","action"=> "list","annee"=> $statYear['annee']),"default");
+					 $output.="<tr style=\"background-color:".$rowBg."\">";
+							$output.="<td> <a title=\"Accéder aux demandes de cette année\" href=\"".$linkList."\">".$statYear['annee'] ." </a></td>";
+							$output.="<td> <a title=\"Accéder aux demandes de cette année\" href=\"".$linkList."\">".$statYear['nombre']." </a></td>";
+					 $output.="</tr>";
+					 $total += $statYear['nombre'];
+			}   
+			$output.="<tr style=\"background-color:".$rowBg."\">";
+					$output.="<td> TOTAL :    </td>";
+					$output.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+			$output.="</tr>";
+		}  else {
+			$output.="<tr><td style=\"text-align:center;\" colspan=\"2\"> AUCUNE INFORMATION DE CE TYPE N'A PU ETRE TROUVEE. </td> </tr>";
+		}
+		echo $output;
+	?>          
+    </tbody>         
+</table>

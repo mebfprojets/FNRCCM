@@ -1,0 +1,266 @@
+<?php 
+$captcha            = $this->captcha;
+$messages           = $this->messages;
+$token              = $this->token;
+$data               = $this->data;
+$defaultCountry     = (isset($data["country"]) && !empty($data["country"])) ? $data["country"] : "BF";
+ 
+$formSubmit         = $this->url(array("controller"=>"members","action"=>"edit","module"=>"public"),"default",true);
+$linkCancel         = $this->url(array("controller"=>"index"  ,"action"=>"index"        , "module"=> "public"),"default",true);
+$linkCheckUsername  = $this->url(array("controller"=>"ajaxres","action"=>"checkusername", "module"=> "public"),"default",true);
+$linkCheckEmail     = $this->url(array("controller"=>"ajaxres","action"=>"checkemail"   , "module"=> "public"),"default",true);
+ 
+$basePath           = ROOT_PATH.'/myTpl/public';
+$situations         = array("Célibataire" => "Célibataire","Marié(e)" => "Marié(e)","Divorcé(e)" => "Divorcé(e)","Veuf(ve)"=> "Veuf(ve)");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel > .list-group .list-group-item{border-width:1px !important;border-top:1px solid #ddd !important}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " 
+var  formSelector= jQuery('#editAccountForm');
+jQuery('.birthday,#birthday').pickadate({format:'dd/mm/yyyy',formatSubmit:'dd/mm/yyyy',hiddenName:true,hiddenSuffix:'__suffix',hiddenPrefix:'prefix__',selectYears:100,selectMonths:true,min:new Date(1950,1,1),max:new Date(),onStart:function(){this.set('select','".$data["birthday"]."');}});
+jQuery('.editButton').click(function( event ){
+    event.preventDefault();      
+    var  formSelector= jQuery('#editAccountForm');
+    var  firstname   = jQuery.trim(formSelector.find('#firstname').val());
+    var  lastname    = jQuery.trim(formSelector.find('#lastname').val());
+    var  email       = jQuery.trim(formSelector.find('#email').val());
+    var  tel1        = jQuery.trim(formSelector.find('#tel1').val());
+      
+    if(SIRAH.util.isEmpty(lastname)){
+         formSelector.find('#lastname').addClass('input-error');
+         formSelector.find('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+    } else {
+         formSelector.find('#lastname').removeClass('input-error');
+         formSelector.find('#name-validation-message').html('');
+    }
+    if(SIRAH.util.isEmpty(firstname)){
+         formSelector.find('#firstname').addClass('input-error');
+         formSelector.find('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+         return;
+    }  else {
+          formSelector.find('#firstname').removeClass('input-error');
+          formSelector.find('#name-validation-message').html('');
+    }    
+    if(SIRAH.util.isEmpty(tel1)){
+        formSelector.find('#tel1').addClass('input-error');
+        formSelector.find('#phone-validation-message').html('');
+         SIRAH.error.raise('phone-validation-message','Entrez un numéro de téléphone valide');
+         return;
+    }  else {
+         formSelector.find('#tel1').removeClass('input-error');
+         formSelector.find('#phone-validation-message').html('');
+    }
+    if(!SIRAH.validators.isEmailAddress(email)){
+         formSelector.find('#email').addClass('input-error');
+         formSelector.find('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+    }  else {
+         formSelector.find('#email').removeClass('input-error');
+         formSelector.find('#email-validation-message').html('');
+    }         
+    formSelector.find('#lastname').val(lastname);
+    formSelector.find('#firstname').val(firstname);
+    formSelector.find('#email').val(email);
+    formSelector.find('#tel1').val(tel1);
+    formSelector.submit();
+});
+formSelector.find('#lastname').bind('blur change',function(e){
+    e.preventDefault();
+	var formSelector = jQuery('#editAccountForm');
+    var lastname     = jQuery.trim(jQuery(this).val());
+    if(!SIRAH.util.isEmpty(lastname)){
+        formSelector.find('#lastname').removeClass('input-error');
+        formSelector.find('#name-validation-message').html('');
+    } else {
+        formSelector.find('#lastname').addClass('input-error');
+        return;
+    }
+  });  
+formSelector.find('#firstname').bind('blur change',function(e){
+    e.preventDefault();
+	var  formSelector = jQuery('#editAccountForm');
+    var firstname     = jQuery.trim(jQuery(this).val());
+    if(!SIRAH.util.isEmpty(firstname)){
+        formSelector.find('#firstname').removeClass('input-error');
+        formSelector.find('#name-validation-message').html('');
+    }  else {
+        formSelector.find('#firstname').addClass('input-error');
+        return;
+    }
+});  
+formSelector.find('#code').bind('blur change',function(e){
+    e.preventDefault();
+	var  formSelector = jQuery('#editAccountForm');
+    var code      = jQuery.trim(jQuery(this).val());
+    if( code.length >= 3){
+		jQuery('#code-validation-message').html('Vérification du nom d\'utilisateur...');
+		SIRAH.request.get(formSelector,'".$linkCheckUsername."', {beforeSend : function(){},			   
+							success : function( data ) {
+										formSelector.find('#code-validation-message').html('');
+										formSelector.find('#code').removeClass('input-error');
+										if( data.error !== undefined   ) {
+											formSelector.find('#code').addClass('input-error');
+											formSelector.find('#code-validation-message').html('');
+											SIRAH.error.raise('code-validation-message',data.error);
+										}
+								  }
+		});
+	}	else {
+		formSelector.find('#code').addClass('input-error');
+		formSelector.find('#code-validation-message').html('Votre nom d\'utilisateur doit comporter au moins 4 caractères...');
+		return;
+	}				  
+}); 
+formSelector.find('#email').bind('blur change',function(e){
+      e.preventDefault();
+	  var  formSelector = jQuery('#editAccountForm');
+      var email         = jQuery.trim(jQuery(this).val());
+	  if( SIRAH.validators.isEmailAddress(email)){	
+          formSelector.find('#email-validation-message').html('Vérification de l\'adresse Email...');	  
+		  SIRAH.request.get(formSelector,'".$linkCheckEmail."', {beforeSend : function(){},			   
+							success : function( data ) {
+								formSelector.find('#email-validation-message').html('');
+								formSelector.find('#email').removeClass('input-error');
+								if( data.error !== undefined   ) {
+									formSelector.find('#email').addClass('input-error');
+									formSelector.find('#email-validation-message').html('');
+									SIRAH.error.raise('email-validation-message',data.error);
+								}
+							}
+		  });
+	  } else {
+		  formSelector.find('#email').addClass('input-error');
+		  formSelector.find('#email-validation-message').html('');
+		  SIRAH.error.raise('email-validation-message','Entrez une adresse email valide');
+		  return;
+	  }         	  
+});     
+ 
+formSelector.find('#tel1').bind('blur change',function(e){
+      e.preventDefault();
+	  var  formSelector = jQuery('#editAccountForm');
+      var tel1          = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(tel1)){
+        formSelector.find('#tel1').removeClass('input-error');
+        jQuery('#phone-validation-message').html('');
+      }  else {      
+        formSelector.find('#tel1').addClass('input-error');
+         return;     
+      }
+});  
+jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';}); ";
+$jq->addOnLoad($onLoad);
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.date.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.time.css");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.date.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.time.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/translations/fr_FR.js");	
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="editAccountForm" class="form-horizontal" role="form" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<ul class="list-group">
+			<li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label" for="name">Nom*: </label>
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group">
+						   <input id="lastname"  type="text" maxlength="150" class="form-control" title="Nom de famille" placeholder="Nom de famille" name="lastname"  value="<?php echo $data['lastname'];?>">
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <input id="firstname" type="text" maxlength="350" class="form-control" title="Prénom"         placeholder="Prénom"         name="firstname" value="<?php echo $data['firstname'];?>">											  
+						</div>					
+					</div>
+					<p id="name-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-sm-2  col-md-2 control-label" for="name"> Identifiant*: </label>
+					 <div   class="col-sm-10 col-md-10"><input id="code" type="text" maxlength="150"class="form-control" title="Votre nom d'utilisateur" placeholder="Votre identifiant" name="code" value="<?php echo $data['code']; ?>"></div>           
+				</div>
+				<p id="code-validation-message" class="validation-message"></p>       
+		    </li>
+		    <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-sm-2  col-md-2 control-label" for="name"> Adresse e-mail*: </label>
+					<div   class="col-sm-10 col-md-10"><input id="email" type="text" maxlength="150" class="form-control" title="Votre adresse email" placeholder="Votre adresse email"  name="email" value="<?php echo $data['email']; ?>"></div>              
+				</div>  
+				<p id="email-validation-message" class="validation-message"></p>   
+		    </li>		
+		    <li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-sm-2 col-md-2 control-label" for="birthday"> Date/lieu de naissance:</label>
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group">
+						    <input type="text" name="birthday"     id="birthday"    class="form-control birthday" readonly value="<?php echo $data["birthday"]; ?>" />
+							<span class="input-group-addon"><i class="fa fa-calendar"></i></span> 
+							<input type="text" name="birthaddress" id="birthaddress" class="form-control" placeholder="Lieu de naissance" value="<?php echo $data["birthaddress"]; ?>" />
+							 
+						</div>
+					</div>
+				</div>
+			</li>
+			<li class="list-group-item">       
+				<div class="form-group">
+				    <label class="col-md-2 col-sm-2 control-label"> Adresse: </label>
+					<div   class="col-sm-10 col-md-10">
+					    <div class="input-group">
+							<?php echo $this->formSelect("country", $data["country"],array("class"=>"form-control"),$this->countries()); ?> 
+							<span  class="input-group-btn" style="width:0px;"></span>
+							<input name="address" id="address" type="text" maxlength="100" title="Votre adresse" placeholder="Votre adresse" class="form-control">
+						</div>
+					</div>					
+				</div>  
+		    </li>
+			<li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label">  <b>Téléphone*:</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group">
+						   <input id="tel1" type="text" maxlength="24" class="form-control" title="Numéro de téléphone"  placeholder="Numéro de téléphone"  name="tel1" value="<?php echo $data['tel1']; ?>">
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <input id="tel2" type="text" maxlength="24" class="form-control" title="Votre second  mobile" placeholder="Votre second  mobile" name="tel2" value="<?php echo $data['tel2']; ?>">											  
+						</div>					
+					</div>
+					<p id="phone-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>
+            <li class="list-group-item">       
+				<div class="form-group">
+				    <label class="col-md-2 col-sm-2 control-label">Nationalité: </label>
+					<div   class="col-sm-10 col-md-10"><?php echo $this->formSelect("nationalite",$defaultCountry, array("class" => "form-control") , $this->countries()); ?> </div>					
+				</div>  
+		    </li>			
+			<li class="list-group-item">      
+				<div class="form-group">    
+					<label class="col-md-2 col-sm-2 col-xs-hidden control-label"> Sexe/Situation matrimoniale*: </label>
+					<div   class="col-md-5 col-sm-5">
+						<label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"]== "M") echo "checked"; ?>> Homme </label>          
+						<label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"]== "F") echo "checked"; ?>> Femme </label>
+					</div>
+					<div   class="col-md-5 col-sm-5"> <?php echo $this->formSelect("matrimonial", $data["matrimonial"] , array("class" => "form-control") , $situations); ?></div>
+				</div>
+			</li>	
+            <li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-sm-2  col-md-2 control-label" for="passport"> N° Passport: </label>
+					 <div   class="col-sm-10 col-md-10"><input id="passport" type="text" maxlength="200"class="form-control" title="Votre numéro passport" placeholder="Votre numéro passport" name="passport" value="<?php echo $data['passport']; ?>"></div>           
+				</div>     
+		    </li>			
+	    </ul>  
+	    <input id="city" type="hidden" name="city" value="0" />     
+	    <div class="panel-footer">
+		    <div class="btn-group"><button id="cancelButton" class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"></i> Annuler </button> </div>
+			<div class="btn-group"><button id="editButton"   class="btn btn-primary editButton">  <i class="glyph-icon icon-floppy-disk"> </i> Mettre à jour </button> </div>			
+	    </div>
+    </div>
+</form>

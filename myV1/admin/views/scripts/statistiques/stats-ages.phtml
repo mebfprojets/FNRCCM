@@ -1,0 +1,36 @@
+<?php
+      $statages  = $this->rows;
+?>
+<table id="statAge"  class="table table-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="80%"> Transches d'âges </th>
+                     <th width="20%"> Nombre           </th>
+                </tr>         
+          </thead>          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $total       = 0;
+                     if( count(   $statages )) {
+                     	 foreach( $statages as $statAge ) {
+                     	 	      if( empty( $statAge['tranche_min'] ) || empty( $statAge['tranche_max']))
+                     	 	      	  continue;
+                     	 	     $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                     	 	     $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output.="<td> <a href=\"#\">".$statAge['libelle']." </a></td>";
+                     	 	            $output.="<td> <a href=\"#\">".$statAge['nombre']."  </a> </td>";
+                     	 	     $output.="</tr>";
+                     	 	     $total += $statAge['nombre'];
+                     	 }   
+                     	 $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $output.="<td> TOTAL :    </td>";
+                     	        $output.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+                     	 $output.="</tr>";
+                     }  else {
+						 $output.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+					 }
+                     echo $output;
+              ?>          
+          </tbody>         
+</table>

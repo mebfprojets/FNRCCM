@@ -1,0 +1,60 @@
+<?php
+$me               = Sirah_Fabric::getUser();
+$invoice          = $facture   = $this->invoice;
+$invoiceid        = $factureid = $this->invoiceid;
+$invoice          = $this->invoice;
+$billing_address  = $this->billing_address;
+$lignes           = $this->lignes;
+$produits         = $this->produits;
+$member  = $client= $this->client;
+$modelProduit     = $this->modelProduit;
+
+
+$modele           = (!empty($this->modele))?$this->modele : "default";
+
+$contenu          = $this->partial("factures/modeles/{$modele}.phtml",array("address"=>$billing_address,"invoiceid"=>$invoiceid,"invoice"=>$invoice,"facture"=>$facture,"client"=>$client,"lignes"=>$lignes,"produits"=>$produits));
+$printHeader      = true;
+$headerContent    = "";
+try {
+  $headerContent  = $this->partial("factures/modeles/{$modele}.header.phtml",array("invoice"=>$invoice,"facture"=>$invoice));
+} catch(Exception $e ) {
+  $printHeader    = false;
+}
+$showHeader       = !$printHeader;
+$headerPaddings   = ($printHeader)?5 : 45;
+$me               = Sirah_Fabric::getUser();
+$PDF              = new ProjectPdf_Default();
+$PDF->SetCreator(sprintf("%s %s", $me->lastname, $me->firstname ));
+$PDF->SetMargins(15,$headerPaddings, 15);
+$PDF->SetFooterMargin(30);
+$PDF->SetPrintHeader($printHeader);
+$PDF->SetTitle("Bon de facture");
+
+$margins         = $PDF->getMargins();
+$contenuWidth    = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+$PDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$PDF->AddPage('P', 'A4');
+$margins         = $PDF->getMargins();
+$contenuWidth    = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+
+if( $printHeader && !empty($headerContent) ) {
+	$PDF->setFillColor( 525 , 255 , 255 );
+	$PDF->setTextColor( 0 , 0 , 0 );
+	$PDF->writeHTMLCell($contenuWidth, 0, "","",$headerContent,  0, 0, true, "top", true);						
+	$PDF->Ln();
+}
+
+$PDF->SetFont("helvetica" , "" , 10);
+$PDF->writeHTML( $contenu , true , false , true , false , '' );
+
+if( $this->isAjax ) {
+	$invoiceFilename = "Facture".sprintf("%06d" , $invoiceid ).".pdf";
+	$myDataPath      = $me->getDatapath();
+    $fileTmpPath     = $myDataPath . $invoiceFilename;
+    echo $PDF->Output(  $fileTmpPath , "F");
+	echo ZendX_JQuery::encodeJson(array("success" => "La création de la facture s'est effectuée avec succès","tmpDocument" => $fileTmpPath ));
+    exit;
+} else {
+	$invoiceFilename = "Facture".sprintf("%06d", $invoiceid ).".pdf";
+    echo $PDF->Output( $invoiceFilename , "D");
+}

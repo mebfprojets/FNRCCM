@@ -1,0 +1,600 @@
+﻿code;libelle;code_fnere
+001001;CULTURE CÉRÉALIÈRE;0111
+001005;CULTURE DE FRUITS;0136
+002001;CULTURE DE CANNE À SUCRE;0136
+002005;CULTURE DE COTON;0114
+0111;CULTURE DE CÉRÉALES;0111
+0112;CULTURE DE TUBERCULES ET DE LÉGUMES À COSSE SECS;0112
+0113;CULTURE DE PLANTES OLÉAGINEUSES;0113
+0114;CULTURE DU COTON;0114
+0115;EGRENAGE DU COTON;0115
+0116;AUTRES CULTURES N.C.A;0116
+0121;CULTURE DE LÉGUMES;0121
+0122;"HORTICULTURE ; PÉPINIÈRES";0122
+0131;CULTURE DU CACAO;0131
+0132;CULTURE DU CAFÉ (CAFÉ COQUE) ET DU THÉ;0132
+0133;PRODUCTION DE CAFÉ MARCHAND;0132
+0134;CULTURE DE LA BANANE;0134
+0135;CULTURE DE L'ANANAS;0135
+0136;CULTURE D'AUTRES FRUITS;0136
+0137;CULTURE DE PLANTES À ÉPICES;0137
+0141;ELEVAGE DE BOVINS;0141
+0142;ELEVAGE D'OVINS, DE CAPRINS ET D'ÉQUIDÉS;0142
+0143;ELEVAGE DE PORCINS;0146
+0144;ELEVAGE DE VOLAILLE;0147
+0145;ELEVAGE DE CAMÉLIDÉS;0143
+0146;ELEVAGE D'ANIMAUX N.C.A;0148
+0150;CULTURE ET ÉLEVAGE ASSOCIÉS;0150
+0160;ACTIVITÉS ANNEXES À LA CULTURE ET À L'ÉLEVAGE;0160
+0170;CHASSE, PIÉGEAGE, REPEUPLEMENT EN GIBIER ET ACTIVITÉS ANNEXES;0170
+017001;APPUI CONSEIL EN RESSOURCES ANIMALES;0170
+0211;SYLVICULTURE;0211
+0212;EXPLOITATION FORESTIÈRE;0212
+0220;CUEILLETTE;0220
+0230;ACTIVITÉS ANNEXES À LA SYLVICULTURE ET À L'EXPLOITATION FORESTIÈRE;0230
+033001;GESTION DES HÔTELS;5500
+033002;GESTION DES RESTAURANTS;5610
+033003;GESTION DES DÉBITS DE BOISSONS;5620
+0501;PÊCHE ARTISANALE;0301
+0502;PÊCHE INDUSTRIELLE;0302
+0503;PISCICULTURE, AQUACULTURE;0303
+1000;"EXTRACTION DE CHARBON ET DE LIGNITE ; EXTRACTION DE TOURBE";0500
+1110;EXTRACTION DE PÉTROLE BRUT ET DE GAZ NATUREL;0601
+1120;ACTVITÉS ANNEXES À L'EXTRACTION DE PÉTROLE BRUT ET DE GAZ NATUREL;0602
+1200;EXTRACTION DE MINERAIS D'URANIUM;0721
+1310;EXTRACTION DE MINERAIS DE FER;0710
+1321;EXTRACTION DE MINERAIS DE MÉTAUX PRÉCIEUX;0722
+1322;EXTRACTION DE BAUXITE;0723
+1323;EXTRACTION DE MINERAIS DE CUIVRE;0724
+1324;EXTRACTION DE MINERAIS DE MANGANÈSE;0725
+1325;EXTRACTION D'AUTRES MINERAIS MÉTALLIQUES N.C.A;0726
+1410;EXTRACTION DE PIERRES, DE SABLES ET D'ARGILES;0810
+1421;EXTRACTION DE PHOSPHATES ET DE SELS EN POTASSIUM, NATURELS;0821
+1422;EXTRACTION DE MINÉRAUX POUR L'INDUSTRIE CHIMIQUE;0822
+1431;EXTRACTION OU PRODUCTION DE SEL ET DE NATRON;0823
+1433;ACTIVITÉS EXTRACTIVES DIVERSES N.C.A;0900
+1510;ABATTAGE, TRANSFORMATION ET CONSERVATION DES VIANDES;1010
+1521;CONGÉLATION DE POISSONS, CRUSTACÉS OU MOLLUSQUES;1021
+1522;SÉCHAGE, SALAGE OU FUMAGE DU POISSON;1022
+1523;AUTRES TRANSFORMATIONS ET CONSERVATIONS DES POISSONS, CRUSTACÉS ET MOLLUSQUES;1023
+1530;TRANSFORMATION ET CONSERVATION DE FRUITS ET LÉGUMES;1030
+1540;FABRICATION DE CORPS GRAS;1040
+1550;FABRICATION DE PRODUITS LAITIERS ET DE GLACES;1050
+1561;"TRAVAIL DES GRAINS ; FABRICATION D'ALIMENTS POUR ANIMAUX";1061
+1562;FABRICATION D'HUILE DE MAÏS ET AUTRES PRODUITS AMYLACÉS;1062
+1571;FABRICATION DE PAIN ET DE PÂTISSERIES FRAÎCHES;1071
+1572;BISCUITERIE ET PÂTISSERIES DE CONSERVATION;1072
+1573;FABRICATION DE PÂTES ALIMENTAIRES, DE COUSCOUS ET DE PRODUITS FARINEUX SIMILAIRES;1073
+1581;FABRICATION DE SUCRE;1091
+1582;"CHOCOLATERIE ; CONFISERIE";1092
+1583;TRANSFORMATION DU CAFÉ, DU THÉ;1093
+1584;FABRICATION DE CONDIMENTS ET ASSAISONNEMENTS;1094
+1585;FABRICATION DE PRODUITS ALIMENTAIRES DIVERS;1095
+1591;FABRICATION DE BOISSONS ALCOOLISÉES;1101
+1592;FABRICATION D'EAUX DE TABLE ET FABRICATION DE BOISSONS NON ALCOOLISÉES;1102
+1600;FABRICATION DE PRODUITS À BASE DE TABAC;1200
+1710;FILATURE, TISSAGE ET ENNOBLISSEMENT TEXTILE;1310
+1721;FABRICATION DE TAPIS ET DE CARPETTES;1321
+1722;FABRICATION D'AUTRES ARTICLES TEXTILES N.C.A;1322
+1730;FABRICATION D'ÉTOFFES ET D'ARTICLES DE BONNETERIE;1400
+1800;"FABRICATION D'ARTICLES D'HABILLEMENT ; PRÉPARATION ET TEINTURE DES FOURRURES";1511
+1911;APPRÊT ET TANNAGE DES CUIRS;1511
+1912;FABRICATION D'ARTICLES DE VOYAGE ET DE MAROQUINERIE, D'ARTICLES DE SELLERIE ET DE BOURRELLERIE;1512
+1920;FABRICATION DE CHAUSSURES;1520
+2010;SCIAGE ET RABOTAGE DU BOIS;1610
+2021;FABRICATION DE FEUILLES DE PLAÇAGE, DE CONTREPLAQUÉS ET DE PANNEAUX;1621
+2022;FABRICATION D'OUVRAGES DE CHARPENTERIE ET DE MENUISERIE, FABRICATION D'EMBALLAGES EN BOIS;1622
+2023;FABRICATION D'ARTICLES DIVERS EN BOIS OU EN LIÈGE;1623
+2024;FABRICATION D'ARTICLES DE VANNERIE OU DE SPARTERIE;1623
+2101;FABRICATION DE PÂTE À PAPIER, DE PAPIER ET DE CARTONS;1701
+2102;FABRICATION DE CARTON ONDULÉ ET D'EMBALLAGES EN PAPIER OU EN CARTON;1702
+2103;FABRICATION D'ARTICLES EN PAPIER OU EN CARTON;1703
+2211;EDITION DE LIVRES, JOURNAUX, REVUES ET PÉRIODIQUES;5810
+2212;EDITION D'ENREGISTREMENTS SONORES;1820
+2220;IMPRIMERIE;1810
+2230;REPRODUCTION D'ENREGISTREMENTS (SONORES, VIDÉO ET INFORMATIQUES);1820
+2310;RAFFINAGE PÉTROLIER;1910
+2320;"COKÉFACTION ; TRAITEMENT DE COMBUSTIBLES NUCLÉAIRES";1920
+2411;FABRICATION DE PRODUITS AZOTÉS ET D'ENGRAIS;2011
+2412;FABRICATION DE CHARBON DE BOIS;0213
+2413;FABRICATION D'AUTRES PRODUITS CHIMIQUES DE BASE;2012
+2421;INDUSTRIE PHARMACEUTIQUE;2101
+2422;FABRICATION DE MÉDICAMENTS TRADITIONNELS;2102
+2431;FABRICATION DE SAVONS, DÉTERGENTS ET PRODUITS D'ENTRETIEN;2021
+2432;FABRICATION DE PARFUMS ET DE PRODUITS DE TOILETTE;2022
+2441;FABRICATION DE PRODUITS AGROCHIMIQUES;2023
+2442;FABRICATION DE PEINTURES ET VERNIS, ADJUVANTS ET ENCRES D'IMPRIMERIE;2024
+2443;FABRICATION D'AUTRES PRODUITS CHIMIQUES;2026
+2450;FABRICATION DE FIBRES SYNTHÉTIQUES OU ARTIFICIELLES;2025
+2511;FABRICATION DE PNEUMATIQUES ET DE CHAMBRES À AIR, RECHAPAGE;2211
+2512;FABRICATION D'AUTRES OUVRAGES EN CAOUTCHOUC;2212
+2520;FABRICATION DE PRODUITS EN MATIÈRES PLASTIQUES;2220
+2610;FABRICATION DE VERRE ET D'ARTICLES EN VERRE;2310
+2621;FABRICATION DE CARREAUX EN CÉRAMIQUE;2321
+2622;FABRICATION DE TUILES ET DE BRIQUES EN TERRE;2322
+2623;FABRICATION D'AUTRES PRODUITS CÉRAMIQUES;2323
+2631;FABRICATION DE CIMENT, CHAUX ET PLÂTRE;2331
+2632;"FABRICATION DE MATÉRIAUX ET D'OUVRAGES EN CIMENT, EN BÉTON OU EN PLÂTRE ; TRAVAIL DE LA TERRE";2332
+2633;FABRICATION DE PRODUITS MINÉRAUX NON MÉTALLIQUES;2333
+2710;SIDÉRURGIE ET PREMIÈRE TRANSFORMATION DE L'ACIER;2410
+2720;MÉTALLURGIE ET PREMIÈRE TRANSFORMATION DES MÉTAUX PRÉCIEUX ET DES MÉTAUX NON FERREUX;2420
+2730;FONDERIE;2430
+2810;"CONSTRUCTION ET MENUISERIE MÉTALLIQUES ; FABRICATION DE CITERNES, RÉSERVOIRS ET GÉNÉRATEURS DE VAPEUR";2510
+2820;"FABRICATION D'AUTRES OUVRAGES EN MÉTAUX ; TRAVAIL DES MÉTAUX";2520
+2910;FABRICATION DE MACHINES D'USAGE GÉNÉRAL;2810
+29109;SERVICES D'INSTALLATION, DE RÉPARATION ET DE MAINTENANCE DE MACHINES ET APPAREILS D'USAGE GÉNÉRAL;3310
+2920;FABRICATION DE MACHINES D'USAGE SPÉCIFIQUE;2820
+2930;FABRICATION D'APPAREILS DOMESTIQUES N.C.A;2720
+3000;FABRICATION DE MACHINES DE BUREAU ET DE MATÉRIEL INFORMATIQUE;2612
+3100;FABRICATION DE MACHINES ET DE MATÉRIELS;2710
+3200;FABRICATION D'ÉQUIPEMENST ET APPAREILS DE RADIO, TÉLÉVISION ET COMMUNICATION;2621
+3300;FABRICATION D'INSTRUMENTS MÉDICAUX, DE PRÉCISION , D'OPTIQUE ET D'HORLOGERIE;2630
+3400;CONSTRUCTION DE VÉHICULES AUTOMOBILES;2900
+3510;CONSTRUCTIONS ET RÉPARATIONS NAVALES, AÉRONAUTIQUES ET FERROVIAIRES;3011
+3520;FABRICATION D'AUTRES ÉQUIPEMENTS DE TRANSPORT;3020
+3611;FABRICATION DE MATELAS ET DE SOMMIERS;3110
+3612;FABRICATION DE MEUBLES;3120
+3621;BIJOUTERIE;3210
+3622;FABRICATION D'INSTRUMENTS DE MUSIQUE;3220
+3623;FABRICATION DE BOUGIES OU D'ALLUMETTESS;3230
+3624;ACTIVITÉS DE FABRICATION DIVERSES;3230
+3700;RÉCUPÉRATION;3802
+4010;PRODUCTION ET DISTRIBUTION D'ÉLECTRICITÉ;3510
+4020;"PRODUCTION DE GAZ ; DISTRIBUTION PAR CONDUITE DE COMBUSTIBLES GAZEUX";3520
+4100;CAPTAGE, TRAITEMENT ET DISTRIBUTION D'EAU;3600
+4510;PRÉPARATION DES SITES;4301
+4521;CONSTRUCTION DES BÂTIMENTS;4120
+4522;GÉNIE CIVIL;4200
+4530;TRAVAUX D'INSTALLATION;4302
+4540;TRAVAUX DE FINITION;4303
+4550;LOCATION DE MATÉRIEL DE CONSTRUCTION AVEC OPÉRATEUR;4304
+5010;COMMERCE DE VÉHICULES AUTOMOBILES;4510
+5020;ENTRETIEN ET RÉPARATION DE VÉHICULES AUTOMOBILES;4520
+5030;COMMERCE DE PIÈCES ET D'ACCESSOIRES AUTOMOBILES;4530
+5041;COMMERCE DE MOTOCYCLES ET ACCESSOIRES;4540
+5042;RÉPARATION DE MOTOCYCLES;4540
+5050;COMMERCE DE DÉTAIL DE CARBURANTS;4728
+5110;ACTIVITÉS D'INTERMÉDIAIRES DU COMMERCE DE GROS;4610
+5121;COMMERCE DE GROS DE PRODUITS AGRICOLES BRUTS ET D'ALIMENTS POUR ANIMAUX;4621
+5122;COMMERCE DE GROS D'ANIMAUX VIVANTS, DE PEAUX ET CUIRS;4622
+5123;COMMERCE DE GROS DE PRODUITS ALIMENTAIRES, BOISSONS ET TABACS MANUFACTURÉS;4623
+5131;COMMERCE DE GROS DE TEXTILES, HABILLEMENT ET CHAUSSURES;4631
+5132;COMMERCE DE GROS DE PRODUITS PHARMACEUTIQUES ET MÉDICAUX;4632
+5133;COMMERCE DE GROS DE BIENS DE CONSOMMATION NON ALIMENTAIRES DIVERS;4633
+5141;COMMERCE DE GROS DE COMBUSTIBLES SOLIDES, LIQUIDES ET GAZEUX ET DE PRODUITS DÉRIVÉS;4641
+5142;COMMERCE DE GROS DE BOIS;4642
+5143;COMMERCE DE GROS D'AUTRES MATÉRIAUX DE CONSTRUCTION, QUINCAILLERIE ET FOURNITURES POUR PLOMBERIE;4643
+5144;COMMERCE DE GROS DE PRODUITS INTERMÉDIAIRES NON AGRICOLES DIVERS;4644
+514421;COMMERCE DE GROS DE DIAMANTS BRUTES ET DE DIAMANTS FAÇONNÉS;4644
+514422;COMMERCE DE GROS D'AUTRES PIERES PRÉCIEUSES ET SEMI-PRÉCIEUSES;0824
+514423;COMMERCE DE GROS DE MINERAIS MÉTALIQUE FERREUX ET NON FERREUX;0824
+514424;COMMERCE DE GROS DE METAUX FERREUX ET NON FERREUX SOUS FORMES PRIMAIRES;0824
+514425;COMMERCE DE GROS DE DEMI PRODUIT EN MÉTAUX FERREUX ET NON FERREUX N.C.A;0824
+514426;COMMERCE DE GROS D'OR ET D'AUTRES EN MÉTAUX PRÉCIEUX;0824
+5151;COMMERCE DE GROS DE MACHINES, D'ÉQUIPEMENTS ET FOURNITURES ÉLECTRIQUES;4651
+5152;COMMERCE DE GROS DE MACHINES, D'ÉQUIPEMENTS ET FOURNITURES MÉCANIQUES;4652
+5160;AUTRES COMMERCES DE GROS;4660
+5210;COMMERCE DE DÉTAIL EN MAGASIN NON SPÉCIALISÉ;4710
+5221;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE PRODUITS ALIMENTAIRES, BOISSONS ET TABACS MANUFACTURÉS;4721
+5222;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE PRODUITS PHARMACEUTIQUES ET MÉDICAUX, DE PARFUMERIE ET DE PRODUITS DE BEAUTE;4722
+5223;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE TEXTILES, HABILLEMENT, CHAUSSURES ET ARTICLES EN CUIR;4723
+5224;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ D'ARTICLES ET D'APPAREILS D'ÉQUIPEMENT DOMESTIQUE;4724
+5225;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE QUINCAILLERIE, PEINTURES, VERRE ET ARTICLES TECHNIQUES EN VERRE;4725
+5226;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE LIVRES, JOURNAUX ET ARTICLES DE PAPETERIE;4726
+5227;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE MATÉRIELS DE BUREAU, D'ORDINATEURS, D'ARTICLES OPTIQUES ET PHOTOGRAPHIQUES;4727
+5228;COMMERCE DE DÉTAIL EN MAGASIN SPÉCIALISÉ DE CYCLES ET AUTRES PRODUITS N.C.A;4729
+5230;COMMERCE DE DÉTAIL DE BIENS D'OCCASION;4729
+5241;COMMERCE DE DÉTAIL SUR ÉVENTAIRES ET MARCHÉS DE VIANDES ET POISSONS;4731
+5242;COMMERCE DE DÉTAIL SUR ÉVENTAIRES ET MARCHÉS DE FRUITS ET LÉGUMES FRAIS;4732
+5243;COMMERCE DE DÉTAIL SUR ÉVENTAIRES ET MARCHÉS DE CÉRÉALES, TUBERCULES ET AUTRES PRODUITS ALIMENTAIRES, BOISSONS ET TABACS MANU;4733
+5244;COMMERCE DE DÉTAIL SUR ÉVENTAIRES ET MARCHÉS DE TEXTILES, HABILLEMENT, CHAUSSURES ET ARTICLES EN CUIR;4734
+5245;COMMERCE DE DÉTAIL SUR ÉVENTAIRES ET MARCHÉS D'ARTICLES NON ALIMENTAIRES DIVERS;4735
+5246;AUTRES COMMERCES DE DÉTAIL HORS MAGASIN;4736
+5250;RÉPARATION D'ARTICLES PERSONNELES ET DOMESTIQUES;9520
+5510;HÔTELS ET AUTRES MOYENS D'HÉBERGEMENT DE COURTE DURÉE;5500
+5521;RESTAURANTS;5610
+5522;BARS, CAFÉS ET AUTRES DÉBITS DE BOISSON;5620
+6010;TRANSPORTS FERROVIAIRES;4910
+6021;TRANSPORTS URBAINS DE PASSAGERS;4921
+6022;TRANSPORTS INTERURBAINS DE PASSAGERS;4921
+6030;TRANSPORTS ROUTIERS DE MARCHANDISES;4922
+6040;TRANSPORTS PAR CONDUITES;4930
+6110;TRANSPORTS MARITIMES ET CÔTIERS;5010
+6120;TRANSPORTS PAR VOIES NAVIGABLES;5020
+6200;TRANSPORTS AÉRIENS;5101
+6311;MANUTENTION;5221
+6312;ENTREPOSAGE;5210
+6321;EXPLOITATION D'INFRASTRUCTURES DE TRANSPORT TERRESTRE;5222
+6322;ACTIVITÉS PORTUAIRES;5222
+6323;ACTIVITÉS AÉROPORTUAIRES;5102
+6331;ACTIVITÉS DES AGENCES DE VOYAGES;7900
+6332;ORGANISATION DU TRANSPORT DU FRET;5223
+6410;ACTIVITÉS DE POSTE ET DE COURRIER;5301
+6421;EXPLOITATION DE RÉSEAUX DE TÉLÉCOMMUNICATION;6100
+6511;ACTIVITÉS DE BANQUE CENTRALE;6411
+6512;AUTRES ACTIVITÉS MONÉTAIRES;6412
+6521;CRÉDIT-BAIL ET AUTRES ACTIVITÉS DE CRÉDIT;6420
+6522;AUTRES INTERMÉDIATIONS FINANCIÈRES;6432
+6601;ASSURANCE-VIE, CAPITALISATION ET CAISSES DE RETRAITE;6501
+6602;ASSURANCE-DOMMAGES;6502
+6710;ACTIVITÉS D'AUXILIAIRES FINANCIERS;6602
+6720;ACTIVITÉS D'AUXILIAIRES D'ASSURANCES;6603
+7011;PROMOTION IMMOBILIÈRE;4111
+7012;LOCATION IMMOBILIÈRE;6810
+7020;ACTIVITÉS DES AGENCES IMMOBILIÈRES;6820
+7111;LOCATION DE VOITURES;7701
+7112;LOCATION D'AUTRES MATÉRIELS DE TRANSPORT;5210
+7120;LOCATION DE MACHINES ET D'ÉQUIPEMENTS N.C.A;7702
+7130;LOCATION D'ARTICLES PERSONNELS ET DOMESTIQUES N.C.A;7703
+7210;CONSEIL INFORMATIQUE ET DÉVELOPPEMENTS LOGICIELS;6201
+7220;MAINTENANCE DE MATÉRIELS INFORMATIQUES ET D'ÉQUIPEMENTS DE BUREAU;6301
+7230;AUTRES ACTIVITÉS INFORMATIQUES;6202
+7310;RECHERCHE ET DÉVELOPPEMENT EXPÉRIMENTAL EN SCIENCES PHYSIQUES ET NATURELLES ET EN INGÉNIERIE;7210
+7320;RECHERCHE ET DÉVELOPPEMENT EXPÉRIMENTAL EN SCIENCES SOCIALES ET HUMAINES;7220
+7411;ACTIVITÉS JURIDIQUES;6901
+7412;"ACTIVITÉS COMPTABLES ET D'AUDIT ; CONSEIL FISCAL";6902
+7413;"ACTIVITÉS D'ÉTUDES DE MARCHÉ ET DE SONDAGE ; CONSEIL POUR LES AFFAIRES ET LE MANAGEMENT";7302
+7421;ACTIVITÉS D'ARCHITECTURE, D'INGÉNIERIE ET AUTRES ACTIVITÉS TECHNIQUES;7101
+7422;ACTIVITÉS D'ESSAIS ET D'ANALYSES TECHNIQUES;7102
+7431;PUBLICITÉ;7301
+7432;ACTIVITÉS D'ENQUÊTE ET DE SÉCURITÉ;8000
+7433;ACTIVITÉS DE NETTOYAGE;8102
+7434;ACTIVITÉS PHOTOGRAPHIQUES;7402
+7435;AUTRES ACTIVITÉS DE SERVICES FOURNIS PRINCIPALEMENT AUX ENTREPRISES N.C.A;8203
+7510;ACTIVITÉS D'ADMINISTRATION GÉNÉRALE, ÉCONOMIQUE ET SOCIALE;8410
+7520;ACTIVITÉS DE PRÉROGATIVE PUBLIQUE;8420
+7530;SÉCURITÉ SOCIALE OBLIGATOIRE;8430
+8010;ENSEIGNEMENT PRÉSCOLAIRE ET PRIMAIRE;8510
+8021;ENSEIGNEMENT SECONDAIRE GÉNÉRAL;8521
+8022;ENSEIGNEMENT SECONDAIRE TECHNIQUE ET/OU PROFESSIONNEL;8522
+8030;ENSEIGNEMENT SUPÉRIEUR;8530
+8040;ACTIVITÉS DE FORMATION PERMANENTE ET AUTRES;8540
+8511;ACTIVITÉS HOSPITALIÈRES;8610
+8512;PRATIQUE MÉDICALE ET/OU DENTAIRE;8620
+8513;ACTIVITÉS DES TRADIPRATICIENS;8631
+8514;ACTIVITÉS POUR LA SANTÉ HUMAINE N.C.A;8632
+8520;ACTIVITÉS VÉTÉRINAIRES;7500
+8530;ACTION SOCIALE;8800
+9000;ASSAINISSEMENT, VOIRIE ET GESTION DES DÉCHETS;3700
+9110;ACTIVITÉS DES ORGANISATIONS ÉCONOMIQUES;9410
+9120;ACTIVITÉS DES SYNDICATS DE TRAVAILLEURS;9420
+9131;ACTIVITÉS DES ORGANISATIONS RELIGIEUSES;9431
+9132;ACTIVITÉS DES ORGANISATIONS POLITIQUES;9432
+9133;ACTIVITÉS D'AUTRES ORGANISATIONS ASSOCIATIVES N.C.A;9433
+9211;ACTIVITÉS CINÉMATOGRAPHIQES ET VIDÉO;5910
+9212;ACTIVITÉS DE RADIO ET DE TÉLÉVISION;5920
+9213;AUTRES ACTIVITÉS DE SPECTACLE;8202
+9220;ACTIVITÉS D'AGENCES DE PRESSE;6302
+9230;ACTIVITÉS DES MÉDIATHÈQUES, MUSÉES ET RÉSERVES;9100
+9241;ACTIVITÉS DE JEUX DE HASARD ET D'ARGENT;9200
+9242;ACTIVITÉS SPORTIVES OU RÉCRÉATIVES N.C.A;9300
+9301;LAVAGE ET NETTOYAGE DE TEXTILES;9601
+9302;COIFFURE ET SOINS DE BEAUTÉ;9602
+9303;SERVICES FUNÉRAIRES;9603
+9304;AUTRES ACTIVITÉS DE SERVICES PERSONNELS;9604
+9500;ACTIVITÉS DES MÉNAGES EN TANT QU'EMPLOYEURS DE PERSONNEL DOMESTIQUE;9700
+9900;ACTIVITÉS DES ORGANISATIONS EXTRATERRITORIALES;9900
+A0101;Cultures de céréales;0111
+A010101;Cultures de céréales;0111
+A010102;Culture de tubercules et de légumes à cosse secs;0112
+A010103;Culture d'autres fruits;0136
+A010104;Culture de légumes;0121
+A010201;Culture du cacao;0131
+A010202;Culture du café;0132
+A010203;Autres cultures n.c.a.;0116
+A010204;Culture du coton;0114
+A010205;Culture de la banane;0134
+A010206;Autres cultures n.c.a.;0116
+A010207;Autres cultures n.c.a.;0116
+A010208;Culture de plantes oléagineuses;0113
+A010209;"Reproduction des plantes (pépinières); horticulture";0122
+A010210;Autres cultures n.c.a.;0116
+A0103;Culture et élevage associés;0150
+A010301;Élevage d'animaux n.c.a.;0148
+A010302;Chasse et activités annexes;0170
+A010401;Activités de soutien à la culture et à l'élevage;0160
+A010402;Activités de soutien à la culture et à l'élevage;0160
+A010403;Chasse et activités annexes;0170
+A020101;Sylviculture;0211
+A020102;Exploitation forestière;0212
+A020103;Production de charbon de bois;0213
+A020200;Cueillette;0220
+A020300;Activités forestières de soutien;0230
+A030101;Pêche industrielle;0302
+A030102;Pêche artisanale;0301
+A030201;Pisciculture, aquaculture;0303
+A030202;Pisciculture, aquaculture;0303
+B0500;Cokéfaction;1920
+B050000;Extraction de charbon et de lignite;0500
+B060001;Extraction de pétrole brut;0601
+B060002;Extraction de gaz naturel;0602
+B070100;Extraction de minerais de fer;0710
+B070201;Extraction de minerais de métaux précieux;0722
+B070202;Extraction d'autres minerais métalliques n.c.a.;0726
+B080100;Extraction de pierres, de sables et d'argiles;0810
+B080201;Extraction de phosphates et sels de potassium, naturels;0821
+B080202;Extractions de minéraux pour l'industrie chimique;0822
+B080203;Extraction ou production de sel et de natron;0823
+B080204;Extraction de diamants et d'autres pierres précieuses;0824
+B080205;Autres extractions;0825
+B090100;Autres extractions;0825
+B090200;Activités de soutien aux industries extractives;0900
+C1001;Abattage, transformation et conservation des viandes;1010
+C100101;Abattage, transformation et conservation des viandes;1010
+C100102;Abattage, transformation et conservation des viandes;1010
+C100201;Congélation de poissons, crustacés et mollusques;1021
+C100202;Séchage, salage ou fumage du poisson;1022
+C100203;Autres transformations et conservations des poissons, crustacés et mollusques;1023
+C100300;Transformation et conservation des fruits et légumes;1030
+C100400;Fabrication de corps gras d'origine animale et végétale;1040
+C100501;Travail des grains;1061
+C100502;Fabrication de produits amylacés;1062
+C1006;Transformation et conservation des fruits et légumes;1030
+C100601;Fabrication de pain et de pâtisseries fraîches;1071
+C100602;Biscuiterie et pâtisserie de conservation;1072
+C100603;Fabrication de pâtes alimentaires, de couscous et de produits farineux similaires;1073
+C100701;"Chocolaterie ; confiserie";1092
+C100702;Transformation du café, du thé;1093
+C100801;Fabrication de produits laitiers et de glaces;1050
+C100802;"Chocolaterie ; confiserie";1092
+C100803;Transformation du café, du thé;1093
+C100804;Fabrication de condiments et assaisonnements;1094
+C100805;Fabrication d'aliments pour animaux;1080
+C100806;Fabrication de denrées diverses n.c.a;1095
+C110101;Fabrication de boissons alcoolisées;1101
+C110102;Fabrication de boissons alcoolisées;1101
+C110200;Production d'eaux de table et de boissons non alcoolisées;1102
+C120000;Fabrication de produits à base de tabac;1200
+C130101;Filature, tissage et ennoblissement textile;1310
+C130102;Filature, tissage et ennoblissement textile;1310
+C130103;Filature, tissage et ennoblissement textile;1310
+C1302;Fabrication d'étoffes à mailles et d'articles textiles non vestimentaires n.c.a;1322
+C130201;Fabrication de tapis et carpettes;1321
+C130202;Fabrication d'étoffes à mailles et d'articles textiles non vestimentaires n.c.a;1322
+C140100;Fabrication d'articles d'habillement;1400
+C140200;Fabrication d'articles d'habillement;1400
+C150101;Apprêt, tannage des cuirs et fourrures;1511
+C150102;Fabrication d'articles de voyage, de maroquinerie, de sellerie et de bourrellerie;1512
+C150200;Fabrication de chaussures;1520
+C160100;Sciage et rabotage du bois;1610
+C1602;Fabrication d'ouvrages en bois, de menuiseries et de charpente ou d'emballages;1622
+C160201;Fabrication de feuilles de placage, de contreplaqués et de panneaux;1621
+C160202;Fabrication d'ouvrages en bois, de menuiseries et de charpente ou d'emballages;1622
+C160203;Fabrication d'articles divers en bois, liège, vannerie ou sparterie;1623
+C1700;Fabrication de pâte à papier, de papier et de carton;1701
+C170001;Fabrication de pâte à papier, de papier et de carton;1701
+C170002;Fabrication de carton ondulé et d'emballages en papier ou en carton;1702
+C170003;Fabrication d'articles en papier ou en carton;1703
+C180100;Imprimerie et activités connexes;1810
+C180200;Reproduction d'enregistrements;1820
+C190100;Raffinage pétrolier;1910
+C190200;Cokéfaction;1920
+C2001;Industrie pharmaceutique;2101
+C200101;Fabrication de produits azotés et d'engrais;2011
+C200102;Fabrication d'autres produits chimiques de base;2012
+C200201;Fabrication de savons, détergents et produits d'entretien;2021
+C200202;Fabrication de parfums et de produits de toilette;2022
+C200203;Fabrication de produits agrochimiques;2023
+C200204;Fabrication de peintures et vernis, adjuvants et encres d'imprimerie;2024
+C200205;Fabrication de fibres artificielles ou synthétiques;2025
+C200206;Fabrication d'autres produits chimiques;2026
+C210001;Industrie pharmaceutique;2101
+C210002;Fabrication de médicaments traditionnels;2102
+C2201;Fabrication d'autres ouvrages en caoutchouc;2212
+C220101;Fabrication et rechapage de pneumatiques;2211
+C220102;Fabrication d'autres ouvrages en caoutchouc;2212
+C220200;Travail du plastique;2220
+C2301;Fabrication de verre et d'articles en verre;2310
+C230100;Fabrication de verre et d'articles en verre;2310
+C230201;Fabrication de carreaux en céramique;2321
+C230202;Fabrication de tuiles et briques;2322
+C230203;Fabrication d'autres produits céramiques;2323
+C230301;Fabrication de ciment, chaux et plâtre;2331
+C230302;"Fabrication de matériaux et d'ouvrages en ciment, en béton ou en plâtre ; travail de la pierre";2332
+C230303;Fabrication de produits minéraux non métalliques n.c.a.;2333
+C2401;Sidérurgie et première transformation de l'acier;2410
+C240100;Sidérurgie et première transformation de l'acier;2410
+C240200;Métallurgie et première transformation des métaux non ferreux;2420
+C240300;Fonderie;2430
+C250100;Fabrication de structures métalliques, citernes et ouvrages chaudronnés;2510
+C250200;Fabrication d'autres ouvrages en métaux;2520
+C2601;Fabrication de composants, cartes électroniques et supports magnétiques;2611
+C260101;Fabrication de composants, cartes électroniques et supports magnétiques;2611
+C260102;Fabrication d'ordinateurs et d'équipements périphériques;2612
+C260201;Fabrication d'équipements de communication;2621
+C260202;Fabrication de produits électroniques grand public;2622
+C260300;Fabrication d'équipements d'imagerie médicale, de précision, d'optique et d'horlogerie;2630
+C270100;Fabrication de machines et matériels électrotechniques;2710
+C270200;Fabrication d'appareils domestiques;2720
+C270300;Fabrication d'autres fournitures électriques;2730
+C280100;Fabrication de machines d'usage général;2810
+C280200;Fabrication de machines d'usage spécifique;2820
+C290000;Construction de véhicules automobiles;2900
+C3001;Construction navale;3011
+C300101;Construction navale;3011
+C300102;Construction aéronautique;3012
+C300103;Construction de matériels ferroviaires roulants;3013
+C300104;Construction de véhicules militaires de combat;3014
+C300200;Fabrication d'autres équipements de transport;3020
+C310001;Fabrication de matelas et sommiers;3110
+C310002;Fabrication de meubles divers;3120
+C320001;Fabrication d'articles de bijouterie;3210
+C320002;Fabrication d'instruments de musique;3220
+C320003;Activités manufacturières n.c.a.;3230
+C330100;Réparation de machines et d'équipements professionnels;3310
+C330200;Installation de machines et d'équipements professionnels;3320
+D3501;Production, transport et distribution d'électricité;3510
+D350100;Production, transport et distribution d'électricité;3510
+D350200;Production et distribution de combustibles gazeux et de glace;3520
+E360000;Captage, traitement et distribution d'eau;3600
+E370000;Collecte et traitement des eaux usées;3700
+E3800;Collecte, traitement et élimination des déchets;3801
+E380001;Collecte, traitement et élimination des déchets;3801
+E380002;Récupération des déchets;3802
+E390000;Dépollution et autres activités de gestion des déchets;3900
+F410100;Promotion immobilière;4111
+F410200;Construction de bâtiments complets;4120
+F4200;Génie civil;4200
+F420001;Génie civil;4200
+F420002;Génie civil;4200
+F420003;Génie civil;4200
+F4300;Commerce de gros non spécialisé;4660
+F430001;Démolition et préparation des sites;4301
+F430002;Travaux d'installation;4302
+F430003;Travaux de finition;4303
+F430004;Autres travaux spécialisés de construction;4304
+G450100;Commerce de véhicules automobiles;4510
+G450200;Entretien et réparation de véhicules automobiles;4520
+G450300;Commerce de pièces détachées et d'accessoires automobiles;4530
+G450400;Commerce et réparation de motocycles;4540
+G460100;Activités des Intermédiaires du commerce de gros;4610
+G460201;Commerce de gros de produits agricoles bruts et d'aliments pour animaux;4621
+G460202;Commerce de gros d'animaux vivants, de peaux et cuirs;4622
+G460203;Commerce de gros de produits alimentaires, boissons et tabacs manufacturés;4623
+G460301;Commerce de gros de textiles, habillement et chaussures;4631
+G460302;Commerce de gros de produits pharmaceutiques et médicaux;4632
+G460303;Commerce de gros de biens de consommation non alimentaires n. c. a.;4633
+G460401;Commerce de gros de carburants et combustibles;4641
+G460402;Commerce de gros de bois;4642
+G460403;Commerce de gros d'autres matériaux de construction, quincaillerie et fournitures pour plomberie;4643
+G460404;Commerce de gros de produits intermédiaires non agricoles divers;4644
+G460501;Commerce de gros d'autres équipements industriels et fournitures diverses;4652
+G460502;Commerce de gros d'autres équipements industriels et fournitures diverses;4652
+G4701;Commerce de détail en magasin non spécialisé;4710
+G470100;Commerce de détail en magasin non spécialisé;4710
+G470201;Commerce de détail en magasin spécialisé de produits alimentaires, boissons et tabacs manufacturés;4721
+G470202;Commerce de détail en magasin spécialisé de produits pharmaceutiques et médicaux, de parfumerie et d;4722
+G470203;Commerce de détail en magasin spécialisé de textiles, habillement, chaussures et articles en cuir;4723
+G470204;Commerce de détail en magasin spécialisé d'articles et appareils d'équipement domestique;4724
+G470205;Commerce de détail en magasin spécialisé de quincaillerie, peintures, verre, tapis et revêtement de ;4725
+G470206;Commerce de détail en magasin spécialisé de livres, journaux et articles de sport et de loisirs;4726
+G470207;Commerce de détail en magasin spécialisé d'équipements informatiques et de matériels de télécommunic;4727
+G470208;Commerce de détail en magasin spécialisé de carburants automobiles;4728
+G470209;Commerce de détail en magasin spécialisé d'autres produits n.c.a.;4729
+G470210;Commerce de détail en magasin spécialisé d'équipements informatiques et de matériels de télécommunic;4727
+G470211;Commerce de détail en magasin non spécialisé;4710
+G470301;Commerce de détail sur éventaires et marchés de viandes et poissons;4731
+G470302;Commerce de détail sur éventaires et marchés de fruits et légumes frais;4732
+G470303;Commerce de détail sur éventaires et marchés de céréales, tubercules et d'autres produits alimentair;4733
+G470304;Commerce de détail sur éventaires et marchés de textiles, habillement, chaussures et articles en cui;4734
+G470305;Commerce de détail sur éventaires et marchés d'articles non alimentaires divers;4735
+G470306;Autres commerces de détail hors magasin;4736
+H4901;Transports ferroviaires;4910
+H490100;Transports ferroviaires;4910
+H490201;Transports routiers de passagers;4921
+H490202;Transports routiers de marchandises;4922
+H490300;Transports par conduites;4930
+H500100;Transports maritimes et côtiers;5010
+H500200;Transports fluviaux;5020
+H510001;Transports aériens de passagers;5101
+H510002;Transports aériens de fret et lancements spatiaux;5102
+H520100;Entreposage;5210
+H520201;Manutention;5221
+H520202;Exploitation d'infrastructures de transport;5222
+H520203;Organisation du transport de fret;5223
+H5300;Activités de service postal universel;5301
+H530001;Activités de service postal universel;5301
+H530002;Autres activités de courrier et de distribution;5302
+I5500;Hébergement;5500
+I550000;Hébergement;5500
+I560100;Restauration;5610
+I560200;Activités de débits de boissons;5620
+J5801;Édition de livres et périodiques;5810
+J580100;Édition de livres et périodiques;5810
+J580200;Édition de logiciels;5820
+J590100;Production vidéo : cinéma et télévision;5910
+J590200;Production audio et édition musicale;5920
+J600001;Édition et diffusion de programmes radio;6001
+J600002;"Programmation télévisuelle; télédiffusion";6002
+J6100;Télécommunications;6100
+J610000;Télécommunications;6100
+J620001;Programmation informatique;6201
+J620002;Conseil et autres activités informatiques;6202
+J630001;"Traitement de données, hébergement et activités connexes ; portails Internet";6301
+J630002;Autres activités liées à l'information;6302
+K640101;Activités de banque centrale;6411
+K640102;Autres intermédiations monétaires;6412
+K640200;Fonds de placements, holdings et activités financières similaires;6420
+K640301;Activités de micro finance;6431
+K640302;Autres activités de crédits et autres intermédiations non monétaires;6432
+K6500;BANQUE, FINANCE, ASSURANCE ET ACTIVITES AUXILLIAIRES;K6500
+K650001;Assurance-vie et caisses de retraite;6501
+K650002;Assurance-dommages et réassurance;6502
+K660001;Gestion fonds pour tiers;6601
+K660002;Activités d'auxiliaires financiers;6602
+K660003;Activités d'auxiliaires d'assurance;6603
+L680100;Location immobilière et activités sur biens propres;6810
+L680200;Activités des agences immobilières;6820
+M6901;Activités juridiques;6901
+M690100;Activités juridiques;6901
+M690200;Activités comptables;6902
+M700001;Activités des sièges sociaux;7001
+M700002;Conseil en gestion;7002
+M710001;Architecture, activités d'ingénierie;7101
+M710002;Activités de contrôle et analyses techniques;7102
+M7201;Recherche-développement en sciences physiques et naturelles;7210
+M720100;Recherche-développement en sciences physiques et naturelles;7210
+M720200;Recherche-développement en sciences humaines et sociales;7220
+M7300;Publicité;7301
+M730001;Publicité;7301
+M730002;Études de marché et sondages;7302
+M740001;Activités spécialisées de design;7401
+M740002;Activités photographiques;7402
+M740003;Autres activités spécialisées, scientifiques et techniques n.c.a.;7403
+M750000;Activités vétérinaires;7500
+N7700;Location de véhicules automobiles;7701
+N770001;Location de véhicules automobiles;7701
+N770002;Location de machines et d'équipements n.c.a;7702
+N770003;Location d'articles personnels et domestiques nca;7703
+N770004;Gestion des droits de propriété industrielle;7704
+N780000;Activités liées aux ressources humaines;7800
+N790000;Activités des agences de réservation et voyagistes;7900
+N800000;Enquêtes et sécurité;8000
+N810001;Activités combinées de soutien aux bâtiments;8101
+N810002;Activités de nettoyage;8102
+N810003;Aménagement paysager;8103
+N820001;Activités de bureau, routage et centres d'appels;8201
+N820002;Organisation de foires, salons et congrès;8202
+N820003;Activités de soutien aux entreprises n.c.a.;8203
+O8401;Activités d'administration générale, économique et sociale;8410
+O840100;Activités d'administration générale, économique et sociale;8410
+O840200;Activités de prérogative publique;8420
+O840300;Activités de sécurité sociale obligatoire;8430
+P8501;Autres activités d'enseignement;8540
+P850100;Enseignement pré-primaire et primaire;8510
+P850201;Enseignement secondaire général;8521
+P850202;Enseignement secondaire technique ou professionnel;8522
+P850301;Enseignement post-secondaire, supérieur ou non;8530
+P850302;Enseignement post-secondaire, supérieur ou non;8530
+P850400;Autres activités d'enseignement;8540
+Q8601;Autres activités pour la santé humaine;8632
+Q860100;Activités hospitalières;8610
+Q860200;Pratique médicale et/ou dentaire;8620
+Q860301;Activités des tradipraticiens;8631
+Q860302;Autres activités pour la santé humaine;8632
+Q870000;Activités d'Hébergement médico-social et social;8700
+Q880000;Action sociale sans hébergement;8800
+R9000;Activités créatives, artistiques et de spectacle;9000
+R900000;Activités créatives, artistiques et de spectacle;9000
+R910000;Conservation et valorisation du patrimoine;9100
+R920000;Organisation de jeux de hasard et d'argent;9200
+R930100;Activités sportives, récréatives et de loisirs;9300
+R930200;Activités sportives, récréatives et de loisirs;9300
+S9401;Activités des organisations économiques, patronales et professionnelles;9410
+S940100;Activités des organisations économiques, patronales et professionnelles;9410
+S940200;Activités des syndicats des travailleurs;9420
+S940301;Activités des organisations religieuses;9431
+S940302;Activités des organisations politiques;9432
+S940303;Activités des autres organisations associatives;9433
+S950101;Réparation d'ordinateurs et d'équipements périphériques;9511
+S950102;Réparation d'équipements de communication;9512
+S9502;Réparation de biens personnels et domestiques;9520
+S950200;Réparation de biens personnels et domestiques;9520
+S960001;Lavage et nettoyage de textiles;9601
+S960002;Coiffure et soins de beauté;9602
+S960003;Services funéraires;9603
+S960004;Autres services personnels n.c.a;9604
+T970000;Activités des ménages en tant qu'employeurs de personnel domestique;9700
+T980001;Activités indifférenciées des ménages en tant que producteurs de biens pour usage propre;9801
+T980002;Activités indifférenciées des ménages en tant que producteurs de services pour usage propre;9802
+U990000;Activités des organisations extraterritoriales;9900

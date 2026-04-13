@@ -1,0 +1,164 @@
+<?php
+$demande              = $this->demande;
+$demandeid            = $this->demandeid;
+$localite             = $this->localite;
+$entreprise           = $this->entreprise;
+$demandeur            = $this->demandeur;
+$promoteur            = $this->promoteur;
+$identiteRow          = $this->demandeurIdentite;
+$promoteurIdentiteRow = $this->promoteurIdentite;
+$identiteTypeRow      = $this->identiteType;
+$identiteTypes        = $this->identitetypes;
+$data                 = $this->data;
+$me                   = ($demande->creatorid)? Sirah_Fabric::getUser($demande->creatorid) : Sirah_Fabric::getUser();
+$zendDemandeDate      = ( $demande->date    )? new Zend_Date($demande->date, Zend_Date::TIMESTAMP) : Zend_Date::now();
+if( $zendDemandeDate ) {
+	$demandeDate      = $todayDate = $zendDemandeDate->toString("dd MMMM YYYY");
+} else {
+	$demandeDate      = $todayDate = ($demande->date )? date("d/m/Y", $demande->date) : date("d/m/Y");
+}
+$nationalites         = $this->countries();
+
+$demandeNumero        = $demande->numero;
+$demandeObjet         = $demande->objet;
+
+$demandeurName        = (isset($demandeur->name      ))? $demandeur->name       : "";
+$demandeurFirstname   = (isset($demandeur->firstname ))? $demandeur->firstname  : "";
+$demandeurLastname    = (isset($demandeur->lastname  ))? $demandeur->lastname   : "";
+$demandeurAdresse     = (isset($demandeur->adresse   ))? $demandeur->adresse    : "";
+$demandeurEmail       = (isset($demandeur->email     ))? $demandeur->email      : "";
+$demandeurTelephone   = (isset($demandeur->telephone ))? $demandeur->telephone  : "";
+$demandeurCountry     = (isset($demandeur->country   ))? strtolower($demandeur->country) : "bf";
+$demandeurNationalite = (isset($nationalites[$demandeurCountry]))? $nationalites[$demandeurCountry] : "";
+$demandeurSexe        = (isset($demandeur->sexe      ))? $demandeur->sexe       : "";
+$demandeurProfession  = (isset($demandeur->profession))? $demandeur->profession : "";
+$demandeurAdresse     = sprintf(" %s, Tel : %s", $demandeurAdresse,$demandeurTelephone);
+
+$promoteurName        = (isset($promoteur->name      ))? $promoteur->name       : "";
+$promoteurTelephone   = (isset($promoteur->telephone ))? $promoteur->telephone  : "";
+$promoteurAdresse     = (isset($promoteur->adresse   ))? $promoteur->adresse    : "";
+$promoteurProfession  = (isset($promoteur->profession))? $promoteur->profession    : "";
+$promoteurAdresse     = sprintf("%s, Tel: %s", $promoteurAdresse,  $promoteurTelephone);
+
+
+if( $promoteurIdentiteRow ) {
+	$zendDateEtablissement      = (Zend_Date::isDate($promoteurIdentiteRow->date_etablissement,"YYYY-MM-dd"))?new Zend_Date($promoteurIdentiteRow->date_etablissement,"YYYY-MM-dd")  :  null; 
+	$dateEtablissement          = ($zendDateEtablissement)?$zendDateEtablissement->toString('dd/MM/YYYY') : $promoteurIdentiteRow->date_etablissement;
+	$promoteurIdentiteType      = (isset($identiteTypes[$promoteurIdentiteRow->typeid]))? $identiteTypes[intval($promoteurIdentiteRow->typeid)]: (($identiteTypeRow)?$identiteTypeRow->libelle : "CNIB");
+	$promoteurIdentite          = sprintf("%s numéro %s établi le %s à %s ",$promoteurIdentiteType, $promoteurIdentiteRow->numero,$dateEtablissement,$promoteurIdentiteRow->lieu_etablissement);
+    $organismeEtablissement = $promoteurIdentiteRow->organisme_etablissement;
+} else {
+	$promoteurIdentite          = "";
+	$organismeEtablissement = "";
+}
+ 
+$NomCommercial        = ( $entreprise)?$entreprise->nomcommercial : "";
+$Sigle                = ( $entreprise)?$entreprise->sigle         : "";
+$Denomination         = ( $entreprise)?$entreprise->denomination  : "";
+$localiteName         = ( $localite  )?$localite->libelle         : "Ouagadougou";
+$objetPlural          = "Est Disponible ";
+$SigleHtml            = $DenominationHtml = "";
+
+if(!empty($Sigle)) {
+	$objetPlural      = "Sont Disponibles";
+	$SigleHtml        = "<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+							<span style=\"font-family:arial;font-size:11pt;\"> Le Sigle: </span> 
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Sigle."</span>
+						</p>";
+}
+if(!empty($Denomination)) {
+	$objetPlural      = "Sont Disponibles";
+	$DenominationHtml = "<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+							<span style=\"font-family:arial;font-size:11pt;\"> La Dénomination Sociale: </span> 
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Denomination."</span>
+						</p>";
+}
+$civilites            = array("Mr"=>"Monsieur","Mme"=>"Madame","Mle"=> "Mademoiselle", "Excellence"=>"Son excellence","Maître"=>"Maître","Dr" => "Docteur","Pr" => "Professeur","Conseiller"=>"Le Conseiller");
+$myCivilite           = (isset($civilites[$me->civilite]) )?$civilites[$me->civilite] : "Maître";
+$myLastName           = ( $me )?$me->lastname  : "";
+$myFirstName          = ( $me )?$me->firstname : ""; 
+$myRole               = ( $me )?$me->getRole() : "GREFFIER/GREFFIER EN CHEF/ADMINISTRATEUR DU FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER";
+if( empty($myRole) ) {
+	$myRole           = "GREFFIER/GREFFIER EN CHEF/ADMINISTRATEUR DU FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER";
+}
+$myRole               = str_replace("_"," ", $myRole );
+$output.= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\">
+                <tr>
+                    <td valign=\"top\" align=\"left\" width=\"70%\"> 
+					    <p align=\"center\" style=\"vertical-align:top;text-align:centert;font-size:11pt;\">
+					        <strong> MINISTERE DE LA JUSTICE, DES DROITS HUMAINS ET DE LA PROMOTION CIVIQUE </strong><br/>
+							 -----------------------------------------
+					    </p> 
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> SECRETARIAT GENERAL </strong><br/>
+							-----------------------------------------
+					    </p>	
+                        <p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> DIRECTION DES GREFFES </strong><br/>
+							-----------------------------------------
+					    </p>					
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER </strong> <br/>
+					    </p>					
+					</td>
+                    <td align=\"center\" valign=\"top\" style=\"vertical-align:top;\" width=\"30%\"> &nbsp;</td>
+                </tr>
+          </table>";          
+$output.="<table style=\"border-collapse:collapse;margin:0px;\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\" width=\"100%\">
+            <tr><td style=\"background-color:#0a5993;\" align=\"center\" valign=\"middle\" bgcolor=\"#0a5993\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:11pt;padding:5px;color:#FFF;\"> ATTESTATION DE DISPONIBILITE ET DE RESERVATION N° {$demandeNumero} </span> </td></tr>
+            <tr>
+			    <td colspan=\"2\">
+					<p style=\"font-family:arial;font-size:11pt;text-align:justify;text-indent:0;\"> <strong> Nous, soussigné, {$myCivilite} {$myFirstName} {$myLastName}, {$myRole } </strong> <br/>
+						Attestons que, suivant la demande de recherche de disponibilité et de réservation N° <strong>{$demandeNumero}</strong> de Mr/Mme {$demandeurName}
+					</p>
+					{$DenominationHtml}
+					<p style=\"font-family:arial;font-size:11pt;text-align:justify;text-indent:0;\">
+						<span style=\"font-family:arial;font-size:11pt;text-indent:0;\"> Le Nom Commercial: </span> 
+						<span style=\"font-family:arial;font-size:11pt;font-weight:bold;text-indent:0;\">".$NomCommercial."</span>
+					</p>
+                   {$SigleHtml}					
+					<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+						<span style=\"font-family:arial;font-size:11pt;text-indent:0;\"> {$objetPlural} </span> 
+					</p>
+					<p style=\"font-family:arial;font-size:11pt;text-align:justify;padding:5px;\">
+						    <span style=\"font-family:arial;font-size:11pt;text-indent:0;text-align:justify;\"> Par conséquent, cette dénomination Sociale/Ce nom commercial/Ce sigle est réservé(e) pour un délai de trois (03) mois à compter du {$demandeDate} au profit du promoteur ci-après:</span>
+						<br/>
+							<span style=\"font-family:arial;font-size:11pt;\"> Nom et Prénom(s): </span> 
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;text-indent:0;\">{$promoteurName}</span>
+						<br/>
+							<span style=\"font-family:arial;font-size:11pt;\"> Adresse: </span> 
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;text-indent:0;\">{$promoteurAdresse}</span> 
+						</p>
+						<p style=\"font-family:arial;font-size:11pt;text-align:justify;\">
+							<strong><u>Références</u> :</strong><br/>
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;text-indent:0;\">{$promoteurIdentite}</span>
+						<br/>
+							<span style=\"font-family:arial;font-size:11pt;\"> Délivré(e) par : </span>
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">{$organismeEtablissement}</span>
+						<br/>
+							<span style=\"font-family:arial;font-size:11pt;\"> Profession : </span>
+							<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$promoteurProfession."</span>
+					</p>
+					<p style=\"font-family:arial;font-size:11pt;text-align:right;\"> En foi de quoi la présente attestation est délivrée pour servir et valoir ce que de Droit.</p>
+				    <p style=\"font-family:arial;font-size:11pt;text-align:left;\"> <strong> NB : Cette réservation  est renouvelable une fois.</strong></p>
+				</td>
+			</tr>
+		</table>";
+ 		  
+$myName = sprintf("%s %s", $me->lastname, $me->firstname);
+$output.=<<<EOF
+<table width="100%" cellspacing="1" border=0 cellpadding="1">   
+    <tr>
+        <td align="center" >
+            <p align="center" style="font-family:arial;font-size:11pt;"> Fait à {$localiteName}, le  <b> {$todayDate} </b></p>
+			<p align="center" style="font-family:arial;font-size:11pt;text-align:center;">
+                <b><u> L'AGENT COMPÉTENT</u></b><br/><br/><br/>
+                 
+            </p>
+        </td>
+    </tr>
+</table> 
+EOF;
+
+
+echo $output;

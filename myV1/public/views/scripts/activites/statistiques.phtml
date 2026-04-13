@@ -1,0 +1,53 @@
+<?php 
+   $statRegions       = $this->statRegions;
+   $statDomaines      = $this->statDomaines; 
+   $regions           = $this->regions;
+   $indicateurs       = $this->indicateurs;
+   $statBeneficiaires = $this->statBeneficiaires;
+   $statPartenaires   = $this->statPartenaires;
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel>.table-bordered, .panel>.table-responsive>.table-bordered {border:1px solid #ddd;}
+.col-md-6{padding-left:0;padding-right:5px;}
+<?php $this->headStyle()->captureEnd() ?>
+<div class="row" > 
+     <div class="col-md-6" >
+         <div class="col-md-12" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-globe'></span> Statistiques par région  </h4></div>              
+                  <?php echo $this->partial("activites/stats-regions.phtml" , array("rows" => $statRegions )); ?>
+               </div>  
+        </div>
+        <div class="col-md-12" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-tint'></span> Statistiques par bénéficiaire  </h4></div>              
+                  <?php echo $this->partial("activites/stats-beneficiaires.phtml" , array("rows" => $statBeneficiaires )); ?>
+               </div>  
+         </div>
+     </div>
+     
+     <div class="col-md-6" >
+         <div class="col-md-12" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-th'></span> Statistiques par domaine  </h4></div>              
+                  <?php echo $this->partial("activites/stats-domaines.phtml" , array("rows" => $statDomaines )); ?>
+               </div>  
+          </div>
+          <div class="col-md-12" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-user'></span> Statistiques par partenaire  </h4></div>              
+                  <?php echo $this->partial("activites/stats-partenaires.phtml", array("rows" => $statPartenaires )); ?>
+               </div>  
+           </div>
+     </div>
+</div>
+
+<div class="row" > 
+    <div class="col-md-12" >
+       <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-tags'></span> Statistiques par indicateur  </h4></div>              
+            <?php echo $this->partial("activites/stats-resultats.phtml", array("regions" => $regions, "indicateurs" => $indicateurs )); ?>
+        </div>  
+    </div>
+</div>
+             

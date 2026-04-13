@@ -1,0 +1,125 @@
+<?php
+  $tplPath   = VIEW_BASE_PATH;
+  
+  $filters   = $this->filters;
+  $localites = $this->localites;
+  $linkSearch= $formSubmit = $this->url(array("module"=>"public","controller"=>"statistiques","action"=>"localites"),"default",true);
+  $types     = array( 0 =>" ",1=>"Personnes physiques",2=>"Personnes morales",3=>"Surété");
+  $model     = $this->model;
+  
+  $jq        = $this->jQuery();
+  
+  $onLoad    = "jQuery('#localiteid').change(function(){jQuery('#searchLocaliteStats').trigger('click');});
+                jQuery('#searchLocaliteStats').click(function(){event.preventDefault();var formSelector=jQuery('#searchStats'); formSelector.submit();});
+                jQuery('.search').click(function( event){event.preventDefault();var formSelector=jQuery('#searchStats'); formSelector.submit();});
+                jQuery('.viewAll').click(function(event){event.preventDefault();document.location.href='".$linkSearch."'});";
+  
+  $jq->addOnLoad( $onLoad );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.stats-section a{color:#111 !important}
+.stats-section{background-color:#F7F8FA;position:relative;}
+.search-results-section{background-color:#F7F8FA;position:relative;padding:115px 5px 15px 5px;}
+.search-results-buttons{float: right;margin-right: 0;display:flex}
+.btn-adavanced-search,.search-results-buttons-sort-group > .btn{color: #686F7A;background-color:#FFF;border: 1px solid #CACBCC;border-radius:0px}
+input.searchQ,.searchBtn{border: 1px solid #CACBCC;border-radius:0px}
+.search-data-list{background-color:#fff;}
+.btn-outline-secondary {color:#6c757d;background-color: transparent;background-image: none;border-color:#CACBCC;}
+.results-infos{border-bottom:1px solid #e1e4e8!important}
+.results-infos > .panel-title{font-size:20px;font-weight:600}
+#search-results-rows h5.list-group-item-heading{color:#0366d6; font-size:16px;}
+.search-results-rows-item{padding:8px 10px;}
+#AdvancedSearchSection{padding:5px 0 !important}
+.hideAdvancedSearch{display:none  !important}
+.showAdvancedSearch{display:block !important}
+.panel-body,.container{ overflow: inherit !important;}
+<?php $this->headStyle()->captureEnd();  ?>
+<div id="stats-section" class="stats-section section">
+    <div class="container">
+	    <div class="row section-content search-results-header">
+		    <div class="col-md-12">
+			    <form method="post" action="<?php echo $formSubmit; ?>" id="searchStats" class="form-horizontal" role="form">
+				<div class="panel panel-plain panel-more-shadow panel-search-results" id="panel-search-results">
+				    <ul class="list-group">
+						<li  class="list-group-item"> 
+						    <div class="input-group input-group">							    
+								<label class="control-label"><b>Juridiction/Localité:</b> </label> 
+								<span  class="input-group-btn" style="width:0px;"></span>
+								<?php echo $this->formSelect("localiteid", intval( $filters["localiteid"] ) ,array("class"=>"form-control"), $localites ); ?>
+							    <span  class="input-group-btn" style="width:0px;"></span>
+								<div class="input-group-btn">
+								    <button id="searchLocaliteStats" type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search"></span> Voir pour cette localité </button>   
+									<button id="searchAllStats"      type="submit" class="btn btn-danger viewAll" >  Toutes les localités </button>            
+									 
+								</div>
+						   </div>    
+						</li>
+					</ul>
+					<div class="list-group search-results-rows" id="search-results-rows">
+					    <table style="text-align:left;" class="table table-bordered table-hover">
+						    <thead>
+								<tr>
+									 <th style="text-align:left;"   width="30%"> Localités           </th>
+									 <th style="text-align:center;" width="30%"> Personnes Physiques </th>
+									 <th style="text-align:center;" width="30%"> Personnes Morales   </th>
+									 <th style="text-align:center;" width="10%"> Total               </th>
+								</tr>         
+						    </thead>						  
+						    <tbody>
+							<?php 
+								$output      = "";
+								$nbreTotal   = 0;
+								if( count(   $localites )) {
+									foreach( $localites as $localiteid => $localiteLibelle ) {
+											 if( !intval(  $localiteid ))
+												 continue;
+											 $nbrePPArray  = $model->statlocalites($localiteid, 1);
+											 $nbrePMArray  = $model->statlocalites($localiteid, 2);
+											 $nbrePP       = (isset($nbrePPArray[0]["nombre"]))? $nbrePPArray[0]["nombre"] : 0;
+											 $nbrePM       = (isset($nbrePMArray[0]["nombre"]))? $nbrePMArray[0]["nombre"] : 0;
+											 $nbrePPStr    = (isset($nbrePPArray[0]["nombre"]))? number_format($nbrePPArray[0]["nombre"],0,",",".") : 0;
+											 $nbrePMStr    = (isset($nbrePMArray[0]["nombre"]))? number_format($nbrePMArray[0]["nombre"],0,",",".") : 0;
+											 $nbreLocalite = $nbrePP + $nbrePM;
+											 $rowBg        = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+											 $linkInfos    = $this->url(array("module"=>"public","controller"=>"statistiques","action"=>"localites","localiteid"=>$localiteid),"default",true);
+											 $output.="<tr style=\"background-color:".$rowBg."\">";
+												$output.="<td style=\"text-align:left;background-color:".$rowBg."\"><a title=\"Voir les détails\" href=\"".$linkInfos."\">".$localiteLibelle  ."</a></td>";
+												$output.="<td style=\"text-align:center;background-color:".$rowBg."\"><a title=\"Voir les détails\" href=\"".$linkInfos."\">".$nbrePPStr         ."</a></td>";
+												$output.="<td style=\"text-align:center;background-color:".$rowBg."\"><a title=\"Voir les détails\" href=\"".$linkInfos."\">".$nbrePMStr         ."</a></td>";
+												$output.="<td style=\"text-align:center;background-color:".$rowBg."\"><a title=\"Voir les détails\" href=\"".$linkInfos."\"><b>".$nbreLocalite."</a></b> </td>";
+											 $output.="</tr>";                    	 	 
+											 $nbreTotal += $nbreLocalite;
+									}  
+									 $rowBg  = $this->cycle(array("#F0F0F0","#FFFFFF"));
+									 $output.="<tr style=\"".$rowBg."\">";
+												   $output.="<td style=\"text-align:left;background-color:".$rowBg."\"> <b>TOTAL </b> </td>";
+												   $output.="<td colspan=\"3\" style=\"text-align:center;background-color:".$rowBg."\">
+															<b> ".number_format( $nbreTotal , 0, " ", " " )." </b> </td>";
+									 $output.="</tr>";                    	                   	
+								}  else {
+									$output.="<tr>";
+													$output.="<td align=\"center\" colspan=\"4\"> PAS DE DONNEE STATISTIQUE DANS CETTE CATEGORIE </td>";
+									$output.="</tr>";
+								}
+
+								echo $output;
+							?>
+						    </tbody>         
+				        </table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+ 
+
+    
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

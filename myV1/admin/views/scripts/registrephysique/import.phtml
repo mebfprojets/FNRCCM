@@ -1,0 +1,124 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("controller" =>"registrephysique", "action" => "import", "module" => "admin"), "default" );
+$backList   = $this->url(array("controller" =>"registrephysique", "action" => "list"  , "module" => "admin"), "default" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px !important;display:inline-block !important;}
+.form-horizontal .checkbox,.form-horizontal .checkbox-inline,.form-horizontal .control-label,.form-horizontal .radio,.form-horizontal .radio-inline {padding-top:0!important}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$basePath = VIEW_BASE_PATH;
+$jq       = $this->jQuery();  
+$onLoad   = " 
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#registres').filestyle({buttonText:'Parcourir',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#importForm');
+      var  domaineid    = parseInt(jQuery.trim(formSelector.find('#domaineid').val()));
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty(domaineid )){
+          SIRAH.error.raise('importForm','Entrez une année valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('importForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); 
+jQuery('#registres').fileupload({paramName:'registres',url:'".$formSubmit."',type:'POST',dataType:'json',
+                                 add : function(e , data) {
+                                        var modalButton  = jQuery('.modal-footer').first().find('.btn-primary:first');
+                                        modalButton.unbind('click');
+                                        modalButton.bind('click' , function( event ) {
+                                          event.preventDefault();
+                                          SIRAH.loading.on( jQuery('.modal-body').first(), 'Patientez , stockage du document...' );
+                                          var jqXhr    = data.submit();
+                                          jqXhr.success(function(result , textStatus , jqXHR){
+                                            if( result.success !== undefined) {
+                                                SIRAH.loading.off(false);
+                                                SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée : '+result.success , 'success');
+                                                var document  = result.document;
+                                                if( document != undefined ){
+                                                    SIRAH.loading.off(false);
+                                                    /*jQuery('#dialogUploadFile').dialog2('close');  */                                                                    
+                                                }
+                                            } else if(result.error !== undefined) {
+                                                                      SIRAH.error.raise(jQuery('#dialogUploadFile'), 'Opération terminée : '+result.error , 'error');
+                                                                      SIRAH.loading.off(false);
+                                                                      return true;
+                                            }
+                                         });
+                                         jqXhr.error(function(result,textStatus,errorThrown) {
+                                                      SIRAH.error.raise(jQuery('#dialogUploadFile'), 'Opération terminée, aucune erreur valide n\'a été retournée : '+result , 'error');
+                                                      SIRAH.loading.off(false);
+                                                      return false;
+                                          });
+                                        });  },
+                                        messages: {uploadedBytes: 'Le fichier que vous voulez uploader est trop lourd'}
+   });
+   jQuery('#registresform').bind('fileuploadformsubmit', function (e, data) {var inputs = jQuery(this).find(':input');data.formData = inputs.serializeArray();});
+   ";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/js-core/raphael.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> Les paramètres de l'import </h3>
+    <form method="post"  id="importForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data"> 
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Votre fichier Excel* : </label>
+           <div   class="col-sm-8"> <input type="file" name="registres" id="registres" class="input-document"  /></div>        
+       </div>	
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source des documents* : </label>
+           <div   class="col-sm-8"> <input type="text" name="find_documents_src" id="find_documents_src" class="form-control" placeholder="Dossier source des documents" value="<?php echo $data["find_documents_src"]; ?>" /></div>        
+       </div>
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité* : </label>
+           <div  class="col-sm-8"> <?php echo $this->formSelect("localiteid", intval( $data["localiteid"]), array("class"=>"form-control chosen"), $this->localites); ?> </div>   
+       </div> 
+	  <div class="form-group">    
+            <label class="col-sm-3 control-label"> Année concernée: </label>
+            <div   class="col-md-8"><?php echo $this->formSelect('date_year', $data["date_year"] , array("class" => "form-control chosen"),array(0 =>"Année")+createYearsArray(1960, intval(date("Y")) ) );?> </div>
+	   </div>
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Domaine d'activité* : </label>
+           <div  class="col-sm-8"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]  ), array("class"=>"form-control chosen"), $this->domaines); ?> </div>   
+       </div>       
+                     
+    </form>
+<?php 
+    $buttonsbar = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate = $buttonsbar->button("Importer","download")->setPriority("primary");
+    $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

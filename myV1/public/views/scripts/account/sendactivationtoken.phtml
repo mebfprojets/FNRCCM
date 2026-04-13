@@ -1,0 +1,47 @@
+<?php 
+$token      = $this->token;
+$tokenId    = $this->csrfTokenId;
+$tokenValue = $this->csrfTokenValue;
+$data       = $this->data;
+$formNames  = $fn = $this->formNames;
+$formSubmit = $this->url(array("module"=>"public","controller"=>"account","action"=>"sendactivationtoken"), "default" );
+$linkCancel = $this->url(array("module"=>"public","controller"=>"account","action"=>"login"), "default" );
+$basePath   = VIEW_BASE_PATH;
+
+$jq         = $this->jQuery();  
+$onLoad = "   
+    jQuery('.cancel').click(function(e){e.preventDefault(); document.location.href='".$linkCancel."';});  
+    jQuery('.send,#send').click(function(e){
+		e.preventDefault();     
+		var formSelector = jQuery('#sendActivationTokenForm');
+		var email        = formSelector.find('#".$fn['email']."').val();     
+		if( SIRAH.util.isEmpty(email)){
+			SIRAH.error.raise('sendActivationTokenForm','Entrez un identifiant valide');
+			return;
+		}      
+		formSelector.submit();     
+    }); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div class="container form-container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="panel-body">
+					<div class="panel-desc"> <?php echo $this->title; ?> </div> <hr>
+					<form id="sendActivationTokenForm" method="post" action="<?php echo $formSubmit; ?>" role="form">                      
+						<div style="margin-bottom:25px" class="input-group"><span class="input-group-addon"><i class="glyph-icon icon-user"></i></span><input id="<?php echo $fn['email']; ?>" autocomplete="off" type="text" maxlength="200" class="form-control no-autofill" title="Votre adresse email" placeholder="Votre adresse email"  name="<?php echo $fn['email']; ?>" value="<?php echo $data[$fn['email']]; ?>"></div>                  
+						<button type="submit" class="btn btn-primary btn-lg btn-block send" id="send">   <i class="glyph-icon icon-send"></i> ENVOYER</button>
+						<button type="submit" class="btn btn-danger  btn-lg btn-block cancel"> <i class="glyph-icon icon-ban-circle"></i> ANNULER </button>
+						   <input id="<?php echo $tokenId; ?>"  type="hidden" name="<?php echo $tokenId; ?>"  value="<?php echo $tokenValue; ?>"  />
+					    <input id="uid" type="hidden" name="uid"  value="<?php echo $this->userid ; ?>" /> 
+					</form>
+				</div>
+			</div>      
+        </div>   
+   </div>
+</div>

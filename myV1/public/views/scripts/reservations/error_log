@@ -1,0 +1,40 @@
+[28-Dec-2022 10:00:54 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/demande.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/demande.phtml on line 2
+[28-Dec-2022 10:00:56 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/demandeur.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/demandeur.phtml on line 2
+[28-Dec-2022 10:00:57 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/documents.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/documents.phtml on line 2
+[28-Dec-2022 10:00:59 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/edit.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/edit.phtml on line 2
+[28-Dec-2022 10:01:00 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/entreprise.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/entreprise.phtml on line 2
+[28-Dec-2022 10:01:02 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiche.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiche.phtml on line 2
+[28-Dec-2022 10:01:03 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/infos.phtml on line 2
+[28-Dec-2022 10:01:05 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/list.phtml on line 2
+[28-Dec-2022 10:01:06 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/promoteur.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/promoteur.phtml on line 2
+[28-Dec-2022 10:01:08 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/verification.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/verification.phtml on line 2

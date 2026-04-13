@@ -1,0 +1,138 @@
+<?php
+$paiement       = $this->paiement;
+$paiementid     = $this->paiementid;
+$commande       = $this->commande;
+$commandeid     = $this->commandeid;
+$demande        = $this->demande;
+$cheque         = $this->cheque;
+$virement       = $this->virement;
+$lignes         = $this->lignes;
+$livraison      = $this->livraison;
+$livraisonLignes= $this->livraisonLignes;
+$prestataire    = $this->fournisseur;
+$prestataireName= ( $prestataire ) ? stripslashes($prestataire->libelle) : "";
+$me             = Sirah_Fabric::getUser($paiement->creatorid); 
+$myDataPath     = $me->getDatapath();
+$modereglements = array(0=>"Selectionnez le mode de paiement",1=>"En espèces",2=>"Par chèque",3=>"Par virement",4=>"Prime",5=>"Bourse",6=>"Subvention",7=> "Réduction" );
+$modePaiement   = "";
+$datePaiement   = "00/00/0000";
+
+   
+if( $paiement->date ) {
+    $zendDatePaiement = new Zend_Date($paiement->date, Zend_Date::TIMESTAMP );
+    $datePaiement     = $zendDatePaiement->toString("dd MMMM yyyy");
+}
+switch($paiement->modepaiement ){
+    case 1 :
+        $modePaiement="ESPECES" ;
+        break;        
+    case 2:             
+        if( $cheque )
+            $modePaiement = sprintf("Chèque %s n° %s du %s",$cheque->banque, $cheque->numero,$cheque->date);                        
+        break;
+    case 3 :              
+        if( $virement )
+            $modePaiement = sprintf("Virement n° %s du %s, compte source n° %s, compte destination n° %s de %s", $virement->numero, date("d/m/Y", $virement->date), $virement->numcompte_debiteur, $virement->numcompte_reception, $virement->banque) ;
+       
+        break;
+    default: 
+            $modePaiement = "Espèces";
+        break;
+}
+$PDF            = new ProjectPdf_Default();
+ 
+$PDF->setTitle(   sprintf(" Paiement sur la commande n° %s", $commande->ref ) );
+$PDF->setSubject( sprintf(" Paiement sur la commande n° %s", $commande->ref ) );
+
+$PDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$PDF->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+$PDF->SetMargins(10 ,42, 10);
+$PDF->SetPrintHeader(true);
+$PDF->SetPrintFooter(true);
+$PDF->AddPage();
+
+$margins       = $PDF->getMargins();
+$contenuWidth  = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+
+$PDF->SetFont("helvetica" , "" , 10 );
+$PDF->Cell($contenuWidth , 5 , sprintf("Ouagadougou, le %s", $datePaiement), 0 , 0 , "R");
+
+$PDF->Ln();
+
+$PDF->SetFont("helvetica","B" , 10);
+$PDF->setFillColor( 222 , 222 , 222 );
+$PDF->setTextColor( 0 , 0 , 0 );
+$PDF->Cell($contenuWidth ,0, "BORDEREAU DE PAIEMENT N° " . $this->escape($paiement->numero) , "B" , 0 , "C" , 1 );
+$PDF->Ln();
+
+$PDF->SetFont("helvetica","B", 10) ; $PDF->MultiCell(40, 10 ,"Bon de commande n°:", 0 , 'L', false , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->SetFont("helvetica","" , 10) ; $PDF->MultiCell(50, 10 ,$commande->ref, 0, 'L', false, 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->SetFont("helvetica","B", 10) ; $PDF->MultiCell(30, 10 ,"Prestataire:",0, 'L', false, 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->SetFont("helvetica","" , 10) ; $PDF->MultiCell($contenuWidth-120 , 10 ,$this->escape($prestataireName) , 0, 'L',false , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->Ln(10);
+
+$PDF->SetFont("helvetica","B", 10) ; $PDF->MultiCell(40,10,"Mode paiement:", 0, 'L', false, 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->SetFont("helvetica","" , 10) ; $PDF->MultiCell($contenuWidth-40,10,$modePaiement, 0, 'L', false, 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+
+$PDF->Ln(10);
+
+$PDF->SetFont("helvetica" , "B"  , 10);
+$PDF->MultiCell( 35 , 10, "Référence"  , 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->MultiCell( 20 , 10, "N°ordre"   , 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->MultiCell( 70 , 10, "Désignation", 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->MultiCell( 35 , 10, "Montant HT" , 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 10 , "M" );
+$PDF->MultiCell(($contenuWidth - 160) , 10 , "Montant TTC", 1 ,'R', true , 0 , "" , "" , true, 0 ,false, true, 10 , "M" );
+
+$PDF->Ln(10);
+
+$PDF->setFillColor( 255 , 255 , 255 );
+$PDF->setTextColor( 0 , 0 , 0 );
+$PDF->SetFont("helvetica" , "" , 10); 
+ 
+if( count( $livraisonLignes) && $livraison) {
+	$tableHeight    = 80; 
+	$cellHeight     = $tableHeight/count( $livraisonLignes ); 
+
+	$i              = 1;
+	$PDF->MultiCell(35, $tableHeight, sprintf("Livraison n° %s",$livraison->ref), 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, $tableHeight, "M" );
+	$PDF->MultiCell(20, $tableHeight, "1" , 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, $tableHeight, "M");
+	$PDF->MultiCell(105,$tableHeight, sprintf("%s", $paiement->libelle), 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, $tableHeight, "M");
+	$PDF->MultiCell(($contenuWidth-160) ,$tableHeight,number_format($paiement->montant,0," ", " "), 1 , 'R', true , 0 , "" , "" , true, 0 , false, true, $tableHeight, "M");
+	$PDF->Ln();
+}  
+ 
+
+$totalPaid   = $paiement->totalPaid;
+$totalAPayer = $paiement->totalAPayer;
+$resteAPayer = ($paiement->reste )?number_format($paiement->reste,0," ", " ") : $paiement->reste;
+
+$PDF->MultiCell(160,7, "Montant Payé", 1 , 'R', false , 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->MultiCell($contenuWidth -160,7,number_format( $totalPaid, 0 ,", "," ") , 1 , 'R', false, 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->Ln();
+
+$PDF->MultiCell(160,7, "Total à payer", 1 , 'R', false , 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->MultiCell($contenuWidth - 160,7, number_format($totalAPayer, 0 ,", "," "), 1 , 'R',false, 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->Ln();
+
+$PDF->MultiCell(160,7, "Reste à payer", 1 , 'R', false, 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->MultiCell($contenuWidth - 160,7, $resteAPayer, 1 , 'R', false, 0 , "" , "" , true, 0 , false, true, 7 , "M" );
+$PDF->Ln();
+
+$PDF->SetFont("helvetica" , "" , 11 );
+$PDF->MultiCell( 100, 15, "Le Bénéficiaire", 0 , 'L', false , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+$PDF->MultiCell( $contenuWidth-100 , 15, "COMPTABILITE", 0 , 'R', false , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+$PDF->Ln(15);
+ 
+
+
+if( $this->isAjax ) {
+	$paiementFilename= "quittance".sprintf("%06d" , $paiementid).".pdf";	
+    $fileTmpPath     = $myDataPath .$paiementFilename;
+	
+    echo $PDF->Output( $fileTmpPath , "F");
+	echo ZendX_JQuery::encodeJson(array("success"=>"La création de la quittance de paiement s'est effectuée avec succès", "tmpDocument"=> $fileTmpPath,"paiementid"=>$paiementid,"numero"=>$paiement->numero ));
+    exit;
+} else {
+	$paiementFilename = "quittance".sprintf("%06d", $paiementid).".pdf";
+    echo $PDF->Output($paiementFilename , "D");
+}

@@ -1,0 +1,20 @@
+<?php 
+$registres   = $this->registres;
+
+if( count(  $registres ) ) {
+	$output  = "<div class=\"list-group no-top-border\">";
+    foreach($registres  as $registre ) {
+			$registreid    = intval($registre['registreid']);
+			$registreLib   = $registre["libelle"];
+			$linkInfos     = $this->urlQuery(array("registreid"=>$registreid),null,true);
+			$output       .="<a href=\"".$linkInfos."\" class=\"list-group-item\"> ";
+				   $output.="    ".$registreLib;
+			$output       .="</a> ";
+    }
+	$output  .= " </div>";  
+}  
+ 
+echo  $output ;
+
+?>
+             

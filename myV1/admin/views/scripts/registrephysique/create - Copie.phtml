@@ -1,0 +1,219 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("module" => "admin","controller" =>"registrephysique", "action" => "create"), "default" );
+$backList     = $this->url(array("module" => "admin","controller" =>"registrephysique", "action" => "list")  , "default" );
+$basePath     = VIEW_BASE_PATH;
+$domaines     = $this->domaines;
+$localites    = $this->localites;
+$situations   = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+$statuts      = array("Selectionnez un statut", 1 => "Créé", 2 => "Modifié", 3 => "Racheté", 4 => "Radié");
+$me           = Sirah_Fabric::getUser();
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('input:checkbox').bootstrapSwitch();
+jQuery('input:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state == true) && (this.name =='find_documents')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide'); 
+	} 
+	if((state == false) && (this.name =='find_documents')){
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	}
+});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input[name=\'find_documents\']').click(function( event ){
+        if(jQuery(this).is(':checked')) {
+              jQuery('#findDocumentsOptions').removeClass('hide');
+			  jQuery('.manualFindDocuments').addClass('hide');
+        } else {
+             jQuery('#findDocumentsOptions').addClass('hide');
+			 jQuery('.manualFindDocuments').removeClass('hide');
+        } 
+});
+jQuery('#docmini').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#docoriginal').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#createRegistreForm');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      var  numero       = jQuery.trim(formSelector.find('#numero').val());
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty( libelle )){
+          SIRAH.error.raise('createRegistreForm','Entrez un nom commercial valide');
+          return;
+      }
+      if( SIRAH.util.isEmpty( numero )){
+          SIRAH.error.raise('createRegistreForm','Entrez un numéro de registre valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('createRegistreForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Les informations du registre </small></h3>
+    <form method="post"  id="createRegistreForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">  
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label" title="Le numéro RC doit contenir 14 caractères"> Numéro RC* : </label>
+           <div   class="col-sm-8"> <input style="text-transform:uppercase" maxlength="14" type="text" name="numero" id="numero" class="form-control" placeholder="Numéro RC du registre (Ex:BFOUA2016A0001)" value="<?php echo $data["numero"]; ?>" /></div>        
+      </div>       
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom commercial* : </label>
+           <div   class="col-sm-8"> <input type="text" name="libelle" id="libelle" class="form-control" placeholder="Nom commercial" value="<?php echo $data["libelle"]; ?>" /></div>        
+      </div>
+      <?php if( $me->isAdmin() || $me->isOPS()): ?>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Localité* : </label>
+           <div   class="col-sm-8"> <?php echo $this->formSelect("localiteid", intval( $data["localiteid"]  ), array("class"=>"form-control chosen"), $localites); ?> </div>   
+      </div>
+      <?php else: ?> 
+      <input type="hidden" name="localiteid"  id="localiteid" value="<?php echo intval($data['localiteid']); ?>" />
+      <?php endif; ?>          
+      <div class="form-group">    
+            <label class="col-sm-3 control-label"> Date d'inscription : </label>
+            <div   class="col-md-8">
+			  <div class = "input-group">
+			    <?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?> 
+                <span class="input-group-btn" style="width:0px;"></span>
+				<?php echo $this->formSelect('date_month', $data["date_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?>
+                <span class="input-group-btn" style="width:0px;"></span>
+				<?php echo $this->formSelect('date_year' , $data["date_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1960, intval(date("Y")) ) );?>             
+              </div>
+			</div>
+	  </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Domaine d'activité : </label>
+           <div   class="col-sm-8"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]), array("class" => "form-control chosen"), $domaines ); ?> </div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Décrire l'activité : </label>
+           <div   class="col-sm-8"> <input type="text" name="description" id="description" class="form-control" value="<?php echo $data["description"]; ?>" placeholder="Décrivez en quelques mots l'activité menée" /></div>       
+      </div>	  
+      <h3 style="display:none;" class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Les informations de l'exploitant </small></h3>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom & Prénom*: </label>
+           <div   class="col-sm-8"> 
+		     <div class="input-group">
+		      <input type="text" name="nom"    id="nom"    class="form-control" value="<?php echo $data["nom"]; ?>" placeholder="Nom de famille" />
+              <span class="input-group-btn" style="width:0px;"></span>
+			  <input type="text" name="prenom" id="prenom" class="form-control" value="<?php echo $data["prenom"]; ?>" placeholder="Prénom" />      
+            </div>
+		 </div>  
+	  </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Adresse*: </label>
+           <div   class="col-sm-8"> <input type="text" name="adresse" id="adresse" class="form-control" value="<?php echo $data["adresse"]; ?>" placeholder="Adresse" /></div>       
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Numéro de téléphone: </label>
+           <div   class="col-sm-8"> <input type="text" name="telephone" id="telephone" class="form-control" value="<?php echo $data["telephone"]; ?>" placeholder="Numéro de téléphone" /></div>       
+      </div>	  
+      <div class="form-group">    
+            <label class="col-sm-3 control-label"> Date & lieu de naissance*: </label>
+			<div   class="col-md-8">
+			   <div class = "input-group">
+			       <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect("date_naissance_day", $data["date_naissance_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?></span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_month', $data["date_naissance_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?> </span>
+			       <span class="input-group-btn" style="width:0px;"></span>
+				   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_year' , $data["date_naissance_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?></span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <input style="height:40px;" type="text" name="lieunaissance" id="lieunaissance" class="form-control" value="<?php echo $data["lieunaissance"]; ?>" placeholder="Lieu de naissance" />
+			   </div>
+			</div>    
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Sexe*: </label>
+           <div   class="col-sm-3 radio radio-primary"> 
+		     <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+             <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>> Femme </label>
+		   </div>        
+      </div>
+	  <div class="form-group">          
+         <label class="col-sm-3 control-label"> Nationalité* : </label>
+         <div class="col-sm-8"> <?php echo $this->formSelect("country", $data['country'], array("class" => "form-control chosen") , $this->countries());?> </div>
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Situation matrimoniale: </label>
+           <div   class="col-sm-8"> <?php echo $this->formSelect("marital_status", $data["marital_status"], array("class" => "form-control"), $situations); ?> </div>        
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 control-label"> N° passport ou N°CNIB: </label>
+           <div   class="col-sm-8"> <input type="text" name="passport" id="passport" class="form-control" value="<?php echo $data["passport"]; ?>" placeholder="Le numéro d'identité (CNIB ou PASSPORT)" /></div>        
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Adresse email: </label>
+           <div   class="col-sm-8"> <input type="text" name="email" id="email" class="form-control" value="<?php echo $data["email"]; ?>" placeholder="Adresse email" /></div>       
+      </div>
+      <h3 style="display:none;" class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 3 <small> Selection des documents indexés </small></h3>
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Indexation automatique: </label>
+           <div   class="col-sm-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="find_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["find_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Contrôle de la qualité: </label>
+           <div   class="col-sm-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+      </div>
+	  <div id="findDocumentsOptions" class="form-group <?php echo (intval($data["find_documents"]) == 0) ? 'hide' :''; ?> "> 
+	    <label class="col-sm-3 control-label"> Dossier source*: </label>
+		<div   class="col-sm-8"> <input type="text" name="find_documents_src" id="find_documents_src" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["find_documents_src"]; ?>" /></div> 
+	  </div>
+	  <div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?> "> 
+           <label class="col-sm-3 control-label"> Le formulaire * : </label>
+           <div   class="col-sm-8"> <input type="file" name="docmini" id="docmini"    /></div>        
+     </div>
+     <div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?>"> 
+           <label class="col-sm-3 control-label"> Le fond de dossier* : </label>
+           <div   class="col-sm-8"> <input type="file" name="docoriginal"  id="docoriginal"    /></div>        
+     </div>	  
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Enregistrer le registre","save")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"createButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

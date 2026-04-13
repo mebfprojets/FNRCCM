@@ -1,0 +1,126 @@
+<?php 
+$data                = $this->data;
+$commandes           = $this->commandes;
+$commande            = $this->commande;
+$commandeid          = $this->commandeid;
+$formSubmit          = $this->url(array("controller" =>"apaiements", "action" => "create", "commandeid" => $commandeid), "default" );
+$backList            = $linkCancel =  $this->url(array("controller" =>"apaiements", "action" => "list"   ), "default" );
+
+$linkVirement        = $this->url(array("controller" =>"apaiements", "action" => "createvirement"), "default" );
+$linkCheque          = $this->url(array("controller" =>"apaiements", "action" => "createcheque"), "default" );
+$linkBon             = $this->url(array("controller" =>"apaiements", "action" => "createbon"), "default" );
+
+$modesPaiement       = array(0 => "Selectionnez un mode de paiement", 1 => "En Espèces", 2 => "Chèque", 3 => "Virement", 4 => "Bon");
+
+$basePath            = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+
+$onLoad = "
+            jQuery('#commandeid').chosen({allow_single_deselect:true,no_results_text: 'Aucun article ne correspond à ', width:'100%'});
+            jQuery('#modereglementBlock').hide();
+            jQuery('#mode').change(function(){
+                    jQuery('#modereglementBlock').show();
+                    SIRAH.loading.on( jQuery('#modereglementBlock'), 'Chargement des données...');
+                    var type     = parseInt( jQuery(this).val());
+                     if((type !=2) && (type !=3) && (type !=4)){
+                         jQuery('#modereglementBlock').html('').hide();
+                         SIRAH.loading.off();
+                         return;
+                     }
+                     switch(type) {     
+                       case 2 :
+                               jQuery.get('{$linkCheque}',{},function(data){jQuery('#modereglementBlock').html(data);}, 'html');
+                        break;
+                       case 3 :
+                               jQuery.get('{$linkVirement}' , {} , function(data){jQuery('#modereglementBlock').html(data);} , 'html');
+                        break;
+                      case 4 :
+                               jQuery.get('{$linkBon}', {} , function(data){jQuery('#modereglementBlock').html(data);} , 'html');
+                        break;
+                   }
+                   SIRAH.loading.off();
+               });";
+$jq->addOnLoad( $onLoad );
+?>
+<form method="post"  id="newlineForm" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+  <div     class="panel panel-default">
+   <ul class="list-group">
+        <li class="list-group-item">
+            <div  class="row">
+              <div class="col-md-4"> <b> La commande:</b> </div>
+              <div class="col-md-8"> <?php echo $this->formSelect("commandeid", $commandeid, array("class" => "form-control"), $commandes); ?>  </div> 
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+               <div class="col-md-4"> <b> Date:</b> </div>
+               <div class="col-md-2"><?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+               <div class="col-md-3"><?php echo $this->formSelect("date_month", $data["date_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+               <div class="col-md-3"><?php echo $this->formSelect("date_year" , $data["date_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div  class="row">
+              <div class="col-md-4"> <b> Numéro :</b> </div>
+              <div class="col-md-8"> <input type="text" name="numero" id="numero" class="form-control" placeholder="Numéro du bon d'achat" value="<?php echo $data["numero"]; ?>" />  </div> 
+            </div>
+        </li>       
+        <li class="list-group-item">
+            <div  class="row">
+              <div class="col-md-4"> <b> Mode paiement:</b> </div>
+              <div class="col-md-8"> <?php echo $this->formSelect("mode", intval( $data["mode"] ), array("class" => "form-control"), $modesPaiement); ?>  </div> 
+            </div>
+            <div style="display:none;"  class="row" id="modereglementBlock">
+            
+            </div>
+        </li>         
+        <li class="list-group-item">
+            <div  class="row">
+              <div class="col-md-4"> <b> Montant:</b> </div>
+              <div class="col-md-8"> <input type="text" name="montant" id="montant" class="form-control" placeholder="Montant" value="<?php echo $this->lastSolde; ?>" />  </div> 
+            </div>
+        </li>        
+     </ul>
+</div>
+<?php 
+  $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+  $toolCreate  = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+  $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+      
+  $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+  $toolCancel->setAttributes(array("type" => "submit"));
+      
+  $buttonsbar->add($toolCreate ,"createButton");
+  $buttonsbar->add($toolCancel ,"cancelCreationButton");
+     
+  $toolCreate->onClick("
+     		event.preventDefault();
+     		var formSelector = jQuery('#newlineForm');
+     		var commandeid   = parseInt(formSelector.find('#commandeid').val());
+     		var quantite     = parseInt(formSelector.find('#qte').val());
+     		var prix_vente   = formSelector.find('#prix_vente').val();
+     		var prix_unit    = formSelector.find('#prix_unit').val();
+     		if(!commandeid ) {
+     		    SIRAH.error.raise('newlineForm', 'Vous devrez obligatoirement selectionner une commande');
+     		    return;
+            }		
+     		formSelector.submit();");
+     $toolCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel ));
+     
+     if( !$this->isAjax )
+     	echo $buttonsbar;
+?>
+</form>
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

@@ -1,0 +1,106 @@
+<?php 
+   $entreprise         = $this->entreprise;
+   $countries          = $this->countries();
+   $entrepriseCountry  = (isset($countries[$entreprise->country])) ? $countries[$entreprise->country] : $entreprise->country;
+   
+   $linkEdit           = $this->url(array("controller"  => "entreprise" , "action" => "edit" , "id"  => $entreprise->id) , "default" ) ;
+     
+   $buttonbar          = $this->buttonbar(array() , $this->jqueryHandler());   
+   $buttonEdit         = $buttonbar->button(" Mettre à jour les informations","edit")->setPriority("primary");
+   $buttonCancel       = $buttonbar->button("Annuler","ban");
+   
+   $buttonbar->add($buttonEdit ,"saveButton");
+   $buttonbar->add($buttonCancel ,"cancelButton");
+   
+   $buttonCancel->onClick("document.location.href= '".$linkCancel."' ;");
+?>
+  
+ <div class="container pagecontainer col-md-12" style="text-align:left;">
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>  Désignation de l'entreprise:</b> </label></div> 
+            <div class="col-md-8"> <input id="libelle" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="La désignation de l'entreprise" placeholder="Désignation"  name="libelle" value="<?php echo $this->escape($entreprise->libelle); ?>"></div>
+       </div>
+     </li> 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b> Slogan :</b> </label></div> 
+            <div class="col-md-8"> <input id="slogan" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Le slogan de l'entreprise" placeholder="Le slogan de l'entreprise"  name="slogan" value="<?php echo $this->escape($entreprise->slogan); ?>"> </div>
+       </div>
+     </li> 
+     <li class="list-group-item">    
+       <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><input id="libelle" type="text" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le numéro de telephone de l'entreprise" placeholder="Le numéro de téléphone"  name="telephone" value="<?php echo $this->escape($entreprise->telephone); ?>"></div>
+       </div>
+    </li> 
+    <li class="list-group-item">   
+       <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail : </b> </label> </div> 
+            <div class="col-md-8"> <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Adresse e-mail de l'entreprise" placeholder="Adresse email"  name="email" value="<?php echo $this->escape($entreprise->email); ?>"> </div>
+       </div>
+    </li> 
+    <li class="list-group-item">    
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><input id="codepostal" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le code postal de l'entreprise" placeholder="Code postal"  name="codepostal" value="<?php echo $this->escape($entreprise->codepostal); ?>"></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="siteweb"> <b> Site Web: </b> </label> </div> 
+            <div class="col-md-8"><input id="siteweb" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="L'adresse du site web de l'entreprise" placeholder="Site web"  name="siteweb" value="<?php echo $this->escape($entreprise->siteweb); ?>"></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="pays"> <b> Pays :  </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entrepriseCountry);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+        <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="pays"> <b> Ville : </b> </label> </div> 
+            <div class="col-md-8"><input id="ville" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="La ville de l'entreprise" placeholder="Ville"  name="ville" value="<?php echo $this->escape($entreprise->ville); ?>"></div>
+       </div>
+   </li> 
+   <li class="list-group-item">  
+        <div class="row col-md-12"> 
+            <div class="col-md-4"><label class="label" for="fax"> <b> Fax  : </b> </label> </div> 
+            <div class="col-md-8"><input id="fax" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Le téléphone fax de l'entreprise" placeholder="Le téléphone fax"  name="fax" value="<?php echo $this->escape($entreprise->fax); ?>"></div>
+       </div>
+   </li> 
+   <li class="list-group-item">     
+          <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Adresse : </b> </label> </div> 
+            <div class="col-md-8"><input id="adresse" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="L'adresse de l'entreprise" placeholder="L'adresse"  name="adresse" value="<?php echo $this->escape($entreprise->adresse); ?>"></div>
+       </div>
+  </li> 
+  <li class="list-group-item">  
+        <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Responsable de l'entreprise : </b> </label> </div> 
+            <div class="col-md-8"><input id="responsable" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le responsable de l'entreprise" placeholder="Le responsable"  name="responsable" value="<?php echo $this->escape($entreprise->responsable); ?>"></div>
+       </div>
+ </li>
+  </ul>
+  </div>
+  
+    <?php 
+          if(!$this->isAjax) {
+          	  echo $buttonbar;
+          } else {
+          	echo $this->jQuery();
+          }
+      ?>
+       

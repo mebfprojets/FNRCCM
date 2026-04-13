@@ -1,0 +1,439 @@
+<?php 
+$produits          = $this->produits;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$laboratoires      = $this->laboratoires;
+$marques           = $this->marques;
+$gammes            = $this->gammes;
+$me                = Sirah_Fabric::getUser();
+$parentProductKey  = $this->parentProductKey;
+$parentform        = $this->parentform;
+$ligneId           = $this->ligneId;
+$adminBasePath     = ROOT_PATH."/myTpl/sirahpro";
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller" => "ajaxres", "action" => "verreslist","parentform" => $parentform,"productKey" => $parentProductKey,"ligneid" => $ligneId, "module" => "public"), "default");
+
+$jq->addOnload("
+jQuery('#type').change(function( event ){
+	  var typeVerre = jQuery(this).val();
+	  if( typeVerre == 'PR') {
+		  jQuery('#additionFormGroup').show();
+	  } else {
+		  jQuery('#additionFormGroup').hide();
+		  jQuery('#addition').val(0);
+	  }
+});
+jQuery('.btn.traitement_type').click(function(event){event.preventDefault();jQuery(this).find('input[name=\'traitement_type\']').attr('checked','checked');jQuery(this).find('input[name=\'traitement_type\']').trigger('click');});
+jQuery('input[name=\'traitement_type\']').click(function( event ){
+          if(jQuery(this).attr('id') == 'traitement_type_pq') {
+              jQuery('#PhotochromiqueOptions').show();
+          } else {
+             jQuery('#PhotochromiqueOptions').hide();
+             jQuery('input[name=\'traitement_photochromique\']').each(function(){jQuery(this).prop('checked', false);});
+          } 
+});
+jQuery('input[name=\'traitement_antireflet\']').click(function( event ){
+          if(jQuery(this).is(':checked')) {
+              jQuery('#antiRefletOptions').show();
+          } else {
+             jQuery('#antiRefletOptions').hide();
+             jQuery('input[name=\'traitement_antireflet_type\']').each(function(){jQuery(this).prop('checked', false);});
+          } 
+});
+jQuery('input[name=\'traitement_antirayure\']').click(function( event ){  
+         if(jQuery(this).is(':checked')) {
+            jQuery('input[name=\'traitement_antireflet_type\']').each(function(){jQuery(this).prop('checked', false);});
+          } 
+});
+var parentFormSelector  = jQuery('#".$parentform."');
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#verresListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+			
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchVerres').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#verresListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+		searchData.type     = formSelector.find('#type').val();
+		searchData.indice   = parseInt(formSelector.find('#indice').val());
+		searchData.sphere   = parseInt(formSelector.find('#sphere').val());
+		searchData.cylindre = parseInt(formSelector.find('#cylindre').val());
+		searchData.addition = parseInt(formSelector.find('#addition').val());		
+		if( formSelector.find('input:radio[name=\'traitement_type\']:checked').length > 0) {
+			searchData.traitement_type            = formSelector.find('input:radio[name=\'traitement_type\']:checked').val();	
+		}
+        if( formSelector.find('input:radio[name=\'traitement_photochromique\']:checked').length > 0) {
+			searchData.traitement_photochromique  = formSelector.find('input:radio[name=\'traitement_photochromique\']:checked').val();	
+		}
+        if( formSelector.find('input:checkbox[name=\'traitement_antireflet\']:checked').length > 0) {
+			searchData.traitement_antireflet      = formSelector.find('input:checkbox[name=\'traitement_antireflet\']:checked').val();	
+		}
+		if( formSelector.find('input:radio[name=\'traitement_antireflet_type\']:checked').length > 0) {
+			searchData.traitement_antireflet_type = formSelector.find('input:radio[name=\'traitement_antireflet_type\']:checked').val();	
+		}
+        if( formSelector.find('input:checkbox[name=\'traitement_antirayure\']:checked').length > 0) {
+			searchData.traitement_antirayure      = formSelector.find('input:checkbox[name=\'traitement_antirayure\']:checked').val();	
+		}	
+		searchData.indice   = parseInt(formSelector.find('#indice').val());
+		searchData.matiere  = formSelector.find('#matiere').val();
+		searchData.modele   = formSelector.find('#modele').val();
+		 
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on( modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#verresListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData      = {};
+		paginationData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+		paginationData.type     =  formSelector.find('#type').val();
+		paginationData.indice   = parseInt(formSelector.find('#indice').val());
+		paginationData.sphere   = parseInt(formSelector.find('#sphere').val());
+		paginationData.cylindre = parseInt(formSelector.find('#cylindre').val());
+		paginationData.addition = parseInt(formSelector.find('#addition').val());		
+		if( formSelector.find('input:radio[name=\'traitement_type\']:checked').length > 0) {
+			paginationData.traitement_type = formSelector.find('input:radio[name=\'traitement_type\']:checked').val();	
+		}
+        if( formSelector.find('input:radio[name=\'traitement_photochromique\']:checked').length > 0) {
+			paginationData.traitement_photochromique = formSelector.find('input:radio[name=\'traitement_photochromique\']:checked').val();	
+		}
+        if( formSelector.find('input:checkbox[name=\'traitement_antireflet\']:checked').length > 0) {
+			paginationData.traitement_antireflet = formSelector.find('input:checkbox[name=\'traitement_antireflet\']:checked').val();	
+		}
+		if( formSelector.find('input:radio[name=\'traitement_antireflet_type\']:checked').length > 0) {
+			paginationData.traitement_antireflet_type = formSelector.find('input:radio[name=\'traitement_antireflet_type\']:checked').val();	
+		}
+        if( formSelector.find('input:checkbox[name=\'traitement_antirayure\']:checked').length > 0) {
+			paginationData.traitement_antirayure = formSelector.find('input:checkbox[name=\'traitement_antirayure\']:checked').val();	
+		}		
+		paginationData.matiere  = formSelector.find('#matiere').val();
+		paginationData.modele   = formSelector.find('#modele').val();
+		paginationData.libelle  = formSelector.find('#libelle').val();
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+		
+		var modalBox            = jQuery('.modal').find('.modal-body');			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+jQuery('.productItem').css('cursor','pointer');
+jQuery('.productItem').bind('mouseout' ,function(e){jQuery(this).find('.panel-white').eq(0).removeClass('panel-more-shadow');jQuery(this).find('.panel-img').eq(0).removeClass('panel-more-shadow');});
+jQuery('.productItem').bind('mouseover',function(e){jQuery(this).find('.panel-white').eq(0).addClass('panel-more-shadow');jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');});
+jQuery('.productItem').click(function(){
+	  jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');
+	  var itemid = parseInt(jQuery(this).attr('id').replace('productItemId-', ''));
+      var parentProductKey  = jQuery('#".$parentProductKey."');	  
+	  var selectProduit     = null;
+	  if( parentProductKey ) {
+		  selectProduit     = parentProductKey.find('.addProduct').first();
+	  }	 
+      	  
+	  if(selectProduit)	{
+		 selectProduit.trigger('add', [itemid,parentProductKey,'".$ligneId."'] );
+	  }   
+	  jQuery('#filterListProduits').dialog2('close');
+	  jQuery('#filterListProduits,.modal,.modal-backdrop').remove(true);
+	  jQuery('body').removeClass('modal-open');
+});
+
+");
+
+
+$pagination  = $this->pagination(array() , "Elastic" , "#");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-heading > form{margin-bottom:0;}
+.main-content section + section{border-top:none;}
+.img-responsive{display:inline;}
+.img-responsive,.panel-body-fw{text-align:center !important;}
+#produitsContainer{padding-left:0;padding-right:0;}
+.product-details,.product-other-infos > .list-group-item{padding:7px;}
+.product-stock-infos{margin-left:-1px;padding:0;}
+.product-stock-infos span{color:white;padding:5px;border-radius:0 4px 4px 0}
+.productlib{float:left;width:60%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:left}
+.productprice{float:left;width:40%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:right}
+.productlib h2, .productprice h2{font-size:16px;font-weight:bold;line-height: 15px;}
+.productlib h3, .productprice h3{font-size:14px;}
+.product-description{height:90px;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<section id="searchBox"  class="searchBox">
+   <div id="searchWrapper"  class="container-fluid">
+     <div class="panel panel-primary">
+	    <div class="panel-heading"> 
+		  <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez un type de verre, saisir la désignation...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Filtrer</button>
+               <button id="advancedSearchBtn" class="btn btn-warning advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+               <button class="btn btn-danger  resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		   </div>
+		     <input type="hidden" name="gammeid"   id="gammeid"   value="<?php echo intval($filters["gammeid"]);  ?>" /> 
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+		</div> 
+		<form id="verresListSearchForm" class="form-horizontal" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >
+		<ul class="list-group"> 		     
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Type/Matière :</b> </label> 
+				   <div   class="col-md-5"> <?php echo $this->formSelect("type"   ,$filters["type"]   , array("class" => "form-control"), $this->types); ?>  </div> 
+				   <div   class="col-md-4"> <?php echo $this->formSelect("matiere",$filters["matiere"], array("class" => "form-control"), $this->matieres); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Indice :</b> </label> 
+				   <div class="col-md-9"> <?php echo $this->formSelect("indice", intval($filters["indice"]), array("class" => "form-control"), $this->indices); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Sphère:</b> </label> 
+				   <div   class="col-md-4"><?php echo $this->formSelect("sphere",  $filters["sphere"], array("class" => "form-control")    , Sirah_Functions_ArrayHelper::rangeWithCombine("+6","-6",-0.25,true));?></div> 
+				   <label class="col-md-2 control-label">  <b> Cylindre:</b> </label> 
+				   <div   class="col-md-3"> <?php echo $this->formSelect("cylindre", $filters["cylindre"], array("class" => "form-control"), Sirah_Functions_ArrayHelper::rangeWithCombine("+6","-6",-0.25,true));?></div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item" id="additionFormGroup"  <?php echo ($filters["type"] == 'PR') ? "" :  "style=\"display:none;\""; ?> >
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Addition:</b> </label> 
+				   <div   class="col-md-4"><?php echo $this->formSelect("addition", intval($filters["addition"]), array("class" => "form-control"), Sirah_Functions_ArrayHelper::rangeWithCombine(0,3.50,0.25));?></div> 
+				   <label class="col-md-2 control-label">  <b> Axe:</b> </label> 
+				   <div   class="col-md-3"> <?php echo $this->formSelect("axe"    , intval($filters["axe"])     , array("class" => "form-control"), Sirah_Functions_ArrayHelper::rangeWithCombine(0,180,1));?></div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			 <div class="row">
+			    <label class="col-md-3 control-label">  <b> Types de traitement:</b> </label> 
+                <div   class="col-md-9">
+		           <div class="btn-group" data-toggle="buttons">
+                   <label class="btn btn-default traitement_type"><input type="radio" id="traitement_type_bc" name="traitement_type" value="BC" <?php echo ($filters["traitement_type"] == "BC")? 'checked' : '' ; ?> /> Verre Blanc    </label>
+                   <label class="btn btn-default traitement_type"><input type="radio" id="traitement_type_pq" name="traitement_type" value="PQ" <?php echo ($filters["traitement_type"] == "PQ")? 'checked' : '' ; ?> /> Verre Photochromique </label>
+                   <label class="btn btn-default traitement_type"><input type="radio" id="traitement_type_tn" name="traitement_type" value="TN" <?php echo ($filters["traitement_type"] == "TN")? 'checked' : '' ; ?> /> Verre Teinté </label>
+				</div>
+		       </div>
+             </div> 			   
+		    </li>			
+			<li class="list-group-item" id="PhotochromiqueOptions" <?php echo ($filters["traitement_type"] != 'PQ') ? "style=\"display:none;\"" :''; ?> > 
+			 <div class="row">
+			    <label class="col-md-3 control-label"><b> L'option photochromique:</b></label> 
+                <div   class="col-md-9">
+		          <div class="btn-group" data-toggle="buttons">
+                   <label class="btn btn-default"><input type="radio" id="traitement_photochromique_ts" name="traitement_photochromique" value="TS" <?php echo ($filters["traitement_type"] == "TS")? 'checked' : '' ; ?> /> Transition  </label>
+                   <label class="btn btn-default"><input type="radio" id="traitement_photochromique_p1" name="traitement_photochromique" value="P1" <?php echo ($filters["traitement_type"] == "P1")? 'checked' : '' ; ?> /> Photo 1.56  </label>
+                   <label class="btn btn-default"><input type="radio" id="traitement_photochromique_sn" name="traitement_photochromique" value="SN" <?php echo ($filters["traitement_type"] == "SN")? 'checked' : '' ; ?> /> Sunsessor   </label>
+				   <label class="btn btn-default"><input type="radio" id="traitement_photochromique_pm" name="traitement_photochromique" value="PM" <?php echo ($filters["traitement_type"] == "PM")? 'checked' : '' ; ?> /> Photomatic  </label>
+				</div>
+		       </div>
+             </div> 			   
+		    </li>
+			<li class="list-group-item"  > 
+			  <div class="row">
+			    <label class="col-md-3 control-label"><b> Option anti-rayure:</b></label> 
+			    <div   class="col-md-9">           
+                  <div class="checkbox-inline"><label><input name="traitement_antirayure" type="checkbox" id="traitement_antirayure" class="custom-checkbox" <?php echo (intval($filters["traitement_antirayure"]) == 1) ? 'checked' : ''; ?> value="1"> Anti-Rayure  </label></div>
+                </div>
+			  </div>
+			</li>
+			<li class="list-group-item"  > 
+			  <div class="row">
+			    <label class="col-md-3 control-label"><b> Option anti-reflet:</b></label> 
+			    <div   class="col-md-9">           
+                  <div class="checkbox-inline"><label><input name="traitement_antireflet" type="checkbox" id="traitement_antireflet" class="custom-checkbox" <?php echo (intval($filters["traitement_antireflet"]) == 1) ? 'checked' : ''; ?> value="1"> Anti-Reflet  </label></div>
+                </div>
+			  </div>
+			</li>
+			<li class="list-group-item" id="antiRefletOptions" <?php echo ($filters["traitement_antireflet"] != 1) ? "style=\"display:none;\"" :''; ?> > 
+			 <div class="row">
+			    <label class="col-md-3 control-label"><b> L'option anti-reflet:</b></label> 
+                <div   class="col-md-9">
+		           <div class="btn-group" data-toggle="buttons">
+                   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_bs" name="traitement_antireflet_type" value="BS" <?php echo ($filters["traitement_type"] == "BS")? 'checked' : '' ; ?> /> Blueshock   </label>
+                   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_mj" name="traitement_antireflet_type" value="MJ" <?php echo ($filters["traitement_type"] == "MJ")? 'checked' : '' ; ?> /> Major       </label>
+                   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_op" name="traitement_antireflet_type" value="OP" <?php echo ($filters["traitement_type"] == "OP")? 'checked' : '' ; ?> /> Opalis      </label>
+				   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_ph" name="traitement_antireflet_type" value="PH" <?php echo ($filters["traitement_type"] == "PH")? 'checked' : '' ; ?> /> Premium HD  </label>
+				   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_pm" name="traitement_antireflet_type" value="PM" <?php echo ($filters["traitement_type"] == "PM")? 'checked' : '' ; ?> /> Premium     </label>
+				   <label class="btn btn-default"><input type="radio" id="traitement_antireflet_type_sl" name="traitement_antireflet_type" value="SL" <?php echo ($filters["traitement_type"] == "SL")? 'checked' : '' ; ?> /> Selis       </label>
+				</div>
+		       </div>
+             </div>
+			</li> 					
+		</ul> 
+		<div class="panel-footer"> 
+		   <button id="searchVerres" class="btn btn-primary searchVerres" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+           <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		  <input type="hidden" name="gammeid"   id="gammeid"   value="<?php echo intval($filters["gammeid"]);  ?>" /> 
+          <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+          <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		</form>
+		
+	 </div> 
+   </div> 
+</section>
+
+<section id="produitsListSection"  class="produitsListSection">
+  <div id="produitsContainer"  class="container-fluid">
+    <div id="items"  class="row-fluid items">
+	    <?php 
+            $output = "";
+			$model  = new Model_produit();
+            if( count(  $produits) ) {
+				foreach($produits as $produit ) {
+					    $produitid   = intval($produit['produitid']);
+                        $produitRow  = $model->findRow( $produitid, "produitid", null , false );
+                        if( !$produitRow ) {
+                            continue;
+                        }
+                        $libelle     = $produit["libelle"] ;
+						$description = substr(strip_tags($produit["description"]), 0 ,100 )."...";
+                        $qtedispo    = $produit["qtedispo"];
+                        $category    = (!empty( $produit["categorie"]  ))? $produit["categorie"]   : "Non catégorisé";
+                        $laboratoire = (!empty( $produit["laboratoire"]))? $produit["laboratoire"] : "";
+                        $gamme       = (!empty( $produit["gamme"] )) ? $produit["gamme"]  : "";
+                        $marque      = (!empty( $produit["marque"])) ? $produit["marque"] : "";
+                        $prix_vente  = number_format( $produit["prix_vente_ttc"], 0 , "," , " ");
+                        $prix_achat  = number_format( $produit["prix_achat_ttc"], 0 , "," , " ");
+						$photoFile   = str_replace(DS , "/" , str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , APPLICATION_DATA_PATH . "/produits/photos/mini/default.jpg"));
+                        
+                        if( !empty( $produit["photo"] ) ) {
+                            $photoPath      = APPLICATION_DATA_PATH . DS . "produits" . DS . "photos" . DS . "mini" . DS . $produit["photo"];
+                            if( file_exists( $photoPath ) ) {
+                              	$photoPathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $photoPath );
+                              	$photoFile     = str_replace( DS , "/" , $photoPathname);
+                            }
+                        }						
+                        if(!$produitRow->stocked ) {
+                            $qtedispo = "<span class='bs-badge badge-warning'> Sur commande </span>";
+                        } else {
+                            $qteDispo = $model->getProduitQteDispo( $produitid, 0, $me->userid );
+                            if(!$qteDispo ) {
+                              	$agencesWithProduitDispo = $produitRow->getAgencesWithProduitDispo();
+                              	$qtedispo = (count( $agencesWithProduitDispo)) ? "<span class='badge badge-success'> Disponible dans les ".implode(", ", $agencesWithProduitDispo)." </span>" : "<span class='badge badge-danger'> Non disponible en stock </span>"; 
+                            } else {
+                              	$qtedispo = sprintf("<span class='badge badge-success'> Disponible en stock </span>");
+                            }
+                       }					   
+					   $output.= "<div id=\"productItemId-".$produitid."\" class=\"col-md-4 col-sm-6 col-xs-18 productItem\">";
+					          $output.= "<div class=\"panel panel-white\">";							        
+									$output.="<div class=\"panel-body panel-body-fw panel-img\"> <img heigh=\"150px\" class=\"img-responsive\" src=\"".$photoFile."\" alt=\"".$libelle."\" /> </div>";	
+							        $output.="<div class=\"panel-body product-stock-infos \">".$qtedispo." </div>";
+									$output.="<div class=\"panel-body product-details \">
+									             <div class=\"productlib\">   <h2>".$libelle   ."</h2> </div>
+												 <div class=\"productprice\"> <h2>".$prix_vente." F CFA</h2> </div>
+											  </div>";
+									$output.="<ul class=\"list-group product-other-infos\"> ";
+									   $output.="<li class=\"list-group-item product-description\"> ".$description." </li>";
+									   $output.="<li class=\"list-group-item\"> 
+                                                        <a href=\"#selectProduit-".$produitid."\" class=\"btn btn-success btn-block btn-lg selectProduit\"> Selectionner </a>									 
+									                 </li>";
+						           $output.="</ul>";
+							  $output.= "</div>";
+					   $output.= "</div>";
+				}
+			} else {
+				       $output.= "<div class=\"panel panel-white\"> <p class=\"text-center\"> AUCUN PRODUIT DE CE TYPE N'A ETE RETROUVE DANS VOTRE BOUTIQUE</p> </div>";
+			}
+			
+			echo $output;
+		?>
+	</div> 
+  </div> 
+</section>
+<?php 
+      echo $pagination->render();
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

@@ -1,0 +1,252 @@
+<?php 
+    $commande      = $this->commande;
+    $commandeid    = $this->commandeid;
+    $fournisseur   = $this->fournisseur;
+    $lignes        = $this->commandelignes;
+    $livraison     = $this->livraison;
+    $reglements    = $this->reglements;
+    $lastReglement = $this->lastReglement;
+    $documents     = $this->documents;
+    $valeur        = ( $commande->valeur) ? number_format( $commande->valeur, 2, ", ", " ") : 0;
+    $frais         = ( $commande->frais ) ? number_format( $commande->frais , 2, ", ", " ") : 0;
+    $statut        = $this->statut;
+    $me            = Sirah_Fabric::getUser();
+    
+    $basePath      = VIEW_BASE_PATH;
+    $jq            = $this->jQuery();
+    
+    $linkBack            = $linkCancel = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "list"    , "fournisseurid"     => $commande->fournisseurid), "default");
+    $linkCreate          = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "create"    , "fournisseurid"     => $commande->fournisseurid ), "default");
+    $linkLivraison       = $this->url(array("controller" => "alivraisons","action"=> "create"    , "commandeid" => $commandeid ), "default");
+    $linkDelete          = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "delete"    , "commandeid" => $commandeid ), "default");
+    $linkEdit            = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "edit"      , "commandeid" => $commandeid ), "default");
+    $linkAddRow          = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "createline", "commandeid" => $commandeid ), "default");
+    $linkDelRow          = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "deleteline", "commandeid" => $commandeid ), "default");
+    $linkUploadDocuments = $this->url(array("module"=>"admin","controller" => "acommandes", "action"=> "upload"    , "commandeid" => $commandeid, "category" => 7 ), "default");
+    
+    $buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+    $buttonCreate        = $buttonBar->button("Enregistrer une autre commande"   , "plus");
+    $buttonEdit          = $buttonBar->button("Mettre à jour"       , "pencil");
+    $buttonDelete        = $buttonBar->button("Supprimer"           , "trash-o");
+    $buttonCancel        = $buttonBar->button("Revenir sur la liste", "ban");
+        
+    $buttonBar->add( $buttonCreate, "createButton");
+    if(!$livraison )
+        $buttonBar->add( $buttonEdit  , "editButton");
+    $buttonBar->add( $buttonDelete, "deleteButton");
+    $buttonBar->add( $buttonCancel, "cancelButton");
+    
+    $buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-primary"));
+    $buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+    $buttonCancel->setAttributes(array("type" => "submit"));
+    
+    $buttonDelete->onClick(sprintf("
+		 event.preventDefault(); 
+		 var dialogDeleteCommande = jQuery('<div> Etes-vous sur de supprimer cette commande ? </div>').attr('id','dialogDeleteCommande');
+         dialogDeleteCommande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+         dialogDeleteCommande.dialog2('addButton','Oui', {primary: true ,click:function(){ document.location.href ='%s';}}); 
+         dialogDeleteCommande.dialog2('addButton','Non', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteCommande.dialog2('open');", $linkDelete));
+    $buttonCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel ));
+    $buttonEdit->onClick(  sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit   ));
+    $buttonCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+    
+    $creationDate           = "00/00/0000";
+    $updateDate             = "00/00/0000";
+    $commandeDate           = "00/00/0000";
+    $commandeDateLivraison  = "00/00/0000";
+    $livraisonDate          = "00/00/0000";
+    $creator                = Sirah_Fabric::getUser( $commande->creatorid     );
+    $updatedUser            = Sirah_Fabric::getUser( $commande->updateduserid );
+    
+    if( $commande->delaiLivraison ) {
+    	$zendCommandeDateLivraison  = new Zend_Date( $commande->delaiLivraison, Zend_Date::TIMESTAMP );
+    	$commandeDateLivraison      = $zendCommandeDateLivraison->toString("d MMM Y à H:m");
+    }
+    if( $commande->date ) {
+    	$zendCommandedate = new Zend_Date( $commande->date, Zend_Date::TIMESTAMP );
+    	$commandeDate     = $zendCommandedate->toString("d MMM Y à H:m");
+    }
+    if( $commande->creationdate ) {
+    	$zendCreationdate = new Zend_Date( $commande->creationdate, Zend_Date::TIMESTAMP );
+    	$creationDate     = $zendCreationdate->toString("d MMM Y à H:m");
+    }
+    if( $commande->updatedate ) {
+    	$zendUpdatedate   = new Zend_Date( $commande->updatedate , Zend_Date::TIMESTAMP );
+    	$updateDate       = $zendUpdatedate->toString("d MMM Y à H:m");
+    }
+    if( $livraison ) {
+    	$zendLivraisonDate= new Zend_Date( $livraison->date , Zend_Date::TIMESTAMP );
+    	$livraisonDate    = $zendLivraisonDate->toString("d MMM Y à H:m");
+    }
+    
+$onLoad  = "  jQuery('.uploadFile').click(function( event ) {
+                         event.preventDefault();
+                         var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+                         dialogUploadFile.dialog2({
+             		                               title : 'Enregistrer un document',
+             		                               content : '".$linkUploadDocuments."',
+             		                               autoOpen: false,
+             		                               modalClass:'modal-wide',
+             		                               removeOnClose: true,
+             		                               closeOnEscape: true, 
+                                                   closeOnOverlayClick:false,
+             		                               showCloseHandle:true,
+             		                               initialLoadText: 'Chargement de la page, patientez...' });
+       dialogUploadFile.dialog2('addButton','<span =\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+       dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+       dialogUploadFile.dialog2('open');          
+   });";
+
+$jq->addOnLoad( $onLoad );
+$this->toolsbar  = $buttonBar;
+
+$canRemoveLignes = ($livraison) ? 0 : 1;
+
+//print_r( $commande->statut );
+?>
+
+<div id="commandeInfosWrapper" class="row"> 
+    <div  class="col-sm-6">
+       <div  class="content-box">
+           <h3  class="content-box-header bg-orange"> <b> Les informations de la commande </b>  </h3>
+           <div class="divider"> </div>
+           <div class="content-box-wrapper ">
+             <div class="list-group pad4A">
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> N° de la commande:</b></div> 
+                       <div class="col-md-7"><?php echo $commande->ref; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Date :</b></div> 
+                       <div class="col-md-7"><?php echo $commandeDate; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Date livraison :</b></div> 
+                       <div class="col-md-7"><?php echo ($livraison) ? $livraisonDate : $commandeDateLivraison; ?></div>
+                   </div>
+                 </a>                 
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Fournisseur:</b></div> 
+                       <div class="col-md-7"><?php echo ( $fournisseur ) ? $fournisseur->libelle : ""; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Valeur:</b></div> 
+                       <div class="col-md-7"><?php echo $valeur; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Frais supplementaires:</b></div> 
+                       <div class="col-md-7"><?php echo $frais; ?></div>
+                   </div>
+                 </a>
+                <?php if( $statut ): ?>
+                <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Statut:</b></div> 
+                       <div class="col-md-7"><?php echo ( $statut ) ? $statut->libelle : ""; ?></div>
+                   </div>
+                 </a>
+                <?php endif; ?>
+                <?php if($creator->userid) : ?>
+                 <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-12 "> Enregistrée le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+                    </div>
+                  </a>
+                 <?php endif; ?>
+                 <?php if($updatedUser->userid) : ?>
+                  <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+                     </div>
+                 </a>
+                <?php endif; ?>            
+            </div>
+           </div>
+           
+          <?php if( !empty( $commande->observation )): ?>
+             <h3  class="content-box-header bg-orange"> <b> Observations </b>  </h3>
+              <div class="divider"> </div>
+              <div class="content-box-wrapper ">
+                <?php echo $commande->observation; ?>
+              </div>
+          <?php endif; ?>  
+          
+           <h3  class="content-box-header bg-blue"> <b> Les informations de la livraison </b>  </h3>
+              <div class="divider"> </div>
+          <?php if( $livraison ): ?>
+          <?php $linkLivraisonInfos = $this->url(array("controller" => "alivraisons", "action" => "infos", "livraisonid" => $livraison->livraisonid ), "default");  ?>           
+              <div class="content-box-wrapper ">
+                  <a class="list-group-item" href="<?php echo $linkLivraisonInfos; ?>">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Référence:</b></div> 
+                       <div class="col-md-7"><?php echo $livraison->ref; ?></div>
+                   </div>
+                  </a>
+                  <a class="list-group-item" href="<?php echo $linkLivraisonInfos; ?>">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Date:</b></div> 
+                       <div class="col-md-7"><?php echo $livraisonDate; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item" href="<?php echo $linkLivraisonInfos; ?>">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Valeur:</b></div> 
+                       <div class="col-md-7"><?php echo $livraison->valeur; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item" href="<?php echo $linkLivraisonInfos; ?>">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Livreur:</b></div> 
+                       <div class="col-md-7"><?php echo $livraison->livreur; ?></div>
+                   </div>
+                 </a>
+              </div>
+          <?php else: ?>
+           <div class="content-box-wrapper ">
+               <a class="list-group-item bg-success" href="<?php echo $linkLivraison; ?>"> Enregistrer la livraison de cette commande </a>
+           </div> 
+          <?php endif; ?>     
+       </div>    
+    </div>    
+    <div class="col-sm-6">
+         <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Les produits de la commande </h4></div> 
+            <?php echo $this->partial("acommandes/lignes.phtml" , array("lignes" => $lignes, "commande" => $commande, "commandeid" => $commandeid, "canRemove" => $canRemoveLignes )); ?>
+            <?php if(!$livraison ): ?>  
+              <div class="panel-footer">
+               <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus addRow"> Ajouter une ligne</button> </div>
+              </div>
+            <?php endif; ?>
+         </div>           
+         <div class="panel panel-default">
+            <div class="panel-heading <?php echo ($lastReglement->reste > 0 ) ? 'bg-red': 'bg-green'; ?>"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Historique des règlements </h4></div> 
+            <?php echo $this->partial("acommandes/paiements.phtml" , array("paiements" => $reglements,"commande" => $commande, "commandeid" => $commandeid)); ?>
+            <?php if( $me->isAllowed("apaiements", "create") && ($lastReglement->reste > 0 ) ): ?>
+             <div class="panel-footer">
+                 <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle addPaiement"> Enregistrer un paiement </button></div>
+             </div> 
+            <?php endif; ?>
+         </div>
+         <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Documents </h4></div> 
+            <?php echo $this->partial("acommandes/documents.phtml", array("documents" => $documents, "commande" => $commande, "commandeid" => $commandeid)); ?>
+            <?php if( $me->isAllowed("acommandes", "upload")): ?>
+             <div class="panel-footer">
+                 <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-upload uploadFile"> Enregistrer un document </button></div>
+             </div> 
+            <?php endif; ?>
+         </div>   
+    </div>
+</div>

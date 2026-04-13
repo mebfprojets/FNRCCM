@@ -1,0 +1,135 @@
+<?php 
+$data           = $this->data;
+$messages       = $this->messages;
+$agences        = $this->agences;
+$token          = $this->token;
+$data           = $this->data;
+$defaultCountry = (isset($data["country"]) && !empty($data["country"])) ? $data["country"] : "BF";
+$formSubmit     = $this->url(array("controller" =>"projectusers", "action" => "edit"), "default" );
+$backList       = $this->url(array("controller" =>"projectusers", "action" => "list")  , "default" );
+$basePath       = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';}); 
+jQuery('#editButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector= jQuery('#editAccountForm');
+      var  firstname   = jQuery.trim(jQuery('#firstname').val());
+      var  lastname    = jQuery.trim(jQuery('#lastname').val());
+      var  email       = jQuery.trim(jQuery('#email').val());
+      var  username    = jQuery.trim(jQuery('#username').val());
+      var  credential  = jQuery.trim(jQuery('#password').val());
+      var  credential2 = jQuery.trim(jQuery('#confirmedpassword').val());
+      var  phone1      = jQuery.trim(jQuery('#phone1').val());
+      
+      if(SIRAH.util.isEmpty(lastname)){
+         SIRAH.dialog.alert('Entrez un nom de famille valide', 'Nom de famille invalide');
+         return;
+      } 
+      if(SIRAH.util.isEmpty(firstname)){
+        SIRAH.dialog.alert('Entrez un nom de famille valide', 'Prénom invalide');
+        return;
+      }   
+      if(SIRAH.util.isEmpty(username)){
+        SIRAH.dialog.alert('Entrez un nom d\'utilisateur valide', 'Nom d\'utilisateur invalide');
+        return;
+      }  
+      if(SIRAH.util.isEmpty(phone1)){
+         SIRAH.dialog.alert('Entrez un numéro de téléphone valide', 'Numéro de téléphone invalide');
+         return;
+      }  
+      if(!SIRAH.validators.isEmailAddress(email)){
+          SIRAH.dialog.alert('Entrez une adresse email valide', 'Adresse email invalide');
+         return;
+      }            
+      jQuery('#lastname').val(lastname);
+      jQuery('#firstname').val(firstname);
+      jQuery('#username').val(username);
+      jQuery('#email').val(email);
+      jQuery('#phone1').val(phone1);
+      jQuery('#password').val(credential);
+      jQuery('#confirmedpassword').val(credential2);
+      formSelector.submit();
+   }); ";
+$jq->addOnLoad($onLoad);
+
+?>
+<form method="post" id="editAccountForm" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+ <div     class="content-box">
+    <h3  class="content-box-header bg-blue-alt"> <i class="glyph-icon icon-user"></i> <b> Création du compte d'un collaborateur </b> </h3>
+    <div class="mrg10T mrg5L pad20A row">
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Nom complet*: </label>
+       <div   class="col-sm-4"><input type="text" name="lastname"  id="lastname"  class="form-control" placeholder="Nom de famille" value="<?php echo $data["lastname"]; ?>" /></div>        
+       <div   class="col-sm-4"><input type="text" name="firstname" id="firstname" class="form-control" placeholder="Prénom"         value="<?php echo $data["firstname"];?>" /></div>   
+	 </div>
+	  
+	<div class="form-group"> 
+       <label class="col-sm-2 control-label"> Nom d'utilisateur*: </label>
+       <div   class="col-sm-8"><input type="text" name="username" id="username" class="form-control" autocomplete="off" autocapitalize="off" autocorrect="off" 
+	                                  placeholder="Nom d'utilisateur" value="<?php echo $data["username"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Adresse email: </label>
+       <div   class="col-sm-8"><input type="text" name="email" id="email" class="form-control" placeholder="Adresse email" value="<?php echo $data["email"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Mot de passe: </label>
+       <div   class="col-sm-3"><input type="password" name="password" id="password" class="form-control" autocomplete="off" autocapitalize="off" autocorrect="off"  maxlength="32" /> </div>        
+	   <label class="col-sm-2 control-label"> Confirmation: </label>
+	    <div   class="col-sm-3"><input type="password" name="confirmedpassword" id="confirmedpassword" class="form-control" autocomplete="off" autocapitalize="off" autocorrect="off"  maxlength="32" /> </div>   
+	</div>	
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Téléphone: </label>
+	   <div   class="col-sm-4"><input type="text" name="phone1" id="phone1" class="form-control" placeholder="Son téléphone principal"   value="<?php echo $data["phone1"]; ?>" /> </div> 
+       <div   class="col-sm-4"><input type="text" name="phone2" id="phone2" class="form-control" placeholder="Téléphone secondaire" value="<?php echo $data["phone2"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group">
+		  <label class="col-md-2 control-label" for="sexe"> Sexe :</label>
+		  <div   class="col-md-4">
+		    <div class="btn-group" >
+                <label class="btn btn-default"><input type="radio" name="sexe" value="M" <?php echo ($data["sexe"] == "M") ? 'checked' : '' ; ?> /> Homme </label>
+                <label class="btn btn-default"><input type="radio" name="sexe" value="F" <?php echo ($data["sexe"] == "F") ? 'checked' : '' ; ?> /> Femme </label>
+            </div>
+		  </div>
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Boutique: </label>
+       <div   class="col-sm-8"> <?php echo $this->formSelect("agenceid", null, array("class" => "form-control"), $agences); ?> </div>        
+     </div>
+
+	</div>
+
+<?php     
+   $buttonsbar      = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Mettre à jour","save")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add($toolCreate ,"editButton");
+   $buttonsbar->add($toolCancel ,"cancelCreationButton");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+ </div>
+   <input id="userid"  type="hidden" name="userid" value="<?php echo intval($data["userid"]); ?>" /> 
+   <input id="t"       type="hidden" name="t" value="<?php echo $token; ?>" /> 
+   <input id="city"    type="hidden" name="city" value="" /> 
+   <input id="country" type="hidden" name="country" value="<?php echo $defaultCountry ; ?>" /> 
+</form>

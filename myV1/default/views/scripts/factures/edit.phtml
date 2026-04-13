@@ -1,0 +1,387 @@
+<?php 
+$data            = $this->data;
+$commandeid      = $this->commandeid;
+$formSubmit      = $this->url(array("module"=>"admin","controller" => "acommandes", "action" => "edit", "commandeid"=>$commandeid), "default" );
+$backList        = $linkCancel =  $this->url(array("controller" =>"acommandes", "action" => "list"   ), "default" );
+$linkGetSections = $this->url(array("controller" => "ajaxres"   , "action" => "chantiersections" , "typeOfData" => "json"), "default" );
+$linkGetBudgets  = $this->url(array("controller" => "ajaxres"   , "action" => "chantierbudgets"  , "typeOfData" => "json"), "default" );
+$linkGetProduits = $this->url(array("controller" => "ajaxres"   , "action" => "produits"         , "typeOfData" => "json", "stocked" => 1), "default" );
+$linkGetActivites= $this->url(array("controller" => "ajaxres"   , "action" => "chantierarticles", "typeOfData" => "json"), "default" );
+$linkGetDemandes = $this->url(array("controller" => "ajaxres"   , "action" => "articledemandes" , "typeOfData" => "json"), "default" );
+
+$basePath        = VIEW_BASE_PATH;
+$categories      = $this->categories;
+$produits        = $this->produits;
+$produitsListe   = $this->produitsListe;
+$lignes          = $this->commandelignes;
+$statuts         = $this->statuts;
+$uniteMesures    = $this->unites;
+$activityUnitesList    = $this->unitesList;
+$productUnites   = array();
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = "var produits = []; \n var prices = []; \n var categories = []; \n var uniteMesures = []; \n";
+if( count(   $produitsListe )) {
+	         $produitRows   = array();
+	foreach( $produitsListe as $produitRow ) {
+		     $productid     = ( isset( $produitRow["productid"] )) ? intval( $produitRow["productid"] ) : 0;
+		     if( !$productid )
+		     	continue;
+		     $produitVal    = $produitRow["libelle"];
+		     $produitKey    = $produitRow["productid"];
+		     
+		     $produitRows[] = "{'label':'".addslashes( $produitVal )."', 'value':'".$produitKey."', 'text':'".addslashes( $produitVal )."'}";
+		     $onLoad       .=" prices[".$produitKey."] = parseFloat(".floatval( $produitRow["prix_achat_ttc"] )."); \n";
+             if( isset($uniteMesures[$produitRow["uniteid"]])) {
+				 $productUnites[$produitKey]  = $uniteMesures[$produitRow["uniteid"]];
+				 $onLoad   .=" uniteMesures[".$produitKey."] ='".$uniteMesures[$produitRow["uniteid"]]."'; \n";
+			 }			 
+	}
+	         $onLoad       .=" produits = [{'label': 'Selectionnez un produit', 'value' : 0 , 'text':'Selectionnez un produit'}, ".implode("," , $produitRows )."]; \n";
+}
+if( count(   $activityUnitesList)) {
+	foreach( $activityUnitesList as $uniteProductId=>$uniteLibelle ) {
+		     $onLoad   .=" uniteMesures[".$uniteProductId."] ='".$uniteLibelle."'; \n";
+			 $productUnites[$uniteProductId]  = $uniteLibelle;
+	}
+}
+$onLoad.= " 
+jQuery('#apply_tva_yes').click(function(event){jQuery('#valTVAInput').removeClass('hidden').addClass('show');jQuery('#val_tva').val(18);	});
+jQuery('#apply_tva_no').click(function( event){
+	jQuery('#valTVAInput').removeClass('show').addClass('hidden');
+	jQuery('#val_tva').val(0);	
+});
+jQuery('#apply_bic_yes').click(function(event){jQuery('#valBICInput').removeClass('hidden').addClass('show');jQuery('#val_bic').val(2);	});
+jQuery('#apply_bic_no').click(function( event){
+	jQuery('#valBICInput').removeClass('show').addClass('hidden');
+	jQuery('#val_bic').val(0);	
+});
+jQuery('.produits').chosen({allow_single_deselect:true,no_results_text: 'Aucun matériel ne correspond à ', width:'100%'});
+var createRow        = function( lastLigneId ) {
+	var formSelector = jQuery('#createCommandeForm');
+	lastLigneId      = parseInt( lastLigneId );
+	if( !lastLigneId ) {
+		 lastLigneId = jQuery('#productsList > tr').last().attr('ligne');  
+	}              
+	var newLigneId   = parseInt(lastLigneId)+1;
+	if( jQuery('#ligne-'+newLigneId).attr('ligne') == newLigneId ) {
+		return false;
+	}
+	var lineRow  = jQuery('<tr></tr>').attr('id', 'ligne-'+newLigneId ).attr('ligne', newLigneId ).append(jQuery('<input id=\'lignes_'+newLigneId+'\' type=\'hidden\' name=\'lignes[]\' />').val(newLigneId));
+	var supprCol = jQuery('<td/>').attr('col', '4')
+								  .append(jQuery('<span title=\'Supprimer la ligne\' href=\'#\' id=\'closeId-'+newLigneId+'\' class=\'glyph-icon icon-trash-o removeLine\'></span>')
+										   .css('cursor', 'pointer')
+										   .bind('click', function(event ){event.preventDefault();jQuery('#ligne-'+newLigneId).remove();})
+								   ); 
+	var newCol  = jQuery('<td>').attr('col', '0')
+								.append(jQuery('<span title=\'Ajouter une ligne\'  id=\'newId-'+newLigneId+'\' class=\'glyph-icon icon-plus-circle addLigne\'>&nbsp;</span>')
+										 .css('cursor', 'pointer')
+										 .bind('click', function(event){ event.preventDefault();createRow(newLigneId);}));
+	var qteInputGroup  = jQuery('<div></div>').addClass('input-group');
+	var qteInputText   = jQuery('<input type=\'text\' name=\'quantite_'+newLigneId+'\' id=\'quantite_'+newLigneId+'\' />').addClass('quantites').addClass('form-control');
+	var qteAddonGroup  = jQuery('<span></span>').addClass('input-group-addon').attr('id', 'unitemesurep_'+newLigneId ).text(' ');
+	qteInputGroup.append(qteInputText).append(qteAddonGroup);
+	var qteCol         = jQuery('<td>').attr('col', '2').append(qteInputGroup); 
+	var prixCol        = jQuery('<td>').attr('col', '3').append(jQuery('<input type=\'text\' name=\'prix_unit_'+newLigneId+'\' id=\'prix_unit_'+newLigneId+'\' />').addClass('lignes_prix').addClass('form-control'));
+							   
+	var produitsSelect = jQuery('<select/>').addClass('produits').addClass('form-control').dynamicSelect('update', produits );                    
+	produitsSelect.attr('name', 'productid_'+newLigneId).attr('id', 'productid_'+newLigneId)
+				  .bind('change', function( event ) {
+						var produitId = parseInt( jQuery('#productid_'+newLigneId).val());
+						if( produitId < 0 ) {
+							return;
+						}
+						var hisUniteV  = uniteMesures[produitId];
+						jQuery('#unitemesurep_'+newLigneId).text(hisUniteV);
+						jQuery('#unitemesurep_'+newLigneId).addClass('#unitemesurep_'+produitId);
+	}); 											                    
+	var produitsCol   = jQuery('<td/>').attr('col','1').append(produitsSelect);		
+							   
+	lineRow.append(newCol).append(produitsCol).append(qteCol).append(prixCol).append(supprCol);                  
+	jQuery('#productsList').find('tbody').append(lineRow);
+	 
+	jQuery('.produits').chosen({allow_single_deselect:true,no_results_text: 'Aucun matériel ne correspond à ', width:'100%'});	
+};
+jQuery('.produits').change(function( event ){
+	var hisLigneId = parseInt(jQuery(this).attr('id').replace('productid_',''));
+	var produitId  = parseInt( jQuery(this).val() );
+	if( produitId < 0 ) {
+		return;
+	}          
+	var hisUniteV  = uniteMesures[produitId];
+	jQuery('#unitemesurep_'+hisLigneId).addClass('#unitemesurep_'+produitId);
+	jQuery('#unitemesurep_'+hisLigneId).html(' '+hisUniteV);
+	
+});
+jQuery('.addLigne').css('cursor','pointer').click(function(event){  event.preventDefault();var hisLigneId = parseInt(jQuery(this).attr('id').replace('newId-',''));createRow( hisLigneId );});
+jQuery('.removeLine').css('cursor','pointer').click(function(event){event.preventDefault();var hisLigneId = parseInt(jQuery(this).attr('id').replace('closeId-',''));jQuery('#ligne-'+hisLigneId).remove();});
+jQuery('#chantierid').change(function( event ){
+    var chantierid   = parseInt( jQuery(this).val());
+    var formSelector = jQuery('#editCommandeForm');
+    jQuery.ajax({data:{'chantierid':chantierid},async:false,url:'".$linkGetSections."',type:'GET',dataType:'json',beforeSend:function(){},error:function(data){SIRAH.error.raise(formSelector, data, 'error');return data;},
+					success:function(data){
+					    if(!SIRAH.util.isEmpty(data.error)){
+					        return data;
+                        } else {
+                            jQuery('#sectionid').each(function(){jQuery(this).dynamicSelect('update', data ).trigger('chosen:updated');});
+                        }
+                    }
+	});
+	jQuery.ajax({data:{'chantierid':chantierid},async:false,url:'".$linkGetActivites."',type:'GET',dataType:'json',beforeSend:function(){},error:function(data){SIRAH.error.raise(formSelector, data, 'error');return data;},
+					success:function(data){
+					    if(!SIRAH.util.isEmpty(data.error)){
+					        return data;
+                        } else {
+                            jQuery('#activityid').each(function(){jQuery(this).dynamicSelect('update', data ).trigger('chosen:updated');});
+                        }
+                    }
+	});
+});
+jQuery('.sectionid,#sectionid').change(function( event ){
+	var sectionid = parseInt( jQuery(this).val());
+	jQuery.ajax({ data:{'sectionid':sectionid},async:false,url:'".$linkGetActivites."',type:'GET',dataType:'json',beforeSend:function(){},error:function(data){SIRAH.error.raise(formSelector, data, 'error');return data;},
+					success:function(data){
+					    if(!SIRAH.util.isEmpty(data.error)){
+					        return data;
+                        } else {
+                            jQuery('#activityid').each(function(){jQuery(this).dynamicSelect('update', data ).trigger('chosen:updated');});
+                        }
+                    }
+	});
+});
+jQuery('.activityid,#activityid').change(function( event ){
+	var activityid = parseInt( jQuery(this).val());
+	jQuery.ajax({ data:{'activityid':activityid},async:false,url:'".$linkGetDemandes."',type:'GET',dataType:'json',beforeSend:function(){},error:function(data){SIRAH.error.raise(formSelector, data, 'error');return data;},
+				  success:function(data){
+					if(!SIRAH.util.isEmpty(data.error)){
+						return data;
+					} else {
+						jQuery('#demandeid').each(function(){jQuery(this).dynamicSelect('update', data ).trigger('chosen:updated');});
+					}
+				  }
+	});
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+jQuery('#add_paymentrule_yes').click(function(event){jQuery('#addPaymentRule').removeClass('hidden').addClass('show'); });
+jQuery('#add_paymentrule_no').click(function( event){jQuery('#addPaymentRule').removeClass('show').addClass('hidden');});";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/jquery.dynamic-select.min.js");
+
+?>
+<form method="post" id="editCommandeForm" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+    <div     class="content-box">
+		<h3  class="content-box-header bg-blue-alt"> <i class="glyph-icon icon-building-o"></i> <b> Création d'une nouvelle commanded'approvisionnement </b> </h3>
+		<div class="mrg10T mrg5L pad20A row"> 
+	        <div class="form-group"> 
+				<label class="col-sm-2  col-md-2 control-label"> Fournisseur* : </label>
+				<div   class="col-sm-10 col-md-10"><?php echo $this->formSelect("fournisseurid", intval( $data["fournisseurid"] ), array("class" => "form-control fournisseurid"), $this->fournisseurs); ?> </div>    
+			</div>
+			<div class="form-group">
+				<label class="col-md-2  col-sm-2  control-label" for="ref"> Numéro: </label>
+				<div   class="col-md-10 col-sm-10"><input id="ref" name="ref" type="text" maxlength="50" class="form-control" title="Numéro de la commande" placeholder="Numéro de la commande" value="<?php echo $data["ref"]; ?>"></div> 			   
+				<p id="ref-validation-message" class="validation-message"></p> 
+			</div>     
+			<div class="form-group"> 
+			    <label class="col-sm-2  col-md-2 control-label"> Date* : </label>
+			    <div   class="col-md-3"><?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class" => "form-control"),array("00"  => "Jour")+createDatesArray());?></div>
+			    <div   class="col-md-3"><?php echo $this->formSelect("date_month", $data["date_month"], array("class" => "form-control"),array("00"  => "Mois")+$this->months()); ?></div>
+			    <div   class="col-md-4"><?php echo $this->formSelect("date_year" , $data["date_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+			</div>
+			<div class="form-group"> 
+			    <label class="col-sm-2  col-md-2 control-label"> Délai livraison: </label>
+			    <div   class="col-md-3"><?php echo $this->formSelect("delaiLivraison_day"  , $data["delaiLivraison_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+			    <div   class="col-md-3"><?php echo $this->formSelect("delaiLivraison_month", $data["delaiLivraison_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+			    <div   class="col-md-4"><?php echo $this->formSelect("delaiLivraison_year" , $data["delaiLivraison_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+			</div>
+ 
+			<div class="form-group"> 
+				<label class="col-md-2 col-sm-2  control-label" for="apply_tva"> Appliquer la TVA*: </label>
+				<div   class="col-md-5 col-sm-5">				    
+					<div class="radio-inline"><label><input type="radio" name="apply_tva" id="apply_tva_yes" class="custom-radio" <?php echo (intval($data["apply_tva"]) == 1)? 'checked' : ''; ?> value="1"> Oui, appliquer la TVA</label></div>
+					<div class="radio-inline"><label><input type="radio" name="apply_tva" id="apply_tva_no"  class="custom-radio" <?php echo (intval($data["apply_tva"]) == 0)? 'checked' : ''; ?> value="0"> Non, ne pas appliquer de TVA </label></div>                 
+				</div>   
+                <div  id="valTVAInput" class="col-md-5 col-sm-5 <?php echo ($data["apply_tva"]==1)? 'show' : 'hidden'; ?>">
+                    <div class = "input-group input-group-chosen period-chosen">
+					    <span class="input-group-addon bg-primary">Taux TVA </span>
+						<span class="input-group-addon"><input id="val_tva" type="text" maxlength="6" class="form-control" title="Taux correspondant à la TVA" placeholder="Taux correspondant à la TVA" name="val_tva" value="<?php echo $data['val_tva']; ?>" /> </span>
+					    <span class="input-group-addon bg-warning">%</span>
+					</div>
+                </div>				
+		    </div>
+			<div class="form-group"> 
+				<label class="col-md-2 col-sm-2 control-label" for="apply_bic"> Appliquer la BIC*: </label>
+				<div   class="col-md-5 col-sm-5 ">
+					<div class="radio-inline"><label><input type="radio" name="apply_bic" id="apply_bic_yes" class="custom-radio" <?php echo (intval($data["apply_bic"]) == 1)? 'checked' : ''; ?> value="1"> Oui, appliquer la BIC</label></div>
+					<div class="radio-inline"><label><input type="radio" name="apply_bic" id="apply_bic_no"  class="custom-radio" <?php echo (intval($data["apply_bic"]) == 0)? 'checked' : ''; ?> value="0"> Non, ne pas appliquer de BIC </label></div>                 
+				</div> 
+                <div  id="valBICInput" class="col-md-5 col-sm-5 <?php echo ($data["apply_bic"]==1)? 'show' : 'hidden'; ?>">
+                    <div class="input-group input-group-chosen period-chosen">
+					    <span class="input-group-addon bg-primary">Taux BIC </span>
+						<span class="input-group-addon"><input id="val_bic" type="text" maxlength="6" class="form-control" title="Taux correspondant à la BIC" placeholder="Taux correspondant à la BIC" name="val_bic" value="<?php echo $data['val_bic']; ?>" /> </span>
+					    <span class="input-group-addon bg-warning">%</span>
+					</div>
+                </div>				
+		    </div>
+			<div class="form-group"> 
+				<label class="col-md-2 col-sm-2 control-label" for="add_paymentrule"> Autoriser une avance de paiement*: </label>
+				<div   class="col-md-4 col-sm-4">				    
+					<div class="radio-inline"><label><input type="radio" name="add_paymentrule" id="add_paymentrule_yes" class="custom-radio" <?php echo (intval($data["add_paymentrule"]) == 1)? 'checked' : ''; ?> value="1"> Oui, ajouter une échéance de paiement</label></div>
+					<div class="radio-inline"><label><input type="radio" name="add_paymentrule" id="add_paymentrule_no"  class="custom-radio" <?php echo (intval($data["add_paymentrule"]) == 0)? 'checked' : ''; ?> value="0"> Non, ne pas autoriser </label></div>                 
+				</div>   			
+		    </div>
+			<div id="addPaymentRule" class="form-group  <?php echo (intval($data["add_paymentrule"])==1)? 'show' : 'hidden';  ?>"> 
+				<label class="col-md-2  col-sm-2 control-label" for="paymentrule_advance"> Valeur avance: </label>
+				<div   class="col-md-10 col-sm-10">				    
+					<div class="input-group">
+						<input type="text" name="paymentrule_percent" id="paymentrule_percent" class="form-control" placeholder="Pourcentage de l'avance" value="<?php echo $data["paymentrule_percent"]; ?>" />
+						<span  class="input-group-addon">%</span> 
+                        <input type="text" maxlength="10" name="paymentrule_montant" id="paymentrule_montant" class="form-control" placeholder="Le montant de l'avance"  value="<?php echo $data["paymentrule_montant"]; ?>" />
+						<span  class="input-group-addon"> F CFA</span>						
+					</div>				
+				</div>   			
+		    </div>
+			<div class="form-group">
+				<label class="col-sm-2  col-md-2 control-label"> Observations: </label>
+				<div   class="col-sm-10 col-md-10"> <textarea name="observations" id="observations" class="form-control textarea-sm"> <?php echo $data["observations"]; ?> </textarea></div>               
+			</div>
+	    </div>
+	   <h3  class="content-box-header bg-blue-alt"> <i class="glyph-icon icon-table"></i> <b> Matériaux,Services commandés </b> </h3>
+        <table id="productsList" class="table table-striped table-responsive">
+            <thead>
+                <tr>
+                    <th width="2%"  col="0"> #                  </th>
+                    <th width="50%" col="1"> Matériaux/Services </th>
+                    <th width="23%" col="2"> Quantité           </th>
+                    <th width="23%" col="3"> Prix Unit.         </th>
+                    <th width="2%"  col="4"> *                  </th>
+                </tr>
+            </thead>          
+            <tbody>
+            <?php 
+                $output       = "";
+                $ligneid      = 1;
+                if( count(   $lignes ) )  {
+                    foreach( $lignes as $ligne ) {
+						     if( isset( $ligne["qte"])) {
+								 $ligne["quantite"] = $ligne["qte"];
+							 }
+                    		 $productid       = $productKey = (int)  isset($ligne["productid"] )? $ligne["productid"]                : 0;
+							 $categorieid     = (int)  isset($ligne["catid"]     )? $ligne["catid"]                                  : 0;
+                    		 $quantite        = (int)  isset($ligne["quantite"]  )? trim(str_replace(" ","", $ligne["quantite"] ))   : 0;
+                    		 $prix_unit       = (float)isset($ligne["prix_unit"] )? number_format( trim(str_replace(" ","", $ligne["prix_unit"] )), 0, ",", " " ) : 0;
+                    		     
+                    		 $produitLib      = (isset($ligne["produit"]    ))?$ligne["produit"]     : ((isset($produits[$productid]      ))? $produits[$productid]       : "");
+                    		 $produitUnite    = (isset($ligne["unitemesure"]))?$ligne["unitemesure"] : ((isset($productUnites[$productKey]))? $productUnites[$productKey] : "");
+							 $produitsCol     = "";
+                    		     
+							 $rowBg           = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+							 $deleteCol       = "<span title=\"Supprimer la ligne\" id=\"closeId-".$ligneid."\" class=\"glyph-icon icon-trash-o removeLine\">&nbsp;</span>";
+							 $newCol          = "<span title=\"Ajouter une ligne\"  id=\"newId-".$ligneid."\"   class=\"glyph-icon icon-plus-circle addLigne\">&nbsp;</span>";                		     
+							 $qteCol          = "<div class=\"input-group\">
+													<input type=\"text\" name=\"quantite_".$ligneid."\" id=\"quantite_".$ligneid."\" class=\"quantites form-control\" value=\"".$quantite."\" />
+													<span id=\"unitemesurep_".$ligneid."\" class=\"input-group-addon unitemesurep_".$productKey."\"> ". $produitUnite." </span> 
+												</div>";
+							 $prixCol         = "<input type=\"text\" name=\"prix_unit_".$ligneid."\"  id=\"prix_unit_".$ligneid."\"  class=\"lignes_prix form-control\" value=\"".$prix_unit."\"     />";
+							 $produitsCol    .= "<select id=\"productid_".$ligneid."\" name=\"productid_".$ligneid."\" class=\"produits form-control\">";
+							 if( count(  $produits ) ) {
+								 foreach($produits    as $id => $productlib ) {
+										 $selected    = ($productid == $id ) ? " selected" : "";
+										 $produitsCol.=" <option value=\"".$id."\" {$selected}> ".$productlib." </option>";
+								 }
+							 }
+							 $produitsCol.= "</select>";
+ 																						 
+							 $output   .= "<tr ligne=\"".$ligneid."\" id=\"ligne-".$ligneid."\" style=\"background-color:".$rowBg."\"> ";
+								$output.="  <td style=\"background-color:".$rowBg."\" col=\"0\"> ".$newCol       ." </td> ";
+								$output.="  <td style=\"background-color:".$rowBg."\" col=\"1\"> ".$produitsCol  ." </td> ";
+								$output.="  <td style=\"background-color:".$rowBg."\" col=\"2\"> ".$qteCol       ." </td> ";
+								$output.="  <td style=\"background-color:".$rowBg."\" col=\"3\"> ".$prixCol      ." </td> ";
+								$output.="  <td style=\"background-color:".$rowBg."\" col=\"4\"> ".$deleteCol    ." </td> ";  
+								$output.=" <input type=\"hidden\" class=\"lignes\"   name=\"lignes[]\"   id=\"lignes_".$ligneid."\"   value=\"".$ligneid."\" /> "; 
+							 $output   .= "</tr> ";
+							 $ligneid++;
+                    	}
+                    }                     
+                    $produitsCol = "";
+                     
+                    $rowBg       = $this->cycle(array("#F0F0F0", "#F5F5F5"))->next();
+                    $deleteCol   = "<span title=\"Supprimer la ligne\" id=\"closeId-".$ligneid."\" class=\"glyph-icon icon-trash-o removeLine\">&nbsp;</span>";
+                    $newCol      = "<span title=\"Ajouter une ligne\"  id=\"newId-".$ligneid."\"   class=\"glyph-icon icon-plus-circle addLigne\">&nbsp;</span>";
+                    $qteCol      = "<div class=\"input-group\">
+										<input type=\"text\" name=\"quantite_".$ligneid."\" id=\"quantite_".$ligneid."\" class=\"quantites form-control\" />
+										<span id=\"unitemesurep_".$ligneid."\" class=\"input-group-addon unitemesurep_".$productid."\">  </span> 
+									</div>";
+                    $prixCol     = "<input type=\"text\" name=\"prix_unit_".$ligneid."\"  id=\"prix_unit_".$ligneid."\"  class=\"lignes_prix form-control\" />";
+                    $produitsCol.= "<select id=\"productid_".$ligneid."\" name=\"productid_".$ligneid."\" class=\"produits form-control\">";
+                    if( count(   $produits ) ) {
+                    	foreach( $produits as $id => $productLibelle ) {
+                    		     $produitsCol.=" <option value=\"".$id."\"> ".$productLibelle." </option>";
+                    	}
+                    }
+                    $produitsCol    .= "</select>";
+                                       
+                    $output   .= "<tr ligne=\"".$ligneid."\" id=\"ligne-".$ligneid."\" style=\"background-color:".$rowBg."\"> ";
+                       $output.="  <td style=\"background-color:".$rowBg."\" col=\"0\"> ".$newCol       ." </td> ";
+                       $output.="  <td style=\"background-color:".$rowBg."\" col=\"1\"> ".$produitsCol  ." </td> ";
+                       $output.="  <td style=\"background-color:".$rowBg."\" col=\"2\"> ".$qteCol       ." </td> ";
+                       $output.="  <td style=\"background-color:".$rowBg."\" col=\"3\"> ".$prixCol      ." </td> ";        
+                       $output.="  <td style=\"background-color:".$rowBg."\" col=\"4\"> ".$deleteCol    ." </td> ";
+                       $output.="   <input type=\"hidden\" class=\"lignes\" name=\"lignes[]\" id=\"lignes_".$ligneid."\" value=\"".$ligneid."\" /> ";
+                    $output   .= "</tr> ";
+                                        
+                    echo $output;
+                                   
+                  ?>           
+            </tbody>     
+        </table>
+     
+<?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolEdit    = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","chevron-left");
+      
+    $toolEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+          
+    $buttonsbar->add($toolCancel,"cancelCreationButton");
+	$buttonsbar->add($toolEdit ,"editButton");
+     
+    $toolEdit->onClick("
+     		event.preventDefault();
+     		var formSelector        = jQuery('#editCommandeForm');
+     		var firstLigneProductId = parseInt(formSelector.find('#productid_1').val());
+     		var dateYear            = parseInt(formSelector.find('#date_year').val());
+     		var dateMonth           = parseInt(formSelector.find('#date_month').val());
+     		var dateDay             = parseInt(formSelector.find('#date_day').val());
+     		var libelle             = formSelector.find('#libelle').val();
+     		if(!firstLigneProductId ) {
+     		    SIRAH.error.raise('editCommandeForm', 'Vous devrez saisir obligatoirement un produit dans la première ligne des produits');
+     		    return;
+            }
+     		if(!dateYear || !dateMonth || !dateDay ) {
+     		   SIRAH.error.raise('editCommandeForm', 'Vous devrez fournir une date valide');
+     		   return;
+            }    		
+     		formSelector.submit();");
+    $toolCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel ));
+     
+    if( !$this->isAjax )
+     	echo $buttonsbar;
+?>
+</div>   
+<input type="hidden" name="commandeid" id="commandeid" value="<?php echo $commandeid; ?>" />
+</form>
+<?php     
+    if( $this->isAjax) {
+   	   echo $this->jQuery();
+    }
+?>

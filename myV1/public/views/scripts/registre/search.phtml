@@ -1,0 +1,153 @@
+<?php
+	$registres       = $this->registres;
+	$filters         = $this->filters;
+	$params          = $this->params;
+	$paginator       = $this->paginator;
+	$searchAdvandced = $this->advanced;
+	$domaines        = $this->domaines;
+	$localites       = $this->localites;
+	$checkedLocalites= $this->checkedLocalites;
+	$checkedDomaines = $this->checkedDomaines;
+	$totalResults    = 0;
+	$linkSearch      = $this->url(array("module"=>"public","controller"=>"registres", "action" => "search") , "default");
+	if( null != $paginator ) {
+  	   //On crée et affiche la pagination
+  	    $pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class"=> "panel-footer paginationControl", "style" => "text-align:center;")); 
+        $totalResults= $paginator->getTotalItemCount();	  
+    }	
+	$jq = $this->jQuery();
+	$jq->addOnLoad("
+	    var dropdownMenu;
+	    jQuery('.dropdown-toggle').dropdown();
+		jQuery('#advancedSearchBtn').click(function(){
+			jQuery('#advancedSearchSection').toggle();
+			jQuery('#advancedSearchSection').removeClass('hidden');
+			jQuery('#advancedSearchSection').removeClass('show');
+		});
+		jQuery(window).on('show.bs.dropdown',function (e) {
+            dropdownMenu= jQuery(e.target).find('.dropdown-menu');
+            jQuery('body').append(dropdownMenu.detach());
+            var eOffset = jQuery(e.target).offset();
+            dropdownMenu.css({'display': 'block','top': eOffset.top + jQuery(e.target).outerHeight(),'left': eOffset.left});
+        });
+		jQuery(window).on('hide.bs.dropdown',function(e) {jQuery(e.target).append(dropdownMenu.detach());dropdownMenu.hide();});
+	");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.search-results-section{background-color:#F7F8FA;position:relative;padding:115px 5px 15px 5px;}
+.search-results-buttons{float: right;margin-right: 0;display:flex}
+.btn-adavanced-search,.search-results-buttons-sort-group > .btn{color: #686F7A;background-color:#FFF;border: 1px solid #CACBCC;border-radius:0px}
+input.searchQ,.searchBtn{border: 1px solid #CACBCC;border-radius:0px}
+.search-data-list{background-color:#fff;}
+.btn-outline-secondary {color:#6c757d;background-color: transparent;background-image: none;border-color:#CACBCC;}
+.results-infos{border-bottom:1px solid #e1e4e8!important}
+.results-infos > .panel-title{font-size:20px;font-weight:600}
+#search-results-rows h5.list-group-item-heading{color:#0366d6; font-size:16px;}
+.search-results-rows-item{padding:8px 10px;}
+#advancedSearchSection{padding:5px 0 !important}
+.panel-body,.container{ overflow: inherit !important;}
+<?php $this->headStyle()->captureEnd();  ?>
+<div id="search-results-section" class="topadding search-results-section section">
+    <div class="container">
+        <div class="row section-content search-results-header">
+			<div class="search-results-count"></div>
+			<div class="search-results-searchbox">
+			    <div class="col-md-3 col-sm-3 pull-left"></div>
+                <div class="col-md-6 col-sm-6 text-center"> 
+					<form id="searchRegistres" class="form-horizontal" action="<?php echo $linkSearch; ?>" method="post"> 
+						<div class="input-group input-group-lg">
+						    <div class="input-group-btn dropdown">
+							    <button tabindex="-1" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" type="button">Action <span class="caret"></span> </button>
+								<ul class="dropdown-menu" aria-labelledby="dLabel">
+								    <li><a href="#">Action</a></li>
+									<li><a href="#">Another action</a></li>
+									<li class="divider"></li>
+									<li><a href="#">Separated link</a></li>
+								</ul>
+							</div>
+							<input value="<?php echo $params['searchQ']; ?>" type="text" class="form-control searchQ" id="searchQ"  placeholder="Veuillez saisir le numéro RCCM, le nom commercial ou le nom du promoteur d'une entreprise...." />
+							<div class="input-group-btn"><button id="searchBtn" class="btn btn-primary searchBtn"> <span class="glyph-icon icon-search"> </span> </button></div>
+						</div>
+					</form>
+				</div>
+				<div class="col-md-3 col-sm-3 col-xs-hidden search-results-buttons pull-right"> 
+					<div class="search-results-buttons-filter"><button id="advancedSearchBtn" class="results-buttons-filter-advancedsearch btn btn-lg btn-adavanced-search"><i class="glyph-icon icon-align-justify"></i> Recherche Avancée </button></div>
+				     
+				</div>
+			</div>
+		</div>
+	</div>
+	<?php echo $this->partial("registres/advancedsearch.phtml", array("advanced"=>$searchAdvandced,"checkedDomaines"=>$checkedDomaines,"checkedLocalites"=>$checkedLocalites,"filters"=>$filters,"params"=>$params,"localites"=>$localites,"domaines"=>$domaines));  ?>
+</div>
+<?php if(count( $registres )): ?>
+<div class="search-data-list section" id="search-data-list">
+	<div class="container">
+	    <div class="row section-content search-results-header">
+		    <div class="col-md-3 col-sm-3 pull-left"></div>
+			<div class="col-md-9 col-sm-9">
+				<div class="panel panel-plain panel-more-shadow panel-search-results" id="panel-search-results">
+				    <div class="panel-heading results-infos">
+					    <h3 class="panel-title"> <?php printf("%s résultats trouvés", number_format($totalResults, 0, ' ', ' ')); ?></h3>
+						<div class="panel-tools pull-right"> </div>
+					</div>
+					<div class="list-group search-results-rows" id="search-results-rows">
+					<?php 
+						$output        = "";
+						$model         = new Model_Registre();
+						$modelDocument = new Model_Document();
+						foreach($registres as $registre ) {
+								$registreid      = intval($registre['registreid']);
+								$libelle         = $registre["libelle"] ;
+								$numero          = $registre["numero"]  ;
+								$annee           = $registre["annee"]   ;
+								$description     = $registre["description"] ;
+								$localite        = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+								$dateRegistre    = sprintf("Inscrit au registre, le : %s", $registre["date_registre"] ); 
+								$urlLibelle      = Sirah_Functions_String::cleanUtf8( $numero );
+								$linkInfos       = $this->url(array("registreid"=> $registreid, "registrelib"=>$urlLibelle,"type"=>"physiques" ), "registre");   
+								$documents       = $model->documents( $registreid , 0 );    
+								$registreCategory= ($registre["type"]==1)?"Personne Morale" : "Personne Physique";
+								$linkDownload    = "";
+								if( count( $documents )) {
+									$document     = $documents[0];
+									$documentid   = $document["documentid"];
+									$filextension = strtolower($document["filextension"]);
+									$filename     = $document["filename"];
+									$documentLib  = $modelDocument->filterIndex( $filename, $document["userid"] );
+									$urlDocument  = Sirah_Functions_String::cleanUtf8( $documentLib );
+									$linkDownload = "#";
+								}                      	  	      
+								$output .= "<div title=\"Accéder aux informations de cette entreprise\" href=\"".$linkInfos."\" class=\"list-group-item list-group-item-action flex-column align-items-start search-results-rows-item \" id=\"registreid-".$registreid."\"> "; 
+									$output .= "<div class=\"d-flex w-100 justify-content-between\"><h5 class=\"list-group-item-heading mb-1\"><u> <a title=\"Visualiser le contenu de ce RCCM\" href=\"".$linkInfos."\">".$libelle." </a> </u></h5> <small class=\"text-muted\">".$dateRegistre."</small></div>";
+									$output .= "<p class=\"mb-1\"> ".$description." </p>";
+									$output .= "<span class=\"text-muted\"> Numéro RCCM :".$numero  .", </span>";
+									$output .= "<span class=\"text-muted\"> Type        :".$registreCategory.", </span>";
+									$output .= "<span class=\"text-muted\"> Juridiction :".$localite.", </span>";	
+									$output .= "<span class=\"text-muted\"> Année       :".$annee   ." </span>";
+									$output .= "<div class=\"d-flex flex-wrap panel-body btn-arrange item-buttons\"> ";
+									$output .= "   <a href=\"".$linkInfos."\" class=\"button\"> <i class=\"glyph-icon icon-info\"></i> En savoir plus... </a>";
+									$output .= "   <a href=\"#\" class=\"button\"> <i class=\"glyph-icon icon-file-pdf-o\"></i> Documents officiels </a>";
+									$output .= "   <a href=\"#\" class=\"button\"> <i class=\"glyph-icon icon-heart\"></i> Favoris </a>";
+									$output .= "   <a href=\"#\" class=\"button\"> <i class=\"glyph-icon icon-share-alt\"></i> Partager </a>";											
+									$output .= "</div>";											
+								$output .= "</div>";      
+								$output .="";										
+						}                               
+					echo $output;                      
+					?>                              
+					</div>
+					<?php if($this->pageSize < $totalResults ): ?>
+		              <?php  echo $pagination->render(); ?>
+					<?php endif; ?>
+		        </div>
+			</div>
+
+			<div class="col-md-3 col-sm-3">
+
+			</div>
+		</div>
+		
+        
+	</div>
+</div>
+<?php endif; ?>

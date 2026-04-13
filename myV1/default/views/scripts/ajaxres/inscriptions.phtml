@@ -1,0 +1,407 @@
+<?php 
+$inscriptions     = $this->inscriptions;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$basePath         = VIEW_BASE_PATH;
+$avatarDefaultFile= $basePath."/images/login_avatar.png";
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("controller" => "ajaxres" , "action"  => "inscriptionslist" , "parentform"  => $parentform ) , "default");
+
+$jq->addOnload("
+   var parentformSelector = jQuery('#".$parentform."');
+   var defaultXHR         = null;
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var inscriptionid  = parseInt(jQuery(this).attr('href').replace('#inscriptionid-' , ''));
+	if( inscriptionid && parentformSelector ) {
+		  var userFirstname                   = jQuery('#firstname-'+inscriptionid).val();
+		  var userLastname                    = jQuery('#lastname-'+inscriptionid).val();
+		  var userEmail                       = jQuery('#email-'+inscriptionid).val();
+		  var userNumdossier                  = jQuery('#numdossier-'+inscriptionid).val();
+		  var userUserid                      = jQuery('#userid-'+inscriptionid).val();
+		  var userSocialstate                 = jQuery('#socialstate-'+inscriptionid).val();
+		  var userProfessionalstate           = jQuery('#professionalstate-'+inscriptionid).val();
+		  var userPresentation                = jQuery('#presentation-'+inscriptionid).val();
+		  var userSexe                        = jQuery('#sexe-'+inscriptionid).val();
+		  var userCity                        = jQuery('#city-'+inscriptionid).val();
+		  var userCountry                     = jQuery('#country-'+inscriptionid).val();
+		  var userLanguage                    = jQuery('#language-'+inscriptionid).val();
+		  var userBirthaddress                = jQuery('#birthaddress-'+inscriptionid).val();
+		  var userBirthday                    = jQuery('#birthday-'+inscriptionid).val();	
+		  var userBirthdayDate                = ( !SIRAH.util.isEmpty( userBirthday ) ) ? new Date( userBirthday ) : '';
+			
+		  var parentInscriptionIdInput        = parentformSelector.find('input[name=\'inscriptionid\']');
+		  var parentFirstnameSelector         = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector          = parentformSelector.find('input[name=\'lastname\']');
+		  var parentEmailSelector             = parentformSelector.find('input[name=\'email\']');
+		  var parentNumdossierSelector        = parentformSelector.find('input[name=\'numdossier\']');
+		  var parentUseridSelector            = parentformSelector.find('input[name=\'userid\']');
+		
+		  var parentSocialstateSelector       = parentformSelector.find('input[name=\'socialstate\']');
+		  var parentPresentationSelector      = parentformSelector.find('input[name=\'presentation\']');
+		  var parentSexeSelector              = parentformSelector.find('input[name=\'sexe\']');
+		  var parentCitySelector              = parentformSelector.find('input[name=\'city\']');
+		  var parentCountrySelector           = parentformSelector.find('input[name=\'country\']');
+		  var parentBirthaddressSelector      = parentformSelector.find('input[name=\'birthaddress\']');
+		  var parentBirthdayDaySelector       = parentformSelector.find('input[name=\'birthday_day\']');
+		  var parentBirthdayMonthSelector     = parentformSelector.find('input[name=\'birthday_month\']');
+		  var parentBirthdayYearSelector      = parentformSelector.find('input[name=\'birthday_year\']');
+		  var parentLanguageSelector          = parentformSelector.find('input[name=\'language\']');
+		  var parentProfessionalstateSelector = parentformSelector.find('input[name=\'professionalstate\']');
+		
+		  if( parentInscriptionIdInput   ) {
+		      parentInscriptionIdInput.val( inscriptionid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(userEmail);
+		  }
+		  if( parentUseridSelector ) {
+		      parentUseridSelector.val( userUserid );
+		  }
+		 if(  parentNumdossierSelector ) {
+		      parentNumdossierSelector.val( userNumdossier );
+		  }
+		 if(  parentSocialstateSelector ) {
+		      parentSocialstateSelector.val( userSocialstate );
+		  }
+		 if(  parentProfessionalstateSelector ) {
+		      parentProfessionalstateSelector.val( userProfessionalstate );
+		  }
+		 if(  parentPresentationSelector ) {
+		      parentPresentationSelector.val( userPresentation );
+		  }
+		 if(  parentSexeSelector ) {
+		      parentSexeSelector.val( userSexe );
+		  }
+		 if(  parentCountrySelector ) {
+		      parentCountrySelector.val( userCountry );
+		  }
+		 if(  parentCitySelector ) {
+		      parentCitySelector.val( userCity );
+		  }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayDaySelector  )	 {
+		      parentBirthdayDaySelector.val( parseInt( userBirthdayDate.getDate() ) ); 
+		 }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayMonthSelector)	 {
+		      parentBirthdayMonthSelector.val( parseInt(userBirthdayDate.getMonth()) +1 ); 
+		 }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayYearSelector )	 {
+		      parentBirthdayYearSelector.val( userBirthdayDate.getFullYear() ); 
+		 }		 
+	  } else {
+		 return false;
+	  }
+		inscriptionSelect  = parentformSelector.find('#selectInscription');
+		if( inscriptionSelect )	{
+		    inscriptionSelect.trigger('select-item' , [inscriptionid] );
+		} 
+		jQuery('#filterListInscriptions').dialog2('close');
+   });
+  jQuery('#cohortid').chosen({allow_single_deselect:true,no_results_text: 'Aucune classe ne correspond à ', width:'100%'});
+  jQuery('#periode_start_year').chosen({allow_single_deselect:true,no_results_text: 'Aucun début d\'année ne correspond à ', width:'100%'});
+  jQuery('#periode_end_year').chosen({allow_single_deselect:true,no_results_text  : 'Aucune fin d\'année  ne correspond à ', width:'100%'});
+  jQuery('#close-advanced-searchform').click(function(){jQuery('#advanced-searchform-wrapper').hide();});
+  jQuery('#show-advanced-searchform').click(function(){ jQuery('#advanced-searchform-wrapper').show();});
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector               = jQuery('#advanced-inscriptionsearchform');
+		var modalBox                   = jQuery('.modal').first();
+		var modalBody                  = modalBox.find('.modal-body');
+
+		var defaultData                = {};
+		defaultData.cohortid           = parseInt(jQuery('#cohortid').val());
+		defaultData.numdossier         = formSelector.find('#numdossier').val();
+		defaultData.lastname           = formSelector.find('#lastname').val();
+		defaultData.firstname          = formSelector.find('#firstname').val();
+		defaultData.email              = formSelector.find('#email').val();
+		defaultData.username           = formSelector.find('#username').val();
+		defaultData.page               = 1;
+		defaultData.periode_start_year = jQuery('#periode_start_year').val();
+		defaultData.periode_end_year   = jQuery('#periode_end_year').val();
+		defaultData.maxitems           = formSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-inscriptionsearchform' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) { defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector         = jQuery('#globalformsearch');
+		var advancedFormSelector = jQuery('#advanced-inscriptionsearchform');
+		var modalBox             = jQuery('.modal').first();		
+		var modalBody            = modalBox.find('.modal-body:first');
+
+		var defaultData          = {};
+		defaultData.name         = defaultData.globalfilter = formSelector.find('#globalfilter').val(); 
+		defaultData.page         = 1;
+		defaultData.maxitems     = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) {defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	SIRAH.loading.off(false);
+  });	
+  jQuery('#globalfilter').on('keypress', function(){
+		setTimeout(function() {		      
+		      var formSelector         = jQuery('#globalformsearch');
+		      var advancedFormSelector = jQuery('#advanced-inscriptionsearchform');
+		      var modalBox             = jQuery('.modal').first();		
+		      var modalBody            = modalBox.find('.tableRowsList:first');
+
+		      var defaultData          = {};
+		      defaultData.name         = defaultData.globalfilter = formSelector.find('#globalfilter').val(); 
+		      defaultData.page         = 1;
+		      defaultData.showsearch   = 0;
+		      defaultData.maxitems     = 50;
+		      SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		      SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      async      : true,
+		                      beforeSend : function(jqXHR) {defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	           SIRAH.loading.off(false);
+		}, 5000);
+
+  });	
+  jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#advanced-inscriptionsearchform');
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData                = {};
+		paginationData.maxitems           = pageMaxitems;
+		paginationData.page               = pageNum;
+		paginationData.cohortid           = parseInt(jQuery('#cohortid').val());
+		paginationData.numdossier         = formSelector.find('#numdossier').val();
+		paginationData.lastname           = formSelector.find('#lastname').val();
+		paginationData.firstname          = formSelector.find('#firstname').val();
+		paginationData.email              = formSelector.find('#email').val();
+		paginationData.username           = formSelector.find('#username').val();
+		paginationData.annee              = formSelector.find('#annee').val();
+		paginationData.periode_start_year = formSelector.find('#periode_start_year').val();
+		paginationData.periode_end_year   = formSelector.find('#periode_end_year').val();
+		
+		var modalBox                      = jQuery('.modal').first();
+		var modalBody                     = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType   : 'html' ,
+		                      data       : paginationData,
+		                      beforeSend : function(jqXHR){defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>
+      <?php if( $this->showSearch): ?>                
+     <div class="row" >
+        <div class="col-md-12"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['name']; ?>" id="globalfilter" name="globalfilter" 
+                            style="color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Saisir le nom, le prénom ou le numéro matricule de l'étudiant">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch" type="button"> <span class="glyphicon glyphicon-search"> </span > Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+            </form>
+        </div>
+      </div>  &nbsp; &nbsp;               
+      <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-inscriptionsearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row">
+               <div class="column col-md-2"> <label  for="numdossier"> Numéro du dossier </label> </div>
+               <div class="column col-md-4">                                
+                    <input id="numdossier" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                           title="Numéro du dossier" placeholder="Numéro du dossier"  name="numdossier" value="<?php echo $filters['numdossier']; ?>">
+               </div>            
+               <div class="column col-md-2"> <label   for="cohortid"> Cohorte :</label> </div>
+               <div class="column col-md-4"> <?php echo $this->formSelect("cohortid" , $filters["cohortid"], array("style" => "width:200px !important;") , $this->cohortes ); ?> </div>
+            </div>
+            <div class="row"> 
+               <div class="column col-md-2"><label   for="firstname">Prénom : </label></div>                           
+               <div class="column col-md-4">
+                  <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Votre prénom" placeholder="Prénom"  name="firstname" value="<?php echo $filters['firstname']; ?>">
+               </div>
+               <div class="column col-md-2"><label   for="lastname"> Nom : </label></div>
+               <div class="column col-md-4">                              
+                  <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Numéro de téléphone" placeholder="Nom de famille" name="lastname" value="<?php echo $filters['lastname']; ?>">
+               </div>  
+            </div>                                                                           
+            <div class="row"> 
+               <div class="column col-md-2"><label for="username"> Matricule : </label></div>
+               <div class="column col-md-4">                               
+                   <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Utilisez l'identifiant pour filtrer" placeholder="Matricule"  name="username" value="<?php echo $filters['username']; ?>">
+               </div>  
+               <div class="column col-md-2"> <label  for="email"> E-mail: </label> </div>
+               <div class="column col-md-4">
+                   <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Filtrez par l'email" placeholder="E-mail" name="email" value="<?php echo $filters['email']; ?>">
+               </div> 
+            </div>
+                                                   
+            <div class="row"  >
+                 <div class="column col-md-2"> <label  for="annee"> Année académique </label> </div>
+                 <div class="column col-md-2"> <?php echo $this->formSelect("periode_start_year", $filters["periode_start_year"], array("style"=> "width:125px !important;"), array("0000"=>"Debut année")+createYearsArray((date("Y")-10), (date("Y")+20) ));?></div> 
+                 <div class="column col-md-2"> <?php echo $this->formSelect("periode_end_year"  , $filters["periode_end_year"]  , array("style"=> "width:125px !important;"), array("0000"=>"Fin année ")+createYearsArray((date("Y")-10), (date("Y")+20) ));?></div>   
+                
+                 <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                 <div class="column col-md-4">
+                      <?php echo $this->formSelect("maxitems", $this->maxitems, array("style" => "width:100px !important;"), array("10"=> 10,  "25" => 25, "50" => 50, "100" => 100, "500" => 500, "1000" => 1000, "2000" => 2000,"5000" => 5000 ,"100000000" => "Tout")); ?>
+                 </div>
+                 <div class="col-md-6"> &nbsp; </div> 
+             </div>                       
+             <div class="row">
+                  <div class="column  col-md-2">
+                       <button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search"></span > Rechercher </button>  
+                  </div>                      
+                  <div class="column  span10"></div>     
+             </div>
+             <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  /> 
+         </form>
+     </div>
+   <?php endif; ?>
+   <?php
+             //On crée et affiche le tableau
+             $output  = "
+             <div id=\"rowsList\" class=\"row tableRowsList\" style=\"padding:0;margin:0;\">
+               <table id=\"inscriptionsListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\" >
+                           <thead>"  ;
+                                  $output .= "<tr>";
+                                  $output .= "<th width=\"15%\"> Numéros       </th>";
+								  $output .= "<th width=\"15%\"> Matricules    </th>";
+                                  $output .= "<th width=\"40%\"> Etudiants     </th>";
+                                  $output .= "<th width=\"15%\"> Années acad   </th>";
+                                  $output .= "<th width=\"15%\"> Formations    </th>";
+             $output .= "</tr></thead>";          
+             if(count(   $inscriptions)){
+             	foreach( $inscriptions as $inscription) {             		            	   
+             	         $inscriptionid   = intval($inscription['inscriptionid']);
+             	         $userid          = $inscription["userid"];
+				         $username        = $inscription["username"];
+             	         $nom             = sprintf(" %s %s " , $inscription["lastname"] , $inscription["firstname"] );
+             	         $numdossier      = $inscription["numdossier"];
+             	         $cohorte         = $inscription["cohorte"];
+             	         $dateinscription = (intval($inscription["dateinscription"])) ? date("d/m/Y H:i:s" , intval($inscription["dateinscription"])) : "00-00-0000";
+             	         $anneeAcademique = sprintf("%s - %s", date("Y", $inscription["periode_start"] ), date("Y", $inscription["periode_end"] ) );
+             	         $avatarFile      = $avatarDefaultFile;
+             	   
+             	         if( !empty( $inscription["avatar"] ) ) {
+             	   	          $avatarPath = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $inscription["avatar"];
+             	   	          if( file_exists( $avatarPath ) ) {
+             	   		          $avatarPathname= str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+             	   		          $avatarFile    = str_replace( DS , "/" , $avatarPathname );
+             	   	          }
+             	         }
+             	         $avatarHtml  = "<div class='col-md-12'>
+             	                              <div class='col-md-4'> <img class=\"img-thumbnail img-circle\" src=\"$avatarFile\" /> </div>
+             	                                   <div id='name-".$userid."' class='col-md-8'> &nbsp; ".$nom." </div>
+             	                              </div> ";
+             	   $output .= "<tr id=\"inscriptionRowId-".$inscriptionid."\">";
+             	           $output .= "<td> <a href=\"#inscriptionid-".$inscriptionid."\" class=\"selectClick\" > ".$numdossier     ." </a> </td>";
+						   $output .= "<td> <a href=\"#inscriptionid-".$inscriptionid."\" class=\"selectClick\" > ".$username       ." </a> </td>";
+             	           $output .= "<td> <a href=\"#inscriptionid-".$inscriptionid."\" class=\"selectClick\" > ".$avatarHtml     ." </a> </td>";
+             	           $output .= "<td> <a href=\"#inscriptionid-".$inscriptionid."\" class=\"selectClick\" > ".$anneeAcademique." </a> </td>";
+             	           $output .= "<td id=\"cohorteId-".$inscriptionid."\"> <a href=\"#inscriptionid-".$inscriptionid."\" class=\"selectClick\" > ".$cohorte." </a> </td>";
+             	   $output .= "</tr>";
+
+             	   $output           .="<input type='hidden'  name=\"inscriptionids[]\"               id=\"inscriptionids".$inscriptionid."\" class=\"inscriptionids\" />";
+             	   $output           .="<input type='hidden'  name='lastname-".$inscriptionid."'      id='lastname-".$inscriptionid."'   value='".$this->escape($inscription["lastname"])."'  />" ;
+             	   $output           .="<input type='hidden'  name='firstname-".$inscriptionid."'     id='firstname-".$inscriptionid."'  value='".$this->escape($inscription["firstname"])."'  />" ;
+             	   $output           .="<input type='hidden'  name='email-".$inscriptionid."'         id='email-".$inscriptionid."'      value='".$this->escape($inscription["email"])."'  />" ;
+             	   $output           .="<input type='hidden'  name='userid-".$inscriptionid."'        id='userid-".$inscriptionid."'     value='".$inscription["userid"]."'  />" ;
+             	   $output           .="<input type='hidden'  name='inscriptionid-".$inscriptionid."' id='userid-".$inscriptionid."'     value='".$inscription["inscriptionid"]."'  />" ;
+             	   $output           .="<input type='hidden'  name='numdossier-".$inscriptionid."'    id='numdossier-".$inscriptionid."' value='".$numdossier."'  />" ;
+             	   $output           .="<input type='hidden'  name='username-".$inscriptionid."'      id='username-".$inscriptionid."'   value='".$username."'    />" ;
+				   
+				   
+             	   $socialstate       = $inscription["socialstate"];
+             	   $professionalstate = $inscription["professionalstate"];
+             	   $birthday          = $inscription["birthday"];
+             	   $birthaddress      = $inscription["birthaddress"];
+             	   $sexe              = $inscription["sexe"];
+             	   $presentation      = $inscription["presentation"];
+             	   $language          = $inscription["language"];
+             	   
+             	   $output           .="<input type='hidden' name='socialstate-".$inscriptionid."'       id='socialstate-".$inscriptionid."'       value='".$socialstate."'       />" ;
+             	   $output           .="<input type='hidden' name='sexe-".$inscriptionid."'              id='sexe-".$inscriptionid."'              value='".$sexe."'              />" ;
+             	   $output           .="<input type='hidden' name='professionalstate-".$inscriptionid."' id='professionalstate-".$inscriptionid."' value='".$professionalstate."' />" ;
+             	   $output           .="<input type='hidden' name='birthday-".$inscriptionid."'          id='birthday-".$inscriptionid."'          value='".$birthday."'          />" ;
+             	   $output           .="<input type='hidden' name='birthaddress-".$inscriptionid."'      id='birthaddress-".$inscriptionid."'      value='".$birthaddress."'      />" ;
+             	   $output           .="<input type='hidden' name='presentation-".$inscriptionid."'      id='presentation-".$inscriptionid."'      value='".$presentation."'      />" ;
+             	   $output           .="<input type='hidden' name='language-".$inscriptionid."'          id='language-".$inscriptionid."'          value='".$language."'          />" ;
+             	   
+             	}
+             }  else {
+             	  $output .= "<tr>";
+             	           $output .= "<td colspan=\"5\"> Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche </td>";
+             	  $output .= "</tr>";
+             }    
+              $output .="</table></div>";
+              // On affiche le tableau
+              echo $output;
+              
+              if( $this->showSearch ) {
+              	//On crée et affiche la pagination
+              	$pagination  = $this->pagination(array() , "Elastic" , "#");
+              	echo $pagination->render();
+              }  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+ </div>

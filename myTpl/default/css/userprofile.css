@@ -1,0 +1,24 @@
+.profile-main-header{border-bottom: 1px solid #EEEEEE;padding:5px;background:url(../images/sirah-ui-page-title.png) bottom center repeat-x;color:#46260f;text-align:left}
+.profile-main-body,.profile-main-body h4{text-align:left;font-size:16px;padding:5px;}
+div#profileMainRow h3{font-size:18px !important;padding:5px;text-decoration:underline;}
+.profile-main-body p{text-decoration:none;}
+div.profile-panel{margin:0;}
+div.profile-main-row, div#profileMainRow{padding:10px;}
+p.profile-presentation{text-align:justify;font-size:100%; text-decoration:none !important;}
+.userProfileMenu {background-color: #fff;border-radius: 6px;box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);margin: 30px 0 0;padding: 0;width: 228px;}
+.userProfileMenu > li > a {border: 1px solid #e5e5e5;display: block;margin: 0 0 -1px;padding: 8px 14px;}
+.userProfileMenu > li:first-child > a {border-radius: 6px 6px 0 0;}
+.userProfileMenu > li:last-child > a {border-radius: 0 0 6px 6px;}
+.userProfileMenu > .active > a {border: 0 none;box-shadow: 1px 0 0 rgba(0, 0, 0, 0.1) inset, -1px 0 0 rgba(0, 0, 0, 0.1) inset;padding: 9px 15px;position: relative;text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);z-index: 2;}
+.userProfileMenu .glyphicon-chevron-right {float: right;margin-right: -6px;margin-top: 2px;opacity: 0.25;}
+.userProfileMenu > li > a:hover {background-color: #f5f5f5;}
+.userProfileMenu a:hover .glyphicon-chevron-right {opacity: 0.5;}
+.userProfileMenu .active .glyphicon-chevron-right, .userProfileMenu .active a:hover .glyphicon-chevron-right {opacity: 1;}
+.userProfileMenu.affix {top:40px;}
+.userProfileMenu.affix-bottom {bottom: 270px;position: absolute;top: auto;}
+.page-header, .lead {color: #5a5a5a; border:none !important;}
+.nav-list > .active > a, .nav-list > .active > a:hover, .nav-list > .active > a:focus {background-color:#0088cc !important;color:#ffffff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);}
+.profile-sections-head{margin-bottom:15px !important;}
+.profile-sections-head h3{display:inline-block;font-size:120%;margin-left:10px;margin-top:2px;padding:0 8px;
+                          background-color:#dfe3e8;outline:medium none;color: #89919c;text-shadow: 0 1px 0 #f6f7f8;}
+.profile-sections-head-b{border-bottom: 1px solid #f6f7f8;border-top:1px solid #d3d7dc;margin-top: -10px;}

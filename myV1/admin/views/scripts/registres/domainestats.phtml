@@ -1,0 +1,59 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("controller"=>"registres","action"=>"domainestats","module"=>"admin"), "default");
+$backList   = $this->url(array("controller"=>"registres","action"=>"list"        ,"module"=>"admin"), "default");
+$basePath   = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+           jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+           jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#domainestatForm');formSelector.submit();});
+           ";
+  
+$jq->addOnLoad($onLoad);
+ 
+?>
+<div     class="content-box">    
+    <form method="post"  id="domainestatForm" class="form-horizontal mrg15T row" role="form">   	      
+	    <div class="form-group"> 
+            <label class="col-sm-3 col-md-3 control-label"> Activités* : </label>
+            <div   class="col-sm-6 col-md-6"> <input type="text" name="activites" id="activites" class="form-control" placeholder="Secteurs d'activités" value="<?php echo $data["activites"]; ?>" /></div>        
+        </div>
+		<div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Localité* : </label>
+           <div   class="col-sm-6 col-md-6"> <?php echo $this->formMultiCheckbox("localiteids", $data["localiteids"], array(), $this->localites, ""); ?> </div>   
+        </div>       
+        <div class="form-group"> 
+          <label class="col-sm-3 col-md-3 control-label"> Années concernées* : </label>
+           <div  class="col-sm-6 col-md-6"> <?php echo $this->formMultiCheckbox("annees", $data["annees"], array(), $this->annees, ""); ?> </div>   
+        </div>
+</form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Générer les statistiques","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

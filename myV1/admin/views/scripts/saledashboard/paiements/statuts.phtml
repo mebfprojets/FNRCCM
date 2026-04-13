@@ -1,0 +1,39 @@
+<?php
+     $rows = $this->rows;
+?>
+<table id="bilanPaiementsStatutTable" class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th width="75%"> Statuts </th>                                         
+			<th width="25%"> Total   </th>
+		</tr>         
+	</thead>          
+	<tbody>
+	<?php 
+		$output      = "";
+		$total       = 0;
+		if( count(   $rows )) {
+			foreach( $rows as $row ) {
+				     $statutLibelle = $row["statut"];
+					 $valTotal      = (isset($row["valTotal"]) && floatval($row["valTotal"]))?number_format($row["valTotal"],0,","," ") : 0;
+					 $rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+					 $linkList      = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"list","statutid"=> $row['statutid']), "default",true);  								 
+					 $output.="<tr style=\"background-color:".$rowBg."\">";
+							$output.="<td> <a title=\"Accéder à tous les paiements de ce statut\" href=\"".$linkList."\"> ".$statutLibelle." </a></td>";                   	 	                             	 	            
+							$output.="<td> <a title=\"Accéder à tous les paiements ce ce statut\" href=\"".$linkList."\"> ".$valTotal     ." </a></td>";
+					 $output.="</tr>";  
+					 $total += $row['valTotal'];                    	 	
+			 } 
+			 $output.="<tr>";
+					$output.="<td> TOTAL :    </td>";
+					$output.="<td> ".number_format($total, 0, ' ', ' ')." </td>";
+			 $output.="</tr>";
+		} else {
+			 $output.="<tr>";
+					$output.="<td style=\"text-align:center;\" colspan=\"2\"> AUCUNE DONNEE DE CE TYPE N'A PU ETRE TROUVEE </td>";
+			 $output.="</tr>";
+		} 
+		echo $output;
+	?>          
+	</tbody>         
+</table>

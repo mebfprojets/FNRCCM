@@ -1,0 +1,176 @@
+<?php 
+$data               = $this->data;
+$user               = $this->user;
+$formSubmit         = $this->url(array("controller" =>"profile" , "action" => "editcontact" , "userid" => $user->userid ) , "default");
+$backList           = $this->url(array("controller" =>"profile" , "action" => "infos" , "userid" => $user->userid ) , "default");
+$basePath           = ROOT_PATH."/templates/sirah";
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.colbuttonsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input
+{
+  height : 45px;
+  line-height: 30px;
+  font-size: 1.3em;
+}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio
+{
+    color: #333333;
+    font-size: 18px;
+    font-weight: normal;
+    padding:20px;
+    }
+
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('#email').bind('blur change',function(e){
+      e.preventDefault();
+      var email = jQuery.trim(jQuery(this).val());
+     if(SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').removeClass('input-error');
+        jQuery('#email-validation-message').html('');
+      } else {
+        jQuery('#email').addClass('input-error');
+        return;
+      }
+  });  
+    
+  jQuery('.cancel').click(function(e)
+  {
+    e.preventDefault();
+    document.location.href='".$backList."';
+   });
+  
+  jQuery('.saveMyContacts').click(function(e)
+  {
+      e.preventDefault();      
+      var  formSelector= jQuery('#editcontacts-form');
+      var  email   = jQuery.trim(jQuery('#email').val());
+      
+      if(!SIRAH.validators.isEmailAddress(email)){
+         jQuery('#email').addClass('input-error');
+         jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+      } else {
+         jQuery('#email').removeClass('input-error');
+          jQuery('#email-validation-message').html('');
+      }
+      
+      jQuery('#email').val(email);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editcontacts-form"   role="form">
+<div class="container">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="firstname"> <b> Adresse email: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="email" placeholder="Mon adresse email"  name="email" value="<?php echo $data['email']; ?>">
+         </div>
+            <p id="name-validation-message" class="validation-message"></p>  
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="tel_dom"> <b> Téléphone domicile : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="tel_dom" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Mon numéro de téléphone domicile" placeholder="Mon numéro de téléphone domicile" name="tel_dom" value="<?php echo $data['tel_dom']; ?>">
+          </div>   
+     </div>         
+   
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="tel_"> <b> Téléphone bureau: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="tel_bureau" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Mon numéro de téléphone de bureau" placeholder="Mon numéro de téléphone de bureau" name="tel_bureau" value="<?php echo $data['tel_bureau']; ?>">
+         </div>
+    </div>   
+    
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="tel_mob"> <b> Téléphone Mobile : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="tel_mob" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Mon numéro de téléphone mobile" placeholder="Mon numéro de téléphone mobile" name="tel_mob" value="<?php echo $data['tel_mob']; ?>">
+         </div>
+    </div>
+    
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="code_postal"> <b> Code postal: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="code_postal" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                    title="Indiquez votre code postal" placeholder="Indiquez votre code postal" name="code_postal" value="<?php echo $data['code_postal']; ?>">
+         </div>
+    </div>         
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="adresse"> <b> Adresse: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="address" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                    title="Indiquez votre adresse de logement" placeholder="Indiquez votre adresse" name="address" value="<?php echo $data['address']; ?>">
+         </div>
+    </div> 
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="rue"> <b> Rue : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="rue" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                    title="Indiquez la rue" placeholder="Indiquez la rue" name="rue" value="<?php echo $data['rue']; ?>">
+         </div>
+   </div>                                   
+   <div class="row">    
+         <div class="col-md-4"> <label class="label" for="pays"> <b> Pays d'origine: </b> </label> </div>
+         <div class="col-md-8">
+            <?php echo $this->formSelect("country" , $data['country'] , array() , $this->countries()); ?>         
+         </div>
+   </div> 
+   <div class="row">    
+         <div class="col-md-4"> <label class="label" for="ville"> <b> Ville: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="city" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                    title="Indiquez la ville dans laquelle vous vivez" placeholder="Indiquez la ville" name="city" value="<?php echo $data['city']; ?>">
+         </div>
+    </div>
+    
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="department"> <b>Departement / Région: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="department" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                    title="Indiquez le département dans lequel vous travaillez" placeholder="Indiquez votre départment" name="department" value="<?php echo $data['department']; ?>">
+         </div>
+    </div>           
+  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="btn-group">
+                       <button type="submit" class="btn btn-default btn-primary saveMyContacts"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+</form>
+

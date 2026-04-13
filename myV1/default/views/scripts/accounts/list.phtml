@@ -1,0 +1,533 @@
+<?php 
+$accounts          = $this->users;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$roles             = array("Selectionnez un rôle")+$this->roles;
+
+$filterRolename    = ( isset($roles[$filters["roleid"]])) ? $roles[$filters["roleid"]] : "";
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("controller" => "accounts" , "action"  => "list") , "default");
+$linkCreate        = $this->url(array("controller" => "accounts" , "action"  => "create") , "default");
+$linkEdit          = $this->url(array("controller" => "accounts" , "action"  => "edit") , "default");
+$linkDelete        = $this->url(array("controller" => "accounts" , "action"  => "delete") , "default");
+$linkAssignRole    = $this->url(array("controller" => "accounts" , "action"  => "assignroles") , "default");
+$linkRights        = $this->url(array("controller" => "accounts" , "action"  => "rights") , "default" );
+$linkDefineRights  = $this->url(array("controller" => "accounts" , "action"  => "assignrights") , "default");
+$linkImport        = $this->url(array("controller" => "accounts" , "action"  => "import"));
+$linkExport        = $this->url(array("controller" => "accounts" , "action"  => "export"));
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('.assignRoles').click(function( event ){
+   event.preventDefault();
+   var checkedItem  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);             		        
+   if( SIRAH.util.isEmpty( checkedItem ) ) {
+       SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+       return;
+    }
+    var userid     = parseInt(checkedItem.attr('id').replace('userids',''));
+    var username   = jQuery('#name-'+userid).text();
+    var roleDialog = jQuery('<div></div>').attr('id','roleDialog').addClass('modal-medium');             		 
+    roleDialog.dialog2({ title : 'Assigner des roles à '+username,
+             		     content : '".$linkAssignRole."/userid/'+userid,
+             		     modalClass:'modal-wide',
+             		     autoOpen: false,
+             		     removeOnClose: true,
+             		     closeOnEscape: false, 
+                         closeOnOverlayClick: true,
+             		     showCloseHandle:true,
+             		     initialLoadText: 'Patientez , chargement...' 
+                       });        		
+     roleDialog.dialog2('addButton','<span class=\'glyph-icon icon-save\'></span> Assigner',
+                        {primary:true,click:function(){var rolesForm = jQuery(this).find('form').eq(0);SIRAH.request.post(rolesForm,'".$linkAssignRole."/userid/'+userid); }}); 
+     roleDialog.dialog2('addButton','<span class=\'glyph-icon icon-ban\'></span> Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+     roleDialog.dialog2('open');     
+});
+jQuery('.displayRights').click(function( event ){
+	   event.preventDefault();
+       var checkedItem  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);          		        
+       if( SIRAH.util.isEmpty( checkedItem )  ) {
+           SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+           return;
+        }
+        var userid       = parseInt(checkedItem.attr('id').replace('userids',''));
+        var username     = jQuery('#name-'+userid).text();
+        var dialogRights = jQuery('<div></div>').attr('id','dialogRights').addClass('scrollable');             		 
+        dialogRights.dialog2({
+             		           title : 'Visualiser les permissions de '+username+' sur la plateforme',
+             		           content : '".$linkRights."/userid/'+userid,
+             		           autoOpen: false,
+             		           modalClass : 'modal-wide',
+             		           removeOnClose: true,
+             		           closeOnEscape: false, 
+                               closeOnOverlayClick: false,
+             		           showCloseHandle:true,
+             		           initialLoadText: 'Patientez , chargement...'});        		
+        dialogRights.dialog2('addButton','FERMER', {primary: true,click : function(){jQuery(this).dialog2('close');}});              		
+        dialogRights.dialog2('open');
+});
+jQuery('.defineRights').click(function( event  ){
+		event.preventDefault();
+        var checkedItem  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);          		        
+        if( SIRAH.util.isEmpty( checkedItem ) ) {
+            SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+            return;
+        }
+        var userid             = parseInt(checkedItem.attr('id').replace('userids',''));
+        var username           = jQuery('#name-'+userid).text();
+        var dialogAssignrights = jQuery('<div></div>').attr('id','dialogAssignrights').addClass('scrollable');             		 
+        dialogAssignrights.dialog2({ title              : 'Définir des permissions pour '+username+' sur la plateforme',
+             		                 content            : '".$linkDefineRights."/userid/'+userid,
+             		                 autoOpen           : false,
+             		                 modalClass         : 'modal-wide',
+             		                 removeOnClose      : true,
+             		                 closeOnEscape      : false, 
+                                     closeOnOverlayClick: true,
+             		                 showCloseHandle:true,
+             		                 initialLoadText: 'Patientez , chargement...' });        		
+        dialogAssignrights.dialog2('addButton','<span class=\'glyph-icon icon-check\'></span>Attribuer permissions',{primary:true,click:function(e){e.preventDefault();var rightsForm= jQuery(this).find('form').eq(0);SIRAH.request.post(rightsForm,'".$linkDefineRights."/userid/'+userid);}});  
+        dialogAssignrights.dialog2('addButton','<span class=\'glyph-icon icon-ban\'></span> Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');}});            		
+        dialogAssignrights.dialog2('open');
+});
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector   = jQuery('#usersAccountSearchForm') ;
+		var searchData     = {};
+		var pageNum        = parseInt(formSelector.find('#page').val());
+		pageNum++;
+		
+		searchData.page    = pageNum;
+		searchData.maxitems= parseInt(formSelector.find('#maxitems').val());
+		searchData.roleid  = parseInt(formSelector.find('#roleid').val());
+		
+		var keywordsText   = jQuery.trim(jQuery('#usersAccountSearchForm').find('#keywords').val());
+		var lastname       = '';
+		var firstname      = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords   =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname      = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for( var i = 1; i < keywords.length; i++) {
+                         firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname   = lastname;
+		searchData.firstname  = firstname;
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector      = jQuery('#usersAccountSearchForm') ;
+		var searchData        = {};
+		var pageNum           = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page       = pageNum;
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.roleid     = parseInt(formSelector.find('#roleid').val());		
+		var keywordsText      = jQuery.trim(jQuery('#usersAccountSearchForm').find('#keywords').val());
+		var lastname          = '';
+		var firstname         = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords    =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname    = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for ( var i = 1; i < keywords.length; i++) {
+                          firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname   = lastname;
+		searchData.firstname  = firstname;
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#filterListFromName').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#usersAccountSearchForm') ;
+		var keywordsText    = jQuery.trim(jQuery('#usersAccountSearchForm').find('#keywords').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords    =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname    = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for ( var i = 1; i < keywords.length; i++) {
+                          firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.lastname   = lastname;
+		searchData.firstname  = firstname; 
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector      = jQuery('#usersAccountSearchForm') ;
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.roleid     = parseInt(formSelector.find('#roleid').val());
+		
+		var keywordsText      = jQuery.trim(jQuery('#usersAccountSearchForm').find('#keywords').val());
+		var lastname          = '';
+		var firstname         = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords    =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname    = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for ( var i = 1; i < keywords.length; i++) {
+                          firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname   = lastname;
+		searchData.firstname  = firstname;
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+jQuery('.searchUserByRole').click(function(    event ){
+		event.preventDefault();
+		var roleId            = parseInt(jQuery(this).attr('id').replace('roleId-',''));
+		var formSelector      = jQuery('#usersAccountSearchForm') ;					
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.roleid     = roleId;
+ 
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#usersAccountSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#usersAccountSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+	var getCheckedUsersId = function() {
+		var checkedItems = jQuery('#usersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var userid   = parseInt(jQuery(this).attr('id').replace('userids',''));
+             	checkedIds.push(userid);
+           });
+		}
+		return checkedIds;
+  };
+  jQuery('#usersListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#usersListTable'));
+		       if(checkedItems) {
+		           disableButtons(['editButton','exportButton','deleteButton','actionButton','actionButtonDropdown','active','disable','lock','unlock','block','unblock']);
+		       }
+		    } else {
+		      checkall(jQuery('#usersListTable'));
+		      enableButtons(['editButton','exportButton','deleteButton','actionButton','actionButtonDropdown','active','disable','lock','unlock','block','unblock']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['editButton','actionButton','exportButton','deleteButton','actionButtonDropdown','active','disable','lock','unlock','block','unblock']);
+		  } else {
+		      if(SIRAH.util.isEmpty(checkedItems)) {
+		           disableButtons(['editButton','deleteButton','exportButton','actionButton','actionButtonDropdown','active','disable','lock','unlock','block','unblock']);
+		       }
+		  }
+		}
+   });
+		");
+
+$toolbar      = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate   = $toolbar->tool("Enregistrer un compte", "plus");
+$toolEdit     = $toolbar->tool("Modifier" , "edit");
+$toolDelete   = $toolbar->tool("Supprimer", "trash-o");
+$toolExport   = $toolbar->tool("Exporter" , "download");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var userid       = parseInt(checkedItem.attr('id').replace('userids',''));
+		             var username     = jQuery('#name-'+userid).text();
+		             var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		             dialogEdit.dialog2({
+		                                  title : 'Mettre à jour le compte de '+username,
+		                                  content : '".$linkEdit."/userid/'+userid,
+		                                  autoOpen: false,
+		                                  modalClass:'modal-wide',
+		                                  removeOnClose: true,
+		                                  closeOnEscape: false,
+		                                  closeOnOverlayClick: true,
+		                                  showCloseHandle:true,
+		                                  initialLoadText: 'Chargement...'
+                                       });
+		             dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Enregistrer',{primary : true,click :
+		                                function(){
+		                                             var editForm = jQuery(this).find('form').eq(0);
+		                                             SIRAH.request.post(editForm,'".$linkEdit."/userid/'+userid);
+                                        }});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-ban\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les comptes selectionnés ? Ces comptes seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'userids[]': checkedUsers},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedUsers = getCheckedUsersId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                setTimeout(function(){
+             		             		                              jQuery.each(checkedUsers, function(key , userid) {
+             		                                                          jQuery('#userRowId-'+userid).remove();
+             		                                                    });
+             		                                                   jQuery('#dialogDelete').dialog2('close');
+             		                                                  },2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+
+<div id="usersAccountListWrapper"  class="row">
+  <form id="usersAccountSearchForm" class="" method="post" role="form">
+    <div  class="col-md-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">
+               <span class="mail-title"> Rôle </span>
+               <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo $filterRolename; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $roles ) ) {
+                               	   foreach( $roles as $roleid => $rolename ) {
+                               	   	        $activeClass = ( $filters["roleid"] == $roleid ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"roleId-".$roleid."\" class=\"searchUserByRole roleId-".$roleid."\" href=\"#\"> ".$rolename." </a></li>";
+                               	   }
+                               }
+                          ?>
+                          <li class="divider"></li>
+                          <li><a href="#"> <i class="glyph-icon icon-plus"> </i> Ajouter un rôle </a></li>
+                     </ul>
+                </div>
+                <div class="float-right col-md-4 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo  (!empty($filters["lastname"]) || !empty($filters["firstname"]) ) ? sprintf("%s %s", $filters["lastname"], $filters["firstname"] ) : ''; ?>" name="keywords" id="keywords" placeholder="Saisir le nom de l'utilisateur">
+                        <div class="input-group-btn">
+                            <button id="filterListFromName" type="button" class="btn btn-default" tabindex="-1">
+                               <i class="glyph-icon icon-search"></i>
+                            </button>
+                        </div>
+                    </div>
+               </div>
+           </div>                                                                  
+           <div class="mail-toolbar clearfix"> 
+              <div class="float-left" > 
+                 <a href="#" title="Actualiser la page" class="btn btn-default mrg5R resetPage"><i class="glyph-icon font-size-11 icon-refresh"></i></a>
+                 <div class="dropdown">
+                   <a href="#" title="D'autres actions"   class="btn btn-default" data-toggle="dropdown"> 
+                     <i class="glyph-icon icon-cog">         </i>                    
+                     <i class="glyph-icon icon-chevron-down"></i>
+                   </a>                
+                   <ul class="dropdown-menu">
+                     <li> <a href="#" id="assignRoles"   class="assignRoles"   title="Assigner des rôles">       <i class="glyph-icon icon-group">   </i> Assigner  des rôles </a> </li>
+                     <li> <a href="#" id="displayRights" class="displayRights" title="Afficher les permissions"> <i class="glyph-icon icon-list-alt"></i> Afficher  les permissions </a> </li>
+                     <li> <a href="#" id="defineRights"  class="defineRights"  title="Attribuer des permissions"><i class="glyph-icon icon-gear">    </i> Attribuer des permissions </a> </li>
+                   </ul>
+                 </div>              
+              </div>
+              <div class="float-right"> <?php  echo $pagination->render(); ?> </div>
+           </div>
+           <table id="usersListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+                          <th width="12%"> Rôles        </th> 
+                          <th width="32%"> Noms         </th> 
+                          <th width="16%"> Identifiants </th> 
+                          <th width="16%"> Dates création </th> 
+                          <th width="23%"> Dernières connexions </th> </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $accounts ) ) {
+                              	  foreach( $accounts as $account ) {
+                              	  	       $userid           = intval($account['userid']);
+                              	  	       $userAccount      = Sirah_Fabric::getUser( $userid );
+                              	  	       $dateInscription  = (intval($account["registeredDate"]))   ? date("d/m/Y H:i:s", $account["registeredDate"]) : "Non précisé";
+                              	  	       $dateConnexion    = (intval($account["lastConnectedDate"]))? date("d/m/Y H:i:s", $account["lastConnectedDate"]) : "Non précisé";
+                              	  	       $locked           = intval( $account['locked']);
+                              	  	       $activated        = intval( $account['activated']);
+                              	  	       $blocked          = intval( $account['blocked']);
+                              	  	       $username         = $account["username"];
+                              	  	       $rolename         = $userAccount->getRole(); 
+                              	  	       $nom              = sprintf(" %s %s" , $account["lastname"] , $account["firstname"]);
+                              	  	       $linkInfos        = $this->url(array("controller" => "profil" , "username" => $account["username"] ) , "profile");
+                              	  	       $avatarFile       = $avatarDefaultFile;
+                              	  	       $bgClass          =" ";
+                              	  	       if( !empty( $account["avatar"] ) ) {
+                              	  		        $avatarPath  = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $account["avatar"];
+                              	  		        if( file_exists( $avatarPath ) ) {
+                              	  			        $avatarPathname = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+                              	  			        $avatarFile     = str_replace( DS , "/" , $avatarPathname );
+                              	  		        }
+                              	  	        }
+                              	  	        if ( !$activated || $blocked )  {
+                              	  		          $bgClass= "alert danger";
+                              	  	        }                            	  	
+                              	  	        $avatarHtml  = "
+                              	  	                             <div class='col-md-3 pad0A'> <img class=\"img-thumbnail img-thumb\"  src=\"$avatarFile\" /> </div>
+                              	  	                             <div id='name-".$userid."' class='col-md-9 pad1A'>  ".$nom." </div>
+                              	  	                         ";
+                              	  	        $output .= "<tr class=\"".$bgClass."\" id=\"userRowId-".$userid."\">";
+                              	  	                $output .= "<td> <input type=\"checkbox\" name=\"userids[]\" id=\"userids".$userid."\" class=\"userids\" /> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$rolename        ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$avatarHtml      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$username        ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$dateInscription ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$dateConnexion   ." </a> </td>";
+                              	  	        $output .= "</tr>";
+                              	  	        
+                              	  	        $output .= "<input type='hidden'  name='userLocked-".$userid."'    value='".intval( $locked    )."'  />" ;
+                              	  	        $output .= "<input type='hidden'  name='userBlocked-".$userid."'   value='".intval( $blocked   )."'  />" ;
+                              	  	        $output .= "<input type='hidden'  name='userActivated-".$userid."' value='".intval( $activated )."'  />" ;
+                              	  }                              	
+                              }  else {
+                              	           
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+       </div>    
+    </div>
+    <input type="hidden" name="roleid"    id="roleid"   value="<?php echo $filters["roleid"];  ?>"  /> 
+    <input type="hidden" name="page"      id="page"     value="<?php echo $this->pageNum;  ?>"  /> 
+    <input type="hidden" name="maxitems"  id="maxitems" value="<?php echo $this->pageSize; ?>"  />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+   
+   
+    

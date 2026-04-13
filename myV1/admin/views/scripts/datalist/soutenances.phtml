@@ -1,0 +1,303 @@
+<?php 
+$soutenances  = $this->soutenances;
+$filters      = $this->filters;
+$parentform   = $this->parentform;
+$linkSearch   = $this->url(array("module" => "admin", "controller" => "datalist", "action" => "soutenanceslist", "parentform"  => $parentform), "default");
+
+$basePath     = ROOT_PATH."/templates/sirah";
+$jq           = $this->jQuery();
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var soutenanceid  = parseInt(jQuery(this).attr('href').replace('#soutenanceid-' , ''));
+	if( soutenanceid && parentformSelector ) {
+		  var userFirstname              = jQuery('#firstname-'+soutenanceid).val();
+		  var userLastname               = jQuery('#lastname-'+soutenanceid).val();
+		  var numSoutenance              = jQuery('#numero-'+soutenanceid).val();
+		
+		  var parentSoutenanceIdInput    = parentformSelector.find('input[name=\'soutenanceid\']');
+		  var parentFirstnameSelector    = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector     = parentformSelector.find('input[name=\'lastname\']');
+		  var parentNumeroSelector       = parentformSelector.find('input[name=\'numsoutenance\']');
+		
+		  if( parentSoutenanceIdInput   ) {
+		      parentSoutenanceIdInput.val( soutenanceid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentNumeroSelector ) {
+		      parentNumeroSelector.val( numSoutenance );
+		  }		 
+	  } else {
+		 return false;
+	  }
+		soutenanceSelect  = parentformSelector.find('#selectSoutenance');
+		if( soutenanceSelect )	{
+		    soutenanceSelect.trigger('select-item' , [soutenanceid] );
+		} 
+		jQuery('#filterListInscriptions').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector      = jQuery('#advanced-soutenancesearchform');
+		var modalBox          = jQuery('.modal').first();
+		var modalBody         = modalBox.find('.modal-body');
+
+		var defaultData       = {};
+		defaultData.cohortid  = parseInt(jQuery('#cohortid').val());
+		defaultData.salleid   = parseInt(jQuery('#salleid').val());
+		defaultData.lastname  = jQuery('#lastname').val();
+		defaultData.firstname = jQuery('#firstname').val();
+		defaultData.annee     = jQuery('#annee').val();
+		defaultData.page      = 1;
+		defaultData.maxitems  = jQuery('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-soutenancesearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-soutenancesearchform');
+		var modalBox            = jQuery('.modal').first();		
+		var modalBody           = modalBox.find('.modal-body:first');
+
+		var defaultData         = {};
+		defaultData.numdossier  = formSelector.find('#global-filter').val(); 
+		defaultData.page        = 1;
+		defaultData.maxitems    = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector     = jQuery('#advanced-soutenancesearchform');
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum     = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum               = parseInt( currentBtnNum - 1);
+		}
+		var paginationData        = {};
+		paginationData.maxitems   = pageMaxitems;
+		paginationData.page       = pageNum;
+		paginationData.cohortid   = parseInt(jQuery('#cohortid').val());
+		paginationData.salleid    = parseInt(jQuery('#salleid').val());
+		paginationData.lastname   = jQuery('#lastname').val();
+		paginationData.firstname  = jQuery('#firstname').val();
+		paginationData.annee      = jQuery('#annee').val();
+		
+		var modalBox              = jQuery('.modal').first();
+		var modalBody             = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+
+?>
+<div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>         
+    <div class="row" >
+        <div class="col-md-6"><?php echo $buttonbar; ?></div>
+        <div class="col-md-6"> 
+           <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+               <div class="input-group pull-right">
+                    <input value="" id="etudiant" name="etudiant" style="width:190px;" type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                    <span class="input-group-btn ">
+                         <button class="btn btn-default default-search" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button>
+                         <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                    </span>
+               </div>
+           </form>
+       </div>
+    </div>                  
+    <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+        <form method="post" action="#" align="left"   id="advanced-soutenancesearchform"   role="form">
+             <div class="row simplerow-search-form-header">
+                   <a id="close-advanced-searchform" class="close"> Fermer </a>
+                   <h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3>
+             </div>
+             <div class="row">
+                  <div class="column col-md-2"> <label  for="cohorte"> Formation:  </label> </div>
+                  <div class="column col-md-4"> <?php echo $this->formSelect("cohortid", $filters["cohortid"], array(), $this->cohortes ); ?> </div> 
+                  <div class="column col-md-2"> <label  for="salleid"> Salle de cours:  </label> </div>
+                  <div class="column col-md-4"> <?php echo $this->formSelect("salleid",  $filters["salleid"] , array(), $this->salles ); ?> </div>                              
+             </div>
+             <div class="row">
+                  <div class="column col-md-2"> <label   for="firstname">Prénom étudiant: </label></div>
+                  <div class="column col-md-4">                                
+                       <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                              title="le  prénom" placeholder="Prénom"  name="firstname" value="<?php echo $filters['firstname']; ?>">
+                  </div>  
+                  <div class="column col-md-2"> <label   for="lastname"> Nom famille étudiant : </label></div>
+                  <div class="column col-md-4">
+                       <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                              title="Nom de famille" placeholder="Nom de famille" name="lastname" value="<?php echo $filters['lastname']; ?>">
+                  </div>   
+             </div> 
+             <div class="row">
+                  <div class="column col-md-2"> <label   for="annee"> L'année : </label></div>    
+                  <div class="column col-md-4">
+                       <input id="year" type="text" maxlength="4" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                              title="Filtrez par année" placeholder="L'année" name="year" value="<?php echo $filters["annee"]; ?>">
+                  </div> 
+                 <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                 <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                 </div>                            
+            </div>                                                                             
+            <div class="row">
+                  <div class="column  col-md-2">
+                       <button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search icon-white"></span > Filtrer </button>  
+                  </div>                      
+                  <div class="column  span10"></div>     
+            </div>
+            <input type="hidden" name="page" id="page" value="<?php echo $this->pageNum; ?>"  />                      
+        </form>
+    </div> 
+    
+     <?php
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "soutenancesListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("<input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" />", array("width" => "1%"))
+                    ->add("Cohortes"  , array("width" => "10%"))
+                    ->add("N° dossier", array("width" => "10%"))
+                    ->add("Etudiants" , array("width" => "25%"))
+                    ->add("Thèmes"    , array("width" => "23%"))
+                    ->add("Dates"     , array("width" => "22%"))
+                    ->add("Statuts"   , array("width" => "9%"));         
+             $table->setHeader($header );             
+             if( count(  $soutenances ) ) {
+             	foreach( $soutenances as  $soutenance ){             		
+             	         $soutenanceid    = intval( $soutenance['soutenanceid']  );
+             	         $numero          = $soutenance["numero"];
+             	         $theme           = $soutenance["theme"];
+             	         $cohorte         = $soutenance["formation"];             	   
+                         $etudiant        = sprintf(" %s %s " , $soutenance["lastname"] , $soutenance["firstname"] );
+                         $closed          = ( $soutenance["closed"] ) ? "Clos" : "Non clos";
+             	     
+             	         $soutenanceDate  = sprintf("%s - %s", $soutenance["startdate"] , $soutenance["endate"]);
+             	         $linkInfos       = $this->url(array("module" => "admin","controller" => "soutenances", "action" => "infos", "id" => $soutenanceid ), "default");
+             	         
+             	         $soutenanceRow   = $table->row(array("id" => "soutenanceRowId-" . $soutenanceid ));
+             	         $soutenanceRow->add("<input type=\"checkbox\" name=\"soutenanceids[]\" id=\"soutenanceids" . $soutenanceid."\" />" , array("id" => "checkboxCell-" . $soutenanceid ))
+             	                       ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $cohorte  . "</a>", array("id" => "cohorteId-" . $soutenanceid ))
+             	                       ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $numero   . "</a>", array("id" => "numeroId-"  . $soutenanceid ))
+             	                       ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $etudiant . "</a>", array("id" => "etudiantId-". $soutenanceid ))
+             	                       ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $theme    . "</a>", array("id" => "themeId-". $soutenanceid ))
+             		                   ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $soutenanceDate . "</a>" , array("id" => "date-" . $soutenanceid ))
+             	                       ->add("<a href=\"#soutenanceid-".$soutenanceid."\" class=\"selectClick\">". $closed   . "</a>" , array("id" => "closedId-" . $soutenanceid ));
+             	         $table->add( $soutenanceRow );
+             	         
+             	         echo "<input type='hidden' id='numero-".$soutenanceid."'    name='numero-".$soutenanceid."'     value='".$numero."' />";
+             	         echo "<input type='hidden' id='firstname-".$soutenanceid."' name='firstname-".$soutenanceid."'  value='".$soutenance["firstname"]."' />";
+             	         echo "<input type='hidden' id='lastname-".$soutenanceid."'  name='lastname-".$soutenanceid."'   value='".$soutenance["lastname"]."'  />";
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche", array("colspan" => 8 ));
+             	$table->add( $unfoundRow );
+             }
+    
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array(), "Elastic", "#");              
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+              	echo $this->jQuery();
+              	echo $this->headStyle();
+              }
+                   
+    ?>                                    
+</div>

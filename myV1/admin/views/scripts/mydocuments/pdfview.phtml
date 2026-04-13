@@ -1,0 +1,38 @@
+<?php
+$document = $this->document;
+$filepath = $document->filepath;
+$category = $this->category;
+ini_set('zlib.output_compression','0');
+?>
+<?php if( !file_exists( $filepath ) ) : ?>
+<ul class="list-group">
+         <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Désignation du fichier:</b></div> 
+                             <div class="col-md-6"><?php echo $document->filename; ?></div>
+                           </div>
+                       </li>
+                        <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Description du fichier:</b></div> 
+                             <div class="col-md-6"><?php echo $document->filedescription; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Catégorie du fichier :</b></div> 
+                             <div class="col-md-6"><?php echo ( $category ) ? $category->libelle : ""; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                              <img src="<?php echo $imageSrc; ?>" />
+                           </div>
+       </li>
+</ul>
+<?php else :  ?>
+<?php 
+      $pdf = new Zend_Pdf( $filepath, null, true);
+      echo $pdf->render();
+?>
+<?php endif;  ?>

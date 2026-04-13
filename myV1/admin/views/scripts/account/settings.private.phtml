@@ -1,0 +1,180 @@
+<?php 
+  $user               = $this->user;
+  $params             = $this->params;
+  $domaines           = $this->domaines;
+  $localites          = $this->localites;
+  $lastConnectionDate = new Zend_Date($user->lastConnectedDate, Zend_Date::TIMESTAMP , "fr_FR");
+  $lastUpdatedDate    = new Zend_Date($user->lastUpdatedDate  , Zend_Date::TIMESTAMP , "fr_FR");
+  $registeredDate     = new Zend_Date($user->registeredDate   , Zend_Date::TIMESTAMP , "fr_FR");
+  $updatedUser        = Sirah_Fabric::getUser($user->creatoruserid);
+  $creationUser       = Sirah_Fabric::getUser($user->updateduserid);
+  $basePath     = VIEW_BASE_PATH;
+  $clients            = array(1  => "Mozilla Firefox",
+  		                      2  => "Google Chrome"  ,
+  		                      3  => "Opera",
+  		                      4  => "Internet Explorer",
+  		                      0  => "Tous les navigateurs");
+  $typeOfUsers        = array(0  => "Personne" , 
+  		                      1  => "Tout le monde", 
+  		                      2  => "Mes collaborateurs");
+  $profileAccessLevels= array(
+  		                      0  => "Uniquement mes infos personnelles",
+  		                      1  => "Mes infos et coordonnées",
+  		                      2  => "Mes infos, coordonnées et formations",
+  		                      3  => "Mes infos, coordonnées, formations et expériences",
+  		                      10 => "Toutes mes informations");
+  $formSubmit         =  $this->url(array("module" => "admin", "controller" => "account", "action"  => "settings") , "default");
+  $jq                 = $this->jQuery(); 
+  $onLoad             = "  
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('.switch-checkbox').bootstrapSwitch();
+jQuery('.switch-checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state == true) && (this.name =='default_find_documents')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide'); 
+	} 
+	if((state == false) && (this.name =='default_find_documents')){
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	}
+});";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+$jq->addStyleSheet(     $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/js/editors/tinymce/tinymce.min.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+?>
+<form action="<?php echo $formSubmit; ?>" method="post"  id="saveConfidentialityParams-form" role="form" class="form-horizontal">
+ <ul class="list-group">
+      <li class="list-group-item">
+		    <div class="form-group"> 
+		      <label class="col-sm-3 control-label"> Nbre d'élements par page: </label>
+			  <div   class="col-sm-7"><input type="text" name="nb_elements_page" id="nb_elements_page" class="form-control" placeholder="Nombre total d'élements par page" value="<?php echo $params['nb_elements_page']; ?>" maxlength="6" /></div> 
+			</div>
+		</li>
+		<li class="list-group-item">
+		    <div class="form-group"> 
+		      <label class="col-sm-3 control-label"> L'année par défaut: </label>
+			  <div   class="col-sm-7"><input type="text" name="default_year" id="default_year" class="form-control" placeholder="L'année par défaut" value="<?php echo $params['default_year']; ?>" maxlength="4" /></div> 
+			</div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+		   <label class="col-sm-3 control-label"> La période par défaut: </label>
+		   <div   class="col-sm-7">
+	          <div class="input-group">
+		         <span class="input-group-addon"><input type="text" name="startime_date" id="startime_date" class="form-control datepicker" value="<?php echo $params["startime_date"]; ?>" /></span>
+                 <span class="input-group-addon"><input type="text" name="endtime_date"  id="endtime_date"  class="form-control datepicker" value="<?php echo $params["endtime_date"];  ?>" /></span>
+              </div>
+	       </div>     
+		  </div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+            <label class="col-sm-3 control-label"> Indexation automatique: </label>
+            <div   class="col-sm-7" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="default_find_documents" class="input-switch switch-checkbox" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($params["default_find_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+          </div>
+		</li>
+		<li class="list-group-item">
+	      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Contrôle de la qualité: </label>
+           <div   class="col-sm-7" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="default_check_documents" class="input-switch switch-checkbox" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($params["default_check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+          </div>
+		</li>
+		<li class="list-group-item">
+	      <div id="findDocumentsOptions" class="form-group "> 
+	       <label class="col-sm-3 control-label"> Dossier source indexation automatique*: </label>
+		   <div   class="col-sm-7"> <input type="text" name="default_find_documents_src" id="default_find_documents_src" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $params["default_find_documents_src"]; ?>" /></div> 
+	     </div>
+		</li>
+		<li class="list-group-item">
+	      <div  class="form-group"> 
+	       <label class="col-sm-3 control-label"> Dossier de destination des fichiers*: </label>
+		   <div   class="col-sm-7"> <input type="text" name="default_indexation_folder_destination" id="default_indexation_folder_destination" class="form-control" placeholder="Dossier de destination des fichiers" value="<?php echo $params["default_indexation_folder_destination"]; ?>" /></div> 
+	     </div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+		   <label class="col-sm-3 control-label"> Le secteur d'activité par défaut: </label>
+		   <div   class="col-sm-7"> <?php echo $this->formSelect("default_domaineid",$params["default_domaineid"],array("class" => "form-control chosen"), $this->domaines); ?> </div>     
+		  </div>
+	   </li>
+	   <li class="list-group-item">
+		  <div class="form-group"> 
+		   <label class="col-sm-3 control-label"> La localité par défaut: </label>
+		   <div   class="col-sm-7"> <?php echo $this->formSelect("default_localiteid",$params["default_localiteid"],array("class" => "form-control chosen"), $this->localites); ?> </div>     
+		  </div>
+	   </li>
+       <li class="list-group-item">
+          <div class="form-group"> 
+            <div class="col-sm-3"> <label class="label" for="profilevisibity"> <b> Qui peut voir les informations de mon profil ?: </b> </label> </div>
+            <div class="col-sm-7"> <?php echo $this->formSelect("profilevisibility" , $params["profilevisibility"] , array("class" => "form-control") , $typeOfUsers ); ?></div>    
+          </div>
+        </li>   
+        <li class="list-group-item">
+          <div class="form-group"> 
+            <div class="col-sm-3"> <label class="label" for="profileaccesslevel"> <b> Le niveau d'accès à mes informations: </b> </label> </div>
+            <div class="col-sm-7"> <?php echo $this->formSelect("profileaccesslevel" , $params["profileaccesslevel"] , array("class" => "form-control") , $profileAccessLevels ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="form-group"> 
+            <div class="col-sm-3"> <label class="label" for="contactvisibility"> <b> Qui peut accéder à mes contacts ?: </b> </label> </div>
+            <div class="col-sm-7"> <?php echo $this->formSelect("contactvisibility" , $params["contactvisibility"] , array("class" => "form-control") , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="form-group"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_name" , $params["findme_from_name"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon nom
+                 </label>
+              </div>
+             <div class="col-sm-7">&nbsp;</div>    
+          </div>
+       </li>
+        <li class="list-group-item">
+          <div class="form-group"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_email" , $params["findme_from_email"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon adresse email
+                 </label>
+              </div>
+             <div class="col-sm-7">&nbsp;</div>    
+          </div>
+       </li>
+       <li class="list-group-item">
+          <div class="form-group"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_phone" , $params["findme_from_phone"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon numéro de téléphone
+                 </label>
+              </div>
+             <div class="col-sm-7">&nbsp;</div>    
+          </div>
+       </li>
+       <li class="list-group-item">
+          <div class="form-group"> 
+             <div class="col-sm-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("allow_robots_index" , $params["allow_robots_index"] , null ,array("1" , "0")); ?> Autoriser les moteurs de recherche à indexer mes informations
+                 </label>
+              </div>
+             <div class="col-sm-7">&nbsp;</div>    
+          </div>
+      </li>             
+    </ul>
+  </form>
+ <?php 
+if($this->isAjax) {
+	echo $jq;
+} else {
+	echo "<div class='row col-md-12' >
+	         <button id=\"editConfidentialityParams\" type='submit' class=\"btn btn-success editConfidentialityParams\" > <i class=\"glyphicon glyphicon-floppy-disk\"></i> Appliquer les changements </button>
+	      </div>";
+}
+?>

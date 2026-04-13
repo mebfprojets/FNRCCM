@@ -1,0 +1,397 @@
+<?php 
+$users       = $this->users;
+$filters     = $this->filters;
+$paginator   = $this->paginator;
+
+$basePath    = VIEW_BASE_PATH;
+$jq          = $this->jQuery();
+
+$linkSearch  = $this->url(array("controller" => "projectusers", "action"=> "list")  , "default");
+$linkCreate  = $this->url(array("controller" => "projectusers", "action"=> "create"), "default");
+$linkEdit    = $this->url(array("controller" => "projectusers", "action"=> "edit"  ), "default");
+$linkDelete  = $this->url(array("controller" => "projectusers", "action"=> "delete"), "default");
+ 
+$jq->addOnload("
+jQuery('.userCard').css('cursor','pointer');
+jQuery('.userCard').click(function( event ){event.preventDefault();document.location.href= jQuery(this).attr('rel');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#usersListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var keywordsText    = jQuery.trim(jQuery('#globalFormSearch').find('#name').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords   =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname      = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for( var i = 1; i < keywords.length; i++) {
+                         firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname   = lastname;
+		searchData.firstname  = firstname;		 
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchUsers,.searchUsers').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#usersListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+	
+		var keywordsText    = jQuery.trim(formSelector.find('#name').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords   =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname      = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for( var i = 1; i < keywords.length; i++) {
+                         firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname = lastname;
+		searchData.firstname= firstname;
+		searchData.email    = jQuery.trim(formSelector.find('#email').val());
+		searchData.phone    = jQuery.trim(formSelector.find('#phone').val());
+		searchData.address  = jQuery.trim(formSelector.find('#address').val());
+		 
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on( maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#usersListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());
+
+        var keywordsText         = jQuery.trim(formSelector.find('#name').val());
+		var lastname             = '';
+		var firstname            = '';
+		if( !SIRAH.util.isEmpty( keywordsText ) ) {
+		    var keywords   =  keywordsText.split(/\s+/);
+		    if( keywords.length ) {
+		        lastname      = keywords[0];
+		        if( keywords.length >= 2 ) {
+		            for( var i = 1; i < keywords.length; i++) {
+                         firstname += keywords[i];
+		            }
+                }
+		    }
+		}
+		paginationData.lastname  = lastname;
+		paginationData.firstname = firstname;			
+		paginationData.email     = jQuery.trim(formSelector.find('#email').val());
+		paginationData.phone     = jQuery.trim(formSelector.find('#phone').val());
+		paginationData.address   = jQuery.trim(formSelector.find('#address').val());
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var maincontent          = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+	
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedUsersId = function() {
+		var checkedItems = jQuery('#usersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var userid   = parseInt(jQuery(this).attr('id').replace('userids',''));
+             	checkedIds.push(userid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#usersListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#usersListTable'));
+		       if(checkedItems) {
+		           disableButtons(['exportButton','deleteButton','editButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#usersListTable'));
+		      enableButtons(['exportButton','deleteButton','editButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['exportButton','deleteButton','editButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['deleteButton','exportButton','editButton']);
+		       }
+		  }
+		}
+   });
+");
+
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Enregistrer un collaborateur", "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "edit");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#usersListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var userid      = parseInt(checkedItem.attr('id').replace('userids',''));
+					 document.location.href = '".$linkEdit."/userid/'+userid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled        = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedUsers = getcheckedUsersId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedUsers )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les users selectionnées ? </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({title:'Attention,confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'userids[]':checkedUsers},type:'GET' ,
+             		                                                    success:function(data) {
+             		                                                            if( data.error !== undefined) {
+             		                                                                SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                                return;
+             		                                                           } else if(data.success !== undefined) {
+             		                                                                var checkedUsers = getcheckedUsersId();  	            		
+             		                                                               SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                               setTimeout(function(){jQuery.each(checkedUsers,function(key,userid){jQuery('#userRowId-'+userid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                                           }
+             		                                                     }
+             		                                           });     		
+                                                           }}); 
+             		    dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		    dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));    
+
+?>
+
+<div id="usersListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+		   <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['name']; ?>" id="name" name="name"  type="text" class="form-control" placeholder="Recherchez un collaborateur ?, saisir son nom et/ou prénom...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-defaultadvancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+               <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		   </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+    	</div>
+        <form id="usersListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >		
+          <ul class="list-group">
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Noms & Prénoms:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['name']; ?>" id="name" name="name"  type="text" class="form-control" placeholder="Saisir le nom du collaborateur..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Adresse:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['address']; ?>" id="address" name="address"  type="text" class="form-control" placeholder="L'adresse du collaborateur..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Adresse email:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['email']; ?>" id="email" name="email" type="text" class="form-control" placeholder="L'adresse email du collaborateur..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Numéro de téléphone:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['phone']; ?>" id="phone" name="phone" type="text" class="form-control" placeholder="Le numéro de téléphone du collaborateur..."> </div> 
+               </div> 			   
+			</li>			
+		</ul>		 		
+		<div class="panel-footer"> 
+		   <button id="searchUsers" class="btn btn-primary searchUser advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher un collaborateur</button>
+           <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		</form>
+		<table id="usersListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                     <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+						  <th width="14%"> Identifiants         </th> 
+                          <th width="40%"> Collaborateurs       </th> 						  
+                          <th width="15%"> Dates création       </th> 
+                          <th width="20%"> Dernières connexions </th> </tr>
+            </thead>
+            <tbody>	
+			   <?php 
+                      $output = "";
+					  if( count(   $users ) ) {
+						  foreach( $users as $account ) {
+							       $userid           = intval($account['userid']);
+                              	   $userAccount      = Sirah_Fabric::getUser( $userid );
+                              	   $dateInscription  = (intval($account["registeredDate"]))   ? date("d/m/Y H:i:s", $account["registeredDate"]) : "Non précisé";
+                              	   $dateConnexion    = (intval($account["lastConnectedDate"]))? date("d/m/Y H:i:s", $account["lastConnectedDate"]) : "Non précisé";
+                              	   $locked           = intval( $account['locked']);
+                              	   $activated        = intval( $account['activated']);
+                              	   $blocked          = intval( $account['blocked']);
+                              	   $username         = $account["username"];
+                              	   $userAdresse      = $account["address"];
+								   $userPhone        = sprintf("%s / %s", $account["phone1"], $account["phone2"]);
+                              	   $nom              = sprintf(" %s %s" , $account["lastname"] , $account["firstname"]);
+                              	   $linkInfos        = $this->url(array("controller" => "projectusers", "action" => "infos", "userid" => $userid ) , "default");
+                              	   $avatarFile       = $avatarDefaultFile;
+                              	   $bgClass          =" ";
+                              	   if( !empty( $account["avatar"] ) ) {
+                              	  	   $avatarPath  = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $account["avatar"];
+                              	  	   if( file_exists( $avatarPath ) ) {
+                              	  		   $avatarPathname = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+                              	  		   $avatarFile     = str_replace( DS , "/" , $avatarPathname );
+                              	  		}
+                              	  	}
+                              	  	if ( !$activated || $blocked )  {
+                              	  	  $bgClass= "alert danger";
+                              	  	}								   
+								    $userHtml    = "<li title=\"Voir les informations de cette boutique\" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+             	                        <div class=\"row\" style=\"padding:0px !important;\">
+										  <div class=\"col-md-4\"> <img src=\"".$avatarFile."\" class=\"img-thumbnail\" /> </div>
+             	                          <div class=\"col-md-8\"> 
+             	                             <h4 style=\"text-align:left;\" class=\"list-group-item-heading\"><u><a title=\"Voir les informations de cette boutique\" href=\"".$linkInfos."\"> ".$nom." </a></u></h4>
+             	                             <p class=\"list-group-item-text\"> <strong> <u> Adresse  : </u> </strong> ".$userAdresse."</p>
+             	                             <p class=\"list-group-item-text\"> <strong> <u> Telephone: </u></strong>  ".$userPhone  ."</p>
+             	                          </div>
+             	                        </div>
+             	                     </li>";
+									 
+									$output .= "<tr id=\"userRowId-".$userid."\">";
+             	                            $output.= "<td style=\"text-align:center;\"><input type=\"checkbox\" name=\"userids[]\" id=\"userids".$userid."\" class=\"userids\" /> </td>";
+											$output.= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\">".$username."</a> </td>";
+             	                            $output.= "<td rel=\"".$linkInfos."\" style=\"padding:4px !important;\" class=\"list-group userCard\">".$userHtml."  </td>"; 
+                                            $output.= "<td style=\"text-align:center;\"><a href=\"".$linkInfos."\">".$dateInscription."</a> </td>";
+                                            $output.= "<td style=\"text-align:center;\"><a href=\"".$linkInfos."\">".$dateConnexion."</a> </td>";											
+             	                    $output .= "</tr>";
+									$output .= "<input type=\"hidden\" name=\"name-".$userid."\" id=\"name-".$userid."\" value=\"".$nom."\" />";
+						  }
+					  } else {
+             	                    $output .= "<tr>";
+             	                            $output .= "<td style=\"text-align:center;\" colspan=\"6\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+             	                    $output .= "</tr>";
+                      }
+					  
+					  echo $output;
+					  
+			   ?>
+            </tbody>				
+		</table>
+              <?php echo $pagination->render(); ?>
+	</div>
+</div>  
+
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

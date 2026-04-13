@@ -1,0 +1,97 @@
+<?php
+   $menuTable           = new Sirah_Model_Table_Menu();
+   $menuItemTable       = new Sirah_Model_Table_MenuItem();
+   $user                = Sirah_Fabric::getUser(); 
+   $acl                 = Sirah_Fabric::getAcl("userAcl", $user->userid , 0);
+   $cacheManager        = Sirah_Fabric::getCachemanager(); 
+   $cache               = null;
+   $navigationPages     = array();
+   $menuRows            = array();
+   $layout              = Zend_Layout::getMvcInstance();
+   $view                = $layout->getView();
+   $tplPath             = VIEW_BASE_PATH;
+   
+   $output              = "";
+   	   $menuRows        = $menuTable->getRows("left");
+   	   $navigationPages = array();
+   	   $itemCursor      = 0;
+   	   if(count($menuRows ) && $acl ) {
+   	   	  foreach( $menuRows as $menuRow ) { 
+   	   	   	       $menuId                            = $menuRow["menuid"];
+   	   	   	       $menuItems                         = $menuItemTable->getRows($menuId);
+   	   	   	       $navigationPages[$menuId]["label"] = $menuRow["menuname"];
+   	   	   	       $navigationPages[$menuId]["icon"]  = $menuRow["moduleicon"] ;
+   	   	   	       $navigationPages[$menuId]["title"] = $menuRow["description"];
+   	   	   	       $navigationPages[$menuId]["pages"] = array();
+   	   	   	       if(!empty(  $menuItems)) {
+   	   	   	       	  foreach( $menuItems as $menuItem) {
+   	   	   	       	  	$itemObjectId      = $menuItem["aclobjectid"];
+   	   	   	       	  	$itemId            = $menuItem["elementid"];
+   	   	   	       	  	$itemResourceId    = Sirah_User_Acl_Table::getObjectResourceid( $itemObjectId );
+   	   	   	       	  	$itemLink          = $menuItem["elementlink"];
+   	   	   	       	  	$itemLabel         = $menuItem["elementname"];
+   	   	   	       	  	$itemIcon          = $menuItem["elementicon"];
+   	   	   	       	  	$itemDescription   = $menuItem["description"];
+   	   	   	       	  	
+   	   	   	       	  	if( $itemObjectId && $itemResourceId && (null===$itemLink || empty($itemLink) || $itemLink=="#" )) {
+   	   	   	       	  		$resourceName  = Sirah_User_Acl_Table::getResourcename($itemResourceId);
+   	   	   	       	  		$objectName    = Sirah_User_Acl_Table::getObjectname(  $itemObjectId  );
+   	   	   	       	  		if( $acl->isAuthorized( $resourceName, $objectName )) {
+   	   	   	       	  		    $navigationPages[$menuId]["pages"][]= array("label"=>$itemLabel,"action"=>$objectName,"controller"=>$resourceName,"title"=>$itemDescription,"id"=>"itemId-$itemId","icon"=>$itemIcon,"class"=>"leftMenuItem menuItem itemMenu-$menuId","order"=> $itemCursor,"uri"=> $view->url(array("controller"=>$resourceName,"action"=> $objectName, "module" => "admin"),"default"));
+   	   	   	       	  		}
+   	   	   	       	  		  	   	   	       	  		
+   	   	   	       	  	} elseif(!empty($itemName) && null!==$itemLink && !empty($itemLink) && $itemLink!="#" ) {
+   	   	   	       	  		$navigationPages[$menuId]["pages"][]= array("label"=> $itemLabel,"title"=> $itemDescription, "class"=> "leftMenuItem itemMenu-$menuId","id" => "itemId-$itemId","icon" => $itemIcon,"uri"=> $itemLink,"order" => $itemCursor );   	   	   	       	  		
+   	   	   	       	  	}   	   	   	       	  	
+   	   	   	       	 }
+   	   	   	       }
+   	   	   	       $itemCursor++;
+   	   	   }  	   	
+   	   }
+	   $linkHome      = $view->url(array("module"=>"admin","controller"=>"index","action"=> "index"),"home"); 
+	   $linkDashboard = $view->url(array("module"=>"admin","controller"=>"dashboard","action"=> "list") ,"dashboard");
+?>
+<div id="page-sidebar" class="rm-transition">
+  <div id="page-sidebar-wrapper">
+      <div id="sidebar-top"><a title="Accéder au tableau de bord" href="<?php echo $linkDashboard;?>"> <img src="<?php echo $tplPath; ?>/assets-minified/images/embleme.png" /></a></div>
+      <div id="sidebar-menu">
+             <?php 
+                 $menuSidebarOutput     = "";
+                 if($user->isLoggedIn() ) {
+                 	$linkDashboard         = $view->url(array("controller"=>"dashboard","action"=>"list","module"=>"admin"), "default");
+                 	$menuSidebarOutput    .="<ul>";
+                 	                      $menuSidebarOutput.="<li><a title=\"Accéder au tableau de bord\" href=\"".$linkDashboard."\"><i class=\"glyph-icon icon-dashboard\"></i><span> Tableau de bord</span> </a> </li> ";
+                 	$menuSidebarOutput    .="<li class=\"divider\"> <li> </ul>";
+                 }
+                 if( count(   $navigationPages )) {
+                 	 foreach( $navigationPages as $moduleId => $menuModules ) {
+                 	 	      $moduleItems = $navigationPages[$moduleId]["pages"];
+                 	 	      $moduleName  = $navigationPages[$moduleId]["label"];
+                 	 	      $moduleIcon  = $navigationPages[$moduleId]["icon"];
+                 	 	      $moduleTitle = $navigationPages[$moduleId]["title"];
+                 	 	      
+                 	 	      $menuSidebarOutput    .="<ul>";
+                 	 	      if(count( $moduleItems)== 1 ) {
+                 	 	      	  $moduleLink        = $moduleItems[0]["uri"];                 	 	      	 
+                 	 	      	  $menuSidebarOutput.="<li><a title=\"".$moduleTitle."\" href=\"".$moduleLink."\"><i class=\"".$moduleIcon."\"></i><span>".$moduleName."</span> </a> </li> ";
+                 	 	      } elseif( count( $moduleItems ) > 1 ) {
+                 	 	      	  $menuSidebarOutput.="<li><a title=\"".$moduleTitle."\" href=\"#\"><i class=\"".$moduleIcon."\"></i> <span>".$moduleName."</span> </a> ";
+                 	 	      	                    $menuSidebarOutput.=" <ul class='menu-navigation'>";
+                 	 	      	                    foreach( $moduleItems as $elementPage ) {
+                 	 	      	                    	     $menuSidebarOutput .= "<li><a title=\"".$elementPage['title']."\" class=\"".$elementPage['class']."\" href=\"".$elementPage['uri']."\" >" ;
+                 	 	      	                    	                        $menuSidebarOutput.="<i class=\"".$elementPage['icon']."\"></i> <span> ".$elementPage['label']." </span>";
+                 	 	      	                    	     $menuSidebarOutput .= "</a></li>" ;
+                 	 	      	                    }
+                 	 	      	                    $menuSidebarOutput.=" </ul>";
+                 	 	      	  $menuSidebarOutput.="       </li> <li class=\"divider\"> <li> ";
+                 	 	      }  
+                 	 	      $menuSidebarOutput.=" </ul>";
+                 	 }
+                 }
+                echo $menuSidebarOutput;
+             ?>                         
+      </div>
+  </div>
+</div>
+
+

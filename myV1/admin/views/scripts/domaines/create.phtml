@@ -1,0 +1,86 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"create"), "default" );
+$backList   = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"list")  , "default" );
+ 
+$jq         = $this->jQuery(); 
+$onLoad     = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#createDomaineForm');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      var  code         = jQuery.trim(formSelector.find('#code').val());
+      
+      if(  SIRAH.util.isEmpty( libelle)){
+           jQuery('#libelle').addClass('input-error');
+           jQuery('#name-validation-message').html('');
+           SIRAH.error.raise('name-validation-message', 'Entrez la désignation du secteur');
+         return;
+      } else {
+           jQuery('#libelle').removeClass('input-error');
+           jQuery('#name-validation-message').html('');
+      }     
+      formSelector.submit();
+}); ";
+$jq->addOnLoad( $onLoad );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bootstrap-filestyle input{float:left;width:70%;}
+.bootstrap-filestyle label{float:left;width:30%;}
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single    .chosen-single{height:35px;line-height:35px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="createDomaineForm" role="form" class="form-horizontal createDomaineForm">
+    <div class="panel panel-default" >
+     <ul class="list-group">
+		<li class="list-group-item">
+			<div class="form-group">
+			   <label class="col-md-2  col-sm-2  control-label" for="code"> Code*: </label>
+			   <div   class="col-md-10 col-sm-10"><input id="code" name="code" type="text" maxlength="150" class="form-control" title="Le code du secteur" placeholder="Le code du secteur" value="<?php echo $data["code"]; ?>"></div> 			   
+			   <p id="code-validation-message" class="validation-message"></p> 
+			</div>     
+		</li>
+		<li class="list-group-item">
+			<div class="form-group">
+			   <label class="col-md-2  col-sm-2  control-label" for="code"> Désignation*: </label>
+			   <div   class="col-md-10 col-sm-10"><input id="libelle" name="libelle" type="text" maxlength="150" class="form-control" title="Désignation du secteur" placeholder="Désignation du secteur" value="<?php echo $data["libelle"]; ?>"></div> 			   
+			   <p id="name-validation-message" class="validation-message"></p> 
+			</div>     
+		</li>
+		<li class="list-group-item">
+			<div class="form-group">            
+				<label class="col-md-2  col-sm-2 control-label"> Parent*: </label> 
+				<div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("parentid",intval($data["parentid"]), array("class"=>"form-control chosen"), $this->parents); ?>   </div> 				
+			</div>					
+		</li>		
+		<li class="list-group-item">
+			<div class="form-group">
+				<label class="col-md-2  col-sm-2 control-label"> Description: </label>
+				<div   class="col-md-10 col-sm-10"><textarea name="description" id="description" class="form-control textarea-sm"> <?php echo $data["description"]; ?> </textarea></div>              
+			</div>  
+		</li>	
+    </ul>  
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+   
+   $toolCreate->setAttributes(array("type"=> "submit"));
+   $toolCancel->setAttributes(array("type"=> "submit"));
+      
+   $buttonsbar->add( $toolCancel , "cancelCreationButton");
+   $buttonsbar->add( $toolCreate , "createButton");
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+</div> 
+</form>

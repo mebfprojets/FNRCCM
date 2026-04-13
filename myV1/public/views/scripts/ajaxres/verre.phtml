@@ -1,0 +1,189 @@
+<?php 
+$produit              = $this->produit;
+$verre                = $this->verre;
+$produitid            = $this->produitid;
+$marque               = $this->marque;
+$gamme                = $this->gamme;
+$laboratoire          = $this->laboratoire;
+$typesTraitements     = $this->typesTraitements;
+$typesAntireflets     = $this->typesAntireflets;
+$typesPhotochromiques = $this->typesPhotochromiques ;
+$types                = $this->types;
+$matieres             = $this->matieres;
+$indices              = $this->indices;
+$mouvements           = $this->mouvements;
+$parametres           = $this->params;
+$stockInitial         = $this->stockInitial;
+$stockFinal           = $this->stockFinal;
+$ligneId              = $this->ligneId ;
+$free                 = $this->free;
+
+$gammeid              = $produit->gammeid;
+$sphVal               = $verre->sphere;
+$cylVal               = $verre->cylindre;
+$additionVal          = $verre->addition;
+$linkDisplayProduct   = $this->url(array("module"=>"public","controller"=>"ajaxres","action"=>"productinfos","parentform" => "registerpackProduits","module" => "public"),"default");
+$linkSearch           = $this->url(array("module"=>"public","controller"=>"ajaxres","action"=>"verreslist","parentform"=>"registerpackProduits","module"=> "public","ligneid" => $ligneId ,"free" => $free,
+								         "gammeid"   => $gammeid,"sphere"=>$sphVal,"cylindre"=>$cylVal,"addition"=>$additionVal,"productKey"=> "productId-".$ligneId ),"default");
+$basePath             = VIEW_BASE_PATH;
+$jq                   = $this->jQuery();
+
+$jq->addOnload("
+                       jQuery('#productId-".$ligneId."').find('.addProduct').bind('add', function(event, productid, productBox, ligneId){
+						       event.preventDefault();
+							   var productId   = parseInt(productid);						   
+							   if( productBox ) {
+								   SIRAH.request.get(productBox.parent('div.panel-body'),'".$linkDisplayProduct."', 
+								   {
+									   dataType   : 'html',
+									   async      : true,
+									   data       : {'productid':productId,'ligneid':ligneId},
+									   beforeSend : function(){SIRAH.loading.on(productBox,'Insertion du produit...');},
+									   success    : function(data) {var panelBody = productBox.parent('div.panel-body'); productBox.remove();panelBody.append(data);SIRAH.loading.off(false);}
+								   });
+							   }	else {
+								   SIRAH.dialog.alert('Une erreur s\'est produite dans la mise à jour des informations', 'Erreur d\'ajout de produit');
+								   return;
+							   }								   
+					   });
+                       jQuery('#productId-".$ligneId."').find('.addProduct').click(function(event){
+					           event.preventDefault(); 
+							   event.preventDefault();
+							   jQuery('#filterListProduits,.modal,.modal-backdrop').remove();jQuery('body').removeClass('modal-open');
+							   var filterListDialog = jQuery('<div></div>').attr('id','filterListProduits').addClass('modal-medium'); 
+							   filterListDialog.dialog2({title:'Selectionner un autre verre',content:'".$linkSearch."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		                                    closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+             		           filterListDialog.dialog2('open');
+				       });
+                   ");
+
+$photoFile      = str_replace(DS , "/", str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , APPLICATION_DATA_PATH . "/produits/photos/original/default.jpg"));
+if( !empty( $produit->photo ) ) {
+	$photoPath      = APPLICATION_DATA_PATH . DS . "produits" . DS . "photos" . DS . "mini" . DS . $produit->photo;
+	if( file_exists( $photoPath ) ) {
+		$photoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $photoPath );
+		$photoFile      = str_replace( DS , "/" , $photoPathname);
+	}
+}
+$creationDate  = "00/00/0000";
+$updateDate    = "00/00/0000";
+$creator       = Sirah_Fabric::getUser( $produit->creatorid     );
+$updatedUser   = Sirah_Fabric::getUser( $produit->updateduserid );
+
+if( $produit->creationdate ) {
+	$zendCreationdate = new Zend_Date( $produit->creationdate, Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("d MMM Y à H:m");
+}
+if( $produit->updatedate ) {
+	$zendUpdatedate   = new Zend_Date( $produit->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate       = $zendUpdatedate->toString("d MMM Y à H:m");
+}
+
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.img-responsive{display:inline;}
+.img-responsive,.panel-body-fw{text-align:center !important;}
+#produitsContainer{padding-left:0;padding-right:0;}
+.product-details,.product-other-infos > .list-group-item{padding:7px;}
+.product-stock-infos,.product-free-infos{margin-left:-1px;padding:0;}
+.product-stock-infos span,.product-free-infos span{color:white;padding:5px;border-radius:0 4px 4px 0}
+.productlib{float:left;width:50%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:left}
+.productref{float:left;width:50%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:right}
+.productlib h2, .productprice h2, .productref h2{font-size:14px;font-weight:bold;line-height: 15px;}
+.productlib h3, .productprice h3, .productref h3{font-size:13px;}
+.product-description{height:90px;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<div id="productId-<?php echo $ligneId; ?>" class="panel panel-white addProductItem" data-title="Selectionner un autre verre" data-link="<?php echo $linkSearch; ?>"> 
+     <div class="panel-body panel-body-fw panel-img"><img height="150px" class="img-responsive" src="<?php echo $photoFile; ?>" /> </div>
+	  <?php if( $free ):  ?>
+	     <div class="panel-body product-free-infos"> <span class="badge badge-success">Gratuit </span> </div>
+	  <?php endif;  ?>	  	  
+	  <div class="panel-body product-details"> 
+	         <div class="productlib"> <h2><?php echo $produit->libelle; ?> </h2> </div>
+			 <div class="productref"> <h2><?php echo "Ref:".$produit->code; ?> </h2> </div>
+	 </div>
+	 <ul class="list-group product-other-infos">
+	        <li class="list-group-item">
+                <div class="row"> 
+                    <div class="col-md-5"> <b> Type / Matière:</b></div> 
+                    <div class="col-md-7">
+					   <?php echo (isset($types[$verre->type])) ? $types[$verre->type] : ""; ?> /
+					   <?php echo (isset($matieres[$verre->matiere]))? $matieres[$verre->matiere] : ""; ?>
+					</div>
+                </div>
+            </li>
+			<li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Indice:</b></div> 
+                       <div class="col-md-7"><?php echo (isset($indices[$verre->indice])) ? $indices[$verre->indice] : ""; ?></div>
+                   </div>
+            </li>
+            <li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Sphère/Cylindre:</b></div> 
+                       <div class="col-md-7"><?php echo $verre->sphere."/".$verre->cylindre; ?></div>
+                   </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row"> 
+                    <div class="col-md-5"> <b> Addition/Axe:</b></div> 
+                    <div class="col-md-7"><?php echo $verre->addition."/".$verre->axe; ?></div>
+                </div>
+            </li>
+            <li class="list-group-item">
+               <div class="row"> 
+                       <div class="col-md-5"> <b> Type de traitement:</b></div> 
+                       <div class="col-md-7"> 
+					     <?php echo (isset($typesTraitements[$verre->traitement_type])) ? $typesTraitements[$verre->traitement_type] : ""; ?>
+                         <?php echo (isset($typesPhotochromiques[$verre->traitement_photochromique]) && ($verre->traitement_photochromique != 0) ) ? $typesPhotochromiques[$verre->traitement_photochromique] : ""; ?> 						 
+					   </div>
+               </div>
+            </li> 
+            <?php if( $verre->traitement_antireflet ): ?> 
+             <li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Option Anti-reflet:</b></div> 
+                       <div class="col-md-7"> <?php echo (isset($typesAntireflets[$verre->traitement_antireflet_type])) ? $typesAntireflets[$verre->traitement_antireflet_type] : ""; ?> </div>
+                   </div>
+             </li>
+            <?php else: ?> 
+            <li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-12">   Sans option Anti-reflet </div> 
+                   </div>
+            </li>                 
+            <?php endif; ?> 
+                 
+            <?php if( $verre->traitement_antirayure ): ?> 
+             <li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Option anti-rayure:</b></div> 
+                       <div class="col-md-7">  OUI </div>
+                   </div>
+            </li>
+                 <?php else: ?> 
+            <li class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-12"> Sans option anti-Rayure </div> 
+                   </div>
+            </li>                 
+           <?php endif; ?>
+		  
+         <li class="list-group-item"><a href="#addProduct-<?php echo $ligneId; ?>" class="btn btn-success btn-block btn-lg addProduct"><i class='glyph-icon icon-edit'></i> Choisir un autre </a> </li>																							
+
+	 </ul>
+
+ <input type="hidden" name="lignes[]"                          id="ligneid_<?php echo $ligneId; ?>"   value="<?php echo $ligneId;   ?>" class="ligneIds"   />
+ <input type="hidden" name="produitid_<?php echo $ligneId; ?>" id="produitid_<?php echo $ligneId; ?>" value="<?php echo $produitid; ?>" class="productIds" />
+ <input type="hidden" name="free_<?php echo $ligneId; ?>"      id="free_<?php echo $ligneId; ?>"      value="<?php echo $free;      ?>" class="freeIds" />
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+ 

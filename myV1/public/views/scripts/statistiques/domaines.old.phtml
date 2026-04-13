@@ -1,0 +1,36 @@
+<?php
+  $tplPath      = VIEW_BASE_PATH;
+  
+  $statistiques = $this->statistiques;
+  $types        = array( 0 => " ", 1 => "Personnes physiques", 2 => "Personnes morales", 3=> "Surété");
+?>
+
+   <table  class="table tabl-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="40%"> Domaines           </th>
+                     <th width="40%"> Types de registres </th>
+                     <th width="20%"> Nombre </th>
+                </tr>         
+          </thead>
+          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     if( count(  $statistiques )) {
+                     	 foreach($statistiques as $row ) {
+                     	 	     
+                     	 	     $output.="<tr>";
+                     	 	            $output.="<td> ".$row['domaine']." </td>";
+                     	 	            $output.="<td> ".$types[$row['type']]." </td>";
+                     	 	            $output.="<td> ".$row['nombre']." </td>";
+                     	 	     $output.="</tr>";                    	 	 
+                     	 	
+                     	 }                    	
+                     }  
+
+                     echo $output;
+              ?>
+          
+          </tbody>         
+   </table>

@@ -1,0 +1,173 @@
+<?php
+   $me               = Sirah_Fabric::getUser();
+   $basePath         = VIEW_BASE_PATH;
+   $linkPhysique     = $this->url(array("module" => "admin","controller" => "registrephysique", "action" => "list" ), "default");
+   $linkMoral        = $this->url(array("module" => "admin","controller" => "registremoral", "action" => "list" ), "default");
+   $linkLocalites    = $this->url(array("module" => "admin","controller" => "localites", "action" => "list"), "default");
+   $linkDomaines     = $this->url(array("module" => "admin","controller" => "domaines", "action" => "list" ), "default");
+   $linkDemandes     = $this->url(array("module" => "admin","controller" => "requetes", "action" => "list" ), "default");
+   $linkSuretes      = $this->url(array("module" => "admin","controller" => "registresuretes", "action" => "list" ), "default");
+   $registres        = $this->registres;
+   $requetes         = $this->requetes;
+   $statyears        = $this->statyears;
+   $statlocalites    = $this->statlocalites;
+   $userstats        = $this->userstats;
+   $statsexes        = $this->statsexes;
+   $statypes         = $this->statypes;
+   $statnationalites = $this->statnationalites;
+   $nbreTotal        = $this->total;
+   $domaines         = $this->domaines;
+   $domainesList     = $this->domainesList;
+   $localitesList    = $this->localitesList;
+   $types            = array(0=> " ", 1 => "Personnes physiques", 2 => "Personnes morales", 3=> "Surétés", 4 => "Modifications");
+   $typesDocuments   = $this->typesdocuments;
+   $annees           = $this->annees;
+   $localites        = $this->localites;
+   $statages         = $this->statages;  
+   $filters          = $this->filters;
+   $params           = $this->params;   
+   
+   $jq               = $this->jQuery();
+   $linkSearch       = $formSubmit = $this->url(array("module"=>"admin","controller"=>"statistiques","action"=>"list"), "default");
+   $linkExportPDF    =               $this->url(array("module"=>"admin","controller"=>"statistiques","action"=>"exportpdf"), "default");
+   
+   $onLoad           = "
+        var getSelectedLocalites = function(formSelector=null) {
+			if( null===formSelector ) {
+				formSelector = jQuery('#registresListSearchForm');
+			}
+			var selectedLocalites = [];
+			if( jQuery('#localiteids :selected').length > 0){			   
+				jQuery('#localiteids :selected').each(function(i, selected) {
+						selectedLocalites[i] = jQuery(selected).val();
+				});
+			}
+		    return selectedLocalites;
+		};  
+		var getSelectedDomaines = function(formSelector=null) {
+			if( null===formSelector ) {
+				  formSelector = jQuery('#filterStatsForm');
+			}
+			var selectedDomaines = [];
+			if( jQuery('#domaineids :selected').length > 0){			   
+				jQuery('#domaineids :selected').each(function(i, selected) {
+						selectedDomaines[i] = jQuery(selected).val();
+				});
+			}
+			return selectedDomaines;
+		};
+		jQuery('#resetStatsBtn,.resetStatsBtn').click(function(event){
+			event.preventDefault();
+			jQuery('#filterStatsForm')[0].reset();
+		});
+		jQuery('#filterStatsBtn,.filterStatsBtn').click(function(event){
+			event.preventDefault();
+			var formSelector = jQuery('#filterStatsForm') ;
+			formSelector.attr('action','".$formSubmit."');
+			formSelector.submit();
+		});
+        jQuery('#exportStatsBtn,.exportStatsBtn').click(function(event){
+			event.preventDefault();
+			var formSelector = jQuery('#filterStatsForm') ;
+			formSelector.attr('action','".$linkExportPDF."/layoutformat/pdf');
+			formSelector.submit();
+		});
+		jQuery('#localiteids').multiselect({
+			enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher une localité..',
+			includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner une localité...',
+			selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+			nSelectedText:' - Localités sélectionnés',maxHeight:350,buttonWidth:'100%',
+			checkboxName:function(option) {return 'localiteids[]';},
+			onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+ 
+		});
+		jQuery('#domaineids').multiselect({
+			enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher un secteur d\'activités...',
+			includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner au moins un secteur d\'activités...',
+			selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+			nSelectedText:' - Secteurs d\'activités sélectionnés',maxHeight:350,buttonWidth:'100%',
+			checkboxName:function(option) {return 'domaineids[]';},
+			onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+ 
+		}); ";
+   $jq->addOnLoad($onLoad);  
+   $jq->addJavascriptFile( VIEW_BASE_PATH ."/js/jquery.dynamic-select.min.js");
+   $supinaThemePath  = ROOT_PATH ."/myTpl/rccm/assets-minified/";
+   $jq->addStyleSheet(     $supinaThemePath ."widgets/multiselect/multiselect.css");
+   $jq->addJavascriptFile( $supinaThemePath ."widgets/multiselect/multiselect.js");
+   $jq->addJavascriptFile( $supinaThemePath .'widgets/multiselect/ajaxchosen.min.js');
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+<div id="filterStats" class="row">  
+    <div class="col-md-12">
+	    <div class="content-box border-top border-purple mrg25B dashboardPanel">
+		    <h3  class="content-box-header"> Filtrer les données des tableaux ci-dessous </h3>
+			<div  class="content-box-wrapper">
+			    <form method="post" role="form" class="form-horizontal filterStatsForm" id="filterStatsForm" action="<?php echo $formSubmit; ?>">
+                    <ul class="list-group">
+					    <li class="list-group-item"> 
+							<div class="form-group">
+							   <label class="col-sm-2 col-md-2 control-label"><b>Secteur d'activités:</b> </label> 
+							   <div   class="col-sm-4 col-md-4"><?php echo $this->formSelect("domaineids[]", $this->checkedDomaines, array("multiple"=>"multiple","style"=>"height:100px !important;","class"=>"form-control"),$domainesList);?>  </div> 
+							   
+							   <label class="col-sm-2 col-md-2 control-label"><b>Juridictions:</b> </label> 
+							   <div   class="col-sm-4 col-md-4"><?php echo $this->formSelect("localiteids[]",$this->checkedLocalites,array("multiple"=>"multiple","style"=>"height:100px !important;","class"=>"form-control"),$localitesList);?>  </div> 					   					    
+							</div> 			   
+						</li>
+                        <li class="list-group-item">
+							<div class="form-group"> 
+								  <label class="col-sm-2 col-md-2 control-label">  <b> Période initiale:</b> </label> 
+								  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodstart_day"  ,intval($params["periodstart_day"])  , array("class"=> "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+								  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodstart_month",intval($params["periodstart_month"]), array("class"=> "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+								  <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periodstart_year" ,intval($params["periodstart_year"]) , array("class"=> "form-control chosen"),array("0000"=> "Année")+createYearsArray(1970, (date("Y")+2) ));?></div>
+							 </div>
+						</li>
+						<li class="list-group-item">
+							 <div class="form-group"> 
+								<label class="col-sm-2 col-md-2 control-label">  <b> Période finale:</b> </label> 
+								<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodend_day"  ,intval($params["periodend_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+								<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodend_month",intval($params["periodend_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+								<div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periodend_year" ,intval($params["periodend_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(1970, (date("Y")+2) ));?></div>
+							 </div>
+						</li>
+                    </ul>					
+                </form>				
+			</div>
+			<div class="button-pane">
+				<a id="filterStatsBtn" href="#" class="btn btn-link btn-primary hover-white filterStatsBtn"><i class="glyph-icon icon-search"> </i> Rechercher    </a>
+				<a id="exportStatsBtn" href="#" class="btn btn-link btn-success hover-white exportStatsBtn"><i class="glyph-icon icon-file-pdf-o"> </i> Exporter      </a>
+				<a id="resetStatsBtn"  href="#" class="btn btn-link btn-danger  hover-white resetStatsBtn"> <i class="glyph-icon icon-refresh"></i> Réinitialiser </a>
+			</div>
+	    </div>
+	</div>
+</div>
+<div id="statdataDashboard" class="row">   
+	<div class="col-md-7">
+	    <div class="content-box border-top border-blue mrg25B dashboardPanel">
+			<h3 class="content-box-header"> Statistiques des RCCM par type </h3>
+			<div class="content-box-wrapper"> <?php echo $this->partial("statistiques/stats-types.phtml",array("rows"=>$statypes,"types"=>$types,"filters"=>$filters,"params"=>$params)); ?> </div>
+		</div>
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Statistiques des RCCM par localité </h3>
+		    <div class="content-box-wrapper"> <?php echo $this->partial("statistiques/stats-localites.phtml", array("rows"=> $statlocalites,"filters"=>$filters,"params"=>$params)); ?></div>
+		</div> 		
+	</div>		 
+	<div class="col-md-5"> 
+		
+		<div class="content-box border-top border-red mrg25B dashboardPanel">
+		  <h3 class="content-box-header"> Statistiques des RCCM par année </h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("statistiques/stats-years.phtml", array("rows"=>$statyears,"filters"=>$filters,"params"=>$params)); ?> </div>
+		</div>   		
+	</div>                 
+</div>
+<div  class="row"> 
+    <div class="col-md-12"> 
+		<div class="content-box border-top border-blue mrg25B dashboardPanel">
+		  <h3 class="content-box-header"> Statistiques globales des RCCMS Indexés par localité et par année </h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("statistiques/statglobal.phtml", array("annees"=>$annees,"localites"=>$localites,"filters"=>$filters,"params"=>$params)); ?> </div>
+		</div>
+    </div>
+</div>

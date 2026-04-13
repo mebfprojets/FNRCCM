@@ -1,0 +1,59 @@
+<?php 
+   $member      = $this->member;
+   $me          = Sirah_Fabric::getUser();
+   $paiements   = $this->paiements;
+   $linkCreate  = $this->url(array("controller" => "vpaiements", "action" => "create", "memberid" => $this->memberid), "default") ;
+   $output      = " <table id=\"paiementsList\" class=\"table table-striped table-responsive paiementsList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:25%\"> Dates    </th>
+                                     <th width=\"width:25%\"> Numéros  </th>
+                                     <th width=\"width:25%\"> Montants </th>
+                                     <th width=\"width:25%\"> Soldes   </th>
+                              </tr>
+                       </thead>";
+   
+   if( count(   $paiements ) ) {
+   	            $paiementTotal= 0;
+   	            $soldeTotal   = 0;
+   	            $lastSolde    = 0;
+   	            $valCommande  = isset($paiements[0]["totalAPayer"] ) ? $paiements[0]["totalAPayer"] : 0;
+   	   foreach( $paiements as $paiement ) {
+   	   	        $paiementid   = $paiement["paiementid"];
+   	   	        $numero       = $paiement["numero"];
+   	   	        $datePaiement = $paiement["date_paiement"];
+   	   	        $montant      = number_format( $paiement["montant"], 2, ","," ");
+   	   	        $solde        = number_format( $paiement["reste"]  , 2, ","," ");
+   	   	        $paiementTotal+= $paiement["montant"];
+   	   	        $lastSolde    = $paiement["reste"];
+   	   	        $rowBg        = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   	        $linkQuittance= $this->url(array("controller" => "vpaiements", "action"=> "infos", "paiementid" => $paiementid ), "default");
+   	   	        
+   	   	        $output      .="  <tr id=\"paiementId-".$paiementid ."\" style=\"background-color:".$rowBg."\"> ";						
+					  $output.="     <td> <a title=\"Voir la quittance de paiement\" href=\"".$linkQuittance."\"> ".$datePaiement." </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir la quittance de paiement\" href=\"".$linkQuittance."\">".$numero."  </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir la quittance de paiement\" href=\"".$linkQuittance."\">".$montant." </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir la quittance de paiement\" href=\"".$linkQuittance."\">".$solde."   </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   	   $rowBg               = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   $paiementTotalFormat = number_format( $paiementTotal, 2 , ",", " " );
+   	   $totalSolde          = floatval( $valCommande - $paiementTotal );
+   	   $totalSoldeFormat    = number_format($lastSolde, 2 , ",", " " );
+   	   $output      .="<tr id=\"paiementId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                        <td colspan=\"3\"> TOTAL </td>
+   	                        <td> ".$paiementTotalFormat." </td>
+   	                        <td> ".$totalSoldeFormat."    </td>
+   	                   </tr>";
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucun paiement n'a été enregistré pour ce member </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "jQuery('.addPaiement').click(function( event ){event.preventDefault();document.location.href = '".$linkCreate."';});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

@@ -1,0 +1,80 @@
+<?php
+  $baseUrl        = $this->baseUrl();
+  $tplPath        = VIEW_BASE_PATH;
+  
+  $user           = Sirah_Fabric::getUser();
+  $layout         = Zend_Layout::getMvcInstance();
+  $view           = $layout->getView();    
+  $cacheManager   = Sirah_Fabric::getCachemanager();
+  $defaultSession = new Zend_Session_Namespace();
+  if( $view->user && ( isset( $view->user->userid ) ) ) {
+  	  $user       = $view->user;
+  }  
+  if(!isset($defaultSession->logoutoken)) {
+  	 $defaultSession->logoutoken = Sirah_User_Helper::getToken(15).time();
+  }
+  $userRole        = $user->getRole();
+  $logoutoken      = $defaultSession->logoutoken;
+  $linkDashboard   = $view->url(array("module"=>"admin", "controller" => "dashboard","action"=> "list") ,"dashboard",true);
+  $linkHome        = $view->url(array("module"=>"admin", "controller" => "index"    ,"action"=> "index"),"home",true); 
+  $linkLogout      = $view->url(array("module"=>"admin", "controller" => "account"  ,"action"=> "logout", $logoutoken => "1" ), "default");
+  $linkProfile     = $view->url(array("module"=>"admin", "controller" => "myprofile","action"=> "infos"),"me");
+  $linkSettings    = $view->url(array("module"=>"admin", "controller" => "account"  ,"action"=> "settings"), "default",true);
+  $linkLogin       = $view->url(array("module"=>"admin", "controller" => "account"  ,"action"=> "login")   , "login"); 
+  $urlCreationDone = Sirah_Functions::url($view->url(array("controller"=> "index"   ,"action"=> "index"), "default"),"", 81 , APPLICATION_HOST);
+  $linkCreation    = Sirah_Functions::url($view->url(array("controller"=> "account" ,"action"=> "create"),"default"),"doneUri=".$urlCreationDone, 81 , APPLICATION_HOST);
+?>
+ <!-- L'entete fixe de la page -->
+    <div id="page-header" class="clearfix">
+		<div id="header-logo" class="rm-transition"> 
+			<a  href="#" class="tooltip-button hidden-desktop" title="Navigation Menu" id="responsive-open-menu"><i class="glyph-icon icon-align-justify"></i></a>
+				  <span> ERCCM <i class="opacity-80">V2.5</i></span>
+			<a id="collapse-sidebar" href="#" title=""><i class="glyph-icon icon-chevron-left"></i></a>
+		</div>
+        <!-- #header-logo -->
+                
+        <div id="sidebar-search" style="text-align:center;width:75%;font-family:Rancho"> <p style="font-family:Ubuntu;font-size:100%;" class="font-effect-outline font-effect-shadow-multiple"> FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER</p></div>
+        <div id="header-right"> 
+         <?php if( $user->isLoggedIn() ) : ?>
+          <div class="user-profile dropdown">
+            <a href="#" title="" class="user-ico clearfix" data-toggle="dropdown">
+                <img width="36" src="<?php echo $tplPath; ?>/images/login_avatar.png" alt="">
+                <i class="glyph-icon icon-chevron-down"></i>
+            </a>
+            <div class="dropdown-menu pad0B float-right">
+                <div class="box-sm">
+                    <div class="login-box clearfix">
+                        <div class="user-img">
+                            <a href="#" title="" class="change-img">Changer ma photo</a>
+                            <img src="<?php echo $tplPath; ?>/images/login_avatar.png" alt="">
+                        </div>
+                        <div class="user-info">
+                            <span>  <?php printf("%s %s", $user->lastname , $user->firstname ); ?> <i> <?php printf("%s", $userRole ); ?></i></span>
+                            <a href="#" title=""> Mettre à jour mon profil </a>
+                            <a href="#" title=""> Voir mes alertes</a>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <ul class="reset-ul mrg5B">
+                        <li><a href="<?php echo $linkDashboard;?>"> <i class="glyph-icon icon-dashboard"></i> Tableau de bord <i class="glyph-icon float-right icon-caret-right"></i></a> </li>
+                        <li><a href="<?php echo $linkProfile;  ?>"> <i class="glyph-icon icon-user"></i> Mon profil <i class="glyph-icon float-right icon-caret-right"></i></a> </li>
+                        <li><a href="<?php echo $linkSettings; ?>"> <i class="glyph-icon icon-cog"> </i> Mes paramètres <i class="glyph-icon float-right icon-caret-right"></i></a> </li>
+                    </ul>
+                    <div class="pad5A button-pane button-pane-alt text-center">
+                        <a href="<?php echo  $linkLogout; ?>" class="btn display-block font-normal btn-danger"><i class="glyph-icon icon-power-off"></i> Me déconnecter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="top-icon-bar float-right"> </div>
+        <?php else: ?>
+          <div class="top-icon-bar float-right">
+              <div class="pad5A button-pane button-pane-alt text-center">
+                   <a href="<?php echo $linkLogin ?>" class="btn display-block font-normal btn-danger"><i class="glyph-icon icon-sign-in"></i> Connexion </a>
+              </div>
+          </div>        
+        <?php endif; ?>
+      
+      </div>
+</div>
+ <!-- Fin de l'entete fixe de la page -->

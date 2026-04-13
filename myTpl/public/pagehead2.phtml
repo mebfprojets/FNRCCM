@@ -1,0 +1,163 @@
+<?php
+    $baseUrl            = $this->baseUrl();
+    $tplPath            = VIEW_BASE_PATH;
+    $basePath           = str_replace(APPLICATION_PATH , ROOT_PATH. DS ."application", APPLICATION_DATA_PATH );
+  
+    $me                 = Sirah_Fabric::getUser();
+    $layout             = Zend_Layout::getMvcInstance();
+    $view               = $layout->getView();    
+  
+    $defaultSession     = new Zend_Session_Namespace();
+    $orderCart          = new Zend_Session_Namespace("ordercart");
+    $application        = new Zend_Session_Namespace("erccmapp");
+    if(!isset($defaultSession->logoutoken)) {
+  	   $defaultSession->logoutoken = Sirah_User_Helper::getToken(15).time();
+    }
+    if(!isset($orderCart->initialised) || !$orderCart->initialised ) {
+		$orderCart->articles    = array();
+		$orderCart->registres   = array();
+		$orderCart->documents   = array();
+		$orderCart->requests    = array();
+		$orderCart->counter     = 0;
+		$orderCart->initialised = true;
+		$orderCart->setExpirationSeconds(APPLICATION_ORDERCART_EXPIRATION);
+    }
+    $logoutoken             = $defaultSession->logoutoken;
+    $cartCounter            = $orderCart->counter;
+    $cartArticles           = $orderCart->articles;
+    $documentTypes          = $application->documentypes;
+
+    $linkCardCounterInfos   = $view->url(array("controller"=>"ordercart","action"=>"counter","module"=>"public") , "default",true);
+    $linkAddProduct         = $view->url(array("controller"=>"ordercart","action"=>"addproduct","module"=>"public") , "default",true); 
+    $linkCartInfos          = $view->url(array("controller"=>"ordercart","action"=>"infos","module"=>"public") , "default",true); 
+    $linkHome               = $view->url(array("controller"=>"index"    ,"action"=>"index","module"=>"public") , "default",true);  
+    $linkPresentation       = $view->url(array("controller"=>"project"  ,"action"=>"presentation","module"=>"public"),"default",true);
+    $linkStructure          = $view->url(array("controller"=>"project"  ,"action"=>"structure","module"=>"public"),"default",true);
+    //$linkBlog               = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>2),"default",true);
+    $linkBlog               = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>2,"code"=>"blog"),"articles",true);
+	$linkTarification       = $view->url(array("controller"=>"project"  ,"action"=>"tarification","module"=>"public"),"default",true);
+    $linkContact            = $view->url(array("controller"=>"project"  ,"action"=>"contacts","module"=>"public"),"default",true);
+    $linkCGU                = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>3,"code"=>"cgu"),"articles",true);
+    $linkFAQ                = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>1,"code"=>"faq"),"articles",true);
+    $linkDocumentsOfficiels = $view->url(array("controller"=>"documentheque","action"=>"types","module"=>"public","typeid"=>0,"libelle"=>"documents-officiels"),"documentsofficiels");
+    $linkStatistics         = $view->url(array("controller"=>"statistiques","action"=>"list","module"=>"public","advanced"=> 1), "default",true);
+    $linkSearch             = $view->url(array("controller"=>"registres","action"=>"search","module"=>"public","advanced"=> 1), "default",true);
+    $linkDashboard          = $view->url(array("controller"=>"members","action"=>"dashboard","module"=>"public"), "default", true);
+    $linkLogout             = $view->url(array("controller"=>"account","action"=>"logout"   ,"module"=>"public", $logoutoken=> "1"), "default");
+    $linkSettings           = $view->url(array("controller"=>"account","action"=>"settings" ,"module"=>"public"), "default");
+  
+    $linkInscription        = $view->url(array("controller"=>"members","action"=>"register","module"=>"public"),"default",true);
+    $linkLogin              = $view->url(array("controller"=>"members","action"=>"login","module"=>"public"),"default",true);
+    $linkAccountActivate    = $view->url(array("controller"=>"account","action"=>"sendactivationtoken","module"=>"public"),"default",true);
+  
+    $linkRequestVerify      = $view->url(array("controller"=>"requetes","action"=>"verify","module"=>"public"),"default",true);
+    $linkRequestReservation = $view->url(array("controller"=>"requetes","action"=>"reservation","module"=>"public"),"default",true);
+?>
+<?php $this->headStyle()->captureStart() ?>
+.main-header .main-nav.nav-alt li>ul, .sf-mega{background: #f7f7f7 !important;}
+.main-header .main-nav.nav-alt li>ul li a{color:#111 !important}
+li.dropdown.open{overflow:auto;}
+<?php $this->headStyle()->captureEnd(); ?>
+<div class="container clearfix" >
+    <!--Le menu de la version mobile-->                        
+	   <a href="#" class="hidden-desktop" id="responsive-menu" title=""><i class="glyph-icon icon-align-justify"></i>                      
+	<!--Fin du menu de la version mobile-->
+	<!--Brand-->
+		<a id="navbar-brand" href="<?php echo $linkHome; ?>" class="navbar-brand logo" title="Fichier National du Registre de Commerce et du Crédit Mobilier"> <img class="logo-img" src="<?php echo ROOT_PATH.'/myTpl/public/images/LOGOWEB.png'; ?>" /> </a>
+	<!--Brand-->	
+	<!--Brand RESPONSIVE-->
+	    <a id="navbar-brand-responsive" href="#" class="navbar-brand-responsive responsive-logo" title="Fichier National du Registre de Commerce et du Crédit Mobilier"> <img class="responsive-logo-img" src="<?php echo ROOT_PATH.'/myTpl/public/images/LOGOWEB.png'; ?>" /> </a>
+	<!--Brand RESPONSIVE-->
+	<ul class="main-nav nav-alt pull-left" id="main-nav">
+		<li><a href="<?php echo $linkHome;?>" title="Revenir sur la page d'accueil"> <i class="glyphicon glyphicon-home"></i> Accueil </a> </li> 
+		<li id="aboutItem" class="dropdown">
+			<a  class="dropdown-toggle" data-toggle="dropdown" title="A propos de notre équipe"> A propos <i class="glyph-icon icon-chevron-down dropdown-toggle-icon"></i> </a>
+			<ul id="aboutLink" class="dropdown-menu">
+				<li> <a title="Qui est derrière cette plateforme ?" href="<?php echo $linkStructure;?>"> Qui sommes-nous ? </a></li>
+				<li> <a title="Présentation de la plateforme ERCCM" href="<?php echo $linkPresentation;?>"> Présentation de la plateforme</a></li>
+				<li> <a title="L'actualité autour du FNRCCM?"       href="<?php echo $linkBlog;?>"> Actualités  </a></li>
+				<li> <a title="Conditions générales d'utilisation"  href="<?php echo $linkCGU; ?>"> Conditions générales d'utilisation  </a></li>
+				<li> <a title="Tarifs des services"                 href="<?php echo $linkTarification;?>"> Tarifs  </a></li>
+				<li> <a title="Foire aux questions"                 href="<?php echo $linkFAQ;?>"> Foire aux questions  </a></li>
+				<li> <a title="Nous contacter"                      href="<?php echo $linkContact;?>"> Contacts </a></li>
+			</ul>
+		</li> 
+		<li id="featuresItem" class="dropdown">
+			<a class="dropdown-toggle" data-toggle="dropdown" title="Revenir sur la page d'accueil">Services en ligne <i class="glyph-icon icon-chevron-down dropdown-toggle-icon"></i> </a> 
+			<ul id="featuresLink" class="dropdown-menu">
+				<li><a title="Rechercher des entreprises" href="<?php echo $linkSearch;?>"> Rechercher des entreprises  </a></li>
+				<li><a title="Vérifier un nom commercial" href="<?php echo $linkRequestVerify;?>"> Vérifier la disponibilité d'un nom commercial</a></li>
+				<li><a title="Réserver un nom commercial" href="<?php echo $linkRequestReservation;?>"> Réserver un nom commercial  </a></li>
+				<li><a title="Observatoire statistique"   href="<?php echo $linkStatistics;?>"> Observatoire statistique    </a></li>
+			</ul>
+		</li>
+		<li id="documentsItem" class="dropdown">
+			<a class="dropdown-toggle" data-toggle="dropdown"   title="Les types de documents de la plateforme"> Documents officiels <i class="glyph-icon icon-chevron-down dropdown-toggle-icon"></i></a> 
+			<?php if(count($documentTypes)): ?>
+			<ul id="documentsLink" class="dropdown-menu">
+				<?php foreach( $documentTypes as $documentType): ?>
+				<?php
+					$linkDocInfos  = $view->url(array("module"=>"public","controller"=>"documentheque","action"=>"types","typeid"=>$documentType['typeid'],"libelle"=>Sirah_Functions_String::cleanUtf8(preg_replace("/\s+/","-",$documentType['libelle']))),"documentsofficiels");
+					$documentTitle = $documentType["libelle"];
+					$documentDesc  = $documentType["description"];
+				?>
+					<li> <a title="<?php echo $documentDesc; ?>"  href="<?php echo $linkDocInfos; ?>"><?php echo $documentTitle; ?></a></li>
+				<?php endforeach; ?>
+			</ul>
+			<?php endif; ?>
+		</li>				
+    </ul>	
+	<!--Main Navigation-->
+	<ul  class="btn-nav nav-alt pull-right hidden-phone" id="btn-nav">    		  
+		<?php if($me->isLoggedIn()) : ?>  
+		<li class="dropdown">
+			<a class="dropdown-toggle btn btn-outline-primary accountBtn" data-toggle="dropdown" href="#"><strong><i class="glyphicon glyphicon-user"></i> Mon compte </strong> <i class="glyph-icon icon-chevron-down"></i></a>
+			<ul class="dropdown-menu">
+				<li class="dropdown-header"> <?php echo $me->lastname." ". $me->firstname ; ?> </li>
+				<li><a title="Accéder à mon tableau de bord" href="<?php echo $linkDashboard;?>"><i class="glyph-icon icon-dashboard"></i> Tableau de bord</a></li>
+				<li><a title="Accéder à mes paramètres"      href="<?php echo $linkSettings; ?>"><i class="glyph-icon icon-cog "></i>      Paramètres </a></li>
+				<li><a title="Me déconnecter de mon compte"  href="<?php echo $linkLogout;   ?>"><i class="glyph-icon icon-sign-out "></i> Déconnexion </a></li>
+			</ul>
+		</li>
+		<?php else:  ?>				
+		<li class="dropdown">
+			<a class="dropdown-toggle btn btn-outline-primary accountBtn" data-toggle="dropdown" href="<?php echo $linkLogin;?>" id="accountBtn" title="Se connecter ou créer un compte sur la plateforme"><i class="glyph-icon icon-user"></i> Mon compte <i class="glyph-icon icon-chevron-down"></i> </a> 
+			<ul class="dropdown-menu">
+				<li><a href="<?php echo $linkLogin;?>"           title="J'ai déjà un compte et j'aimerais me connecter"> <i class="glyphicon glyphicon-log-in"></i> Se connecter </a> </li>
+				<li><a href="<?php echo $linkInscription;?>"     title="Créer votre compte sur la plateforme">  <i class="glyphicon glyphicon-user"></i> Créer un compte</a> </li>
+				<li><a href="<?php echo $linkAccountActivate;?>" title="Activer votre compte sur la plateforme"><i class="glyphicon glyphicon-check"></i> Activer un compte</a> </li>				
+			</ul>
+		</li> 
+		<?php endif; ?>	
+		<li><a title="Visualiser le contenu de mon panier" href="<?php echo $linkCartInfos;?>" class="btn btn-outline-blue shoppingBtn"><i class="glyph-icon icon-shopping-cart"></i> Mon panier <span id="cartCounter" class="shopping-badge badge badge-info"><?php echo sprintf("%d articles",intval($cartCounter));?></span></a></li>                       
+	</ul>
+	<form id="cartInfos" style="display:none!important" class="hide" method="post" action="<?php echo $linkAddProduct;?>">
+	    <input type="hidden" name="cardUpdateBtn" id="cardUpdateBtn"  />
+	</form>
+	<!--Main Navigation-->
+</div>
+<?php
+    $jq  = $view->jQuery();
+	$jq->addOnLoad("	     
+	    jQuery('.responsive-logo:visible').nextAll('ul#main-nav').find('.dropdown').click(function(event){jQuery('.dropdown-toggle',this).trigger('click');});
+	    jQuery('.responsive-logo:visible').nextAll('ul#main-nav').find('.dropdown-toggle').click(function(event){jQuery(this).parent().toggleClass('open');});
+		 
+		jQuery('.responsive-logo:visible').nextAll('ul#main-nav').find('.dropdown-menu').find('a').click(function(event){
+			event.preventDefault();
+			var itemLink = jQuery(this).attr('href');
+			document.location.href= itemLink;
+		});
+	    jQuery('.dropdown').hover(function(){ jQuery('.dropdown-toggle',this).trigger('click');});		 
+	    jQuery('#cardUpdateBtn,.cardUpdateBtn').bind('addProduct',function(event,data) {
+			event.preventDefault();
+			var cartForm = jQuery('#cartInfos');
+			SIRAH.request.get(cartForm,'".$linkCardCounterInfos."',{
+							  success : function(data) {
+								  if( data.counter!==undefined ) {
+									  jQuery('#cartCounter').text(data.counter);
+								  }
+							  }
+			});
+		});");
+	
+?>

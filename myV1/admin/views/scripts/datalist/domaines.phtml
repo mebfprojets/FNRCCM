@@ -1,0 +1,177 @@
+<?php 
+$domaines   = $this->domaines;
+$paginator  = $this->paginator;
+$basePath   = ROOT_PATH."/templates/sirah";
+$jq         = $this->jQuery();
+$parentform = $this->parentform;
+$linkSearch = $this->url(array("module" => "admin","controller" => "datalist", "action" => "domaineslist", "parentform" => $parentform ) , "default");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var domaineid  = parseInt(jQuery(this).attr('href').replace('#domaineid-' , ''));
+	if( domaineid && parentformSelector ) {
+		  var domaineLibelle         = jQuery('#libelle-'+domaineid).val();		
+		  if( parentDomaineIdInput   ) {
+		      parentDomaineIdInput.val( domaineid );
+		  }
+		  if( parentlibelleSelector   ) {
+		      parentlibelleSelector.val( domaineLibelle );
+		  }
+	  }	
+		jQuery('#filterListDomaines').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.defaultSearch').click(function( event ) {
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		
+		var modalBox            = jQuery('.modal').first();		
+		var modalBody           = jQuery('.modal-body').first();
+		
+		var pageNum             = formSelector.find('#page').val();
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+		
+		var defaultData         = {};
+		defaultData.libelle     = formSelector.find('#libelle').val();
+		defaultData.page        = pageNum;
+		defaultData.maxitems    = pageMaxitems;
+		SIRAH.loading.on( modalBox , ' Patientez, chargement des données... ');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() { },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click( function( event ) {
+		event.preventDefault();
+	    if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+	    }
+		var formSelector        = jQuery('#globalformsearch');
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+		paginationData.libelle  = formSelector.find('#libelle').val();
+		
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBox , ' Chargement des données ');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar    = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add( $buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>
+            
+      <div class="row" >
+        <div class="col-md-6"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $this->libelle; ?>" id="libelle" name="libelle" 
+                            style="width:200px;color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch " type="button"> <span class="glyphicon glyphicon-search icon-white"></span> Rechercher </button>
+                     </span>
+                   </div>
+                   <input type="hidden" name="page"     id="page"  value="<?php echo $this->pageNum;  ?>"  />
+                   <input type="hidden" name="maxitems" id="page"  value="<?php echo $this->maxitems; ?>"  />
+            </form>
+        </div>
+      </div>                 
+   <?php            	   
+             	   //On crée et affiche le tableau           
+            
+             $outputTable = "<table id=\"domainesListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\">";
+                        $outputTable.="<thead>
+                                              <tr>
+                                                  <th width=\"1%\"> <input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" /> </th>
+                                                  <th width=\"40%\"> Désignations   </th>
+                                                  <th width=\"58%\"> Descriptions </th>
+                                              </tr>
+                                       </thead> 
+                                       <tbody>";
+             if( count(  $domaines ) ) {
+             	foreach( $domaines as $domaine ) {
+             		     $domaineid    = intval( $domaine["id"] );
+             		     $libelle      = $domaine["libelle"];
+             		     $description  = $domaine["description"];
+
+             		     $outputTable .= "<tr id=\"domaineRowId-".$domaineid."\">";
+             		                 $outputTable .= "<td> <input type=\"checkbox\" name=\"domaineids[]\" id=\"domaineids".$domaineid."\" class=\"domaineids\" /> </td>";
+             		                 $outputTable .= "<td> <a href=\"#domaineid-".$domaineid."\" class=\"selectClick\"> ".$libelle." </a> </td>";
+             		                 $outputTable .= "<td> <a href=\"#domaineid-".$domaineid."\" class=\"selectClick\"> ".$description." </a> </td>";
+             		     $outputTable .= "</tr>";
+
+             		     $outputTable .="<input type='hidden'  name='libelle-".$domaineid."'     id='libelle-".$domaineid."' value='".$libelle."'  />" ;
+             		     $outputTable .="<input type='hidden'  name='description-".$domaineid."' id='description-".$domaineid."' value='".$description."'  />" ;
+             	}            	
+             }  else {
+             	$outputTable .= "<tr>";
+             	             $outputTable .= "<td colspan=\"6\"> Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche </td>";
+             	$outputTable .= "</tr>";
+             }           
+             $outputTable.= " </tbody> </table>";
+             
+             echo $outputTable;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+ </div>

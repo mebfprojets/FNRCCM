@@ -1,0 +1,37 @@
+<?php 
+    $me              = Sirah_Fabric::getUser();
+	$tplPath         = ROOT_PATH."/myTpl/public";
+	$layout          = Zend_Layout::getMvcInstance();
+    $view            = $layout->getView();	
+    $documentTypes   = $this->documentTypes;
+?>
+
+<?php if( count( $documentTypes ) ): ?>
+   <?php $this->headStyle()->captureStart() ?>
+   <?php $this->headStyle()->captureEnd() ?>
+   <?php 
+        $output="<div id=\"appDocumentsContainer\" class=\"sectionDocuments appDocumentsContainer\">
+                    <div class=\"documentsGroupItems container\" id=\"documentsGroupItems\">";
+        foreach( $documentTypes as $documentType )  {
+                 $linkInfos  = $view->url(array("controller"=>"documentheque","action"=>"types","module"=>"public","typeid"=>$documentType['typeid'],"libelle"=>Sirah_Functions_String::cleanUtf8(preg_replace("/\s+/","-",$documentType['libelle']))),"documentsofficiels");
+                 $iconPath   = ROOT_PATH."/myTpl/public/images/".$documentType["icon"];
+                 $libelle    = strtoupper($documentType["libelle"]);
+                 $description= $documentType["description"];
+                 $output.="<div class=\"documentItemBox\">
+				                <div class=\"documentItem\">";
+                        $output.="<div class=\"documentItem_image\"><a title=\"".$description."\" href=\"".$linkInfos."\"><img src=\"".$iconPath."\" /> </a></div>";
+                        $output.="<div class=\"documentItem_body\"> <a title=\"".$description."\" href=\"".$linkInfos."\" class=\"documentItemLink\">".$libelle."</a> </div>";
+                 $output.="     </div>
+				          </div>";
+        }
+        $output.="   </div>
+                </div>";
+
+        echo $output;
+?>
+<?php endif; ?>
+
+<?php
+    $jq  = $this->jQuery();	
+?>
+

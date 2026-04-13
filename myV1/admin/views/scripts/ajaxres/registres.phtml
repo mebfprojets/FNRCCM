@@ -1,0 +1,415 @@
+<?php 
+$me               = Sirah_Fabric::getUser();
+$registres        = $this->registres;
+$params           = $this->params;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$localites        = $this->localites;
+$domaines         = $this->domaines;
+$types            = $this->types;
+
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$selectedKey      = $this->selectedKey;
+$selectedVal      = $this->selectedVal;
+$selectedCmdKey   = $this->selectedCmdKey;
+
+$linkSearchQ      = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"registres","parentform"=> $parentform,"selectedCmdKey"=> $selectedCmdKey,"selectedKey"=>$selectedKey, "selectedVal" => $selectedVal));
+$linkSearch       = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"registreslist","parentform"=> $parentform,"selectedCmdKey"=> $selectedCmdKey,"selectedKey" => $selectedKey, "selectedVal" => $selectedVal) , "default");
+
+$jq->addOnload("var selectRegistre = selectedRegistreKey = selectedRegistreVal =null;");
+if( !empty($selectedCmdKey)) {
+	$jq->addOnload(sprintf("var selectRegistre      = jQuery('#%s').find('#%s');", $parentform,$selectedCmdKey ));
+}
+if( !empty( $selectedKey )) {
+	$jq->addOnload(sprintf("var selectedRegistreKey = jQuery('#%s').find('#%s');", $parentform, $selectedKey));
+}  
+if( !empty( $selectedVal )) {
+	$jq->addOnload(sprintf("var selectedRegistreVal = jQuery('#%s').find('#%s');", $parentform, $selectedVal));
+}
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/typeahead.bundle.min.js");
+$jq->addStyleSheet(    $basePath."/css/typeahead.css");
+$jq->addOnload("
+var parentformSelector = jQuery('#".$parentform."');
+var defaultXHR         = null;
+var registresEngine    = new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:10,remote:{url:'".$linkSearchQ."?q=%QUERY'}});
+registresEngine.initialize();
+jQuery('#globalfilter').typeahead({highlight:true,hint:true,minLength:3},{name:'globalfilter',displayKey:'value',source:registresEngine.ttAdapter(),limit:Number.MAX_VALUE,templates:{header:'<h3 class=\'searchresults-header\'>Vous recherchez peut-être...</h3>' }});
+jQuery('#globalfilter').bind('typeahead:selected',function(obj,datum,name){jQuery('#globalfilter').val(datum.label);if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selecteditem'))){jQuery('#simpleSearch').trigger('click');}jQuery.data( jQuery('#globalFormSearch'),'selecteditem',datum.value);});
+
+jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var registreid  = parseInt(jQuery(this).attr('href').replace('#registreid-' , ''));
+	if( registreid && parentformSelector ) {
+		  var libelle                = jQuery('.ajaxRequestRow').eq(0).find('#libelle-'+registreid).val();
+		  var numero                 = jQuery('.ajaxRequestRow').eq(0).find('#lastname-'+registreid).val();
+		  var type                   = jQuery('.ajaxRequestRow').eq(0).find('#type-'+registreid).val();
+		  var localite               = jQuery('.ajaxRequestRow').eq(0).find('#localite-'+registreid).val();
+			
+		  var parentRegistreKey      = (selectedRegistreKey.length)? selectedRegistreKey : parentformSelector.find('input[name=\'registreid\']');
+		  var parentRegistreVal      = (selectedRegistreVal.length)? selectedRegistreVal : parentformSelector.find('input[name=\'registre\']');
+		  var parentRegistreIdInput  = parentformSelector.find('input[name=\'registreid\']');
+		  var parentLibelleSelector  = parentformSelector.find('input[name=\'libelle\']');
+		  var parentNumeroSelector   = parentformSelector.find('input[name=\'numero\']');
+		
+		  if( parentRegistreKey   ) {
+		      parentRegistreKey.val( registreid );
+		  }
+		  if( parentRegistreVal   ) {
+		      parentRegistreVal.val( numero);
+		  }
+		  if( parentRegistreIdInput   ) {
+		      parentRegistreIdInput.val( registreid );
+		  }
+		  if( parentLibelleSelector   ) {
+		      parentLibelleSelector.val(libelle);
+		  }
+		  if( parentNumeroSelector ) {
+		      parentNumeroSelector.val( numero );
+		  }		 
+	  } else {
+		 return false;
+	  }
+	  if( selectRegistre.attr('id')===undefined)
+		  selectRegistre  = parentformSelector.find('#selectRegistre');
+	  if( selectRegistre)	{
+		  selectRegistre.trigger('select-item', [registreid] );
+		  selectRegistre.trigger('chooseThis' , [registreid] );
+		  selectRegistre.trigger('selectThis' , [registreid] );
+	  } 
+	  jQuery('#filterListRegistres').dialog2('close');
+	  jQuery('#filterListRegistres,.modal,.modal-backdrop').remove(true);
+	  jQuery('body').removeClass('modal-open');
+});
+jQuery('.modal-body').keypress(function(event){	
+    if( event.which == 13) {
+		event.preventDefault();
+        var simpleFormSelector   = jQuery('#globalformsearch');
+		var advancedFormSelector = jQuery('#advanced-searchform');
+		var globalfilter         = simpleFormSelector.find('#globalfilter').val(); 
+		if(!SIRAH.util.isEmpty( globalfilter )){
+			jQuery('.defaultSearch,.simpleSearch,#simpleSearch').eq(0).trigger('click');
+		} else {
+			jQuery('.search,.ajaxSearch,.searchRegistres,#searchRegistres').eq(0).trigger('click');
+		}
+    }
+});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#periode_start_year').chosen({allow_single_deselect:true,no_results_text: 'Aucun début d\'année ne correspond à ', width:'100%'});
+jQuery('#periode_end_year').chosen({allow_single_deselect:true,no_results_text  : 'Aucune fin d\'année  ne correspond à ', width:'100%'});
+jQuery('#close-advanced-searchform').click(function(){jQuery('#advanced-searchform-wrapper').hide();});
+jQuery('#show-advanced-searchform').click(function(){ jQuery('#advanced-searchform-wrapper').show();});
+jQuery('#advancedSearchBtn,.advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#advancedSearchForm,.advancedSearchForm').toggle(); });
+jQuery('.reset').click(function(){
+	    event.preventDefault(); 
+		var formSelector                  = jQuery('#registresListSearchForm'); 
+		var searchData                    = {};
+		searchData.maxitems               = formSelector.find('#maxitems').val();
+		searchData.page                   = 1;
+		searchData.showsearch             = 0;
+        var modalBox                      = jQuery('.modal').first();		
+		var modalBody                     = jQuery('.modal-body').first();
+        jQuery('#globalfilter').val('');		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType   : 'html' ,
+		                      data       : searchData,
+		                      beforeSend : function(jqXHR){defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);
+});	
+jQuery('.ajaxSearch,.searchRegistres,#searchRegistres').click(function(event){
+		event.preventDefault();
+		var formSelector               = jQuery('#registresListSearchForm');
+		var searchData                 = {};		
+		searchData.page                = parseInt(formSelector.find('#page').val());
+		searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+		searchData.searchQ             = '';
+        searchData.numero              = jQuery.trim(formSelector.find('#numero').val());
+        searchData.libelle             = jQuery.trim(formSelector.find('#libelle').val());		
+		searchData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+		searchData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+		searchData.domaineid           = parseInt(formSelector.find('#domaineid').val());
+		searchData.statut              = parseInt(formSelector.find('#statut').val());
+		searchData.type                = parseInt(formSelector.find('#statut').val());
+		searchData.date_year           = parseInt(formSelector.find('#date_year').val());
+		searchData.date_month          = parseInt(formSelector.find('#date_month').val());
+		searchData.date_day            = parseInt(formSelector.find('#date_day').val());
+		searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+		searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+		searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+		searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+		searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+		searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());	
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-registresearchform' , '".$linkSearch."' , 
+		                   {
+		                      data       : searchData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) { defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+		SIRAH.loading.off(false);
+});
+jQuery('.defaultSearch,.simpleSearch,#simpleSearch').click(function(event){
+		event.preventDefault();
+		var formSelector         = jQuery('#globalFormSearch');
+		var advancedFormSelector = jQuery('#registresListSearchForm');
+		var modalBox             = jQuery('.modal').first();		
+		var modalBody            = modalBox.find('.modal-body:first');
+
+		var defaultData          = {};
+		defaultData.searchQ      = formSelector.find('#globalfilter').val(); 
+		defaultData.page         = 1;
+		defaultData.maxitems     = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalFormSearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) {defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	SIRAH.loading.off(false);
+});
+ 	
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#registresListSearchForm');
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData                 = {};
+		paginationData.page                = pageNum;
+		paginationData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+        paginationData.searchQ             = '';		
+        paginationData.numero              = jQuery.trim(formSelector.find('#numero').val());
+        paginationData.libelle             = jQuery.trim(formSelector.find('#libelle').val());		
+		paginationData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+		paginationData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+		paginationData.domaineid           = parseInt(formSelector.find('#domaineid').val());
+		paginationData.statut              = parseInt(formSelector.find('#statut').val());
+		paginationData.type                = parseInt(formSelector.find('#type').val());
+		paginationData.date_year           = parseInt(formSelector.find('#date_year').val());
+		paginationData.date_month          = parseInt(formSelector.find('#date_month').val());
+		paginationData.date_day            = parseInt(formSelector.find('#date_day').val());
+		paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+		paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+		paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+		paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+		paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+		paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+		
+		var modalBox                       = jQuery('.modal').first();
+		var modalBody                      = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalFormSearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType   : 'html' ,
+		                      data       : paginationData,
+		                      beforeSend : function(jqXHR){defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);		});");
+	  
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+	 
+?>
+<div id="registresListWrapper" class="row ajaxRequestRow">
+    <div      class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+           <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+				<div class="input-group">
+				 <input value="<?php echo $params['searchQ']; ?>" id="globalfilter" name="globalfilter" type="text" class="typeahead form-control" placeholder="Recherchez un registre, saisir le numéro RC ou le nom commercial..." />
+				 <span class="input-group-btn ">
+				   <button id="simpleSearch"      class="btn btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span> Rechercher </button>
+				   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Avancée</button>
+				   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> </button>
+				</span>
+			   </div>
+				 <input type="hidden" name="domaineid"  id="domaineid"   value="<?php echo intval($filters["domaineid"]); ?>" /> 
+				 <input type="hidden" name="localiteid" id="localiteid"  value="<?php echo intval($filters["localiteid"]);?>" /> 
+				 <input type="hidden" name="page"       id="page"        value="<?php echo $this->pageNum;    ?>" /> 
+				 <input type="hidden" name="maxitems"   id="maxitems"    value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+    	</div>
+		<form id="registresListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >		
+          <ul class="list-group">
+            <li class="list-group-item">
+                 <div  class="row">
+				    <label class="col-sm-2 control-label">  <b> Numéro RC:</b> </label> 
+                    <div class="col-sm-3"><input type="text" name="numero" id="numero"   value="<?php echo $filters['numero']; ?>" class="form-control" placeholder="Saisir un numéro RC" /></div>
+					<label class="col-sm-3 control-label">  <b> Nom Commercial:</b> </label> 
+                    <div class="col-sm-3"><input type="text" name="libelle" id="libelle" value="<?php echo $filters['libelle']; ?>" class="form-control" placeholder="Saisir un nom commercial" /></div>
+                 </div>
+             </li>
+             <li class="list-group-item">
+                 <div  class="row">
+				    <label class="col-sm-2 control-label">  <b> Nom/Prénom du promoteur:</b> </label> 
+                    <div class="col-sm-3"><input type="text" name="name" id="name" value="<?php echo $filters['name']; ?>" class="form-control" placeholder="Saisir le nom de l'exploitant"      /></div>
+					<label class="col-sm-3 control-label">  <b> CNIB/Passport:</b> </label> 
+                    <div class="col-sm-3"><input type="text" name="passport" id="passport" value="<?php echo $filters['passport'];?>" class="form-control" placeholder="Rechercher un numéro passport ou CNIB" /></div>
+                 </div>
+             </li>			 
+             <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-2 control-label">  <b> Statut:</b> </label> 
+				   <div   class="col-sm-3"><?php echo $this->formSelect("statut", $filters["statut"]  , array("class" => "form-control"), $statuts);?> </div> 
+			       <label class="col-sm-3 control-label">  <b> Année de création:</b> </label>
+			       <div class="col-md-3"><?php echo $this->formSelect("annee" , $filters["annee"] , array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>  
+			   </div> 			   
+			 </li>
+			<?php if( $me->isAdmin()): ?>
+             <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-2 control-label">  <b> Localité:</b> </label> 
+				   <div   class="col-sm-3"><?php echo $this->formSelect("localiteid", intval($filters["localiteid"]),array("class" => "form-control chosen"), $localites); ?> </div> 
+				   <label class="col-sm-3 control-label">  <b> Domaine d'activités:</b> </label> 
+				   <div   class="col-sm-3"><?php echo $this->formSelect("domaineid" , intval($filters["domaineid"]) ,array("class" => "form-control chosen"), $domaines); ?> </div> 
+			   </div> 			   
+			 </li>	
+            <?php else:  ?>	
+                <input type="hidden" name="localiteid"  id="localiteid"  value="<?php echo intval($filters["localiteid"]);?>" /> 
+                <input type="hidden" name="domaineid"   id="domaineid"   value="<?php echo intval($filters["domaineid"]);?>" /> 				
+            <?php endif; ?>				
+             <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-2 control-label">  <b> Nationalité:</b> </label> 
+				   <div   class="col-sm-3"><?php echo $this->formSelect("country", intval($filters["country"]),array("class" => "form-control chosen"), $this->countries()); ?> </div> 
+                   <label class="col-sm-3 control-label">  <b> Sexe:</b> </label> 
+				   <div   class="col-sm-3 radio radio-primary"> 
+		               <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($filters["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+                       <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($filters["sexe"] == "F") echo "checked"; ?>> Femme </label>
+		           </div>
+			   </div> 			   
+			 </li>
+			 <li class="list-group-item"> 
+			    <div class="form-group"> 
+                  <label class="col-sm-2 control-label"> Date de création: </label>
+                  <div class="col-md-3"><?php echo $this->formSelect("date_day"  , $filters["date_day"]  , array("class" => "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+                  <div class="col-md-3"><?php echo $this->formSelect("date_month", $filters["date_month"], array("class" => "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+                  <div class="col-md-3"><?php echo $this->formSelect("date_year" , $filters["date_year"] , array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+               </div>
+			 </li>
+			 <li class="list-group-item">
+                 <div  class="row">
+				      <label class="col-sm-3 control-label">  <b> Période initiale:</b> </label> 
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_start_day"  , $filters["periode_start_day"]  , array("class" => "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_start_month", $filters["periode_start_month"], array("class" => "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_start_year" , $filters["periode_start_year"] , array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+                 </div>
+              </li>
+              <li class="list-group-item">
+                 <div  class="row">
+				      <label class="col-sm-3 control-label">  <b> Période finale:</b> </label> 
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_end_day"  , $filters["periode_end_day"]  , array("class" => "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_end_month", $filters["periode_end_month"], array("class" => "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+                      <div class="col-sm-3"><?php echo $this->formSelect("periode_end_year" , $filters["periode_end_year"] , array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+                 </div>
+              </li>
+			 <li class="list-group-item">
+                 <div  class="row">
+				    <?php if( $me->isAdmin()): ?>
+				      <label class="col-sm-2 control-label">  <b> Opérateur de saisie:</b> </label>
+					  <div class="col-sm-3"><?php echo $this->formSelect("creatorid", $filters["creatorid"]  , array("class" => "form-control"), $users);?></div>
+				    <?php endif; ?>
+					
+					<label class="col-sm-3 control-label">  <b> Nbre d'élements par page:</b> </label> 
+                    <div class="col-sm-3"> <?php echo $this->formSelect("maxitems", $this->maxitems , array("class" => "form-control") , array( "10"   => 10, "25" => 25, "50" => 50 , "100" => 100, "500" => 500, 
+                                		                                                                                 "1000" => 1000, "2000" => 2000 , "5000" => 5000, "100000000" => "Tout")); ?> </div>
+                 </div>
+              </li>
+		</ul>		 		
+		<div class="panel-footer"> 
+		    <button id="searchRegistres" class="btn btn-primary searchRegistres advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+            <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		<input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+		<input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+	</form>
+	<?php
+                        //On crée et affiche le tableau
+             $output  = "
+             <div id=\"rowsList\" class=\"row tableRowsList\" style=\"padding:0;margin:0;\">
+               <table id=\"inscriptionsListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\" >
+                           <thead>"  ;
+                                  $output .= "<tr>";                                  
+                                          $output .= "<th width=\"15%\"> Numéros RC     </th>";
+								          $output .= "<th width=\"15%\"> Années         </th>";
+                                          $output .= "<th width=\"40%\"> Nom commercial </th>";
+                                          $output .= "<th width=\"15%\"> Localités      </th>";
+             $output .= "</tr></thead>";
+             
+             if( count(   $registres )) {
+             	 foreach( $registres as $registre ) {
+             	 	      $registreid  = intval($registre['registreid']);
+             	 	      $libelle     = $registre["libelle"] ;
+             	 	      $numero      = $registre["numero"] ;
+             	 	      $description = $registre["description"] ;
+             	 	      $domaine     = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+             	 	      $localite    = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+             	 	      $type        = (!empty( $registre["type"]))     ? $registre["type"] : "";
+             	 	      $annee       = $registre["annee"];
+						  $rowBg       = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+             	 	      
+             	 	      $output.= "<tr style=\"background-color:".$rowBg."\" id=\"registreRowId-".$registreid."\"> ";            	 	      
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$numero   ." </a> </td>";
+                          $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$annee    ." </a> </td>";						  
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$libelle  ." </a> </td>";
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$localite ." </a> </td>";
+             	 	      $output.= "</tr>";
+             	 	     
+             	 	      $output     .="<input type='hidden' name=\"registreids[]\"          id=\"registreids".$registreid."\" class=\"registreids\" />";
+             	 	      $output     .="<input type='hidden' name='libelle-".$registreid."'  id='libelle-".$registreid."'  value='".$libelle."'  />" ;
+             	 	      $output     .="<input type='hidden' name='numero-".$registreid."'   id='numero-".$registreid."'   value='".$numero."'   />" ;
+             	 	      $output     .="<input type='hidden' name='type-".$registreid."'     id='type-".$registreid."'     value='".$type."'     />" ;
+             	 	      $output     .="<input type='hidden' name='localite-".$registreid."' id='localite-".$registreid."' value='".$localite."' />" ;
+             	 	      
+             	 }
+             } else {
+             	  $output .= "<tr>";
+             	           $output .= "<td colspan=\"8\"> Aucun résultat valide n'a été retrouvé , réessayez avec d'autres critères de recherche </td>";
+             	  $output .= "</tr>";
+             }    
+              $output .="</table></div>";
+			  
+			  
+              // On affiche le tableau
+              echo $output;	
+		      echo $pagination->render(); 
+		
+	?>	
+	</div>
+</div>
+<?php
+              
+	  if( $this->isAjax ) {
+		  echo $this->jQuery();
+		  echo $this->headStyle();
+	   }
+?>
+   
+   
+    

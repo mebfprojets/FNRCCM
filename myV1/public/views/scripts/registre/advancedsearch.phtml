@@ -1,0 +1,116 @@
+<?php
+	$filters     = $data =$this->filters;
+	$params      = $this->params;
+	$advanced    = $searchAdvandced = $this->advanced;
+	$linkSearch  = $this->url(array("module"=>"public","controller"=>"registres","action" => "search") , "default");
+	$linkHome    = $this->url(array("module"=>"public","controller"=>"index","action" => "index") , "default");
+ 	
+	$jq          = $this->jQuery();
+	
+	
+	$basePath    = VIEW_BASE_PATH;
+	$supinaThemePath = ROOT_PATH ."/myTpl/rccm/assets-minified/";
+	$jq->addJavascriptFile($basePath."/js/typeahead/dist/hogan.js");
+    $jq->addJavascriptFile($basePath."/js/typeahead/dist/typeahead.bundle.min.js");
+    $jq->addStyleSheet(    $basePath."/css/typeahead.css");
+    $jq->addJavascriptFile($basePath."/js/jquery.dynamic-select.min.js");
+	$jq->addStyleSheet(    $supinaThemePath ."widgets/multiselect/multiselect.css");
+    $jq->addJavascriptFile( $supinaThemePath ."widgets/multiselect/multiselect.js");
+    $jq->addJavascriptFile( $supinaThemePath .'widgets/multiselect/ajaxchosen.min.js');
+	
+	$jq->addOnLoad("
+	                jQuery('#cancelButton').click(function(event){event.preventDefault();document.location.href='".$linkHome."';});
+	                jQuery('#resetButton').click(function(event){ event.preventDefault();jQuery('form#advancedSearchEntreprise').reset();});
+	                jQuery('#searchButton').click(function(event){event.preventDefault();jQuery('form#advancedSearchEntreprise').submit();});
+					jQuery('#localiteids').multiselect({
+						enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher une localité...',
+						includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner une localité...',
+						selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+						nSelectedText:' - Localités sélectionnés',maxHeight:350,buttonWidth:'100%',
+						checkboxName:function(option) {return 'localiteids[]';},
+						onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+					});
+					jQuery('#domaineids').multiselect({
+						enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher un secteur d\'activités...',
+						includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner au moins un secteur d\'activités...',
+						selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+						nSelectedText:' - Secteurs d\'activités sélectionnés',maxHeight:350,buttonWidth:'100%',
+						checkboxName:function(option) {return 'domaineids[]';},
+						onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+					});
+	
+	");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.search-results-section{background-color:#F7F8FA;position:relative;padding:115px 5px 15px 5px;}
+.search-results-buttons{float: right;margin-right: 0;display:flex}
+.btn-adavanced-search,.search-results-buttons-sort-group > .btn{color: #686F7A;background-color:#FFF;border: 1px solid #CACBCC;border-radius:0px}
+input.searchQ,.searchBtn{border: 1px solid #CACBCC;border-radius:0px}
+.search-data-list{background-color:#fff;}
+.btn-outline-secondary {color:#6c757d;background-color: transparent;background-image: none;border-color:#CACBCC;}
+.results-infos{border-bottom:1px solid #e1e4e8!important}
+.results-infos > .panel-title{font-size:20px;font-weight:600}
+#search-results-rows h5.list-group-item-heading{color:#0366d6; font-size:16px;}
+.search-results-rows-item{padding:8px 10px;}
+<?php $this->headStyle()->captureEnd();  ?>
+<div id="advancedSearchSection" class="topadding advanced-search-section section <?php echo ($searchAdvandced)?'show' : 'hidden'; ?>">
+    <div class="container">
+		<form method="post" action="<?php echo $formSubmit; ?>" id="advancedSearchEntreprise" class="form-horizontal" role="form">
+			<div class="panel panel-default" >
+				<ul class="list-group">
+					<li class="list-group-item"> 
+						<div class="form-group"> 
+							<label class="col-sm-hidden col-xs-hidden col-md-2 control-label"><b>Juridiction:</b> </label> 
+							<div   class="col-sm-12 col-xs-12 col-md-4"><?php echo $this->formSelect("localiteids[]", $this->checkedLocalites, array("multiple"=>"multiple","class"=>"form-control"),$this->localites);?>  </div> 
+						   
+						   <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Année de création:</b> </label>
+						   <div   class="col-md-4 col-sm-12 col-xs-12"><?php echo $this->formSelect("annee",intval($filters["annee"]), array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+						</div> 			   
+					</li>
+					<li class="list-group-item"> 
+						<div class="form-group"> 
+						   <label class="col-sm-hidden col-xs-hidden col-md-2 control-label"><b> Secteur d'activité:</b> </label> 
+						   <div   class="col-sm-12 col-xs-12 col-md-10"><?php echo $this->formSelect("domaineids[]", $this->checkedDomaines, array("multiple"=>"multiple","class"=>"form-control"),$this->domaines);?>  </div>  
+						</div> 			   
+					</li>
+					<li class="list-group-item"> 
+						<div class="form-group">  				   
+						   <label class="col-sm-hidden col-xs-hidden col-md-2 control-label"><b> Numéro RCCM:</b> </label> 
+						   <div   class="col-sm-12 col-xs-12 col-md-10"><input type="text" name="numero"  id="numero"  value="<?php echo $filters['numero']; ?>"  class="form-control" placeholder="Saisir un numéro RCCM" /></div>
+						</div> 			   
+					</li>
+					<li class="list-group-item"> 
+						<div class="form-group"> 
+						   <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Numéro IFU:</b> </label> 
+						   <div   class="col-sm-12 col-xs-12 col-md-4"><input type="text" name="numifu"  id="numifu"   value="<?php echo $filters['numifu']; ?>"  class="form-control" placeholder="Saisir un numéro IFU" /></div>
+						   <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Numéro CNSS:</b> </label> 
+						   <div   class="col-md-4 col-sm-12 col-xs-12"><input type="text" name="numcnss" id="numcnss"  value="<?php echo $filters['numcnss'];?>"  class="form-control" placeholder="Saisir un numéro CNSS" /></div>
+						</div> 			   
+					</li>
+					<li class="list-group-item">
+						<div class="form-group"> 						
+							<label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Nom commercial/Dénomination:</b> </label> 
+							<div   class="col-sm-12 col-xs-12 col-md-4"><input type="text" name="libelle" id="libelle" value="<?php echo $filters['libelle']; ?>" class="form-control" placeholder="Saisir un nom commercial" /></div>
+							<label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Promoteur :</b> </label> 
+							<div   class="col-sm-12     col-xs-12     col-md-4"><input type="text" name="name" id="name" value="<?php echo $params['name']; ?>" class="form-control" placeholder="Saisir le nom et/ou prénom du promoteur"      /></div>
+						</div>
+					</li>				
+								
+					<li class="list-group-item"> 
+						<div class="form-group"> 
+						  <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Date création: </b> </label> 
+						  <div   class="col-sm-12 col-xs-12 col-md-3"> <?php echo $this->formSelect("date_day"  ,intval($filters["date_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+						  <div   class="col-sm-12 col-xs-12 col-md-3"> <?php echo $this->formSelect("date_month",intval($filters["date_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+						  <div   class="col-md-3  col-sm-12 col-xs-12"><?php echo $this->formSelect("date_year" ,intval($filters["date_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+					   </div>
+					</li>			 
+				</ul>
+				<div class="panel-footer">
+					<div class="btn-group"> <button id="cancelButton"       class="btn btn-default cancelButton"><i class="glyph-icon icon-chevron-left"> </i> Revenir sur la page d'accueil </button> </div>
+					<div class="btn-group"> <button id="cancelSearchButton" class="btn btn-danger  resetButton"> <i class="glyph-icon icon-times"> </i> Réinitialiser </button> </div>
+					<div class="btn-group"> <button id="searchButton"       class="btn btn-primary searchButton"><i class="glyph-icon icon-search"></i> Rechercher </button> </div>			
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

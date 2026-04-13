@@ -1,0 +1,28 @@
+[31-Dec-2022 04:46:12 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.disponibilite.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.disponibilite.phtml on line 2
+[31-Dec-2022 04:46:14 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.indisponibilite.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.indisponibilite.phtml on line 2
+[31-Dec-2022 04:46:16 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.rejet.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.rejet.phtml on line 2
+[31-Dec-2022 04:46:17 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.reservation.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/attestation.reservation.phtml on line 2
+[31-Dec-2022 04:46:20 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/default.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/default.phtml on line 2
+[31-Dec-2022 04:46:21 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/rejet.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/rejet.phtml on line 2
+[31-Dec-2022 04:46:23 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/reservation.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/reservations/fiches/reservation.phtml on line 2

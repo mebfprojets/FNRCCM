@@ -1,0 +1,92 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" =>"registres", "action"=> "searchsiguemissings", "module" => "admin"), "default" );
+$backList      = $this->url(array("controller" =>"registres", "action"=> "list"    , "module" => "admin"), "default" );
+$localites     = $this->localites;
+$annees        = $this->annees;
+$basePath      = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#registres').filestyle({buttonText:'Chercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/js-core/raphael.js");
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">  Paramètres de sélection des RCCM </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data"> 
+    <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Identifiant* : </label>
+           <div   class="col-sm-6"> <input type="text" name="sigueuser" id="sigueuser" class="form-control" placeholder="Le nom d'utilisateur du compte" value="<?php echo $data["sigueuser"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Mot de passe* : </label>
+           <div   class="col-sm-6"> <input type="password" name="siguepwd" id="siguepwd" value="<?php echo $data["siguepwd"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> URL* : </label>
+           <div   class="col-sm-6"> <input type="text" name="sigueuri" id="sigueuri" class="form-control" placeholder="L'URL d'accès aux documents" value="<?php echo $data["sigueuri"]; ?>" /></div>        
+    </div>	
+    <div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label"> Chercher un document : </label>
+        <div   class="col-sm-9 col-md-9"> <input name="registres" type="file" id="registres" /> </div>
+    </div>	
+    <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Année* : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("annee", $data["annee"], array("class"=>"form-control chosen"), $this->annees); ?> </div>           
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label"> Localité concernée* : </label>
+        <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("localite", $data["localite"] , array("class"=>"form-control"), $this->localites); ?> </div>   
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label"> Dossiers de controle </label>
+        <div   class="col-sm-9 col-md-9"> <input type="text" name="folderstocheck" id="folderstocheck" class="form-control" placeholder="Dossiers de controle" value="<?php echo $data["folderstocheck"]; ?>" /></div>        
+    </div> 
+	<div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label"> Dossier de destination </label>
+        <div   class="col-sm-9 col-md-9"> <input type="text" name="missingsdest" id="missingsdest" class="form-control" placeholder="Dossiers de destination" value="<?php echo $data["missingsdest"]; ?>" /></div>        
+    </div>
+</form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Créer la liste des manquants","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

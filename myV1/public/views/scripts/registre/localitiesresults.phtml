@@ -1,0 +1,23 @@
+<?php 
+$searchKey   = $this->searchKey; 
+$results     = $this->results;
+
+if( count(  $results ) ) {
+	$output  = "<div class=\"list-group no-top-border\">";
+    foreach($results  as $result ) {
+			$localiteid = intval($result['localiteid']);
+			$localiteLib= $result["localite"];
+			$nbreResults= $result["nombre"];
+			$linkInfos  = $this->urlQuery(array("q"=>$searchKey,"localiteid"=>$localiteid),null,true);
+			$output    .="   <a href=\"".$linkInfos."\" class=\"list-group-item\"> ";
+			       $output.="    <span class=\"badge\">".$nbreResults."</span>";
+				   $output.="    ".$localiteLib;
+			$output       .=" </a> ";
+    }
+	$output  .= " </div>";  
+}  
+ 
+echo  $output ;
+
+?>
+             

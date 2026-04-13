@@ -1,0 +1,53 @@
+<?php 
+    $jq       = $this->jQuery();
+    
+    $onLoad   = "jQuery('.mdp').bsdatepicker({orientation:'auto',format:'yyyy-mm-dd'});";
+    
+    $jq->addOnLoad( $onLoad );
+    
+    $basePath = VIEW_BASE_PATH;
+    $jq->addJavascriptFile($basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+    $jq->addStyleSheet(    $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+    
+   echo $this->jQuery();
+?>
+<div class="panel panel-default">
+   <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Mode de paiement par chèque </h4></div> 
+   <ul class="list-group">
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="numerocheque"> <b> Numéro du chèque :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_numero" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du chèque" placeholder="Numéro du chèque"  name="mode_paiement_numero" class="form-control" /></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="chequelieu"> <b> Lieu d'édition :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_address" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Lieu du chèque" placeholder="Lieu du chèque"  name="mode_paiement_address" class="form-control" /></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="datecheque"> <b> Date d'édition :</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->datePick("mode_paiement_date" , date("Y-m-d"), array(), array("class" => "form-control mdp")); ?></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="chequenumcompte"> <b> Compte associé :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_numcompte" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro de compte du chèque" placeholder="Numéro de compte du chèque"  name="mode_paiement_numcompte" class="form-control" /></div>
+         </div>     
+      </li>
+      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="chequebanque"> <b> Banque : </b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_bank" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Banque associée au chèque" placeholder="Banque associée au chèque"  name="mode_paiement_bank" class="form-control" /></div>
+         </div>     
+      </li>
+</ul>
+</div>

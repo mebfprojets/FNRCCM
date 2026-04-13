@@ -1,0 +1,220 @@
+<?php
+$me                   = Sirah_Fabric::getUser(); 
+$videos               = $this->videos;
+$gallerie             = $this->gallerie;
+$activityid           = $this->activityid;
+$galleryid            = $this->galleryid;
+$filters              = $this->filters;
+$paginator            = $this->paginator;
+
+$jq                   = $this->jQuery();
+
+$linkSearch           = $this->url(array("module"=>"admin","controller"=>"galleryvideos","action"=> "list"  , "galleryid"=> $galleryid), "default");
+$linkCreateVideo      = $this->url(array("module"=>"admin","controller"=>"galleryvideos","action"=> "create", "galleryid"=> $galleryid), "default");
+$linkEdit             = $this->url(array("module"=>"admin","controller"=>"galleryvideos","action"=> "edit"  , "galleryid"=> $galleryid), "default");
+$linkDelete           = $this->url(array("module"=>"admin","controller"=>"galleryvideos","action"=> "delete"), "default");
+$linkCreatePhoto      = $this->url(array("module"=>"admin","controller"=>"galleryphotos","action"=> "create", "galleryid" => $galleryid), "default");
+$linkPhotos           = $this->url(array("module"=>"admin","controller"=>"galleryphotos","action"=> "list", "galleryid" => $galleryid), "default");
+$linkGalleries        = $this->url(array("module"=>"admin","controller"=>"galleries"    ,"action"=> "list"), "default");
+
+$onLoad               =" 
+jQuery.support.cors   = true;
+jQuery('.lightboxLink').click(function(event){ 
+                                       event.preventDefault();  
+                                       var dialogVideo    = jQuery('<div></div>').attr('id','dialogVideo').addClass('modal-medium'); 
+                                       var videoTitle     = jQuery(this).attr('title');  
+                                       var videoHref      = jQuery(this).attr('href');          		 
+             		                   dialogVideo.dialog2({title:videoTitle,content : videoHref,
+             		                                        autoOpen: false,
+             		                                        type: 'POST',
+             		                                        dataType:'jsonp',
+             		                                        modalClass:'modal-wide',
+             		                                        removeOnClose: true,
+             		                                        closeOnEscape: false, 
+                                                            closeOnOverlayClick: true,
+             		                                        showCloseHandle:true,
+             		                                        initialLoadText: 'Chargement...' });        		
+             		                   dialogVideo.dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span> Fermer', {primary:false,click :function(){jQuery(this).dialog2('close');}});              		
+             		                   dialogVideo.dialog2('open');   
+                               });
+jQuery('.default-search').eq(0).click(function( event ){jQuery('#globalformsearch').submit();});
+jQuery('#resetForm').click(function( event ){ event.preventDefault();document.location.href='".$linkSearch."';});	 
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+		   var formSelector     = jQuery('#globalformsearch');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum - 1);
+		   }
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+		paginationData.libelle  = formSelector.find('#generalfilter').val();
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);	});
+jQuery('.deleteVideo').css('cursor','pointer');
+jQuery('.deleteVideo').hover(function(){jQuery(this).css('color','#333');}, function(){jQuery(this).css('color','#dfe3e8');});
+jQuery('.deleteVideo').click(function( event ) {
+event.preventDefault();
+var itemId           = parseInt(jQuery(this).attr('id').replace('removeId-',''));
+var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette vidéo ? </div>').attr('id','dialogDeleteItem');
+dialogDeleteItem.dialog2({title:'Confirmer cette action !',autoOpen:false, removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                var modalBody = jQuery('.modal').find('.modal-body');
+             		                var insertBtn = jQuery('.modal-footer').find('.btn-primary').eq(0);
+             		                insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                jQuery.ajax({ url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'videoids' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+                                                           insertBtn.btnLoading({on:false});
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#videoid-'+itemId).remove();
+             		                                       setTimeout(function(){jQuery('#videoid-'+itemId).remove();insertBtn.btnLoading({on:false});jQuery('#dialogDeleteItem').dialog2('close');},1500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		   
+});";
+
+$jq->addOnload( $onLoad );
+
+?>
+<div class="row pagerow">
+<?php
+             $buttonbar         = $this->buttonbar(array() , $this->jqueryHandler());             
+             $buttonCreate      = $buttonbar->button("Enregistrer une vidéo", "plus")->setPriority("primary");
+             $buttonCreatePhoto = $buttonbar->button("Ajouter une photo", "plus-sign");
+             $buttonGallery     = $buttonbar->button("Revenir sur la liste", "list");
+             $buttonVideos      = $buttonbar->button("Gallerie photos", "picture");            
+             
+             if( $me->isAllowed("videos", "create" ) ) {
+             	 $buttonbar->add( $buttonCreate ,"createVideoButton");
+             	 $buttonCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCreateVideo));
+             }                        
+             if( $me->isAllowed("photos", "create")) {
+             	 $buttonbar->add( $buttonCreatePhoto ,"createPhotoButton");
+             	 $buttonCreatePhoto->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCreatePhoto ));
+             }
+             if( $me->isAllowed("photos", "list")) {
+             	 $buttonbar->add( $buttonVideos ,"listPhotosButton");
+             	 $buttonVideos->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkPhotos ));
+             }
+             $buttonbar->add( $buttonGallery,"listGalleries");
+             $buttonGallery->onClick(sprintf("   event.preventDefault(); document.location.href='%s';", $linkGalleries ));
+?>
+<?php $this->headStyle()->captureStart() ?>
+#listOfVideos{margin-top:10px !important;}
+p.buttons .btn{padding:3px 10px;margin-left:5px;}
+p.buttons .pull-bottom{top:275px !important;position:absolute; color:#dfe3e8;}
+p.buttons .pull-right{right:5px !important;position:absolute;}
+.thumbnail .caption {height:60px;min-height:60px;}
+.thumbnail{padding:5px;height:320px;}
+.thumbnail img{margin-top:0;}
+.deleteVideo{color:black !important;}
+<?php $this->headStyle()->captureEnd()   ?>           
+ <div class="row" > 
+     <div class="col-md-8"><?php echo $buttonbar; ?></div>                     
+     <div class="col-md-4"> 
+          <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                <div class="input-group pull-right">
+                     <input value="<?php echo $filters['libelle']; ?>" id="generalfilter" name="generalfilter"  type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                    <span class="input-group-btn "> 
+                       <button class="btn btn-primary default-search" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button>
+                       <button id="resetForm" class="btn btn-danger" type="button"> Effacer </button>
+                    </span>
+                </div>
+        </form> 
+     </div>                      
+</div>                                                   
+<?php           
+ $output  = "<div id=\"listOfVideos\" class=\"container\"> 
+                           <div class=\"row\"> ";
+                               if( count(   $videos ) ) {
+                               	            $me                 = Sirah_Fabric::getUser();
+                               	            $canDelete          = ( $me->isAllowed("videos", "delete") );
+                               	   foreach( $videos as $rowVideo ) {
+                               	   	        $videoid            = intval( $rowVideo["videoid"] );
+                               	   	        $videoLibelle       =  substr( $rowVideo["libelle"], 0 , 30)."[...]";
+                               	   	        $video              = $rowVideo["video"];
+                              	   	        
+                               	   	        $linkVideo          = $this->url(array("module"=>"admin","controller"=> "videos", "action" => "infos" , "id"  => $videoid), "default");
+                               	   	        $videoFile          = "";
+                               	   	        $videoSrc           = $rowVideo["videourl"] ;
+                               	   	        $outputVideo        = " <div class=\"embed-responsive embed-responsive-4by3\">
+                               	   	                                    <iframe width=\"100%\" class=\"embed-responsive-item\" src=\"".$videoSrc."\"></iframe>
+                               	   	                                </div>";
+                               	   	        
+                               	   	        //print_r( $video ); die();
+                               	   	        
+                               	   	        if( !empty( $video ) ) {
+                               	   	        	$videoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $video );
+                               	   	        	if( Sirah_Filesystem::exists( $video ) ) {
+                               	   	        		$videoFile  = str_replace( DS, "/", $videoPathname );
+                               	   	        	}
+                               	   	        	if( !empty( $videoFile )) {
+                               	   	        		$videoSrc    = str_replace( ROOT_PATH ."/", $this->hostName, $videoFile );
+                               	   	        		$outputVideo = " <div align=\"center\" class=\"embed-responsive embed-responsive-4by3\">
+                               	   	        		                    <video width=\"100%\" class=\"embed-responsive-item\">
+                               	   	        		                       <source  src=\"".$videoSrc."\"  > 
+                               	   	        		                    </video>
+                               	   	        		                 </div>";
+                               	   	        	}
+                               	   	        }                               	   	        
+                               	   	        $output  .=" <div id=\"videoid-".$videoid."\" class=\"col-xs-18 col-sm-6 col-md-4\"> ";
+                               	   	                 $output  .=" <div class=\"thumbnail\"> ";
+                               	   	                          $output  .= $outputVideo;
+                               	   	                          $output  .=" <div class=\"caption\"> ";
+                               	   	                                   $output  .="<h3> <a title=\"".$videoLibelle."\" class=\"lightboxLink\" href=\"".$videoSrc."\"> ".$videoLibelle." </a> </h3>";                              	   	                                                           	   	                                   	                                	   	                                   
+                               	   	                                   $output  .=" <p class=\"buttons\">  ";                               	   	                                           
+                               	   	                                            if( $canDelete ) {
+                               	   	                                            	$output  .=" <i id=\"removeId-".$videoid."\" class=\"glyphicon glyphicon-trash pull-right pull-bottom deleteVideo\"> </i>";
+                               	   	                                            }
+                               	   	                                   $output  .=" </p>";
+                               	   	                          $output  .=" </div> ";
+                               	   	                 $output  .=" </div> ";
+                               	   	        $output  .=" </div> ";
+                               	   }                              	
+                               }  else {
+                               	$output  .="<div class=\"panel panel-default\"><div class=\"panel-body\" style=\"text-align:center;\"> Aucune video n'a été retrouvée dans cette gallerie. </div> </div> ";
+                               }        
+              $output .= "</div> </div> ";
+              
+              echo $output;
+              
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headScript();             	  
+              	  echo $this->headStyle();
+              }                   
+    ?>
+ </div>

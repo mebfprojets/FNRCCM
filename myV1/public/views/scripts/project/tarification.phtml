@@ -1,0 +1,75 @@
+<?php
+   $products          = $this->products;
+   $linkSelectProduct = $this->url(array("controller"=>"products","action"=>"infos","module"=>"public"),"default",true);
+   $defaultImgPath    = APPLICATION_TEMPLATES."public/assets/images/product.png";
+   $basePath          = ROOT_PATH ."/myTpl/public/";
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel .panel-heading {padding-top: 14px;padding-bottom: 14px;}
+.panel-more-shadow{box-shadow:0 1px 6px rgb(31 31 31 / 12%), 0 1px 4px rgb(31 31 31 / 12%)}
+body{background-color:#f1f1f1 !important}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " jQuery('.equal-height-panels .panel').matchHeight();
+            jQuery('.selectProduct').click(function( event ){event.preventDefault();
+				var productid  = parseInt(jQuery(this).attr('href').replace('#selectProductId-', ''));
+				document.location.href='".$linkSelectProduct."/id/'+productid;
+			});";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile($basePath ."/scripts/widgets/matchHeight/jquery.matchHeight-min.js");
+?>
+<div class="container section-content">
+    <div class="row text-center">
+	<?php
+	    $productsOutput  = "";
+		if( count(   $products) ) {
+			foreach( $products as $product ) {
+				     $productid          = $product["catid"];
+					 $productLibelle     = $product["libelle"];
+					 $productDescription = $product["description"];
+					 $documentType       = $product["document"];
+					 $productCode        = $product["code"];
+					 $coutTTC            = $product["cout_ttc"];
+					 $imagePath          = (!empty($product["image"]))? APPLICATION_DATA_PATH.DS."products".DS."images".DS."mini".DS.$product["image"] : $defaultImgPath;
+				     $imageFile          = null;
+					 if((null !== $imagePath) && file_exists($imagePath)) {
+						$imagePathname   = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+		                $imageFile       = str_replace(DS , "/" , $imagePathname);
+					 }
+					 $productsOutput    .="<div id=\"productId-".$productid."\" class=\"col-xs-6 col-sm-6 col-md-4 equal-height-panels selectProduct\">";
+					 $productsOutput    .="    <div class=\"panel panel-white panel-more-shadow\"> ";
+						$productsOutput .="         <div class=\"panel-heading\"> ";
+						$productsOutput .="             <div class=\"panel-title\"> ".$productLibelle."</div> </br>";
+						if( floatval($coutTTC) ) {
+							$productsOutput.=sprintf("<h2> Coût: %s F CFA </h2>",number_format($coutTTC,0,'', ' '));
+						} else {
+							$productsOutput.=sprintf("<h2> A partir de %d F CFA </h2>",$coutTTC);
+						}
+						/*if(!empty($imageFile)) {
+							$productsOutput.="      <div class=\"panel-body panel-body-fw\"> <img class=\"img-responsive\" width=\"100%\" height=\"150px\" src=\"".$imageFile."\" /> </div>";
+						}*/
+					 $productsOutput    .=" </div>";	
+                     if(!empty($productDescription)) {
+						 $productsOutput.="<div class=\"panel-body\"> ".$productDescription." </div>";
+					 }					 
+					 $productsOutput    .=" <ul class=\"list-group\"> ";
+					 $productsOutput    .="   <li class=\"list-group-item\"><strong>Code:</strong> ".$productCode." </li>";
+					 $productsOutput    .="   <li class=\"list-group-item\"><strong>Document Généré:</strong>".$documentType   ." </li>";
+                    
+					 $productsOutput    .="<li class=\"list-group-item\"><a href=\"#selectProductId-".$productid."\" class=\"btn btn-success btn-block selectProduct\">En savoir plus </a></li>";
+					 $productsOutput    .="</ul>";
+			         $productsOutput    .="</div> 
+					 </div>";
+			}
+		} else {
+			        $productsOutput .="<div id=\"productId-0\" class=\"col-xs-6 col-sm-6 col-md-4 equal-height-panels\">";
+					$productsOutput .="    <div class=\"panel panel-white panel-more-shadow\"> ";
+					$productsOutput .="         <div class=\"panel-body\"><div class=\"panel-desc m-bot0\">  AUCUN PRODUIT N'A ETE TROUVE </div></div>";
+					$productsOutput.="</div> </div>";
+		}
+		echo $productsOutput;
+	?>
+	</div>      
+</div>

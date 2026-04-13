@@ -1,0 +1,396 @@
+<?php 
+$users            = $this->users;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("controller" => "ajaxres", "action"  => "etudiantslist" , "parentform"  => $parentform ) , "default");
+$situations       = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var userid  = parseInt(jQuery(this).attr('href').replace('#userid-' , ''));
+	if( userid && parentformSelector ) {
+		  var userFirstname                   = jQuery('#firstname-'+userid).val();
+		  var userLastname                    = jQuery('#lastname-'+userid).val();
+		  var userEmail                       = jQuery('#email-'+userid).val();
+		  var userIdentifiant                 = jQuery('#username-'+userid).val();
+		  var userPhone1                      = jQuery('#phone1-'+userid).val();
+		  var userPhone2                      = jQuery('#phone2-'+userid).val();
+		  var userNumdossier                  = jQuery('#numdossier').val();
+		  var userSocialstate                 = jQuery('#socialstate-'+userid).val();
+		  var userProfessionalstate           = jQuery('#professionalstate-'+userid).val();
+		  var userPresentation                = jQuery('#presentation-'+userid).val();
+		  var userSexe                        = jQuery('#sexe-'+userid).val();
+		  var userCity                        = jQuery('#city-'+userid).val();
+		  var userCountry                     = jQuery('#country-'+userid).val();
+		  var userLanguage                    = jQuery('#language-'+userid).val();
+		  var userBirthaddress                = jQuery('#birthaddress-'+userid).val();
+		  var userBirthday                    = jQuery('#birthday-'+userid).val();	
+		  var userBirthdayDate                =  new Date( userBirthday )  ;
+		
+		  var parentUseridInput               = parentformSelector.find('input[name=\'userid\']');
+		  var parentFirstnameSelector         = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector          = parentformSelector.find('input[name=\'lastname\']');
+		  var parentEmailSelector             = parentformSelector.find('input[name=\'email\']');
+		  var parentIdentifiantSelector       = parentformSelector.find('input[name=\'username\']');
+		  var parentPhoneSelector1            = parentformSelector.find('input[name=\'phone1\']');
+		  var parentPhoneSelector2            = parentformSelector.find('input[name=\'phone2\']');
+		  var parentNumdossier                = parentformSelector.find('input[name=\'numdossier\']');
+		
+		  var parentSocialstateSelector       = parentformSelector.find('select[name=\'socialstate\']');
+		  var parentPresentationSelector      = parentformSelector.find('textarea[name=\'presentation\']');
+		  var parentCitySelector              = parentformSelector.find('select[name=\'city\']');
+		  var parentCountrySelector           = parentformSelector.find('select[name=\'country\']');
+		  var parentBirthaddressSelector      = parentformSelector.find('input[name=\'birthaddress\']');
+		  var parentBirthdayDaySelector       = parentformSelector.find('select[name=\'birthday_day\']');
+		  var parentBirthdayMonthSelector     = parentformSelector.find('select[name=\'birthday_month\']');
+		  var parentBirthdayYearSelector      = parentformSelector.find('select[name=\'birthday_year\']');
+		  var parentLanguageSelector          = parentformSelector.find('input[name=\'language\']');
+		  var parentProfessionalstateSelector = parentformSelector.find('input[name=\'professionalstate\']');
+		
+		  if( parentUseridInput   ) {
+		      parentUseridInput.val( userid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(userEmail);
+		  }
+		  if( parentIdentifiantSelector ) {
+		      parentIdentifiantSelector.val( userIdentifiant );
+		  }
+		 if(  parentPhoneSelector1 ) {
+		      parentPhoneSelector1.val( userPhone1 );
+		  }
+		  if( parentPhoneSelector2 ) {
+		      parentPhoneSelector2.val( userPhone2 );
+		  }
+		  if( parentNumdossier ) {
+		      parentNumdossier.val( userNumdossier );
+		  }
+		 if(  parentSocialstateSelector ) {
+		      parentSocialstateSelector.val( userSocialstate );
+		  }
+		 if(  parentProfessionalstateSelector ) {
+		      parentProfessionalstateSelector.val( userProfessionalstate );
+		  }
+		 if(  parentBirthaddressSelector ) {
+		      parentBirthaddressSelector.val( userBirthaddress );
+		  }
+		 if(  parentPresentationSelector ) {
+		      parentPresentationSelector.val( userPresentation );
+		  }
+		 if(  parentCountrySelector ) {
+		      parentformSelector.find('option[name=\''+userCountry +'\']').prop('selected', true);
+		  }
+		 if(  parentCitySelector ) {
+		      parentCitySelector.val( userCity );
+		  }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayDaySelector   && ( userBirthday >= 0 ) )	 {
+		      parentBirthdayDaySelector.val( parseInt( userBirthdayDate.getDate() ) ); 
+		 }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayMonthSelector && ( userBirthday >= 0 ) )	 {
+		      parentBirthdayMonthSelector.val( parseInt(userBirthdayDate.getMonth()) +1 ); 
+		 }
+		 if( !SIRAH.util.isEmpty( userBirthdayDate  ) && parentBirthdayYearSelector  && ( userBirthday >= 0 ) )	 {
+		      parentBirthdayYearSelector.val( parseInt( userBirthdayDate.getFullYear() ) ); 
+		 }
+		if( userSexe == 'M' ) {
+		    parentformSelector.find('input[id=\'sexe-m\']').prop('checked',true);
+		} else if( userSexe == 'F' )	{
+		    parentformSelector.find('input[id=\'sexe-f\']').prop('checked', true);
+		}
+		parentformSelector.find('.resetForm').eq(0).addClass('btn-danger').removeClass('btn-disabled');	 
+	  }	
+		jQuery('#filterListEtudiants').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector     = jQuery('#advanced-etudiantsearchform');
+		var modalBox         = jQuery('.modal').first();
+		var modalBody        = jQuery('.modal-body').first();
+		var pageNum          = formSelector.find('#page').val();
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+		
+		var defaultData       = {};
+		defaultData.page      = pageNum;
+		defaultData.maxitems  = pageMaxitems;
+		defaultData.cohortid  = parseInt(formSelector.find('#cohortid').val());
+		defaultData.lastname  = formSelector.find('#lastname').val();
+		defaultData.firstname = formSelector.find('#firstname').val();
+		defaultData.email     = formSelector.find('#email').val();
+		defaultData.username  = formSelector.find('#username').val();
+		defaultData.sexe      = formSelector.find('#sexe').val();
+		
+		SIRAH.loading.on( modalBody , ' Patientez , chargement des données... ');
+		SIRAH.request.post('advanced-etudiantsearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-etudiantsearchform');
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();
+		var pageNum             = advancedFormSelector.find('#page').val();
+		var pageMaxitems        = advancedFormSelector.find('#maxitems').val();
+		var defaultData         = {};
+		defaultData.username    = formSelector.find('#global-filter').val();
+		defaultData.page        = pageNum;
+		defaultData.maxitems    = pageMaxitems;
+		SIRAH.loading.on( modalBox , ' Patientez, chargement des données... ');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+	    if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+	    }
+		var formSelector     = jQuery('#advanced-etudiantsearchform');
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData        = {};
+		paginationData.maxitems   = pageMaxitems;
+		paginationData.page       = pageNum;
+		paginationData.cohortid   = parseInt(formSelector.find('#cohortid').val());
+		paginationData.lastname   = formSelector.find('#lastname').val();
+		paginationData.firstname  = formSelector.find('#firstname').val();
+		paginationData.email      = formSelector.find('#email').val();
+		paginationData.username   = formSelector.find('#username').val();
+		paginationData.sexe       = formSelector.find('#sexe').val();
+		
+		var modalBox              = jQuery('.modal').first();
+		var modalBody             = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBox , ' Chargement des données ');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar    = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add( $buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>
+            
+      <div class="row" >
+        <div class="col-md-12"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['username']; ?>" id="global-filter" name="global-filter" 
+                            style="color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch " type="button"> <span class="glyphicon glyphicon-search"></span > Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+            </form>
+        </div> &nbsp;&nbsp;&nbsp;
+      </div>                 
+      <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-etudiantsearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row"> 
+               <div class="column col-md-2"><label   for="firstname">Prénom : </label></div>                           
+               <div class="column col-md-4">
+                  <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Votre prénom" placeholder="Prénom"  name="firstname" value="<?php echo $filters['firstname']; ?>">
+               </div>
+               <div class="column col-md-2"><label   for="lastname"> Nom de famille : </label></div>
+               <div class="column col-md-4">                              
+                  <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Numéro de téléphone" placeholder="Nom de famille" name="lastname" value="<?php echo $filters['lastname']; ?>">
+               </div>  
+            </div>                                                                           
+            <div class="row"> 
+               <div class="column col-md-2"><label for="username"> Matricule/Identifiant : </label></div>
+               <div class="column col-md-4">                               
+                   <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Utilisez l'identifiant pour filtrer" placeholder="Identifiant"  name="username" value="<?php echo $filters['username']; ?>">
+               </div>  
+               <div class="column col-md-2"> <label  for="email"> Adresse e-mail: </label> </div>
+               <div class="column col-md-4">
+                   <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Filtrez par l'email" placeholder="E-mail" name="email" value="<?php echo $filters['email']; ?>">
+               </div> 
+            </div>                    
+            <div class="row"  >
+                 <div class="column col-md-2"> <label   for="cohortid"> Cohorte : </label> </div>
+                 <div class="column col-md-4"> <?php echo $this->formSelect("cohortid" , $filters["cohortid"] , array() , $this->cohortes ); ?> </div>
+                 <div class="column col-md-2"> <label   for="sexe"> Sexe :</label> </div>  
+                 <div class="column col-md-4">
+                            <label class="radio-inline"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($filters["sexe"] == "M") echo "checked"; ?>>Homme </label>         
+                            <label class="radio-inline"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($filters["sexe"] == "F") echo "checked"; ?>>Femme </label>
+                 </div>
+             </div>
+             <div class="row" >
+                 <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                 <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"        => 10 , 
+                                		                                                                     "25"        => 25 , 
+                                		                                                                     "50"        => 50 , 
+                                		                                                                     "100"       => 100, 
+                                		                                                                     "500"       => 500, 
+                                		                                                                     "1000"      => 1000, 
+                                		                                                                     "2000"      => 2000 , 
+                                		                                                                     "5000"      => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                 </div> 
+                 <div class="column col-md-2"> Situation matrimoniale : </div>
+                 <div class="column col-md-4"> <?php echo $this->formSelect("socialstate", $filters["socialstate"] , array() , $situations); ?> </div>
+             </div>                       
+             <div class="row">
+                  <div class="column  col-md-2">
+                       <button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search"></span > Filtrer </button>  
+                  </div>                      
+                  <div class="column  span10"></div>     
+             </div> 
+             <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+         </form>
+     </div>
+   <?php
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "usersListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("Matricules", array("width" => "20%"))
+                    ->add("Noms"      , array("width" => "45%"))                    
+                    ->add("Emails"    , array("width" => "15%"))
+                    ->add("Cohortes"  , array("width" => "20%"));             
+             $table->setHeader($header);             
+             if(count(   $users ) ) {
+             	foreach( $users as $user ) {
+             	   $userid         = intval($user['userid']);
+                   $cohorteLibelle = $this->escape($user["cohorte"]);
+                   $numdossier     = $this->escape($user["numdossier"]);
+             	   $locked         = intval($user['locked']);
+             	   $activated      = intval($user['activated']);
+             	   $blocked        = intval($user['blocked']);
+             	   $anneeAcademiq  = sprintf("%s - %s", $user["debut_annee"], $user["fin_annee"] );
+             	   $userRow        = $table->row(array("id"  => "userRowId-".$userid));
+             	   $userRow->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $user["username"] . "</a>" , array("id" => "userIdentifiant-".$userid))
+             	           ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . sprintf("%s %s" , $user["lastname"] , $user["firstname"]) . "</a>" , array("id" => "userName-".$userid))             		       
+             		       ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $user["email"]    . "</a>" , array("id" => "userEmail-".$userid))
+             		       ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $cohorteLibelle   . "</a>", array("id" => "cohorteLib-".$userid));            	   
+             	   $table->add( $userRow );
+             	   
+             	   $socialstate       = $this->escape( $user["socialstate"] );
+             	   $professionalstate = $this->escape( $user["professionalstate"] );
+             	   $birthday          = $this->escape( $user["birthday"] );
+             	   $birthaddress      = $this->escape( $user["birthaddress"] );
+             	   $sexe              = $this->escape( $user["sexe"] );
+             	   $presentation      = $this->escape( $user["presentation"] );
+             	   $language          = $this->escape( $user["language"] );
+             	                 	              	   
+             	   echo "<input type='hidden'  name='lastname-".$userid."'          id='lastname-".$userid."'          value='".$this->escape($user["lastname"])."'  />" ;
+             	   echo "<input type='hidden'  name='firstname-".$userid."'         id='firstname-".$userid."'         value='".$this->escape($user["firstname"])."'  />" ;
+             	   echo "<input type='hidden'  name='email-".$userid."'             id='email-".$userid."'             value='".$this->escape($user["email"])."'  />" ;
+             	   echo "<input type='hidden'  name='username-".$userid."'          id='username-".$userid."'          value='".$this->escape($user["username"])."'  />" ;
+             	   echo "<input type='hidden'  name='phone1-".$userid."'            id='phone1-".$userid."'            value='".$this->escape($user["phone1"])."'  />" ;
+             	   echo "<input type='hidden'  name='phone2-".$userid."'            id='phone2-".$userid."'            value='".$this->escape($user["phone2"])."'  />" ;
+             	   echo "<input type='hidden'  name='userid-".$userid."'            id='userid-".$userid."'            value='".$userid."'            />" ;
+             	   echo "<input type='hidden'  name='numdossier-".$userid."'        id='numdossier-".$userid."'        value='".$numdossier."'        />" ;
+             	   echo "<input type='hidden'  name='socialstate-".$userid."'       id='socialstate-".$userid."'       value='".$socialstate."'       />" ;
+             	   echo "<input type='hidden'  name='sexe-".$userid."'              id='sexe-".$userid."'              value='".$sexe."'              />" ;
+             	   echo "<input type='hidden'  name='professionalstate-".$userid."' id='professionalstate-".$userid."' value='".$professionalstate."' />" ;
+             	   echo "<input type='hidden'  name='birthday-".$userid."'          id='birthday-".$userid."'          value='".$birthday."'          />" ;
+             	   echo "<input type='hidden'  name='birthaddress-".$userid."'      id='birthaddress-".$userid."'      value='".$birthaddress."'      />" ;
+             	   echo "<input type='hidden'  name='presentation-".$userid."'      id='presentation-".$userid."'      value='".$presentation."'      />" ;
+             	   echo "<input type='hidden'  name='language-".$userid."'          id='language-".$userid."'          value='".$language."'          />" ;
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add("Aucune ligne valide n'a été retrouvée dans la liste, réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             }
+    
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+ </div>

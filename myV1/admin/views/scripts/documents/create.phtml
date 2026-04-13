@@ -1,0 +1,139 @@
+<?php 
+$data              = $this->data;
+$userid            = $this->userid;
+$done              = $this->done;
+$categories        = $this->categories;
+$linkUpload        = $this->url(array("module" => "admin","controller"  => "documents" , "action" => "create" , "userid" => $userid , "done" => $done ) , "default");
+$jq                = $this->jQuery();
+
+$onLoad  = " 
+   jQuery('#fileupload').fileupload({
+       paramName:'documents[]',
+       url      : '".$linkUpload."' ,
+       dropZone : jQuery('#dropzone'),
+       type     : 'POST',
+       dataType : 'json',
+       add : function(e , data) {
+           jQuery('#uploadBtn').on('click' , function( event ) {
+   		            event.preventDefault();
+   		            var jqXhr    = data.submit();
+   		            jqXhr.success(function(result , textStatus , jqXHR){
+                    if( result.success != undefined) {
+                        alert( result.success );
+                    } else if(result.error != undefined) {
+                       alert( result.error );
+                       return true;      
+                    }
+           });
+           jqXhr.error(function( result , textStatus, errorThrown){
+                 alert( result );
+                 return false;        
+           });
+   		});  },    
+        messages: {uploadedBytes: 'Le fichier que vous voulez uploader est trop lourd'}
+     });     
+   jQuery('#fileupload').bind('fileuploadsubmit', function (e, data) {
+          var inputs    = jQuery(this).find(':input');
+          data.formData = inputs.serializeArray();
+    }); 
+  jQuery('#fileupload').bind('fileuploaddrop', function (event , data) {
+            event.preventDefault();
+   		     var jqXhr    = jQuery(this).fileupload('send', data );
+   		     jqXhr.success(function(result , textStatus , jqXHR){
+             if( result.success != undefined) {
+                   alert( result.success );
+                 } else if(result.error != undefined) {
+                   alert( result.error );
+                 }
+           });
+           jqXhr.error(function( result , textStatus, errorThrown){
+                 alert( result );   
+           });
+   });
+   jQuery(document).bind('dragover', function (e) {
+          var dropZone = jQuery('#dropzone'),
+          timeout = window.dropZoneTimeout;
+          if (!timeout) {
+              dropZone.addClass('in');
+           } else {
+              clearTimeout(timeout);
+           }
+         var found = false,
+      	         node = e.target;
+          do {
+               if (node === dropZone[0]) {
+       		   found = true;
+       		   break;
+       	    }
+       	     node = node.parentNode;
+              } while (node != null);
+              if (found) {
+                 dropZone.addClass('hover');
+               } else {
+                  dropZone.removeClass('hover');
+               }
+           window.dropZoneTimeout = setTimeout(function () {
+                 window.dropZoneTimeout = null;
+                  dropZone.removeClass('in hover');
+            }, 100);
+    });   ";
+$jq->addOnLoad($onLoad);
+$basePath    = ROOT_PATH."/templates/sirah";
+$jq->addStyleSheet($basePath     . "/js/fileupload/css/jquery.fileupload.css");
+$jq->addStyleSheet($basePath     . "/js/fileupload/css/jquery.fileupload-ui.css");
+$jq->addStyleSheet($basePath     . "/css/sirahfileupload.css");
+$jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath . "/js/fileupload/js/vendor/jquery.ui.widget.js");
+$jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.iframe-transport.js");
+$jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.fileupload.js");
+$jq->addJavascriptFile($basePath . "/js/fileupload/js/jquery.fileupload-ui.js");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+     .bar 
+      {
+          height: 15px;
+          background: green;
+        }
+        div.bootstrap-filestyle input[type="text"]
+        {
+          width:auto;
+          margin-left:5px;
+          margin-right:5px;
+          margin-bottom:0;
+        }
+        div.bootstrap-filestyle, div.fileUploadRows
+        {
+          margin-bottom:10px;
+         }
+<?php $this->headStyle()->captureEnd()   ?>  
+<form style="margin-bottom:5px;" class="form-horizontal" id="fileupload"  action="<?php echo $linkUpload; ?>" enctype="multipart/form-data" method="post">
+    <div class="row">           
+       <div class="col-lg-12 fileupload-progress fade">                
+         <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+         </div>
+        <div class="progress-extended">&nbsp;</div>              
+      </div>
+    </div>
+     <div class="row col-md-12 fileUploadRows">
+        <div class="col-md-4"> <label class="control-label" for="inscriptions"> Catégorie : </label> </div>
+        <div class="col-md-8"> <?php echo $this->formSelect("category" , $data["category"] , array() ,$this->categories ); ?>  </div>		 
+	 </div>
+	 <div class="row col-md-12 fileUploadRows">
+        <div class="col-md-4"> <label class="control-label" for="metadata"> Mots clés : </label> </div>
+        <div class="col-md-8"> <input id="filemetadata" type="text"  autocomplete="off" title="Les mots clés" placeholder="Mots clés" name="filemetadata" value="<?php echo $data['filemetadata']; ?>" /> </div>		 
+	 </div>
+	 <div class="row col-md-12 fileUploadRows">
+        <div class="col-md-4"> <label class="control-label" for="filedescription"> Description : </label> </div>
+        <div class="col-md-8"> <input id="filedescription" type="text"  autocomplete="off" title="Les mots clés" placeholder="La description des fichiers" name="filedescription" value="<?php echo $data['filedescription']; ?>" /> </div>		 
+	 </div>
+	 <div id="dropzone" class="well fade">
+            Glissez deposer les fichiers que vous souhaitez charger
+     </div>	 
+    <input type="hidden"  name="userid" id="userid" value="<?php echo $this->userid; ?>" />
+</form>    
+<?php if($this->isAjax) : ?>
+<?php echo $this->jQuery(); echo $this->headStyle();  echo "<div style=\"display:none;\" id=\"loadingBox\"> </div>"; ?>
+<?php endif; ?>
+    

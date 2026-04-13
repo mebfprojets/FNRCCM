@@ -1,0 +1,83 @@
+<?php 
+    $items           = $this->items;
+    $me              = Sirah_Fabric::getUser();
+	$basePath        = ROOT_PATH."/myTpl/public";
+	$defaultImgPath  = APPLICATION_TEMPLATES."public/assets/images/article.png";
+	$layout          = Zend_Layout::getMvcInstance();
+    $view            = $layout->getView();	
+	
+	$jq              = $this->jQuery();
+	$onLoad          = "  
+	    var mySwiper = new Swiper('#newsModSlider',{direction:'horizontal',spaceBetween:30,clickable:1,
+			centeredSlides:true,slidesPerView:1,slidesPerGroup:1,loopFillGroupWithBlank:false,loop:1,
+			autoplay: {delay:60000,disableOnInteraction: false,},      
+            breakpoints : {
+				600:{slidesPerView:1,slidesPerGroup:1,spaceBetween:100,},
+				740:{slidesPerView:1,slidesPerGroup:1,spaceBetween:20,},
+				1000:{slidesPerView:3,slidesPerGroup:3,spaceBetween:20,},
+				1400:{slidesPerView:3,slidesPerGroup:3,spaceBetween:20,},
+				1650:{slidesPerView:3,slidesPerGroup:3,spaceBetween:20,}
+			}	,		
+			navigation:{nextEl:'.swiper-button-next',prevEl:'.swiper-button-prev',},
+		});
+	
+	";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile($basePath ."/scripts/widgets/matchHeight/jquery.matchHeight-min.js");
+$jq->addJavascriptFile($basePath ."/scripts/swiper/js/swiper.min.js");
+$jq->addStyleSheet(    $basePath ."/scripts/swiper/css/swiper.min.css");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.siraahub-card {border-radius:1rem}
+.siraahub-card-title{line-height:20px;height:50px;display:block;text-align:justify;font-size:1rem;margin-bottom:1rem}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php if(count($items)): ?>
+<div id="newsMod" class="container news-container newsMod">
+    <div class="section-title"> <h4 class="section-title-heading"> Actualités </h4></div>
+    <div id="newsModSlider" class="clearfix siraahub-slide-table swiper-container-news swiper-container-horizontal" style="display:block;width:100%;overflow:hidden;">
+		<div class="swiper-wrapper">
+		    <?php
+			    $output                    = $itemOutput = "";
+			    foreach( $items as $article) {
+					     $articleid        = $itemId     = $article["articleid"];
+						 $articleCode      = $article["code"];
+						 $articleTitle     = $itemTitle  = $article["title"];
+						 $articleCategorie = $article["categorie"];
+						 $articleIntrotext = (!empty($article["introtext"]))?substr(strip_tags($article["introtext"]),0,100) : substr(strip_tags($article["content"]),0,200);
+						 $articlePeriod    = (isset($article["date_article"]))?$article["date_article"] : date("d/m/Y", $article["date"]);
+						 $articleStatute   = "Dépublié";
+						 $imagePath        = (isset($article["photogarde"]) && !empty($article["photogarde"]))?APPLICATION_DATA_PATH.DS."articles".DS."photogarde".DS."mini".DS.$article["photogarde"] : $defaultImgPath;
+						 $imageFile        = null;
+						 if((null !== $imagePath) && file_exists($imagePath)) {
+							$imagePathname = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+							$imageFile     = str_replace(DS , "/" , $imagePathname);
+						 }
+						 
+						 $articleDate      = "-";
+						 $linkInfos        = $this->url(array("module"=>"public","controller"=>"articles","action"=>"infos","articleid"=>$articleid) , "default");
+						 
+						 $itemOutput       = "<div style=\"padding-left:0px !important;padding-right:0px !important;\" class=\"siraahub-slide-item swiper-slide \">"; 
+							$itemOutput   .= "  <div  id=\"itemCardId-".$itemId."\"  style=\"cursor:pointer\" class=\"siraahub-card card card-inverse rounded\">";
+							$itemOutput   .= "      <div class=\"bg-image hover-overlay ripple\" data-mdb-ripple-color=\"light\">   
+													    <img class=\"siraahub-card-img-top card-img-top img-fluid\" src=\"".$imageFile."\">
+													</div>";
+							$itemOutput   .= "      <div class=\"siraahub-card-body card-body\">";	
+							$itemOutput   .= "          <h4 class=\"siraahub-card-title card-title\"> <strong><a title=\"En savoir plus sur cet élement\" href=\"".$linkInfos."\" >".$itemTitle."</a></strong> </h4>";
+                            $itemOutput   .= "          <p  class=\"card-text\"> ".$articleIntrotext."... </p> ";
+							$itemOutput   .= "      </div>";	
+							$itemOutput   .= "      <div class=\"card-footer siraahub-item-footer\">";
+							$itemOutput   .= "         <a title=\"En savoir plus\"  href=\"".$linkInfos."\" id=\"readmoreBtnId-".$itemId."\" class=\"card-link float-left btn-readmore\"> En savoir plus </a>";
+							$itemOutput   .= "      </div>";	
+                         $itemOutput      .= "  </div>";	
+                         $itemOutput      .= "</div>";						 
+                         $output          .= $itemOutput; 						
+				}
+				echo $output;
+			?>
+		</div>
+		<div class="swiper-button-prev"></div>
+		<div class="swiper-button-next"></div>
+    </div>
+</div>
+<?php endif; ?>
+

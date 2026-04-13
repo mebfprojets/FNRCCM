@@ -1,0 +1,49 @@
+<?php 
+$front              = Zend_Controller_Front::getInstance();
+$defaultController  = $front->getDefaultControllerName();
+$defaultAction      = $front->getDefaultAction();
+$token              = $this->token;
+$formSubmit         = $this->url(array("module" => "admin", "controller" => "account", "action"  => "activate") , "default");
+$linkCancel         = $this->url(array("module" => "admin", "controller" => $defaultController, "action" => $defaultAction ), "default");
+$basePath           = VIEW_BASE_PATH;
+
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+  div#activationbox{width:99%;height:auto;text-align:center;margin:50px auto auto auto;overflow:hidden;}    
+  form#activationform div{text-align:left;}  
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+  $jq     = $this->jQuery();  
+  $onLoad = " 
+  jQuery('.cancelLogin').click(function(e){e.preventDefault();document.location.href = '".$linkCancel."';});
+  jQuery('.validate').click(function(e){e.preventDefault();var  token = \$j('#token').val();      
+      if( SIRAH.util.isEmpty(token)){
+          SIRAH.error.raise('activationform','Entrez un code valide');
+          return;
+      }      
+      jQuery('#activationform').submit();      
+  }); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+
+<div id="activationbox" class="sirah-ui-formwrapper">
+    <img src="<?php echo $basePath."/images/logo.png";  ?>"   align="center" /> <br/><br/>
+    <form method="post" action="<?php echo $formSubmit;  ?>" accept-charset="UTF-8"  id="activationform" class="sirah-ui-form form-horizontal">        
+       <div class="control-group">
+         <div class="controls">
+            <input value="<?php echo $token;?>" class="input-lg" type="text" id="token" placeholder="Entrez le code d'activation du compte" name="token" autocomplete="off" >
+         </div>
+      </div>      
+      <div class="control-group">
+           <div class="controls">
+               <button type="submit" class="btn btn-default btn-primary validate"> Valider </button> 
+               <button type="submit" class="btn btn-default cancelLogin"> Annuler </button> 
+           </div>                                       
+      </div>
+    </form>
+</div>

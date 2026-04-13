@@ -1,0 +1,41 @@
+<?php
+     $rows = $this->rows;
+?>
+<table id="bilanCommandesStatutTable" class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th width="75%"> Types de produits </th>                                         
+			<th width="25%"> Total encaissés   </th>
+		</tr>         
+	</thead>          
+	<tbody>
+	<?php 
+		$output         = "";
+		$chiffreAffaire = $totalGlobal = 0;
+		if( count(   $rows )) {
+			foreach( $rows as $row ) {
+				     $categorieLibelle = $row["categorie"];
+					 $valTotal         = (isset($row["valTotal"])  && floatval($row["valTotal"] ))?number_format($row["valTotal"],0,","," ") : 0;
+					 $nbreTotal        = (isset($row["nbreTotal"]) && floatval($row["nbreTotal"]))?number_format($row["nbreTotal"],0,","," ") : 0;
+					 $rowBg            = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+					 $linkList         = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"list","productcatid"=> $row['catid']), "default",true);  								 
+					 $output.="<tr style=\"background-color:".$rowBg."\">";
+							$output   .="<td><a title=\"Accéder à toutes les commandes de cette catégorie\" href=\"".$linkList."\"> ".$categorieLibelle." </a></td>";                   	 	                             	 	            
+							$output   .="<td><a title=\"Accéder à toutes les commandes ce cette catégorie\" href=\"".$linkList."\"> ".$valTotal        ." </a></td>";
+					 $output.="</tr>";  
+					 $chiffreAffaire  += $row['valTotal'];
+                     $totalGlobal     += $row["nbreTotal"];					 
+			 } 
+			 $output.="<tr>";
+					$output.="<td> TOTAL :    </td>";
+					$output.="<td> ".number_format($chiffreAffaire, 0, ' ', ' ')." </td>";
+			 $output.="</tr>";
+		} else {
+			 $output.="<tr>";
+					$output.="<td style=\"text-align:center;\" colspan=\"3\"> AUCUNE DONNEE DE CE TYPE N'A PU ETRE TROUVEE </td>";
+			 $output.="</tr>";
+		} 
+		echo $output;
+	?>          
+	</tbody>         
+</table>

@@ -1,0 +1,52 @@
+ <!--Le corps du site-->
+   <div id="sirah-page-body" class="colmask wrapper three-columns container" >  
+     <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >                 
+          <!--Bloc central de la page du site-->
+            <div id="sirah-page-mainblock-wrapper" class="col1 simple"> 
+			     
+                <?php if( !empty( $message ) ) : ?>
+                     <div id="currentMsg" class="row alert alert-danger"> <?php echo $message; ?> <i class='glyphicon glyphicon-remove close clearMessage'></i> </div>
+                <?php endif; ?> 
+                <!--Le bloc des messages d'erreurs-->
+                    <?php echo $this->errormessage(); ?>
+                <!--Fin du bloc des messages d'erreurs-->
+                                            
+              <div id="maincontent" class="panel panel-default nomargins nopaddings"> 
+                  <?php if(!empty($this->title)): ?> 
+                      <div id="viewBaseTitle" class="panel-heading greenpanel viewBaseTitle"> <h4> <?php echo $this->title; ?> </h4> </div>
+                  <?php endif; ?> 
+                  <?php echo $layout->content ?>
+ 
+              </div>
+                 
+                 
+               <!--Fin du bloc du contenu de la page-->   
+          </div>
+        <!--Fin du bloc principal de la page du site-->
+       
+        <!--Le bloc gauche du corps du site-->
+         <div id="sirah-page-leftblock-wrapper" class="col2" >
+           <?php 
+                 if( $showLeftColumn ) {
+                    echo $this->render("leftmodules.phtml") ;
+                 }   
+            ?>      
+         </div>  
+        <!--Fin du bloc de gauche du site-->    
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+             <?php 
+                   if( $showRightColumn) {
+                       echo $this->render("rightmodules.phtml") ;
+                   }  
+             ?>             
+         </div>  
+        <!--Fin du bloc de droite du corps du site-->            
+       </div>
+    </div>   
+  </div> 
+  <!--Fin corps du site-->         
+  <!--Pied de page du site-->
+   <?php echo $this->render("pagefooter.phtml")   ?>  
+  <!--Fin pied de page du site--> 

@@ -1,0 +1,32 @@
+<?php
+$product  = $this->product;
+
+?>
+
+<div class="col-xs-12 col-sm-6 col-md-6 center-margin">
+	<div class="panel panel-default panel-more-shadow">
+	    <ul  class="list-group">
+			<a class="list-group-item">
+				<div class="row"> 
+					<div class="col-md-4"> <b> Code:</b></div> 
+					 <div class="col-md-8"><?php echo $product->code; ?></div>
+				</div>
+			</a>                
+			<a class="list-group-item">
+				<div class="row"> 
+					<div class="col-md-4"> <b>Désignation:</b></div> 
+					<div class="col-md-8"><?php echo $product->libelle; ?></div>
+				</div>
+			</a>
+			<a class="list-group-item">
+				<div class="row"> 
+					<div class="col-md-4"> <b> Cout TTC:</b></div> 
+					<div class="col-md-8"><?php echo (floatval($product->cout_ttc))? number_format($product->cout_ttc,0," "," ") : $product->cout_ttc; ?></div>
+				</div>
+			</a>
+		</ul>
+		<div class="panel-body">
+		    <?php echo $product->description; ?>
+		</div> 
+	</div>      
+</div>

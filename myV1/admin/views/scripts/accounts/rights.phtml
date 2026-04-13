@@ -1,0 +1,41 @@
+<?php 
+$rights         = $this->rights;
+?>
+<div class="panel panel-default">
+<?php
+   $table  = $this->table(array("id"=>"rolesListTable","class"=> array("table sirah-ui-table")));
+   $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+   $header = $table->row();
+   $header->add("Ressources")->add("Objets")->add("Descriptions des taches")->add("Droits affectés");
+   $table->setHeader($header);
+    
+    $resourcename = null;
+    
+    if(count($rights)) {
+    	foreach($rights as $right) {    		
+    		$rightType = ($right["allow"] == 1) ? "Autorisé" : "Non autorisé";
+    		$rightRow  = $table->row();
+    		
+    		if( $resourcename!= $right["resourcename"]) {
+    			$resourceText = $right["resourcename"];
+    			$rightRow->add($resourceText);
+    		} else {
+    			$rightRow->add(" ");
+    		}
+    		$rightRow->add($right["objectname"]);
+    		$rightRow->add($right["description"]);
+    		$rightRow->add($rightType);
+    		$table->add($rightRow);
+    		
+    		$resourcename  = $right["resourcename"];
+    	}
+    } else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add("Aucune permission n'a été assignée à cet utilisateur", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }   
+     echo $table;
+    
+    ?>
+       
+ </div>

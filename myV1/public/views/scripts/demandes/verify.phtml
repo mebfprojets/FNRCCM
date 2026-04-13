@@ -1,0 +1,206 @@
+<?php
+	$keywords        = $this->keywords;
+	$errorMessages   = $this->errorMessages;
+	$infoMessages    = $this->infoMessages;
+	$available       = $this->available;
+	$similarites     = $this->similarites;
+	$activities      = $this->activities;
+	$registres       = $this->registres;
+	$params          = $this->params;
+	$totalResults    = count($similarites);
+    $defaultErrorMessage     = $this->errormessage();
+	$linkSearch      = $formSubmit = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"verify","reset"=>1) , "default");
+	$linkReservation = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"reservation","reset"=>1,"query"=>urlencode($keywords)) , "default");
+	$jq = $this->jQuery();
+	$jq->addOnLoad("
+		jQuery('#verifyBtn').click(function(event){event.preventDefault();jQuery('#verifyEnterprises').submit();});
+		jQuery('.resetBtn,.resetButton').click(function(event){event.preventDefault();document.location.href='".$linkSearch."';}); 
+		jQuery('#resetSearchBtn').click(function(event){event.preventDefault();jQuery('#keywords').val('');});");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.search-results-section{background-color:#F7F8FA;position:relative;padding:115px 5px 15px 5px;}
+.search-results-buttons{float: right;margin-right: 0;display:flex}
+.btn-adavanced-search,.search-results-buttons-sort-group > .btn{color: #686F7A;background-color:#FFF;border: 1px solid #CACBCC;border-radius:0px}
+input.keywords,.verifyBtn{border: 1px solid #CACBCC;border-radius:0px}
+.search-data-list{background-color:#fff;}
+.btn-outline-secondary {color:#6c757d;background-color: transparent;background-image: none;border-color:#CACBCC;}
+.results-infos{border-bottom:1px solid #e1e4e8!important}
+.results-infos > .panel-title{font-size:20px;font-weight:600}
+#search-results-rows h5.list-group-item-heading{color:#0366d6; font-size:16px;}
+.search-results-rows-item{padding:8px 10px;}
+#AdvancedSearchSection{padding:5px 0 !important}
+.hideAdvancedSearch{display:none  !important}
+.showAdvancedSearch{display:block !important}
+.panel-body,.container{ overflow: inherit !important;}
+.alert .alert-title {font-size:15px !important;}
+.alert .alert-content {font-size:13px !important;}
+.jumbotron h1{font-size:34px !important}
+.lead{text-align:justify !important;}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {margin-bottom:1rem !important;}
+<?php $this->headStyle()->captureEnd();  ?>
+<div id="search-results-section" class="topadding search-results-section section" style="margin-bottom:10px">
+    <div class="container">
+	    <?php if(!empty($this->title)): ?>
+		   <h3 class="title-hero" id="pageTitleContainer"> <?php echo $this->title; ?> </h3>
+		<?php endif;?>
+        <div class="row section-content search-results-header">
+			<div class="search-results-count"></div>
+			<div class="search-results-searchbox">
+                <div class="col-md-12 col-sm-12 text-center"> 
+					<form id="verifyEnterprises" class="form-horizontal" action="<?php echo $linkSearch; ?>" method="post"> 
+						<div class="input-group input-group-lg">
+							<input value="<?php echo $keywords;?>"    type="text"   class="form-control keywords" name="keywords" id="keywords"  placeholder="Veuillez saisir un nom commercial ou dénomination sociale..." />
+							<div class="input-group-btn">							    
+								<button id="verifyBtn"     class="btn btn-primary verifyBtn"><span class="glyph-icon icon-search"></span> Vérifier le nom commercial </button>
+								<button id="resetSearchBtn"class="btn btn-danger  resetSearchBtn"> <span class="glyph-icon icon-times"> </span> Effacer    </button>
+							</div>
+						</div>
+					</form>
+				</div>
+ 
+			</div>
+		</div>
+	</div>	 
+</div>
+<?php if( !empty($keywords)): ?>
+<div class="search-data-list section" id="search-data-list">
+	<div class="container">
+	     
+		<?php if(count($errorMessages)): ?>
+		    <div class="sirah-message" id="sirah-page-message">  
+			    <div class=" alert   alert-danger "><div class="alert-content"><h4 class="alert-title"> NON DISPONIBLE ! :<?php printf("%s", $errorMessages[0]); ?></h4> <p>  </p> </div> <a href="#" class="glyph-icon alert-close-btn icon-remove close clearMessage"></a> </div> 
+            </div>
+        <?php endif;?>
+		<?php if(count($infoMessages)): ?>
+		    <div class="sirah-message" id="sirah-page-message">  
+			    <div class=" alert alert-warning"><div class="alert-content"><h4 class="alert-title"> PEUT ETRE DISPONIBLE ! :<?php printf("%s", $infoMessages[0]); ?></h4> <p>  </p> </div> <a href="#" class="glyph-icon alert-close-btn icon-remove close clearMessage"></a> </div> 
+            </div>
+        <?php endif;?>
+		<?php if($available && !count($infoMessages) && !count($errorMessages)): ?>		    
+			<div class="sirah-message" id="sirah-page-message">  
+			    <div class=" alert alert-success">
+				    <div class="alert-content"><h4 class="alert-title"> FELICITATIONS !:<?php printf("Le nom commercial ou la dénomination sociale <i><u>%s</u></i> est disponible.", $keywords); ?></h4> 
+				        <p> <a href="#" class="btn btn-danger"><i class="glyph-icon icon-flash"></i> Veuillez procéder à sa réservation ! </a>  </p> 
+					</div> 
+					<a href="#" class="glyph-icon alert-close-btn icon-remove close clearMessage"></a> 
+				</div> 
+			</div>
+			<div class="row"> 
+			     <div class="col-md-12"><p> <a title="Réserver ce nom commercial" href="<?php echo $linkReservation; ?>" class="btn btn-lg btn-primary"> <i class="glyph-icon icon-check"></i> PROCEDER A LA RESERVATION DE CE NOM COMMERCIAL <i class="glyph-icon icon-chevron-right"></i> </a> </p></div> 
+			</div> 
+		<?php endif;?>
+	    <div class="row section-content search-results-header"> 
+			<div class="col-md-12">
+				<div class="panel panel-plain panel-more-shadow panel-search-results" id="panel-search-results">
+				    <?php if($totalResults>=1 ): ?>
+				    <div class="panel-heading results-infos">
+					    <h3 class="panel-title"> <?php ($totalResults>1)?printf("%s noms commerciaux similaires ont été trouvés", number_format($totalResults, 0, ' ', ' ')) : printf("Un nom commercial similaire a été trouvé"); ?></h3>
+						<div class="panel-tools pull-right"> </div>
+					</div>
+					<?php endif;?>
+					<div class="list-group search-results-rows" id="search-results-rows">
+					<?php 
+						$output        = "";
+                        if( count(   $similarites) ) {
+							foreach( $similarites as $i=> $similarite ) {
+								     if( isset($registres[$i] )) {
+										 $registre         = $registres[$i];
+										 $registreid       = intval($registre['registreid']);
+										 $libelle          = $registre["libelle"] ;
+										 $numero           = $registre["numero"]  ;
+										 $annee            = $registre["annee"]   ;
+										 $description      = $registre["description"] ;
+										 $localite         = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+										 $dateRegistre     = sprintf("Inscrit au registre, le : %s", $registre["date_registre"] ); 
+										 $urlLibelle       = Sirah_Functions_String::cleanUtf8( $numero );
+										 $linkInfos        = $this->url(array("registreid"=>$registreid,"registrelib"=>$urlLibelle,"type"=>"physiques" ), "registre");      
+										 $registreCategory = ($registre["type"]==2)?"Personne Morale" : "Personne Physique";
+										 
+										 $output .= "<div title=\"Accéder aux informations de cette entreprise\" href=\"".$linkInfos."\" class=\"list-group-item list-group-item-action flex-column align-items-start search-results-rows-item \" id=\"registreid-".$registreid."\"> "; 
+												$output   .= "<div class=\"d-flex w-100 justify-content-between\"><h5 class=\"list-group-item-heading mb-1\"><u> <a title=\"Visualiser le contenu de ce RCCM\" href=\"".$linkInfos."\">".$libelle." </a> </u></h5> <small class=\"text-muted\">".$dateRegistre."</small></div>";
+												$output   .= "<p class=\"mb-1\"> ".$description." </p>";
+												$output   .= "<span class=\"text-muted\"> Numéro RCCM :".$numero  .", </span>";
+												$output   .= "<span class=\"text-muted\"> Type        :".$registreCategory.", </span>";
+												$output   .= "<span class=\"text-muted\"> Juridiction :".$localite.", </span>";	
+												$output   .= "<span class=\"text-muted\"> Année       :".$annee   ." </span>";
+																						
+										 $output .= "</div>";      
+										 $output .="";
+									 }									 
+							}
+						}
+						                              
+					    echo $output;                      
+					?>                              
+					</div>
+ 
+		        </div>
+			</div>
+ 
+		</div> 
+	</div>
+</div>
+<?php else:?>
+<div class="container section-content">
+    <div id="about-us" class="col-xs-12 col-sm-8 col-md-8 equal-height-panels about-us-content margin-center">
+	    <div class="panel panel-white panel-more-shadow"> 
+
+			<div class="panel-body panel-body-lg"> 
+			    <div class="panel-desc"> Contexte et Justification de la Recherche de disponibilité </div>
+			    <p style="text-align:justify">
+				    La Maison de l’Entreprise du Burkina Faso (MEBF) en collaboration avec le Ministère en charge de la Justice, mettent en place un dispositif de recherche de disponibilité et de réservation des dénominations sociales et des noms commerciaux. La mise en place de ce dispositif découle de la volonté de limiter les homonymies et les usurpations des noms commerciaux (NC) et des dénominations sociales (DS), d’assainir le fichier des entreprises et de lutter contre la concurrence déloyale.
+					La recherche de disponibilité des DS et des NC est un moyen d’identifier les noms enregistrés antérieurement qui pourraient compromettre l’usage du nom à choisir pour la création d’une entreprise. Elle doit se faire préalablement aux démarches d’enregistrement ou d’immatriculation.
+					La gestion du dispositif de recherche de disponibilité et de réservation des DS et des NC est assurée par l’Administrateur du Fichier National du Registre du Commerce et du Crédit Mobilier (FN-RCCM) qui coordonne l’ensemble des activités annexes et connexes. 
+					Toutefois, les recherches et réservations des DS et des NC peuvent se faire au niveau du FN-RCCM à Ouagadougou que dans les locaux des greffes ou des CEFORE déconcentrés
+
+				</p> 
+			</div>
+			<hr class="small"> 
+			<div class="panel-body panel-body-lg"> 
+			    <div class="panel-desc"> Objectifs visés </div>
+			    <p style="text-align:justify">
+				    Cette procédure a pour objectif de décrire toutes les étapes nécessaires de traitement des dossiers de recherche de disponibilité et de réservation des DS et des NC. Elle a également pour but de mettre à la disposition des agents chargés des recherches, un référentiel de base. Elle permet de préciser et d’harmoniser la chronologie des tâches à accomplir dans la recherche et la délivrance des attestations de disponibilité et de réservation des noms commerciaux et des dénominations sociales
+				</p> 
+			</div>
+			<div class="panel-body panel-body-lg"> 
+			    <div class="panel-desc">Procédure de traitement des demandes</div>
+			    <p style="text-align:justify">
+				    La procédure consiste à interroger la base de données du Fichier National RCCM à travers le Système Intégré des Guichets Uniques (SIGU) et eRCCM en vue de s’assurer de la disponibilité (non existence dans les deux bases) d’une DS ou d’un NC qu’un nouveau créateur souhaite attribuer à son entreprise et de procéder à sa réservation. 
+Si la dénomination sociale est différente du nom commercial, il y’a lieu de tenir compte des deux dans la vérification.
+
+				</p> 
+				<p style="text-align:justify">
+				    Lors de la recherche de disponibilité, plusieurs situations peuvent se présenter :
+				    <ul>
+					    <li>Le NC ou la DS vérifié(e) existe déjà dans la base du FN-RCCM. Dans ce cas, son attribution est refusée au demandeur par une attestation de rejet ou d’indisponibilité.</li>
+					    <li>Le NC ou la DS vérifié (e) est inexistant (e).</li>
+					</ul>
+				</p> 
+				<p style="text-align:justify">
+				    Dans ce cas, il (elle) est accepté (e) si et seulement si les trois conditions ci-dessous sont respectées : 
+				    <ul>
+					    <li>La DS ou le NC choisi n’est pas contraire à l’ordre public ou aux bonnes mœurs;</li>
+					    <li>La DS ou le NC choisi ne présente pas une forte similitude avec un NC ou une DS déjà existant( e) quel que soit le secteur d’activité;</li>
+						<li>La DS ou le NC choisi ne porte pas à confusion avec les entreprises nationales ou Etatiques, internationales ou les organisations internationales</li>
+					</ul>
+				</p>
+				<p style="text-align:justify">
+				    En dehors des cas simples cités plus haut, il faut se référer aux textes en vigueurs y relatifs (notamment les Directives pour l’attribution des noms commerciaux et des dénominations sociales d’entreprises au Burkina Faso).
+				</p>
+				<p style="text-align:justify">
+				    La procédure de recherche de disponibilité des noms commerciaux et des dénominations sociales varie en fonction des localités. Ces localités sont regroupées en trois grandes zones.
+				</p>
+				<p style="text-align:justify">
+				    En tout état de cause, elle peut se faire en ligne.
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-xs-12 col-sm-4 col-md-4">
+	    <div class="panel panel-danger">
+	        <div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-credit-card"></span> Mon Panier </h4> </div>
+		    <?php echo $this->partial("orders/articles.phtml", array()); ?>
+		</div>
+	</div>
+</div>
+<?php endif; ?>

@@ -1,0 +1,137 @@
+<?php 
+$data         = $this->data;
+$demandeid   = $this->demandeid;
+$demande     = $this->demande;
+$formSubmit   = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"upload"), "default" );
+$linkCourrier = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"infos","id"=>$demandeid), "default" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px !important;display:inline-block !important;}
+.form-horizontal .checkbox,.form-horizontal .checkbox-inline,.form-horizontal .control-label,.form-horizontal .radio,.form-horizontal .radio-inline {padding-top:0!important}
+#dropzone {background:palegreen;width:100%;height:200px;line-height:10em;text-align:center;font-weight:bold;border:1px dashed green;}
+#dropzone.in {width:100%;height:200px;line-height: 40px;font-size: larger;}
+#dropzone.hover {background:lawngreen;}
+#dropzone.fade{-webkit-transition: all 0.3s ease-out;-moz-transition:all 0.3s ease-out;-ms-transition:all 0.3s ease-out;-o-transition:all 0.3s ease-out;transition:all 0.3s ease-out;opacity:1;} 
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$basePath = VIEW_BASE_PATH;
+$jq       = $this->jQuery();  
+$onLoad   = " 
+
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#demandedoc').filestyle({buttonText:'Parcourir',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#uploadForm').fileupload({paramName:'demandedoc',url:'".$formSubmit."',type:'POST',dataType:'json',
+		    add : function(e , data) {
+						   var modalButton     = jQuery('.modal-footer').first().find('.btn-primary:first');
+						   if(!modalButton) {
+							   modalButton     = jQuery('#uploadButton');
+						   }
+						   modalButton.unbind('click');
+						   modalButton.bind('click' , function( event ) {							      
+								  modalButton.attr('disabled','disabled').addClass('disabled');
+								  event.preventDefault();
+								  SIRAH.loading.on( jQuery('.modal-body').first(), 'Patientez , stockage du document...' );
+								  var jqXhr    = data.submit();
+								  jqXhr.success(function(result , textStatus , jqXHR){									    
+									    if( result.success !== undefined) {
+											modalButton.unbind('click');
+										    SIRAH.loading.off(false);
+										    SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée : '+result.success , 'success');
+										    var document  = result.document;
+										    if( document != undefined ){
+											    SIRAH.loading.off(false);                                                                 
+										    }
+											setTimeout(function(){jQuery('#dialogUploadFile').dialog2('close');location= '".$linkCourrier."';},1500);
+										} else if(result.error !== undefined) {
+											SIRAH.error.raise(jQuery('#dialogUploadFile'), 'Opération terminée : '+result.error , 'error');
+											SIRAH.loading.off(false);
+											return true;
+										}
+									});
+								    jqXhr.error(function( result , textStatus, errorThrown) {
+											SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+											SIRAH.loading.off(false);
+											return false;
+							        });
+           });  },
+		   messages:{uploadedBytes:'Le fichier que vous voulez uploader est trop lourd'}
+});
+jQuery('#uploadButton').click(function(event){
+	event.preventDefault();
+	jQuery(this).attr('disabled','disabled').addClass('disabled');	
+	SIRAH.loading.on( jQuery('.modal-body').first(), 'Patientez , stockage du document...' );
+	var jqXhr    = data.submit();
+	jqXhr.success(function(result , textStatus , jqXHR){									    
+		if( result.success !== undefined) {
+			modalButton.unbind('click');
+			SIRAH.loading.off(false);
+			SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée : '+result.success , 'success');
+			var document  = result.document;
+			if( document != undefined ){
+				SIRAH.loading.off(false);                                                                 
+			}
+			setTimeout(function(){jQuery('#dialogUploadFile').dialog2('close');location= '".$linkCourrier."';},1500);
+		} else if(result.error !== undefined) {
+			SIRAH.error.raise(jQuery('#dialogUploadFile'), 'Opération terminée : '+result.error , 'error');
+			SIRAH.loading.off(false);
+			return true;
+		}
+    });
+	jqXhr.error(function( result , textStatus, errorThrown) {
+		SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+		SIRAH.loading.off(false);
+		return false;
+	});
+});
+jQuery('#uploadForm').bind('fileuploadformsubmit',function(e,data) {var inputs = jQuery(this).find(':input');data.formData= inputs.serializeArray();});";
+  
+$jq->addOnLoad($onLoad);
+
+$jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/js-core/raphael.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+
+?>
+<form method="post" action="<?php echo $formSubmit;?>" id="uploadForm" role="form" class="form-horizontal uploadForm" enctype="multipart/form-data">
+    <div class="panel panel-default" >
+		<ul class="list-group">	
+            <li class="list-group-item">
+                <div class="form-group"> 
+                    <label class="col-sm-2  col-md-2 control-label">  <b> Chercher un document*:</b> </label>
+                    <div   class="col-sm-10 col-md-10 "> <input id="demandedoc" name="demandedoc" type="file" /> </div>
+                </div> 
+            </li>		
+            <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-sm-2  col-md-2 control-label"> Résumé du contenu*: </label>
+					<div   class="col-sm-10 col-md-10"><textarea name="libelle" id="libelle" class="form-control textarea"> <?php echo $data["libelle"]; ?> </textarea></div>              
+				</div>  
+			</li>		
+		</ul>
+	
+<?php 
+    $buttonsbar = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate = $buttonsbar->button("Enregistrer","upload")->setPriority("primary");
+    $toolCancel = $buttonsbar->button("Annuler et revenir sur le demande","ban");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"uploadButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+	
+	$toolCancel->onClick(sprintf("event.preventDefault();document.location.href=\"%s\";", $linkCourrier));
+    
+    if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+    </div>
+	<input type="hidden" name="demandeid" id="demandeid" value="<?php echo $this->demandeid; ?>" />
+</form>
+ 

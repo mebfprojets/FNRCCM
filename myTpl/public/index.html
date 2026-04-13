@@ -1,0 +1,279 @@
+<!DOCTYPE html> 
+<html lang ="fr">
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title> ERCCM: Bienvenue sur la plateforme ERCCM </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Favicons -->
+
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/images/icons/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/images/icons/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72"   href="assets/images/icons/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="assets/images/icons/apple-touch-icon-57-precomposed.png">
+    <link rel="shortcut icon" href="assets/images/icons/favicon.png">
+    <style>
+        #loading {position: fixed;width: 100%;height: 100%;left: 0;top: 0;right: 0;bottom: 0;display: block;background: #fff;z-index: 10000;}
+        #loading img {position: absolute;top: 50%;left: 50%;margin: -23px 0 0 -23px;}
+    </style>
+   <link rel="stylesheet" type="text/css" href="assets/bootstrap/css/bootstrap.css">
+    <!-- HELPERS -->
+    <link rel="stylesheet" type="text/css" href="assets/helpers/helpers-all.css">
+
+    <!-- ELEMENTS -->
+    <link rel="stylesheet" type="text/css" href="assets/elements/elements-all.css">
+
+    <!-- Icons -->
+    <link rel="stylesheet" type="text/css" href="assets/icons/fontawesome/fontawesome.css">
+    <link rel="stylesheet" type="text/css" href="assets/icons/linecons/linecons.css">
+
+    <!-- SNIPPETS -->
+    <link rel="stylesheet" type="text/css" href="assets/snippets/snippets-all.css">
+
+    <!-- Frontend Theme -->
+    <link rel="stylesheet" type="text/css" href="assets/themes/supina/frontend/color.css">
+    <!-- Color Helpers CSS -->
+    <link rel="stylesheet" type="text/css" href="assets/helpers/colors.css">
+    <link rel="stylesheet" type="text/css" href="assets/app/main.css">
+    <link rel="stylesheet" type="text/css" href="assets/app/responsive.css">
+    <link rel="stylesheet" type="text/css" href="assets/app/custom.css">
+
+    </head> 
+    <body class="frontend-layout">
+        <!--Featured AREA-->
+        <div class="featured-area bg-green-gradient">
+            <div class="main-header bg-green-gradient header-fixed wow fadeInDown" data-0="padding:23px 0;">
+                <div class="container clearfix" >
+                    <!--Le menu de la version mobile-->                        
+                        <a href="#" class="hidden-desktop" id="responsive-menu" title=""><i class="glyph-icon icon-align-justify"></i>                      
+                    <!--Fin du menu de la version mobile-->
+                    <!--Brand-->
+                        <a id="navbar-brand" href="#" class="navbar-brand logo" title="Fichier National du Registre de Commerce et des Crédits Mobiliers"> <img class="logo-img" src="images/logo.png" /> </a>
+                    <!--Brand-->
+                    
+                     <!--Brand RESPONSIVE-->
+                     <a id="navbar-brand-responsive" href="#" class="navbar-brand-responsive responsive-logo" title="Fichier National du Registre de Commerce et des Crédits Mobiliers"> <img class="responsive-logo-img" src="images/logo-sm.png" /> </a>
+                     <!--Brand RESPONSIVE-->
+                     <div class="headersearch responsivesearch">
+
+                     </div>
+                    <!--Main Navigation-->
+                    <div class="collapse navbar-collapse">                       
+                        <ul  class="main-nav nav-alt" id="main-nav">                        
+                          <li><a class="btn btn-outline-primary accountBtn"><i class="glyph-icon icon-user"></i> Mon Compte</a></li>   
+                          <li><a class="btn btn-outline-blue shoppingBtn"><i class="glyph-icon icon-shopping-cart"></i> Mon Panier <span class="shopping-badge badge badge-info"> 5 </span></a></li>                       
+                       </ul>
+                    </div>
+                    <!--Main Navigation-->
+               </div>
+            </div>
+            <div id="homeSearchWrapper" class="homeSearchWrapper container ls-container ls-fullwidth">
+                <div class="jumbontron homesearch" id="homesearchbox">
+                    <h1 class="homesearchbox-header"> Accédez à l'information légale sur les entreprises </h1>
+                    <form class="form-horizontal" action="#" method="post"> 
+                        <div class="input-group">
+                            <input type="text" class="form-control input-lg" placeholder="Veuillez saisir le numéro RCCM, le nom commercial ou le nom du promoteur d'une entreprise...." />
+                            <div class="input-group-btn">
+                                <button class="btn btn-lg btn-primary searchBtn"> <span class="glyph-icon icon-search"> </span> </button>
+                            </div>
+                        </div>
+                        <div class="input-group home-search-bottom">
+                            <div class="col-md-8 col-sm-8"></div>
+                            <div class="col-md-4 col-sm-4 pull-right"><a class="pull-right advanced-search-btn" title="Faire une recherche avancée" href="#"> RECHERCHE AVANCEE <i class="glyph-icon icon-chevron-right"></i></a></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!--Fin Featured AREA-->
+        <div id="appDocumentsContainer" class="appDocumentsContainer">
+            <div class="documentsGroupItems container" id="documentsGroupItems">
+                <div class="row section-content">
+                </div>
+                <div class="documentItemBox">
+                    <div class="documentItem" id="documentItemForm">
+                        <div class="documentItem_image"><a title="Accédez gratuitement aux formulaires des entreprises" href="#"><img src="images/formulaire.png" /> </a></div>
+                        <div class="documentItem_body"> <a title="Accédez gratuitement aux formulaires des entreprises" href="#" class="documentItemLink"> FORMULAIRES RCCM </a> </div>
+                    </div>
+                </div>
+                <div class="documentItemBox">
+                    <div class="documentItem" id="documentItemForm">
+                        <div class="documentItem_image"><a title="Accédez aux dossiers complets des entreprises" href="#"><img src="images/dossier-complet.png"  /></a></div>
+                        <div class="documentItem_body"> <a title="Accédez aux dossiers complets des entreprises" href="#" class="documentItemLink"> DOSSIERS COMPLETS </a> </div>
+                    </div>
+                </div>
+                <div class="documentItemBox">
+                        <div class="documentItem" id="documentItemForm">
+                            <div class="documentItem_image"><a title="Téléchargez les statuts et les actes juridiques" href="#"><img src="images/statuts.png"  /></a></div>
+                            <div class="documentItem_body"> <a title="Téléchargez les statuts et les actes juridiques" href="#" class="documentItemLink"> ACTES ET STATUTS </a> </div>
+                        </div>
+                    </div>
+                <div class="documentItemBox">
+                        <div class="documentItem" id="documentItemForm">
+                           <div class="documentItem_image"><a title="Téléchargez les statuts et les actes juridiques" href="#"> <img src="images/modifications.png"  /></a></div>
+                           <div class="documentItem_body"> <a title="Suivez l'historique des modifications" href="#" class="documentItemLink"> HISTORIQUE DES MODIFICATIONS </a> </div>
+                        </div>
+                </div>
+                <div class="documentItemBox">
+                        <div class="documentItem" id="documentItemForm">
+                           <div class="documentItem_image"><a title="Accédez aux états financiers pour vérifier la santé financière de vos clients, fournisseurs..." href="#"><img src="images/suretes.png"  /></a> </div>
+                           <div class="documentItem_body"> <a title="Accédez aux états financiers pour vérifier la santé financière de vos clients, fournisseurs..." href="#" class="documentItemLink"> ETATS D'ENDETTEMENTS </a> </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div id="mainContentWrapper" class="small-padding mainContentWrapper">
+            <div id="maincontent" class="container maincontent">
+                <div class="row section-content">
+                        <div class="col-md-4 col-sm-4 col-xs-12"> <img class="pull-left"  src="images/admin-sytem.png" /></div>
+                        <div class="col-md-8 col-sm-8 col-xs-12">
+                            <h1 class="section-hero"> ERCCM : CONSULTEZ DES RCCM EN LIGNE </h1>                              
+                            <div  class="section-body"> 
+                               <p> Le ERCCM est une plateforme de services en ligne du <a title="A propos de cette structure" href="#"> Fichier National du Registre du Commerce et du Crédit Mobilier (FNRCCM) </a> créée dans le but d'archiver, de centraliser et de rendre accessibles au public les du Registres du Commerce et du Crédit Mobilier (RCCM) immatriculés au Burkina Faso. </p>
+                               <p> Cette plateforme permet la recherche et la consultation en ligne des <a title="Consulter les types de documents officiels" href="#"> documents officiels </a>  des entreprises immatriculées à la <a title="En ssavoir plus sur la maison de l'entreprise" href="#"> Maison de l'Entreprise du Burkina Faso </a>. </p>
+                            
+                            </div>                           
+                        </div>                      
+                </div>               
+            </div>
+        </div>
+        <div id="appFeatureSection" class="app-features-section small-padding">
+            <div id="appFeatures" class="app-features container">
+                  <div class="row section-content">
+                        <div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+                            <div class="panel panel-default grid-layout">
+                                <div class="panel-body">
+                                   <a title="Créer votre compte" href="#" class="grid-layout-link"> <img class="center-block" src="assets/images/icons/guest_register.png" /> </a>
+                                </div>
+                                <div class="panel-footer">
+                                    <h3> <a class="grid-layout-link" href="#" title="Créer votre compte"> Abonnez-vous </a></h3>
+                                    <p>  Inscrivez vous en toute sécurité pour bénéficier des services du ERCCM... </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+                                <div class="panel panel-default grid-layout">
+                                    <div class="panel-body">
+                                       <a href="#" class="grid-layout-link"> <img class="center-block" src="assets/images/icons/searchdocuments.png" /> </a>
+                                    </div>
+                                    <div class="panel-footer">
+                                         <h3> <a href="#" title="Créer votre compte"> Rechercher des entreprises </a></h3>
+                                         <p>  Recherchez des Personnes Physiques ou des Personnes Morales... </p>
+                                    </div>
+                                </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+                                <div class="panel panel-default grid-layout">
+                                    <div class="panel-body">
+                                       <a href="#" class="grid-layout-link"> <img class="center-block" src="assets/images/icons/shoppingcart.png" /> </a>
+                                    </div>
+                                    <div class="panel-footer">
+                                         <h3> <a href="#" title="Créer votre compte"> Votre Panier </a></h3>
+                                         <p>  Alimentez et accédez à votre panier à tout instant. </p>
+                                    </div>
+                                </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+                                <div class="panel panel-default grid-layout">
+                                    <div class="panel-body">
+                                       <a href="#" class="grid-layout-link"> <img class="center-block" src="assets/images/icons/creditcard.png" /> </a>
+                                    </div>
+                                    <div class="panel-footer">
+                                         <h3> <a href="#" title="Créer votre compte"> Paiements Sécurisés </a></h3>
+                                         <p>  Effectuez en toute sécurité vos paiements... </p>
+                                    </div>
+                                </div>
+                        </div>
+                  </div>
+            </div>
+        </div>
+		<div id="helpsection" class="app-help-section section">
+		    <div class="container">
+			    <div class="row section-content">
+                    <div class="col-md-8 col-sm-8 col-xs-12">
+                        <h1 class="section-hero"> ASSISTANCE ? </h1>
+                        
+                        <p class="section-body"> 
+                             Le service client et la satisfaction vont de pair au Fichier National. 
+                             Notre équipe est prête à vous aider, du lundi au vendredi, à la Maison de l'entreprise - par téléphone, courrier électronique ou support en ligne. Vous permettant de passer des commandes, de résoudre des questions techniques ou de vous diriger vers des ressources utiles!
+                        </p>
+                        <a href="#" class="btn btn-danger"   title="Vous souhaitez entrer en contacts avec notre équipe..."> <i class="glyph-icon icon-phone"></i> APPELEZ NOUS AU +226 ........;</a>
+                        <a href="#" class="btn btn-black" title="Vous souhaitez entrer en contacts avec notre équipe..."> <i class="glyph-icon icon-support"></i> ENVOYEZ NOUS UN MAIL</a>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12"> <img class="pull-right"  src="images/customer-service.png" /></div>
+                </div>
+			</div>
+		</div>
+		<div id="newsection" class="app-news-section small-padding section">
+            <div class="container">
+                <div class="row section-content">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <h1  id="section-news-title" class="section-news-title section-hero"> ACTUALITES </h1> 
+                        <div id="section-news-body"  class="section-news-body section-body carousel-container">
+
+                        </div>
+                    </div>  
+                </div>
+            </div>
+		</div>
+        <div id="footersection" class="main-footer inverse section clearfix">
+            <div id="footer-navigation" class="footer-navigation container clearfix">
+               <div class="row section-content">
+                   <div class="col-sm-3 col-md-3"> <img src="images/logo.png" alt="Le logo du FICHIER NATIONAL" /> </div>
+                   <div class="col-sm-3 col-md-3">
+                       <h3 class="footer-header"> A PROPOS </h3>
+                       <ul class="footernav">
+                            <li> <a title="Qui sommes nous ?" href="#">  Qui sommes-nous ?</a></li>
+                            <li> <a title="Accédez au blog du Fichier National" href="#">  Actualités </a></li>
+							<li> <a title="Contactez-nous pour avoir une assistance" href="#">  Assistance </a></li>
+                            <li> <a title="Nous contacter" href="#">  Nous contacter </a></li>
+                       </ul>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                        <h3 class="footer-header"> SERVICES </h3>
+                        <ul class="footernav">
+						    <li> <a title="Créez votre compte professionnel afin d'accéder aux services de la plateforme" href="#"> S'abonner </a></li>
+                            <li> <a title="Effectuez simplement des recherches sur les entreprises immatriculées au Burkina Faso" href="#"> Rechercher des entreprises </a></li>
+                            <li> <a title="Accéder aux documents officiels associés aux différentes entreprises" href="#"> Consulter les documents </a></li>
+                            <li> <a title="Effectuez en toute simplicité vos commandes de documents que vous pourrez télécharger après un paiement" href="#"> Paiements en ligne </a></li>
+                            <li> <a title="Accédez aux données statistiques en matière de création d'entreprises" href="#"> Observatoire statistique </a></li>
+                            <li> <a title="Demander une réservation de nom commercial" href="#"> Réservation de nom </a></li>
+                            <li> <a title="Découvrez les autres services proposés par la plateforme ERCCM" href="#"> Autres services </a></li>
+                        </ul>
+                    </div>
+                    <div class="col-sm-3 col-md-3">
+                            <h3 class="footer-header"> DOCUMENTS OFFICIELS </h3>
+                            <ul class="footernav">
+                                <li> <a title="Télécharger des formulaires RCCM" href="#">  Formulaires RCCM</a></li>
+                                <li> <a title="Télécharger les dossiers complets des entreprises" href="#"> Dossiers complets </a></li>
+                                <li> <a title="Accédez aux actes et aux statuts juridiques" href="#"> Actes et statuts juridiques </a></li>
+                                <li> <a title="Suivez les modifications demandées par une entreprise" href="#"> Historique des modifications </a></li>
+                                <li> <a title="Accédez aux états financiers pour vérifier la santé financière de vos clients" href="#"> Etats d'endettements </a></li>
+                            </ul>
+                    </div>
+               </div>
+            </div>
+            <div id="footer-copyright" class="footer-copyright clearfix">
+                <div class="container clearfix"> 
+                    <div class="footer-logo col-sm-5 col-md-5">  © 2018 ERCCM. Tous droits reservés.  </div>
+                    <div class="social-icons col-md-4 col-sm-4 pull-right"> 
+                        <ul class="social-icons-list">
+                            <li class="social-icons-list-item"> <a href="https://www.facebook.com" target="_blank" title="Suivez-nous sur FACEBOOK"><img src="assets/images/svg/facebook.svg"></a> </li>
+                            <li class="social-icons-list-item"> <a href="https://www.twitter.com"  target="_blank" title="Suivez-nous sur TWITTER" ><img src="assets/images/svg/twitter.svg"></a> </li>
+                            <li class="social-icons-list-item"> <a href="https://www.linkedin.com" target="_blank" title="Suivez-nous sur LINKEDIN"><img src="assets/images/svg/linkedin.svg"></a> </li>
+                        </ul>
+                    </div>
+                </div>               
+            </div>
+        </div>
+        <script type="text/javascript" src="scripts/scripts.min.js"></script>
+        <script type="text/javascript" src="scripts/demo.js"></script>
+        <script type="text/javascript" src="scripts/widgets/bootstrap/bootstrap.min.js"></script>
+        <script type="text/javascript" src="scripts/widgets/sticky/sticky.js"></script>
+        <script type="text/javascript" src="scripts/widgets/wow/wow.js"></script>
+        <script type="text/javascript" src="scripts/init.js"></script>
+  </body>
+</html>

@@ -1,0 +1,713 @@
+<?php 
+$me                 = Sirah_Fabric::getUser();
+$users              = $this->users;
+$demandes           = $this->demandes;
+$priorities         = $this->priorities;
+$statuts            = $this->statuts;
+$types              = $this->types;
+$categories         = $this->categories;
+$filters            = $this->filters;
+$paginator          = $this->paginator;
+
+$basePath           = VIEW_BASE_PATH;
+$myDataPath         = $me->getDatapath();
+$jq                 = $this->jQuery();
+
+$linkSearch         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"list")  ,"default",true);
+$linkCreate         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"create"), "default",true);
+$linkEdit           = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"edit"  ),"default",true);
+$linkVerify         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify"),"default",true);
+$linkDelete         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"delete"),"default",true);
+$linkExport         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"export"),"default",true);
+$linkFilterDemandeur= $this->url(array("module"=>"admin","controller"=>"ajaxres" ,"action"=>"demandeurs","parentform"=>"demandesListSearchForm","selectCmdKey"=>"selectDemandeur","selectedKey"=>"demandeurid","selectedVal"=>"demandeurname") , "default",true);
+$linkSearchDemandeur= $this->url(array("module"=>"admin","controller"=>"ajaxres" ,"action"=>"demandeurslist","parentform"=>"demandesListSearchForm","selectCmdKey"=>"selectDemandeur","selectedKey"=>"demandeurid","selectedVal"=>"demandeurname") , "default",true);
+$linkFilterPromoteur= $this->url(array("module"=>"admin","controller"=>"ajaxres" ,"action"=>"promoteurs","parentform"=>"demandesListSearchForm","selectCmdKey"=>"selectPromoteur","selectedKey"=>"promoteurid","selectedVal"=>"Promoteurname") , "default",true);
+$linkSearchPromoteur= $this->url(array("module"=>"admin","controller"=>"ajaxres" ,"action"=>"promoteurslist","parentform"=>"demandesListSearchForm","selectCmdKey"=>"selectPromoteur","selectedKey"=>"promoteurid","selectedVal"=>"Promoteurname") , "default",true);
+$linkExport         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"export"));
+$linkUserdocuments  = $linkOpenDocuments = $this->url(array("module" =>"admin","controller"=>"userdocuments","action"=>"infos"),"default",true);
+$docUrl             = $myDataPath . DS. "ARCHIVES" . DS ."ERCCM_ListDemandes.pdf";
+ 
+$jq->addOnload("
+jQuery('.demandeCard').css('cursor','pointer');
+jQuery('.demandeCard').click(function( event ){event.preventDefault();document.location.href= jQuery(this).attr('rel');});
+
+jQuery('.chosen').chosen({  allow_single_deselect:true,no_results_text:'Aucun élement ne correspond à ', width:'100%'});
+jQuery('.searchDemandeur').click(function(event){
+    event.preventDefault();
+	var filterListDialog  = jQuery('<div></div>').attr('id','filterListDemandeurs').addClass('modal-medium');          		 
+	filterListDialog.dialog2({title:'Selectionner un mandataire',content:'".$linkSearchDemandeur."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+	filterListDialog.dialog2('open'); 
+});
+jQuery('#selectDemandeur,.selectDemandeur').bind('chooseThis',function(event,data) {
+	event.preventDefault();
+	jQuery('#demandeurid').val(data.demandeurid);
+	jQuery('#demandeurname').val(data.name);
+});
+var demandeursEngine = new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:10,remote:{url:'".$linkFilterDemandeur."?name=%QUERY'}});
+demandeursEngine.initialize();
+jQuery('#demandeurname').typeahead({highlight:true,hint:true,minLength:3},{name:'demandeursList',displayKey:'name',source:demandeursEngine.ttAdapter(),limit:Number.MAX_VALUE,
+                           templates:{
+								dropdown:'<div class=\'typeahead dropdown-menu\'></div>',
+								suggestions: '<ul class=\'list-group\'></ul>',
+								notFound: '<div>Aucun mandataire n\'a été trouvé</div>',
+								pending:'<div> Chargement... </div>',
+                                empty: [
+									'<div class=\'list-group search-results-dropdown\'><div class=\'list-group-item\'> Aucun mandataire ne correspond au nom que vous avez saisi.</div></div>'
+								],
+								header: [
+									'<h5 class=\'suggestions-search-results\'>Demandeurs trouvés: </h5>'
+								],
+                                suggestion: function (data) {
+									 return [
+									 '<div class=\'suggestions-profile-panel list-group-item\'>',
+									 '<span class=\'profile-text list-group-item-heading\'>'+data.label+' </span>',
+									 '</div>'].join(' ')
+								}								
+						   }
+});
+jQuery('.searchDemandeur').click(function(event){
+    event.preventDefault();
+	var filterListDialog  = jQuery('<div></div>').attr('id','filterListDemandeurs').addClass('modal-medium');          		 
+	filterListDialog.dialog2({title:'Selectionner un mandataire',content:'".$linkSearchDemandeur."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+	filterListDialog.dialog2('open'); 
+});
+jQuery('#selectPromoteur,.selectPromoteur').bind('chooseThis',function(event,data) {
+	event.preventDefault();
+	jQuery('#promoteurid').val(data.promoteurid);
+	jQuery('#promoteurname').val(data.name);
+});
+var promoteursEngine = new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:10,remote:{url:'".$linkFilterPromoteur."?name=%QUERY'}});
+promoteursEngine.initialize();
+jQuery('#promoteurname').typeahead({highlight:true,hint:true,minLength:3},{name:'promoteursList',displayKey:'name',source:promoteursEngine.ttAdapter(),limit:Number.MAX_VALUE,
+                           templates:{
+								dropdown:'<div class=\'typeahead dropdown-menu\'></div>',
+								suggestions: '<ul class=\'list-group\'></ul>',
+								notFound: '<div>Aucun promoteur n\'a été trouvé</div>',
+								pending:'<div> Chargement... </div>',
+                                empty: [
+									'<div class=\'list-group search-results-dropdown\'><div class=\'list-group-item\'> Aucun promoteur ne correspond au nom que vous avez saisi.</div></div>'
+								],
+								header: [
+									'<h5 class=\'suggestions-search-results\'>promoteurs trouvés: </h5>'
+								],
+                                suggestion: function (data) {
+									 return [
+									 '<div class=\'suggestions-profile-panel list-group-item\'>',
+									 '<span class=\'profile-text list-group-item-heading\'>'+data.label+' </span>',
+									 '</div>'].join(' ')
+								}								
+						   }
+});
+jQuery('#demandeurname').bind('typeahead:selected',function(obj,datum,name){if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(jQuery('#demandesListSearchForm'),'selecteditem'))){jQuery('#demandeurname').val(datum.name);jQuery('#demandesListSearchForm').find('#demandeurid').val(datum.demandeurid);jQuery('#lastname').val(datum.lastname);jQuery('#firstname').val(datum.firstname);}jQuery.data(jQuery('#demandesListSearchForm'),'selecteditem',datum.name);});
+jQuery('#demandeurname').on('change', function( event ){
+	event.preventDefault();
+	var searchQValue = jQuery(this).val();
+	if( SIRAH.util.isEmpty(searchQValue)) {
+		jQuery('.resetSearch').trigger('click');
+	}	
+});
+jQuery('#promoteurname').bind('typeahead:selected',function(obj,datum,name){if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(jQuery('#demandesListSearchForm'),'selecteditem'))){jQuery('#promoteurname').val(datum.name);jQuery('#demandesListSearchForm').find('#promoteurid').val(datum.promoteurid);jQuery('#lastname').val(datum.lastname);jQuery('#firstname').val(datum.firstname);}jQuery.data(jQuery('#demandesListSearchForm'),'selecteditem',datum.name);});
+jQuery('#promoteurname').on('change', function( event ){
+	event.preventDefault();
+	var searchQValue = jQuery(this).val();
+	if( SIRAH.util.isEmpty(searchQValue)) {
+		jQuery('.resetSearch').trigger('click');
+	}	
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+jQuery('.addDemande').click(function(){    event.preventDefault();document.location.href='".$linkCreate."';});
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('.reset').eq(0).click(function( event ){ event.preventDefault(); document.location.href = '".$linkSearch."'; });		
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch,.resetSearchBtn,.resetForm,.resetSearchBtn').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector   = jQuery('#globalFormSearch') ;
+	var searchData     = {};	
+	searchData.libelle = searchData.objet = searchData.name = searchData.searchQ = '';
+	searchData.reset   = 1;		
+	var maincontent	   = jQuery('#maincontent');				
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });				
+});	
+jQuery('#simpleSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector    = jQuery('#globalFormSearch') ;
+	var searchData      = {};
+	var pageNum         = parseInt(formSelector.find('#page').val());
+	
+	searchData.page     = pageNum;
+	searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+	 
+	searchData.searchq  = searchData.searchQ  = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+	searchData.typeid   = parseInt(jQuery('#globalFormSearch').find('#typeid').val());
+	searchData.reset    = 1;
+	var maincontent     = jQuery('#maincontent');		
+	SIRAH.loading.on(jQuery('#demandesListWrapper'), 'Patientez...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() {},
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });						
+});	
+jQuery('.sirahPaginationBtn').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		return false;
+	}
+	var formSelector        = jQuery('#demandesListSearchForm') ;
+	var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+	var pageMaxitems        = formSelector.find('#maxitems').val();
+	var disponible          = 4;
+	var expired             = 4;
+	var web                 = 4;
+	var typeid              = 4;
+	if( jQuery('input[name=\'disponible\']:checked').attr('id')!==undefined) {
+		disponible                 = jQuery('input[name=\'disponible\']:checked').val();   
+	}
+	if( jQuery('input[name=\'expired\']:checked').attr('id')!==undefined) {
+		expired                    = jQuery('input[name=\'expired\']:checked').val();   
+	}
+	if( jQuery('input[name=\'web\']:checked').attr('id')!==undefined) {
+		web                        = jQuery('input[name=\'web\']:checked').val();   
+	}
+	if( jQuery('input[name=\'typeid\']:checked').attr('id')!==undefined) {
+		typeid                     = jQuery('input[name=\'typeid\']:checked').val();   
+	}
+	if( jQuery(this).is('.nextPage')) {
+		var currentBtnNum              = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum                        = parseInt( currentBtnNum +1);
+	}
+	if( jQuery(this).is('.prevPage')) {
+		var currentBtnNum              = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum                        = parseInt( currentBtnNum - 1);
+	}
+	var paginationData                 = {};
+	paginationData.page                = pageNum;
+	paginationData.maxitems            = parseInt(formSelector.find('#maxitems').val());	
+
+	paginationData.demandeurname       = formSelector.find('#demandeurname').val();
+	paginationData.promoteurname       = formSelector.find('#promoteurname').val();
+	paginationData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+	paginationData.numero              = jQuery.trim(formSelector.find('#numero').val());
+	paginationData.typeid              = parseInt(formSelector.find('#typeid').val());
+	paginationData.demandeurid         = parseInt(formSelector.find('#demandeurid').val());
+	paginationData.promoteurid         = parseInt(formSelector.find('#promoteurid').val());
+	paginationData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+    paginationData.web                 = web;
+	paginationData.statutid            = parseInt(formSelector.find('#statutid').val());
+	paginationData.disponible          = disponible;
+	paginationData.expired             = expired;
+	
+	paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+	paginationData.maxitems            = pageMaxitems;
+	paginationData.page                = pageNum;
+	paginationData.reset               = 1;
+	
+	var maincontent                    = jQuery('#maincontent');			
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : paginationData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });		
+});	
+jQuery('#searchDemandes,.searchDemandes').click(function( event ){
+	event.preventDefault();
+	var formSelector               = jQuery('#demandesListSearchForm') ;
+	var searchData                 = {};
+	searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+	
+	var disponible                 = 4;
+	var expired                    = 4;
+	var web                        = 4;
+ 
+	if( jQuery('input[name=\'disponible\']:checked').attr('id')!==undefined) {
+		disponible                 = jQuery('input[name=\'disponible\']:checked').val();   
+	}
+	if( jQuery('input[name=\'expired\']:checked').attr('id')!==undefined) {
+		expired                    = jQuery('input[name=\'expired\']:checked').val();   
+	}
+	if( jQuery('input[name=\'web\']:checked').attr('id')!==undefined) {
+		web                        = jQuery('input[name=\'web\']:checked').val();   
+	}
+	 
+	searchData.demandeurname       = formSelector.find('#demandeurname').val();
+	searchData.promoteurname       = formSelector.find('#promoteurname').val();
+	searchData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+	searchData.numero              = jQuery.trim(formSelector.find('#numero').val());
+	searchData.typeid              = parseInt(formSelector.find('#typeid').val());
+	searchData.demandeurid         = parseInt(formSelector.find('#demandeurid').val());
+	searchData.promoteurid         = parseInt(formSelector.find('#promoteurid').val());
+	searchData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+
+	searchData.statutid            = parseInt(formSelector.find('#statutid').val());
+	searchData.disponible          = disponible;
+	searchData.expired             = expired;
+	searchData.web                 = web;
+ 
+	searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+	searchData.reset               = 1;
+	
+	var maincontent	               = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent , 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });						
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedDemandesId = function() {
+	var checkedItems = jQuery('#demandesListTable').find('input[type=\'checkbox\'][name!=\'checkAll\']:checked');
+	var checkedIds   = []; 
+	if( checkedItems) {
+		checkedItems.each(function() {
+			var demandeid   = parseInt(jQuery(this).attr('id').replace('demandeids',''));
+			checkedIds.push(demandeid);
+		});
+	}
+	return checkedIds;
+};
+jQuery('#demandesListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','verifyButton','exportButton','editButton']);});
+jQuery('#demandesListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','verifyButton','exportButton','editButton']);});
+jQuery('#demandesListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','verifyButton','exportButton','editButton']);});
+jQuery('#demandesListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#demandesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','verifyButton','exportButton','editButton']);
+	}
+});");
+ 
+$onLoad = "";
+ 
+$jq->addOnload($onLoad);				
+   
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouvelle demande", "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "pencil");
+$toolVerify = $toolbar->tool("Vérifier la disponibilité" , "check");
+$toolExport = $toolbar->tool("Exporter" , "download");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+
+if( $me->isAllowed("demandes","create") ) {
+	$toolbar->add( $toolCreate, "createButton");
+	$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" ,$linkCreate));
+}
+if( $me->isAllowed("demandes", "edit")) {
+	$toolbar->add( $toolEdit, "editButton");
+	$toolEdit->disable();					 
+    $toolEdit->onClick(" 
+			var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+			var checkedItem  = jQuery('#demandesListTable').find('input[type=\'checkbox\'][name=\'demandeids[]\']:checked').eq(0);
+			if( isDisabled || !checkedItem) {
+				 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+				 return;
+			}
+			var demandeid    = parseInt(checkedItem.attr('id').replace('demandeids',''));
+			var dialogEdit   = jQuery('<div> Voulez-vous vraiment modifier les informations de la demande selectionnée? </div>').attr('id','dialogEdit');             		 
+			dialogEdit.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+			dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Non', {primary: false,click : function(){jQuery(this).dialog2('close');}}); 
+			dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : function(){document.location.href ='".$linkEdit."/demandeid/'+demandeid;}}); 			                		
+			dialogEdit.dialog2('open');");
+}
+if( $me->isAllowed("demandes", "verify")) {
+	$toolbar->add( $toolVerify,"verifyButton");
+	$toolVerify->disable();					 
+    $toolVerify->onClick(" 
+			var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+			var checkedItem  = jQuery('#demandesListTable').find('input[type=\'checkbox\'][name=\'demandeids[]\']:checked').eq(0);
+			if( isDisabled || !checkedItem) {
+				SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+				return;
+			}
+			var demandeid    = parseInt(checkedItem.attr('id').replace('demandeids',''));
+			var dialogVerify = jQuery('<div> Voulez-vous vraiment procéder à la vérification de disponibilité de la demande selectionnée? </div>').attr('id','dialogVerify');             		 
+			dialogVerify.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+			dialogVerify.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Non', {primary: false,click : function(){jQuery(this).dialog2('close');}}); 
+			dialogVerify.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : function(){document.location.href ='".$linkVerify."/demandeid/'+demandeid;}}); 			                		
+			dialogVerify.dialog2('open');");
+}
+if( $me->isAllowed("demandes","export") ) {
+	$toolbar->add( $toolExport, "exportButton");
+	$toolExport->onClick(sprintf("
+									event.preventDefault(); 
+									var isDisabled     = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+									var checkedDemandes = getCheckedDemandesId();
+									if( isDisabled || SIRAH.util.isEmpty( checkedDemandes )) {
+										SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										return;
+									}
+									var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+										  click:function(event){
+												jQuery(this).dialog2('close');
+												var formSelector = jQuery('#demandesListSearchForm');
+												SIRAH.request.post(jQuery('#demandesListSearchForm'),'%s',{
+																	data:{'demandeids[]':checkedDemandes},
+																	 success:function( data ){
+																			var mainContentSelector = jQuery('#maincontent');
+																			jQuery('#patientez').fadeOut('slow');
+																			jQuery('#sirah-page-message').fadeOut('slow');
+																			if( undefined !== data.error){
+																				SIRAH.error.raise(mainContentSelector,data.error,'error');
+																				return data;
+																			} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+																				SIRAH.loading.off(false);
+																				var listOfDemandeUri = '%s';
+																				var dialogTitle     = encodeURIComponent('Liste des dossiers');
+																				var linkViewDoc     = '%s?doc='+listOfDemandeUri+'&dialogTitle='+dialogTitle;
+												 
+																				var documentDialog  = jQuery('<div/>').attr('id','documentDialog'); 
+																				documentDialog.dialog2({title:'Ouverture du document..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+																				documentDialog.dialog2('open');
+																			}	else if( undefined !== data.reload ) {
+																				var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+																				document.location.href  =  reloadurl ;
+																			} else {
+																				SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+																				return data;
+																			}
+																	 }
+												});
+										  }
+									});
+									dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									dialogConfirmExport.dialog2('open');", $linkExport,urlencode($docUrl), $linkOpenDocuments));
+}
+if( $me->isAllowed("demandes", "delete")) {
+	$toolbar->add( $toolDelete, "deleteButton");
+	//$toolDelete->disable();					 
+    $toolDelete->onClick(" 
+			var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+			var checkedDemandes = getCheckedDemandesId();
+			if( SIRAH.util.isEmpty(checkedDemandes)) {
+				SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+				return;
+			}
+			var dialogDelete     = jQuery('<div> Voulez-vous vraiment supprimer les demandes selectionnées? </div>').attr('id','dialogDelete');             		 
+			dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+			dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}}); 
+			dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{
+								  primary:true,click : 
+								  function(){
+												jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'demandeids[]':checkedDemandes},type:'GET' ,
+															success  : function(data) {
+																jQuery('#dialogDelete').html('');
+																if(data.error !== undefined) {
+																   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																   return;
+																} else if(data.success !== undefined) {
+																   var checkedDemandes = getCheckedDemandesId();  	            		
+																  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																  setTimeout(function(){jQuery.each(checkedDemandes,function(key,demandeid){jQuery('#demandeRowId-'+demandeid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+															   }
+															}
+												});     		
+									}
+			}); 			                		
+			dialogDelete.dialog2('open');");
+}
+$this->toolsbar = $toolbar;
+//$pagination     = $this->supinaPagination(array(), "Jumping" , "#"); 
+$pagination     = $this->pagination(array(), "Elastic","#",array(), array("class"=> "panel-footer paginationControl", "style" => "text-align:center;"));    
+ 
+$basePath           = ROOT_PATH.'/myTpl/public';
+$viewBasePath       = VIEW_BASE_PATH;
+ 
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.date.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.time.css");
+$jq->addStyleSheet(    $viewBasePath ."/css/typeahead.css");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.date.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.time.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/translations/fr_FR.js");
+$jq->addJavascriptFile($viewBasePath."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile($viewBasePath."/js/typeahead/dist/typeahead.bundle.min.js");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+p.list-group-item-text {margin-bottom:1px !important;font-size:12px !important;line-height:1.3em !important}
+#selectCatBtn,#selectTypeBtn{width:150px !important;font-size:12px !important;}
+#selectCatBtn .input-lg,#selectTypeBtn .input-lg{font-size:12px !important;}
+.col-lg-1,.col-lg-10,.col-lg-11,.col-lg-12,.col-lg-2,.col-lg-3,.col-lg-4,.col-lg-5,.col-lg-6,.col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9{pdding-left:5px;padding-right:5px;}
+.form-horizontal .form-group {margin-right: 0px;margin-left:0px;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label,.form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single   .chosen-single{height:35px;line-height:35px;}
+#periode_start_year_chosen .chosen-single{border-top-right-radius:0px !important;border-bottom-right-radius:0px !important}
+#periode_end_year_chosen   .chosen-single{border-top-left-radius:0px !important;border-bottom-left-radius:0px !important}
+.period-chosen             .chosen-single{border-radius:0px !important;}
+#periode_start_day_chosen  .chosen-single{border-top-left-radius:5px !important;border-bottom-left-radius:5px !important;}
+#periode_end_year2_chosen  .chosen-single{border-top-right-radius:5px !important;border-bottom-right-radius:5px !important;}
+.input-group > .input-group-btn:last-child > .selectpicker {border-top-right-radius: 5px;border-bottom-right-radius: 5px;}
+.input-group > .input-group-btn:first-child> .selectpicker {border-top-left-radius: 5px; border-bottom-left-radius: 5px;}
+.input-group > .form-control:first-child,.input-group >.twitter-typeahead>.form-control{border-top-left-radius:5px; border-bottom-left-radius: 5px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="demandesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-red-alt">
+		    <form class="form-horizontal globalFormSearch" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		        <div class="input-group">
+				    <span class="input-group-btn selectBtn"> <?php echo $this->formSelect("typeid", intval($filters["typeid"]),array("class" => "form-control input-lg"), $this->types); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ" type="text" class="form-control input-lg" placeholder="Recherchez une demande, saisir des mots clés...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"      class="btn btn-lg btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span> </button>
+					   <button id="advancedSearchBtn" class="btn btn-lg btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Avancée</button>
+					   <button id="resetSearchBtn"    class="btn btn-lg btn-danger  resetSearchBtn"    type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+				</div>
+			    <input type="hidden" name="demandeurid" id="demandeurid" value="<?php echo $filters["demandeurid"];?>" /> 
+				<input type="hidden" name="promoteurid" id="promoteurid" value="<?php echo $filters["promoteurid"];?>" /> 
+				<input type="hidden" name="statutid"    id="statutid"    value="<?php echo $filters["statutid"];?>"    /> 
+				<input type="hidden" name="page"        id="page"        value="<?php echo $this->pageNum; ?>"         /> 
+				<input type="hidden" name="maxitems"    id="maxitems"    value="<?php echo $this->pageSize;?>"         />
+			</form>
+		</div>
+		<form id="demandesListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >
+		    <ul class="list-group">
+			    <li class="list-group-item"> 
+				    <div class="form-group">
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Type demande:</b> </label> 
+					    <div   class="col-sm-4 col-md-4"> <?php echo $this->formSelect("typeid",intval($filters["typeid"]), array("class"=> "form-control"), $this->types ); ?>  </div>
+					   
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Mots clés:</b> </label> 
+					    <div   class="col-sm-4 col-md-4"><input value="<?php echo $filters['libelle'];?>" id="libelle" name="libelle" type="text" class="form-control" placeholder="Saisir des mots clés..."> </div> 					    
+				    </div> 			   
+				</li>
+				<li class="list-group-item">  
+					<div class="form-group">              
+						<label class="col-sm-2  col-md-2 control-label"> Mandataire: </label> 
+						<div   class="col-sm-10 col-md-10">
+							<div class="input-group">				 
+								<input class="form-control typeahead" id="demandeurname" type="text" maxlength="350" title="Nom et prénom(s) du mandataire" placeholder="Nom et prénom(s) du mandataire" name="demandeurname" value="<?php echo $this->demandeurName; ?>">
+								<div class="input-group-btn"> 
+									<button id="selectDemandeurBtn" title="Selectionnez le mandataire de cette demande" type="submit" class="btn btn-primary searchDemandeur"><span class="glyph-icon icon-search"></span> Selectionner </button>                   
+								</div>
+							</div> 
+						</div>
+						<p id="demandeur-validation-message" class="validation-message"></p>    
+					</div>
+					<input type="hidden" name="demandeurid"     id="demandeurid" value="<?php echo intval($filters["demandeurid"]); ?>"  />
+					<input type="hidden" name="selectDemandeur" id="selectDemandeur"      />				
+				</li> 
+				<li class="list-group-item">  
+					<div class="form-group">              
+						<label class="col-sm-2  col-md-2 control-label"> Promoteur: </label> 
+						<div   class="col-sm-10 col-md-10">
+							<div class="input-group">				 
+								<input class="form-control typeahead" id="promoteurname" type="text" maxlength="350" title="Nom et prénom(s) du promoteur" placeholder="Nom et prénom(s) du promoteur" name="promoteurname" value="<?php echo $filters['promoteurname']; ?>">
+								<div class="input-group-btn"> 
+									<button id="selectPromoteurBtn" title="Selectionnez le promoteur de cette demande" type="submit" class="btn btn-primary searchPromoteur"><span class="glyph-icon icon-search"></span> Selectionner </button>                   
+								</div>
+							</div> 
+						</div>
+						<p id="promoteur-validation-message" class="validation-message"></p>    
+					</div>
+					<input type="hidden" name="promoteurid"     id="promoteurid" value="<?php echo intval($filters["promoteurid"]); ?>"  />
+					<input type="hidden" name="selectPromoteur" id="selectPromoteur"      />				
+				</li>
+				<li class="list-group-item"> 
+				    <div class="form-group"> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Localité:</b> </label> 
+					   <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("localiteid", intval($filters["localiteid"]),array("class" => "form-control chosen"), $this->localites); ?> </div> 
+					   
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Année de création:</b> </label>
+					   <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("annee",intval($filters["annee"]), array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+				    </div> 			   
+				</li>
+				<li class="list-group-item"> 
+				    <div class="form-group">
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Statut:</b> </label> 
+					    <div   class="col-sm-4 col-md-4"> <?php echo $this->formSelect("statutid"  ,intval($filters["statutid"])   , array("class"=>"form-control chosen"), $statuts); ?>  </div> 
+				    
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Demande en ligne: </b> </label> 
+						<div   class="col-sm-4 col-md-4"> 
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-1" value="1" <?php if($filters["web"]=="1") echo "checked"; ?>> Oui </label>          
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-0" value="0" <?php if($filters["web"]=="0") echo "checked"; ?>> Non </label>
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-4" value="4" <?php if($filters["web"]=="4") echo "checked"; ?>> Peu Importe </label>
+						</div>
+					</div> 			   
+				</li>
+				 
+				<li class="list-group-item"> 
+				    <div class="form-group">
+						<label class="col-sm-2 col-md-2 control-label">  <b> Disponible: </b> </label> 
+						<div   class="col-sm-4 col-md-4"> 
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="disponible" id="disponible-1" value="1" <?php if($filters["disponible"]=="1") echo "checked"; ?>> Oui </label>          
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="disponible" id="disponible-0" value="0" <?php if($filters["disponible"]=="0") echo "checked"; ?>> Non </label>
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="disponible" id="disponible-4" value="4" <?php if($filters["disponible"]=="4") echo "checked"; ?>> Peu Importe </label>
+						</div>				    
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Expirée: </b> </label> 
+						<div   class="col-sm-4 col-md-4"> 
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="expired" id="expired-1" value="1" <?php if($filters["expired"]=="1") echo "checked"; ?>> Oui </label>          
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="expired" id="expired-0" value="0" <?php if($filters["expired"]=="0") echo "checked"; ?>> Non </label>
+							<label class="radio-inline"><input class="custom-radio" type="radio" name="expired" id="expired-4" value="4" <?php if($filters["expired"]=="4") echo "checked"; ?>> Peu Importe </label>
+						</div>
+					</div> 			   
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">                                
+						<label class="col-sm-2 col-md-2 control-label"> <b> Période:</b> </label> 
+						<div   class="col-sm-10 col-md-10"> 
+							<div class = "input-group input-group-chosen period-chosen">
+							  <?php echo $this->formSelect("periode_start_day",  $params["periode_start_day"] , array("class"=>"form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray(),"");?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_start_month",$params["periode_start_month"],array("class"=>"form-control chosen grpChosen"),array("00"=>"Mois")+$this->months(),"-"); ?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_start_year", $params["periode_start_year"], array("class"=>"form-control chosen grpChosen"), array("0000"=>"Debut année")+createYearsArray(2005,(date("Y")) ));?>									  
+								
+							  <span class="input-group-addon chosen-grp-addon bg-primary"> Au : </span>
+							  <?php echo $this->formSelect("periode_end_day"  , $params["periode_end_day"]     , array("class"=>"form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray(),"");?> 
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_end_month", $params["periode_end_month"], array("class"=>"form-control chosen grpChosen"),array("00"=>"Mois")+$this->months(),"-"); ?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_end_year", $params["periode_end_year"]  , array("class"=>"form-control chosen grpChosen"), array("0000"=>"Debut année")+createYearsArray(2005, (date("Y")+1) ));?>
+							</div>
+						</div>
+					</div>
+				</li>
+                <li class="list-group-item">
+					<div class="form-group"> 
+						<?php if( $me->isAdmin()): ?>
+						  <label class="col-sm-2 col-md-2 control-label">  <b> Greffier:</b> </label>
+						  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("creatorid", $filters["creatorid"] , array("class" => "form-control chosen"), $this->users);?></div>
+						<?php endif; ?>
+						
+						<label class="col-sm-2 col-md-2 control-label">  <b> Resultats par page:</b> </label> 
+						<div   class="col-md-5 col-sm-5"> <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control chosen"),array( "10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=>5000,"100000000"=>"Tout")); ?> </div>
+					</div>
+				</li>				
+			</ul>
+			<div class="panel-footer"> 
+				<button id="searchDemandes" class="btn btn-primary searchDemandes advancedSearchBtn" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+				<button id="resetSearch"    class="btn btn-danger  resetSearch    resetSearchBtn"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+			 </div>
+			    <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>" />
+			    <input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+		</form>
+		<table class="table table-hover table-striped sirah-ui-table scrollable fixedTabla demandesListTable" id="demandesListTable" style="width:100%">
+			<thead>
+				<th width="3%"> <input type="checkbox" name="checkAll" id="checkAll" class="checkAll checker" /> </th>	
+				<th width="15%"> Mandataires </th>
+                <th width="52%"> Objets      </th> 								 										
+				<th width="15%"> Promoteurs  </th>
+                <th width="15%"> Statuts     </th>				
+			</thead>
+			<?php
+				$output        = "";
+				if( count(   $demandes ) ) {
+					foreach( $demandes as $demande ) {
+							 $demandeid          = $demande["demandeid"];
+							 $demandeTypeId      = $demande["typeid"];
+							 $demandeNumero      = $demande["numero"];
+							 $demandeLibelle     = $demandeObject = $demande["libelle"];
+							 $demandeLocalite    = $demande["localite"];
+							 $demandeRetries     = (isset($demande["retries"]))?$demande["retries"] : 0;
+							 $demandeurName      = (isset($demande["demandeur"]) && !empty($demande["demandeur"]))?$demande["demandeur"] : ((isset($demande["demandeurName"]))?$demande["demandeurName"] : "");
+                             $promoteurName      = (isset($demande["promoteur"]) && !empty($demande["promoteur"]))?$demande["promoteur"] : ((isset($demande["promoteurName"]))?$demande["promoteurName"] : "");
+							 $demandeType        = $demande["type"];
+							 $demandeStatut      = $demande["statut"];
+							 $zendDate           = (intval($demande['date']))?new Zend_Date($demande['date'],Zend_Date::TIMESTAMP) : null;
+							 $dateDemande        = $demandeDate = ( $zendDate )? $zendDate->toString("dd MMMM yyyy") : null;
+                             $linkInfos          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"infos","demandeid"=>$demandeid), "default",true);
+							 $bgColor            = "";
+							 if( intval($demande["web"])==1) {
+								 $badgeHTML      = " <span title=\"Cette demande a été créée en ligne\" class=\"bs-badge badge-absolute float-right badge-danger\"> <i class=\"glyph-icon icon-asterisk\"> </i> Demande en ligne </span> ";
+							     $demandeObject  =" <li title=\"Consulter détails de cette demande \" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+														<div class=\"row\" style=\"padding:0px !important;\">
+															<div class=\"col-md-12 col-sm-12\"> 
+															   ".$badgeHTML."
+															   <h4 style=\"text-align:left;padding-top:5px;\" class=\"list-group-item-heading\"><u><a title=\"Consulter détails de cette demande\" href=\"".$linkInfos."\"> ".$demandeLibelle." </a></u></h4>
+															   <p class=\"list-group-item-text\"> <strong><u> Numéro : </u> </strong> ".$demandeNumero     ." </p>
+												               <p class=\"list-group-item-text\"> <strong><u> Date   : </u> </strong> ".$demandeDate." </p>
+															   <p class=\"list-group-item-text\"> <strong><u> Juridiction  : </u> </strong> ".$demandeLocalite." </p>";
+								 if( $demandeRetries ) {
+									 $demandeObject.= sprintf("<p class=\"list-group-item-text\"> <strong><u> Nbre de noms réessayés  : </u> </strong> %d </p>", intval($demandeRetries));
+								 }
+								 $demandeObject.="          </div>
+														</div>
+													</li>";
+							 } else {
+								 $demandeObject ="  <li title=\"Consulter détails de cette demande \" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+														<div class=\"row\" style=\"padding:0px !important;\">
+															<div class=\"col-md-12\"> 
+															   <h4 style=\"text-align:left;padding-top:10px;\" class=\"list-group-item-heading\"><u><a title=\"Consulter détails de cette demande\" href=\"".$linkInfos."\"> ".$demandeLibelle." </a></u></h4>
+															   <p class=\"list-group-item-text\"> <strong><u> Numéro : </u> </strong> ".$demandeNumero     ." </p>
+												               <p class=\"list-group-item-text\"> <strong><u> Date   : </u> </strong> ".$demandeDate." </p>
+															   <p class=\"list-group-item-text\"> <strong><u> Juridiction : </u> </strong> ".$demandeLocalite." </p>
+															</div>
+														</div>
+													</li>";
+							 }
+							 if( intval($demande["expired"])==1) {
+								 $bgColor        = "alert danger";
+							 }
+							 $output   .=" <tr id=\"demandeRowId-".$demandeid."\">";
+								$output.= "<td width=\"3%\"  class=\"".$bgColor." email-body\"><input type=\"checkbox\" name=\"demandeids[]\" id=\"demandeids".$demandeid."\" class=\"demandeids checker\" /> </td>";
+								$output.= "<td width=\"15%\" class=\"".$bgColor." email-body\"><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeurName."</a> </td>";											
+								$output.= "<td width=\"52%\" class=\"".$bgColor."\" rel=\"".$linkInfos."\" style=\"padding:4px !important;\" class=\"list-group demandeCard\">   ".$demandeObject."  </td>";   
+								$output.= "<td width=\"15%\" class=\"".$bgColor." email-body\"><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$promoteurName."</a> </td>";											
+								$output.= "<td width=\"15%\" class=\"".$bgColor." email-body\"><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeStatut."</a></td>";
+							 $output .=" </tr>";
+					}
+				} else {
+							 $output .="<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"7\"> AUCUNE DEMANDE N'A ETE TROUVEE </td></tr>";
+				}
+				echo $output;
+			?>
+		</table>
+		<?php echo $pagination->render(); ?>
+    </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

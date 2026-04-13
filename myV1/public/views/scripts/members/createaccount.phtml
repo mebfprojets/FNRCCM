@@ -1,0 +1,42 @@
+<?php
+    $tplPath      = ROOT_PATH."/myTpl/public";
+    $me           = Sirah_Fabric::getUser();
+	
+	$layout       = Zend_Layout::getMvcInstance();
+	$view         = $layout->getView();
+	
+	$linkCarriers = $view->url(array("controller"=>"members","action"=>"account","module"=>"public"),"default");
+	$linkShippers = $view->url(array("controller"=>"shippers","action"=>"account","module"=>"public"),"default");
+?>
+<?php $view->headStyle()->captureStart() ?>
+.grid-layout{position:relative;z-index:3;}
+.grid-layout img{height:100px;}
+.grid-layout h3{color:#009aca !important;font-size:15px;font-weight:bold;font-family:'Raleway',sans-serif !important;text-decoration:underline}
+.grid-layout p{font-size:13px;height:50px;}
+.grid-layout > .panel-body {padding: 0px;position:relative;z-index:3;border:1px solid #f5f5f5;}
+.grid-layout > .panel-footer {text-align:center;position:relative;z-index:3}
+.grid-layout:before {position:absolute;left:0;height:60%;bottom:0;width: 100%;content:"";background-color:#ffffff;z-index: 2;}
+.grid-layout:after{content:"";position:absolute;height:50%;width:96%;left:50%;bottom:2px;margin-left:-48%;-webkit-box-shadow:0 5px 7px #999999;box-shadow:0 5px 7px #999999;z-index:1;border-radius:10%;-webkit-transition: all 0.3s ease-in-out;-o-transition: all 0.3s ease-in-out;transition: all 0.3s ease-in-out;}
+<?php $view->headStyle()->captureEnd(); ?>
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-6 equal-height-panels">
+		<div class="panel panel-default grid-layout">
+			<div class="panel-body"> <a title="Créer un compte expéditeur" href="#"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/package.png" /></a></div>
+			<div class="panel-footer">
+				<h3> <a title="Expédiez votre colis..." href="<?php echo $linkShippers; ?>"> Compte Expéditeur </a> </h3>
+				<p> Créer votre compte expéditeur et réserver des place pour l'envoi de vos colis en toute simplicité... </p>
+				<a title="Vous êtes un expéditeur ou un transporteur..." href="<?php echo $linkShippers; ?>"> Je m'inscris...</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-xs-12 col-sm-6 col-md-6 equal-height-panels">
+		<div class="panel panel-default grid-layout">
+			<div class="panel-body"> <a title="Créer un compte transporteur sur la plateforme" href="#"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/members.png" /></a></div>
+			<div class="panel-footer">
+				<h3> <a title="Expédiez votre colis..." href="<?php echo $linkCarriers;?>"> Compte Transporteur </a> </h3>
+				<p> Créer votre compte transporteur, annoncez vos voyages et trouvez des expéditeurs pour rentabiliser votre voyage... </p>
+				<a title="Annoncez votre voyage et trouvez des expéditeurs..." href="<?php echo $linkCarriers; ?>"> Je m'inscris...</a>
+			</div>
+		</div>
+	</div>
+</div>

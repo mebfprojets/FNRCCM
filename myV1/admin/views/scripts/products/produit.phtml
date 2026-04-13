@@ -1,0 +1,99 @@
+<?php 
+$produit      = $this->produit;
+$produitid    = $this->produitid;
+$marque       = $this->marque;
+$gamme        = $this->gamme;
+$laboratoire  = $this->laboratoire;
+$categorie    = $this->categorie;
+
+$creationDate         = $updateDate = "00/00/0000";
+$creator              = Sirah_Fabric::getUser($produit->creatorid);
+$updatedUser          = Sirah_Fabric::getUser($produit->updateduserid);
+if( $produit->creationdate ) {
+	$zendCreationdate = new Zend_Date( $produit->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("dd MMM Y");
+}
+if( $produit->updatedate ) {
+	$zendUpdatedate   = new Zend_Date( $produit->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate       = $zendUpdatedate->toString("dd MMM Y");
+}
+?>
+<ul class="list-group">
+  <li class="list-group-item">
+   <div class="row"> 
+     <div class="col-md-4"> <b> Référence :</b></div> 
+     <div class="col-md-8"><?php echo $produit->code; ?></div>
+   </div>
+  </li>
+  <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-4"> <b> Désignation:</b></div> 
+        <div class="col-md-8"><?php echo $produit->libelle; ?></div>
+    </div>
+  </li>
+  <li class="list-group-item">
+    <div class="row"> 
+       <div class="col-md-4"> <b> Type de produit :</b></div> 
+        <div class="col-md-8"><?php echo ( $categorie ) ? $categorie->libelle : ""; ?></div>
+    </div>
+  </li> 
+  <li class="list-group-item">
+    <div class="row"> 
+       <div class="col-md-4"> <b> Gamme :</b></div> 
+       <div class="col-md-8"><?php echo ( $gamme ) ? $gamme->libelle : ""; ?></div>
+    </div>
+  </li>
+ <?php if( $marque ): ?>
+  <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-4"> <b> Marque :</b></div> 
+        <div class="col-md-8"><?php echo $marque->libelle; ?></div>
+    </div>
+  </li>
+ <?php endif; ?>
+ <?php if( $laboratoire ): ?>
+    <li class="list-group-item">
+      <div class="row"> 
+        <div class="col-md-4"> <b> Laboratoire source :</b></div> 
+        <div class="col-md-8"><?php echo $laboratoire->libelle; ?></div>
+      </div>
+    </li>
+ <?php endif; ?>   
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-4"> <b> Prix d'achat TTC :</b></div> 
+        <div class="col-md-8"><?php echo ( $produit->prix_achat_ttc ) ? number_format( $produit->prix_achat_ttc, 0, " ", " " ) : ""; ?></div>
+    </div>
+   </li>
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-4"> <b> Prix de vente TTC :</b></div> 
+        <div class="col-md-8"><?php echo ( $produit->prix_vente_ttc ) ? number_format( $produit->prix_vente_ttc, 0, " ", " " ) : ""; ?></div>
+    </div>
+   </li>
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-4"> <b> Produit de stocks :</b></div> 
+        <div class="col-md-8"><?php echo ( $produit->stocked ) ? "Oui" : "Non"; ?></div>
+    </div>
+   </li>
+  <?php if( $produit->creatorid ): ?>
+    <li class="list-group-item">
+        <div class="row"> 
+           <div class="col-md-4"> <b> Enregistré le:</b></div> 
+           <div class="col-md-8"><?php printf("%s par %s %s", $creationDate , $creator->lastname, $creator->firstname ); ?></div>
+        </div>
+    </li>
+  <?php endif; ?>
+  <?php if( $produit->updateduserid ): ?>
+    <li class="list-group-item">
+        <div class="row"> 
+         <div class="col-md-4"> <b> Mis à jour le:</b> </div> 
+         <div class="col-md-8"><?php printf("%s par %s %s", $updateDate, $updatedUser->lastname, $updatedUser->firstname ); ?></div>
+        </div>
+    </li>
+   <?php endif; ?> 
+</ul> 
+
+
+ 

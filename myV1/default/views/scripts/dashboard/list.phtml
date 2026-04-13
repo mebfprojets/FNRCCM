@@ -1,0 +1,67 @@
+<?php
+   $me            = Sirah_Fabric::getUser();    
+   $allowedPanels = 0;
+   
+         
+   $basePath      = VIEW_BASE_PATH;
+   $linkPhysique  = $this->url(array("controller" => "registrephysique", "action" => "list" ), "default");
+   $linkMoral     = $this->url(array("controller" => "registremoral", "action" => "list" ), "default");
+   $linkLocalites = $this->url(array("controller" => "localites", "action" => "list" ), "default");
+   $linkDomaines  = $this->url(array("controller" => "domaines", "action" => "list" ), "default");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+<div   class="row">
+   <?php if( $me->isAllowed("registrephysique", "list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-user"> </i>  </div>
+                 <div class="panel-content bg-black"> <h3> <a style="color:white;" href="<?php echo $linkPhysique; ?>"> Personnes physiques </a> </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   
+   <?php if( $me->isAllowed("registremoral", "list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-users font-blue"> </i>  </div>
+                 <div class="panel-content bg-blue-alt"> <h3> <a style="color:white;" href="<?php echo $linkMoral; ?>"> Personnes morales </a>  </h3> </div>
+             </div>         
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   
+   <?php if( $me->isAllowed("domaines", "list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-briefcase font-green"> </i>  </div>
+                 <div class="panel-content bg-green"> <h3> <a style="color:white;" href="<?php echo $linkDomaines; ?>"> Domaines d'activités </a>  </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   
+   <?php if( $me->isAllowed("localites", "list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-linecons-location font-orange"> </i>  </div>
+                 <div class="panel-content bg-orange"> <h3> <a style="color:white;" href="<?php echo $linkLocalites; ?>"> Gestion des localités</a> </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   
+</div>
+
+
+

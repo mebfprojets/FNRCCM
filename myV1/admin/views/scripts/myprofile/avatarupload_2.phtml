@@ -1,0 +1,132 @@
+<input id="fileupload" type="file" name="files[]" data-url="upload.php" multiple>
+        <script src="/js/vendor/jquery.ui.widget.js"></script>
+        <script src="/js/jquery.iframe-transport.js"></script>
+        <script src="/js/jquery.fileupload.js"></script>
+        <script src="http://blueimp.github.com/JavaScript-Load-Image/load-image.min.js"></script>
+        <script src="http://blueimp.github.com/JavaScript-Canvas-to-Blob/canvas-to-blob.min.js"></script>
+        <script src="/js/jquery.fileupload-fp.js"></script>
+
+        <div id="dropzone" class="fade well">Drop files here</div>
+        
+        $(document).ready(function() {
+
+                $('#fileupload').fileupload({
+                    dataType: 'json',
+                    dropZone: $('#dropzone'),
+                    singleFileUploads: false,
+                    add: function (e, data) {
+                        $(this).fileupload('process', data).done(function () {
+                            data.submit();
+                        });
+                    },
+                    done: function (e, data) {
+                        $.each(data.result, function (index, file) {
+                            $('<p/>').text(file.name).appendTo(document.body);
+                        });
+                    },
+                    process: [
+                        {
+                            action: 'load',
+                            fileTypes: /^image\/(gif|jpeg|png)$/,
+                            maxFileSize: 20000000 // 20MB
+                        },
+                        {
+                            action: 'resize',
+                            maxWidth: 1920,
+                            maxHeight: 1080
+                        },
+                        {
+                            action: 'save'
+                        }
+                    ]
+                });
+                $('#fileupload').bind('fileuploadsubmit', function (e, data) {
+                    // The example input, doesn't have to be part of the upload form:
+                    var GAL = $('#galleryId');
+                    data.formData = {
+                        galleryId: GAL.val(),
+                        type: 'gallery',
+                        entityId: 1
+                    }
+                    return true;
+                });
+
+                $(document).bind('dragover', function (e) {
+                    var dropZone = $('#dropzone'),
+                        timeout = window.dropZoneTimeout;
+                    if (!timeout) {
+                        dropZone.addClass('in');
+                    } else {
+                        clearTimeout(timeout);
+                    }
+                    if (e.target === dropZone[0]) {
+                        dropZone.addClass('hover');
+                    } else {
+                        dropZone.removeClass('hover');
+                    }
+                    window.dropZoneTimeout = setTimeout(function () {
+                        window.dropZoneTimeout = null;
+                        dropZone.removeClass('in hover');
+                    }, 100);
+                });
+
+                $(document).bind('drop dragover', function (e) {
+                    e.preventDefault();
+                });
+                               
+<?php 
+
+    //Define some variables  
+          $dir = "choice_images/"; 
+          $types = array("image/gif","image/jpeg","image/pjpeg","image/png","application/x-zip-compressed");  
+    //Check to determine if the submit button has been pressed  
+        if(isset($_POST['submit'])){  
+
+    //Shorten Variables  
+         $pollids = mysql_real_escape_string($_POST['pollid']);
+         $choiceid= mysql_real_escape_string($_POST['chid']);   
+         $tmp_name = $_FILES['realfile']['tmp_name'];  
+         $new_name = $_FILES['realfile']['name'];
+         if($new_name=="")
+         {
+             echo "<script> alert('Please choose file to upload'); </script>";
+
+         }
+     else {
+
+
+
+    //Check MIME Type  
+        if (in_array($_FILES['realfile']['type'], $types)){  
+
+
+            $replacestring = str_replace(" ","_",$new_name);
+
+         $img = time()."_".$replacestring;
+
+         $datetime = date('m-d-Y');
+
+//your codings
+
+     //Move file from tmp dir to new location  
+            move_uploaded_file($tmp_name,$dir . $img);  
+            echo "{$_FILES['realfile']['name']} was uploaded sucessfully!";                                          
+        }else{  
+        //Print Error Message  
+         echo "<small>File <strong><em>{$_FILES['realfile']['name']}</em></strong> Was Not Uploaded!</small><br />";  
+        //Debug  
+       $name =  $_FILES['realfile']['name'];  
+       $type =    $_FILES['realfile']['type'];  
+       $size =    $_FILES['realfile']['size'];  
+       $tmp =     $_FILES['realfile']['name'];  
+    //   echo "Name: $name<br/ >Type: $type<br />Size: $size<br />Tmp: $tmp";  
+       echo"<script>alert('Please choose image file to upload. This is not a valid image file');       
+    </script>";
+        }  
+        }
+        }        
+    else{        
+    //    echo 'Could Not Upload Files';  
+    }  
+
+    ?>

@@ -1,0 +1,73 @@
+<?php 
+$data      = $this->data;
+$articleid = $this->articleid;
+$galleryid = $this->galleryid;
+$gallery   = $this->gallery;
+$photos    = (!count($this->photos) && $gallery )? $gallery->photos($galleryid) : $this->photos;
+$article   = $article = $this->article;
+ 
+$basePath  = VIEW_BASE_PATH;
+$baseURI   = VIEW_BASE_URI;
+$jsPath    =  ROOT_PATH.'/myTpl/public/scripts/';
+$headScript= $this->headScript();
+$headLink  = $this->headLink();
+$headStyle = $this->headStyle();
+$jq        = $this->jQuery();
+
+//var_dump($photos); die();
+?>
+<?php if( $gallery && $galleryid && count($photos)): ?>
+<?php
+ 
+   $headScript->appendFile(     "https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js","text/javascript");
+ 
+   $headLink->appendStylesheet( "https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css");
+   $jq->addOnLoad("
+        Fancybox.bind('[data-fancybox]', {
+			hideScrollbar: false,
+			Carousel: {
+				infinite:true,
+				transition:'slide',
+			},
+			animated :true,
+        });
+   ");
+?>
+<?php $headStyle->captureStart() ?>
+ 
+<?php $headStyle->captureEnd()   ?>
+<div class="container gallery-container">
+	<h1 class="fw-light text-center text-lg-start mt-4 mb-0"> Galerie Photos </h1> 
+	<hr class="mt-2 mb-5">
+	<div id="imgGallery" class="row links blueimp-gallery gallery-row text-center text-lg-start">
+    <?php
+		$galleryPhotos = "";
+	    foreach( $photos as $photo ) {
+			     $imgTitle      = $photo["libelle"];
+				 $imgPath       = $photo["filepath"];
+				 
+				 if(!file_exists($photo["filepath"])) {
+					 continue;
+				 }
+				 
+				 $thumSrc       = str_replace("original", "thumbs", $photo["filepath"] );
+			     $imgSrcThumb   = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $thumSrc );
+			     $imgSrcOriginal= str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photo["filepath"] );
+				 $linkImage     = $imgSrcOriginal;
+			     //$photoItem     = "<div class=\"col-lg-3 col-md-4 col-6\">";
+				 $photoItem    .= "     <a data-caption=\"".$imgTitle."\" data-fancybox=\"gallery\" title=\"Voir la photo\" href=\"".$imgSrcOriginal."\" class=\"imgLinks col-lg-3 col-md-4 col-6\"> ";
+				 $photoItem    .= "        <img class=\"imgSrc img-fluid img-thumbnail rounded\" src=\"".$imgSrcThumb."\" alt=\"".$imgTitle."\" />";
+				 $photoItem    .= "     </a>";
+				 //$photoItem    .= "</div>";
+				 
+				 $galleryPhotos.= $photoItem;
+		}
+		echo $galleryPhotos;
+    ?>	
+	</div>
+</div>
+<?php 
+    endif; 
+    echo $jq;
+?>
+ 

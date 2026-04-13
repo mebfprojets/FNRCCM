@@ -1,0 +1,259 @@
+<?php 
+$me         = Sirah_Fabric::getUser();
+$keywords   = $this->keywords;
+$filters    = $this->filters;
+$paginator  = $this->paginator;
+
+$basePath   = VIEW_BASE_PATH;
+$jq         = $this->jQuery();
+
+$linkSearch = $this->url(array("module"=>"admin","controller"=>"demandeblacklist", "action"=> "list")  , "default");
+$linkCreate = $this->url(array("module"=>"admin","controller"=>"demandeblacklist", "action"=> "create"), "default");
+$linkEdit   = $this->url(array("module"=>"admin","controller"=>"demandeblacklist", "action"=> "edit"  ), "default");
+$linkDelete = $this->url(array("module"=>"admin","controller"=>"demandeblacklist", "action"=> "delete"), "default");
+ 
+$jq->addOnload("
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#keywordsListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector = jQuery('#globalFormSearch') ;
+		var searchData   = {};			
+        var maincontent	 = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchKeywords,.searchKeywords').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#keywordsListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());		
+		searchData.libelle  = jQuery.trim(formSelector.find('#libelle').val());
+		 
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on( maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#keywordsListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if( jQuery(this).is('.nextPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());	
+	
+		paginationData.libelle   = jQuery.trim(formSelector.find('#libelle').val());
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var maincontent          = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+	
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedKeywordsId = function() {
+		var checkedItems = jQuery('#keywordsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var itemid   = parseInt(jQuery(this).attr('id').replace('itemids',''));
+             	checkedIds.push(itemid);
+           });
+		}
+		return checkedIds;
+};
+jQuery('#keywordsListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#keywordsListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#keywordsListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#keywordsListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#keywordsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','updatealldocsButton','editButton']);
+	}
+});");
+
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouveau"  , "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "edit");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+
+if($me->isAllowed("demandeblacklist","create")) $toolbar->add( $toolCreate, "createButton");
+if($me->isAllowed("demandeblacklist","edit"))   $toolbar->add( $toolEdit  , "editButton");
+if($me->isAllowed("demandeblacklist","delete")) $toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->disable();
+$toolEdit->onClick("
+		            event.preventDefault();
+		            var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem  = jQuery('#keywordsListTable').find('input[type=\'checkbox\'][name=\'itemids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var itemid            = parseInt(checkedItem.attr('id').replace('itemids',''));
+					document.location.href= '".$linkEdit."/itemid/'+itemid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		            var isDisabled        = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedKeywords   = getCheckedKeywordsId();
+		            if( isDisabled || SIRAH.util.isEmpty( checkedKeywords )) {
+		                SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les mots clés selectionnés ? </div>').attr('id','dialogDelete');             		 
+             		dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+             		dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Fermer', {primary: false,click : function(){jQuery(this).dialog2('close');}});  
+					dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                     function(){
+             		                                    jQuery.ajax({url:'".$linkDelete."',async:false,dataType :'json',data:{'itemids[]': checkedKeywords},type: 'GET' ,
+             		                                            success  : function(data) {
+																	jQuery('#dialogDelete').html('');
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedKeywords = getCheckedKeywordsId ();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){jQuery.each(checkedKeywords,function(key,itemid){jQuery('#keywordRowId-'+itemid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                                }
+             		                                            }
+             		                                    });     		
+                                         }});             		            		
+             		dialogDelete.dialog2('open');");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->pagination(array(),"Elastic", "#", array(), array("class"=>"panel-footer paginationControl", "style"=>"text-align:center;"));    
+?>
+<div id="keywordsListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+			<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+			    <div class="input-group">
+					 <input value="<?php echo $filters['libelle'];?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez un mot clé...">
+					 <span class="input-group-btn ">
+					   <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>             
+					   <button id="resetSearch"  class="btn btn-danger resetSearch"   type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+				<input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+			</form>
+    	</div>
+		<table id="keywordsListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                <tr>
+                    <th width="3%"> <input type="checkbox" name="checkAll" id="checkAll" class="checkAll" /> </th>					
+                    <th width="55%"> Désignations </th> 
+					<th width="42%"> Descriptions  </th> 
+                </tr>
+            </thead>
+            <tbody>	
+			<?php 
+				  $output = "";
+				  if( count(   $keywords ) ) {
+					  foreach( $keywords as $keyword ) {
+							   $itemid             = $keyword["itemid"]; 
+							   $keywordLib         = $keyword["libelle"];		
+                               $keywordDescription = $keyword["description"];								   
+							   $linkInfos          = $this->url(array("module"=>"admin","controller"=>"demandeblacklist","action"=>"infos", "itemid" => $itemid) , "default");								   
+								 
+							   $output .= "<tr id=\"keywordRowId-".$itemid."\">";
+									$output.= "<td> <input type=\"checkbox\" name=\"itemids[]\" id=\"itemids".$itemid."\" class=\"itemids\" /> </td>";
+									$output.= "<td><a title=\"Voir les informations de ce mot clé\" href=\"".$linkInfos."\">".$keywordLib   ."</a> </td>";   
+									$output.= "<td><a title=\"Voir les informations de ce mot clé\" href=\"".$linkInfos."\">".$keywordDescription."</a> </td>";										   
+							   $output .= "</tr>";
+							   $output .= "<input type=\"hidden\" name=\"libelle-".$itemid."\" id=\"libelle-".$itemid."\" value=\"".$keywordLib."\" />";
+					  }
+				  } else {
+							   $output .= "<tr>";
+										$output .= "<td style=\"text-align:center !important;\" align=\"center\" colspan=\"4\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+							   $output .= "</tr>";
+				  }		  
+				  echo $output;
+					  
+			?>
+            </tbody>				
+		</table>
+              <?php echo $pagination->render(); ?>
+	</div>
+</div>  
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

@@ -1,0 +1,77 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("module" => "admin","controller" =>"demandeblacklist", "action"=>"edit"), "default" );
+$backList   = $this->url(array("module" => "admin","controller" =>"demandeblacklist", "action"=>"list")  , "default" );
+$basePath   = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  
+    jQuery('#cancelEditButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+    jQuery('#editButton').click(function(e){
+		e.preventDefault();      
+		var formSelector = jQuery('#editKeywordForm');
+		var libelle      = jQuery.trim(formSelector.find('#libelle').val());
+		  
+		if( SIRAH.util.isEmpty( libelle )){
+			jQuery('#libelle').addClass('input-error');
+			jQuery('#libelle-validation-message').html('');
+			SIRAH.error.raise('libelle-validation-message','Entrez une désignation valide du mot clé');
+			return;
+		} else {
+			jQuery('#libelle').removeClass('input-error');
+			jQuery('#libelle-validation-message').html('');
+		}      
+		jQuery('#libelle').val( libelle );
+		formSelector.submit();
+    }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit;?>"  id="editKeywordForm" role="form" class="form-horizontal" >
+	<div class="panel panel-default">
+		<ul class="list-group">
+ 		    <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2  col-sm-2  control-label" for="libelle"> Désignation*: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="libelle" name="libelle" type="text" maxlength="220" class="form-control" title="Désignation du mot clé" placeholder="Désignation du mot clé" value="<?php echo $data["libelle"]; ?>"></div> 			   
+				   <p id="libelle-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>	
+            <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2 col-sm-2 control-label"> Description*: </label>
+					<div   class="col-md-10 col-sm-10"><textarea name="description" id="description" class="form-control textarea-sm"> <?php echo $data["description"]; ?> </textarea></div>              
+				</div>  
+			</li>	
+		</ul>  
+<?php     
+   $buttonsbar      = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Sauvegarder","edit")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler et revenir sur la liste","chevron-left");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add( $toolCancel, "cancelEditButton");
+   $buttonsbar->add( $toolCreate, "editButton");
+   
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   <input type="hidden" name="itemid" id="itemid" value="<?php echo $data['itemid']; ?>" />
+</form>

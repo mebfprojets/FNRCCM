@@ -1,0 +1,89 @@
+<?php 
+    $carreer            = $this->row;
+    $countries          = $this->countries();
+    $country            = (isset($countries[$carreer->country])) ? $countries[$carreer->country] : $carreer->country;
+    $dateDebut          = "";
+    $dateFin            = "";
+    $entreprise         = $carreer->findParentRow("Table_ProfileEntreprises");
+    $profession         = $carreer->findParentRow("Table_ProfileProfessions");
+    
+    $entrepriseLibelle  = ($entreprise) ? $this->escape($entreprise->libelle) : "";
+    $professionLibelle  = ($profession) ? $this->escape($profession->libelle) : "";
+    
+    if(!empty($carreer->date_debut)) {
+    	$zendDateDebut  = new Zend_Date($carreer->date_debut ,Zend_Date::TIMESTAMP);
+    	$dateDebut      = $zendDateDebut->toString("d/M/Y");
+    }
+    if(!empty($carreer->date_fin)) {
+    	$zendDateFin    = new Zend_Date($carreer->date_fin ,Zend_Date::TIMESTAMP);
+    	$dateFin        = $zendDateFin->toString("d/M/Y");
+    }
+?>
+         <div class="row">
+                  <ul class="list-group">
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> L'entreprise d'accueil :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($entrepriseLibelle); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Le département :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($carreer->departement); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Secteur d'activités :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($carreer->secteur); ?></div>
+                           </div>
+                       </li>  
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> La profession exercée :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($professionLibelle); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Date début:</b></div> 
+                             <div class="col-md-6"><?php echo $dateDebut; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Date fin:</b></div> 
+                             <div class="col-md-6"><?php echo $dateFin; ?></div>
+                           </div>
+                       </li>      
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Le pays :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($country); ?></div>
+                           </div>
+                       </li>                         
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> La ville de formation :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($carreer->ville); ?></div>
+                           </div>
+                       </li>                        
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> E-mail professionnel :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($carreer->email); ?></div>
+                           </div>
+                       </li>                         
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-12"> <b>Description:</b></div>
+                           </div>
+                           <div class="row">  
+                             <div class="col-md-12">
+                                 <p><?php echo $this->escape($carreer->description); ?></p>
+                             </div>
+                           </div>
+                       </li>                                                      
+                  </ul>
+          </div>

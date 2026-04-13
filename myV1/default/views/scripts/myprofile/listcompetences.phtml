@@ -1,0 +1,125 @@
+<?php 
+   $competences          = $this->competences;
+   $competenceLevels     = array( 0 => "Selectionnez le niveau",    1 => "Debutant", 2 => "Moyen",3 => "Intermédiaire", 4 => "Bon", 5 => "Excellent");
+   $linkDelete           = $this->url(array("controller" => "myprofile", "action" => "removecompetence") , "default") ;
+   $linkInsertCompetence = $this->url(array("controller" => "myprofile", "action" => "insertcompetence"), "default");
+   $output           = "";
+   $output          .= "<div class=\"list-group competenceList\">";
+    if( count(     $competences ) ) {
+    	  foreach( $competences as $competence ) {
+    	  	$competenceId    = intval($competence["competenceid"]);
+    	  	$profession      = $competence["profession"];
+    	  	$appreciation    = $competence["appreciation"];
+    	  	$competenceLevel = ( isset( $competenceLevels[$competence["level"]] ) ) ? $competenceLevels[$competence["level"]] : "";    	  	
+    	  	$output  .= "
+    	  	            <li class=\"list-group-item\" id=\"competenceId-".$competenceId."\">
+    	  	                <h4 class=\"list-group-item-heading\"> ".$this->escape( $profession )."</h4>
+    	  	                <p  class=\"list-group-item-text\">   Niveau de connaissance : ".$this->escape( $competenceLevel )." </p>
+    	  	                <p  class=\"list-group-item-text\">   <small>".$this->escape( $appreciation)."</small> </p>
+    	  	                <span title=\"Supprimer cette compétence\" href=\"#\" id=\"closeId-".$competenceId."\" class=\"glyphicon glyphicon-remove pull-right pull-top closeItemCompetence\"></span>
+    	  	            </li>";
+    	  }    	
+    } else {
+    	$output .= " <li class=\"list-group-item\" id=\"competenceId-0\"><p class=\"text-muted\"> 
+    	                 <h4 class=\"list-group-item-heading\"> Aucune compétence n'a été enregistrée </h4>
+    	             </li>";
+    }
+
+    $output     .= "</div>";
+    echo  $output ;
+    
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+     jQuery('.insertCompetence').click(function() {    
+       var dialogCompetence   = jQuery('<div></div>').attr('id','dialogCompetence').addClass('modal-medium');          		 
+       dialogCompetence.dialog2({
+             		           title : 'Renseignez les compétences que vous avez',
+             		           content : '".$linkInsertCompetence."',
+             		           autoOpen: false,
+             		           modalClass:'modal-wide',
+             		           removeOnClose: true,
+             		           closeOnEscape: false, 
+                               closeOnOverlayClick: true,
+             		           showCloseHandle:true,
+             		           initialLoadText: 'Chargement...' });        		
+      dialogCompetence.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Enregistrer',{primary : true,click : 
+             		          function( event ){ 
+             		                     event.preventDefault();
+             		                     var modalBody = jQuery('.modal').find('.modal-body');
+             		                     var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                     insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                     SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                     var insertCompetenceForm = jQuery(this).find('form').eq(0);
+             		                     SIRAH.request.post( insertCompetenceForm, '".$linkInsertCompetence."' , {
+             		                                                                                  success : function(data) {
+             		                                                                                      jQuery('#patientez').fadeOut('slow');
+             		                                                                                      SIRAH.loading.off(false);            		                                                                                      
+                            	                                                                          if(!SIRAH.util.isEmpty(data.error)) { 
+                            		                                                                          SIRAH.error.raise( dialogCompetence , data.error , 'error');
+                            		                                                                          insertBtn.btnLoading({on:false});                           		                                                                          
+                            		                                                                          return data;
+                            	                                                                          } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                                                         SIRAH.error.raise( dialogCompetence, data.success , 'success');
+                            		                                                                         setTimeout(function(){SIRAH.MYPROFILE.insertCompetence(data,'".$linkDelete."');insertBtn.btnLoading({on:false});dialogCompetence.dialog2('close');},1000);
+                                                                                                             return data;
+                            	                                                                          }	else {
+                            		                                                                         SIRAH.error.raise( dialogCompetence ,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                                                         insertBtn.btnLoading({on:false});
+                            		                                                                         return data;
+                            	                                                                          }		                  		                                                                                   
+             		                                                                                    }             		                                                                                  
+             		                                                                                 });            		   
+                                                           }}); 
+      dialogCompetence.dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span> Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+      dialogCompetence.dialog2('open');          
+   }); 
+   jQuery('.closeItemCompetence').css('cursor','pointer');
+   jQuery('.closeItemCompetence').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette compétence ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer cette action',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                var modalBody = jQuery('.modal').find('.modal-body');
+             		                var insertBtn = jQuery('.modal-footer').find('.btn-primary').eq(0);
+             		                insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'ids' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   SIRAH.loading.off();
+             		                                   if( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+                                                           insertBtn.btnLoading({on:false});
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#competenceId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#competenceId-'+itemId).remove();
+             		             		                               insertBtn.btnLoading({on:false});
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },1500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });";    
+    $jq->addOnLoad($onLoad);
+?>
+             

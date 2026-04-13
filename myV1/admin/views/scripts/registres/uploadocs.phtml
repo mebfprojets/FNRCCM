@@ -1,0 +1,100 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("controller" =>"registres", "action" => "uploadocs"), "default" );
+$backList     = $this->url(array("controller" =>"registrephysique", "action" => "list")  , "default" );
+$localites    = $this->localites;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#importForm');
+      var  annee        = parseInt(jQuery.trim(formSelector.find('#annee').val()));
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty( annee )){
+          SIRAH.error.raise('importForm','Entrez une année valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('importForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Paramètres des données source</small></h3>
+    <form method="post"  id="importForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data"> 
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Utiliser un serveur FTP ?* : </label>
+           <div   class="col-sm-6"> <?php echo $this->formRadio("use_ftp", 0, array(), array('1' => 'Oui', '0' => 'Non'), ' '); ?> </div>        
+     </div> 
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom du serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="ftp_server" id="ftp_server" class="form-control" placeholder="Nom du serveur" value="<?php echo $data["ftp_server"]; ?>" /></div>        
+     </div>     
+    <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom d'utilisateur serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="ftp_user" id="ftp_user" class="form-control" placeholder="Nom d'utilisateur serveur" value="<?php echo $data["ftp_user"]; ?>" /></div>        
+     </div>  
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Mot de passe du serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="ftp_pwd" id="ftp_pwd" class="form-control" placeholder="Mot de passe du serveur" value="<?php echo $data["ftp_pwd"]; ?>" /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source des documents* : </label>
+           <div   class="col-sm-6"> <input type="text" name="srcfolder" id="srcfolder" class="form-control" placeholder="Dossier source des documents" value="<?php echo $data["srcfolder"]; ?>" /></div>        
+     </div>
+      
+ 
+      <h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Les paramètres des registres à extraire </small></h3>
+      <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Type de RCCM* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("type", intval( $data["type"]) , array("class"=>"form-control"), array(0=>"Selectionnez un type de registre", 1 => "Personnes Physiques", 2 => "Personnes Morales")); ?> </div>   
+       </div>
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité concernée* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("localiteid", intval( $data["localiteid"]  ), array("class"=>"form-control"), $localites); ?> </div>   
+       </div>        
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> L'année concernée* : </label>
+           <div   class="col-sm-6"> <input type="text" name="annee" id="annee" class="form-control" placeholder="L'année concernée" value="<?php echo $data["annee"]; ?>" /></div>        
+     </div>                 
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Charger les documents","upload")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

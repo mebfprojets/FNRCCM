@@ -1,0 +1,344 @@
+<?php 
+$clients           = $this->clients;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$groupes           = $this->groupes;
+$parentform        = $this->parentform;
+$selectedKey       = $this->selectedKey;
+$selectedVal       = $this->selectedVal;
+$selectedCmdKey    = $this->selectedCmdKey;
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller"   => "ajaxres", "action" => "clientslist", "parentform" => $parentform,
+                                      "selectCmdKey" => $selectedCmdKey, "selectedKey" => $selectedKey, "selectedVal" => $selectedVal) , "default");
+									  
+$jq->addOnload("var selectClient = selectedClientKey = selectedClientVal =null;");
+if( !empty($selectedCmdKey)) {
+	$jq->addOnload(sprintf("var selectClient   = jQuery('#%s');", $selectedCmdKey ));
+}
+if( !empty( $selectedKey )) {
+	$jq->addOnload(sprintf("var selectedClientKey = jQuery('#%s');", $selectedKey));
+}
+if( !empty( $selectedVal )) {
+	$jq->addOnload(sprintf("var selectedClientVal = jQuery('#%s');", $selectedVal));
+}
+$jq->addOnload("
+var parentformSelector  = jQuery('#".$parentform."');
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var clientid  = parseInt(jQuery(this).attr('href').replace('#clientid-', ''));
+	   if(clientid && parentformSelector ) {
+		  var clientFirstname         = jQuery('#firstname-'+clientid).val();
+		  var clientLastname          = jQuery('#lastname-'+clientid).val();
+		  var clientEmail             = jQuery('#email-'+clientid).val();
+		  var clientPhone1            = jQuery('#tel1-'+clientid).val();
+		  var clientPhone2            = jQuery('#tel2-'+clientid).val();
+		  var clientCode              = jQuery('#code-'+clientid).val();
+		  
+		  var parentClientKey         = (SIRAH.util.isset(selectedClientKey)) ? selectedClientKey : parentformSelector.find('input[name=\'clientid\']');
+		  var parentClientVal         = (SIRAH.util.isset(selectedClientVal)) ? selectedClientVal : parentformSelector.find('input[name=\'client\']');
+		  var parentFirstnameSelector = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector  = parentformSelector.find('input[name=\'lastname\']');
+		  var parentNameSelector      = parentformSelector.find('input[name=\'name\']');
+		  var parentEmailSelector     = parentformSelector.find('input[name=\'email\']');
+		  var parentCodeSelector      = parentformSelector.find('input[name=\'code\']');
+		  var parentPhoneSelector1    = parentformSelector.find('input[name=\'tel1\']');
+		  var parentPhoneSelector2    = parentformSelector.find('input[name=\'tel2\']');
+		
+		  if( parentClientKey   ) {
+		      parentClientKey.val(clientid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val( clientFirstname  );
+		  }
+		  if( parentLastnameSelector) {
+		      parentLastnameSelector.val(clientLastname);
+		  }
+		  if( parentClientVal ) {
+		      var clientName    = clientLastname+' '+clientFirstname;
+		      parentClientVal.val(clientName);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val( clientEmail );
+		  }
+		  if( parentPhoneSelector1 ) {
+		      parentPhoneSelector1.val( clientPhone1);
+		  }
+		  if( parentPhoneSelector2 ) {
+		      parentPhoneSelector2.val( clientPhone2  );
+		  }
+		  if( parentCodeSelector  ) {
+		      parentCodeSelector.val( clientCode );
+		  }		
+		} else {
+		    return false;
+	    }
+		if(!SIRAH.util.isset(selectClient))
+		    selectClient  = parentformSelector.find('#selectClient');
+		if(selectClient)	{
+		   selectClient.trigger('select-item', [clientid] );
+		   selectClient.trigger('chooseThis' , [clientid] );
+		   selectClient.trigger('selectThis' , [clientid] );
+		}  
+		jQuery('#filterListClients,.modal').dialog2('close');
+		jQuery('#filterListClients,.modal,.modal-backdrop').remove(true);
+});
+
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('.modal-body.opened').first();					
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#clientsListSearchForm') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		var nameText        = jQuery.trim(jQuery('#clientsListSearchForm').find('#name').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		if(SIRAH.util.isEmpty(firstname)) {
+		   searchData.identifiant = lastname;
+		   searchData.lastname    = searchData.firstname = '';
+		} else {
+		   searchData.identifiant = '';
+		   searchData.lastname    = lastname;
+		   searchData.firstname   = firstname;
+		}				 
+        var maincontent	     = jQuery('.modal-body.opened').first();		
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+
+jQuery('.searchClients,#searchClients').click(function(    event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#clientsListSearchForm,.advancedSearchForm:first') ;					
+		var searchData          = {};
+		searchData.page         = parseInt(formSelector.find('#page').val());
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.identifiant  = formSelector.find('#identifiant').val();
+		searchData.lastname     = formSelector.find('#lastname').val();
+		searchData.firstname    = formSelector.find('#firstname').val();
+		searchData.numpass      = formSelector.find('#numpass').val();
+		searchData.telephone    = formSelector.find('#telephone').val();
+		searchData.email        = formSelector.find('#email').val();
+		searchData.groupid      = parseInt(formSelector.find('#groupid').val());
+		searchData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());	
+ 
+        var maincontent	        = jQuery('.modal-body.opened').first();		
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#clientsListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData          = {};
+		paginationData.page         = pageNum;
+		paginationData.maxitems     = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.identifiant  = formSelector.find('#identifiant').val();
+		paginationData.numpass      = formSelector.find('#numpass').val();
+		paginationData.lastname     = formSelector.find('#lastname').val();
+		paginationData.firstname    = formSelector.find('#firstname').val();
+		paginationData.telephone    = formSelector.find('#telephone').val();
+		paginationData.email        = formSelector.find('#email').val();
+		paginationData.groupid      = parseInt(formSelector.find('#groupid').val());
+		paginationData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());
+		
+		var maincontent             = jQuery('.modal-body.opened').first();				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+");
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<div id="clientsListListWrapper"  class="row">
+   <div  class="panel panel-default listPanel">
+      <div  class="panel-heading bg-blue-alt">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		  <div class="input-group">
+		    <input value="<?php echo $filters['name']; ?>" id="name" name="name"  type="text" class="form-control" placeholder="Recherchez un client, saisir son nom, prénom ou identifiant...">
+		    <span class="input-group-btn ">
+               <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		  </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+    </div>
+	<form id="clientsListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+	  <ul class="list-group">
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Code client:</b> </label> 
+			<div class="col-md-4"><input value="<?php echo $filters['identifiant']; ?>" type="text" name="identifiant" id="identifiant" class="form-control" placeholder="Saisir un code client" /></div>
+            <label class="col-sm-2 control-label">  <b> N° passport:</b> </label> 
+			<div class="col-md-4"> <input value="<?php echo $filters['numpass'];?>" type="text" name="numpass" id="numpass" class="form-control" placeholder="Saisir un numéro passport" /></div>
+        </li>
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Nom de famille:</b> </label> 
+			<div class="col-md-4"><input value="<?php echo $filters['lastname']; ?>" type="text" name="lastname"  id="lastname"  class="form-control" placeholder="Saisir un nom de famille" /></div>
+            <label class="col-sm-2 control-label">  <b> Prénom:</b> </label> 
+			<div class="col-md-4"> <input value="<?php echo $filters['firstname'];?>" type="text" name="firstname" id="firstname" class="form-control" placeholder="Saisir un prénom" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Téléphone:</b> </label> 
+			<div class="col-md-4"><input value="<?php echo $filters['telephone']; ?>" type="text" name="telephone" id="telephone" class="form-control" placeholder="Saisir un numéro de téléphone" /></div>
+            <label class="col-sm-2 control-label">  <b> Adresse email:</b> </label> 
+			<div class="col-md-4"> <input value="<?php echo $filters['email'];?>" type="text" name="email" id="email" class="form-control" placeholder="Saisir une adresse email" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item"> 
+		<div class="row">
+			<label class="col-sm-2 control-label">  <b> Groupe:</b> </label> 
+			<div   class="col-sm-4"><?php echo $this->formSelect("groupeid", intval($filters["groupeid"]),array("class" => "form-control"), $groupes); ?> </div> 
+            <label class="col-sm-2 control-label">  <b> Famille :</b> </label> 
+			<div   class="col-sm-4"><?php echo $this->formSelect("familleid", intval($filters["familleid"]),array("class" => "form-control"), $familles); ?> </div>
+		</div> 			   
+	  </li>
+	</ul>
+	<div class="panel-footer"> 
+		<button id="searchClients" class="btn btn-primary searchClients advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+        <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+	</div>
+	<input type="hidden" name="page"         id="page"         value="<?php echo $this->pageNum;       ?>" />
+	<input type="hidden" name="entrepriseid" id="entrepriseid" value="<?php echo $data["entrepriseid"];?>" />
+	</form>
+	<table id="clientsListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="15%"> Codes          </th>  
+                          <th width="40%"> Noms & Prénoms </th>
+                          <th width="20%"> Telephone      </th>
+                          <th width="25%"> Adresses Emails</th>  
+                           
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $clients ) ) {
+                              	  foreach( $clients as $client ) {
+                              	  	       $clientid   = intval($client['clientid']);
+                              	  	       $code       = $client["code"] ;
+                              	  	       $name       = sprintf("%s %s", $client["lastname"], $client["firstname"]);
+                              	  	       $famille    = $client["famille"] ;
+                              	  	       $groupe     = $client["groupe"] ;
+                              	  	       $telephone  = sprintf("%s / %s", $client["tel1"], $client["tel2"]);
+                              	  	       $adresse    = $client["adress"] ;
+                              	  	       $email      = $client["email"] ;
+                              	  	       $adresseStr = sprintf("<span> Adresse: %s </span><br/><span> Email: %s </span> <br/><span> Telephone : %s </span>",
+                              	  	       		                   $adresse, $email , $telephone);
+                              	  	       $linkInfos  = $this->url(array("module"=>"public","controller" => "clients", "action" => "infos", "clientid" => $clientid ), "default");
+                              	  	      
+                              	  	       $output .= "<tr   id=\"clientRowId-".$clientid."\"> ";
+                              	  	               $output.="<td><a href=\"#clientid-".$clientid."\" class=\"selectClick\" title=\"Selectionnez ce client\"> ".$code      ." </a> </td>";
+                              	  	               $output.="<td><a href=\"#clientid-".$clientid."\" class=\"selectClick\" title=\"Selectionnez ce client\"> ".$name      ." </a> </td>";
+                              	  	               $output.="<td><a href=\"#clientid-".$clientid."\" class=\"selectClick\" title=\"Selectionnez ce client\"> ".$telephone ." </a> </td>";
+                              	  	               $output.="<td><a href=\"#clientid-".$clientid."\" class=\"selectClick\" title=\"Selectionnez ce client\"> ".$email     ." </a> </td>";                              	  	                
+                              	  	       $output .= "</tr>";
+                              	  	       echo "<input type='hidden'  name='lastname-".$clientid."'  id='lastname-".$clientid."'  value='".$this->escape($client["lastname"])."'  />" ;
+                              	  	       echo "<input type='hidden'  name='firstname-".$clientid."' id='firstname-".$clientid."' value='".$this->escape($client["firstname"])."'  />" ;
+                              	  	       echo "<input type='hidden'  name='email-".$clientid."'     id='clientid-".$clientid."'  value='".$this->escape($client["email"])."'  />" ;
+                              	  	       echo "<input type='hidden'  name='code-".$clientid."'      id='username-".$clientid."'  value='".$this->escape($client["code"])."'  />" ;
+                              	  	       echo "<input type='hidden'  name='tel1-".$clientid."'      id='tel1-".$clientid."'      value='".$this->escape($client["tel1"])."'  />" ;
+                              	  	       echo "<input type='hidden'  name='tel2-".$clientid."'      id='tel2-".$clientid."'      value='".$this->escape($client["tel2"])."'  />" ;
+                              	  }                              	
+                              }  else {
+                              	            $output .= "<tr  id=\"clientRowId-0\"> <td colspan=\"8\"> AUCUN CLIENT N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+		   
+		   <?php echo $pagination->render(); ?>
+   </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

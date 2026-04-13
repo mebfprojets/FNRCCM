@@ -1,0 +1,139 @@
+<?php 
+$registre       = $this->registre;
+$requete        = $this->requete;
+$client         = $this->client;
+$typesDocuments = $this->typesdocuments;
+
+$basePath       = VIEW_BASE_PATH;
+$jq             = $this->jQuery();
+
+$linkCancel     = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "list" ) , "default");
+$linkValidate   = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "process", "id" => $requete->requestid , "validated" => 1), "default");
+$linkReject     = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "process", "id" => $requete->requestid , "validated" => 2), "default");
+$linkDelete     = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "delete" , "ids"=> $requete->requestid), "default");
+
+$jq->addOnload("");
+
+$buttonBar      = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonValidate = $buttonBar->button("Valider cette demande d'accès", "process");
+$buttonReject   = $buttonBar->button("Refuser la demande d'accès", "reject");
+$buttonDelete   = $buttonBar->button("Supprimer", "trash-o");
+$buttonCancel   = $buttonBar->button("Revenir sur la liste" , "ban");
+
+$buttonBar->add( $buttonValidate, "validateButton");
+$buttonBar->add( $buttonReject  , "rejectButton");
+$buttonBar->add( $buttonDelete  , "deleteButton");
+$buttonBar->add( $buttonCancel  , "cancelButton");
+
+$buttonValidate->setAttributes(array("type" => "submit", "class" => "btn alert-success glyph-icon icon-pencil-square-o"));
+$buttonReject->setAttributes(  array("type" => "submit", "class" => "btn alert-danger glyph-icon icon-pencil-square-o"));
+$buttonDelete->setAttributes(  array("type" => "submit"));
+$buttonCancel->setAttributes(  array("type" => "submit"));
+
+$buttonValidate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkValidate ));
+$buttonReject->onClick(  sprintf("event.preventDefault(); document.location.href='%s';" , $linkReject   ));
+$buttonDelete->onClick(  sprintf("event.preventDefault(); document.location.href='%s';" , $linkDelete   ));
+$buttonCancel->onClick(  sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel   ));
+
+$updateDate         = "00/00/0000";
+$updatedUser        = Sirah_Fabric::getUser( $requete->updateduserid );
+
+if( $requete->updatedate ) {
+	$zendUpdatedate = new Zend_Date( $requete->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate     = $zendUpdatedate->toString("d MMM Y à H:m");
+}
+
+$this->toolsbar = $buttonBar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+
+<div    id="registreInfosWrapper"  class="row">   
+    <div  class="col-sm-7">
+       <div class="content-box">
+           <h3  class="content-box-header"> <b> Les informations de la demande d'accès: </b> </h3>
+           <div class="divider"> </div>
+           <div class="content-box-wrapper ">
+             <div class="list-group pad4A">
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Nom/Prénom du requerant:</b></div> 
+                       <div class="col-md-7"><?php echo ( $client ) ? sprintf("%s %s", $client->lastname, $client->firstname ) : ""; ?></div>
+                   </div>
+                 </a>
+                <a class="list-group-item">
+                  <div class="row"> 
+                     <div class="col-md-5"> <b> N° de la requete :</b></div> 
+                     <div class="col-md-7"><?php echo $requete->requestoken; ?></div>
+                 </div>
+                </a> 
+                <a class="list-group-item">
+                   <div class="row"> 
+                      <div class="col-md-5"> <b> Date de la demande:</b></div> 
+                      <div class="col-md-7"><?php echo date("d/m/Y", $requete->creationdate); ?></div>
+                  </div>
+                </a>
+                <?php if(isset($typesDocuments[intval($requete->typedocument)])): ?>
+                  <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-5"> <b> Type de document demandé:</b></div> 
+                       <div class="col-md-7"><?php echo $typesDocuments[intval($requete->typedocument)]; ?></div>
+                     </div>
+                  </a> 
+                 <?php endif; ?>  
+                 <?php if($updatedUser->userid) : ?>
+                  <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-12 "> Demande traitée le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+                     </div>
+                 </a>
+                <?php endif; ?>               
+              </div>  
+           </div>
+                                                                                      
+       </div>    
+    </div>
+    
+    <div  class="col-sm-5">
+        <?php if( $registre ): ?> 
+          <?php 
+          if( $registre->type == 1) {
+              $linkRegistre = $this->url(array("module"=> "admin","controller" =>"registrephysique", "action" =>"infos","registreid" => $registre->registreid ), "default");
+          } elseif( $registre->type == 2 ) {
+          	  $linkRegistre = $this->url(array("module"=> "admin","controller" =>"registremoral", "action" =>"infos","registreid" => $registre->registreid ), "default");
+          } else {
+          	  $linkRegistre = "#";
+          }
+          ?>
+         <div class="content-box">
+           <h3  class="content-box-header"> <b> Les informations du registre: </b> </h3>
+           <div class="divider"> </div>
+           <div class="content-box-wrapper ">
+             <div class="list-group pad4A">
+                 <a class="list-group-item">
+                    <div class="row" href="<?php echo $linkRegistre; ?>"> 
+                       <div class="col-md-5"> <b> Numéro du registre:</b></div> 
+                       <div class="col-md-7"><?php echo  $registre->numero ; ?></div>
+                   </div>
+                 </a>                
+                 <a class="list-group-item" href="<?php echo $linkRegistre; ?>">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Nom commercial:</b></div> 
+                       <div class="col-md-7"><?php echo  $registre->libelle ; ?></div>
+                   </div>
+                 </a>                             
+            </div>
+           </div>
+         </div>
+         <?php endif; ?>  
+    </div>
+
+    
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

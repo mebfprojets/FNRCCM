@@ -1,0 +1,312 @@
+<?php
+$me                   = Sirah_Fabric::getUser(); 
+$entreprises          = $this->entreprises;
+$cities               = $this->cities;
+$groups               = $this->groups;
+$filters              = $this->filters;
+$paginator            = $this->paginator;
+
+$defaultLogoFile      = VIEW_BASE_PATH ."/images/blank.png";
+$jq                   = $this->jQuery();
+
+$linkSearch           = $this->url(array("module" => "admin","controller" => "entreprises" , "action"  => "list")  , "default");
+$linkCreate           = $this->url(array("module" => "admin","controller" => "entreprises" , "action"  => "create"), "default");
+$linkEdit             = $this->url(array("module" => "admin","controller" => "entreprises" , "action"  => "edit")  , "default");
+$linkDelete           = $this->url(array("module" => "admin","controller" => "entreprises" , "action"  => "delete"), "default");
+$linkSearchCities     = $this->url(array("module" => "admin","controller" => "ajaxres", "action" => "cities")     , "default" );
+$listOfNbreEmployees  = array(10 => "10", 100 => "100", 200 => "200", 300 => "300", 400 => "400", 500 => "500", 800 => "800" , 1000 => "1000");
+
+$onLoad               = "";
+$onLoad              .= " var cities =".ZendX_JQuery::encodeJson( $cities ).";";
+$onLoad              .="  
+var citiesEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                   local: cities,remote:{url: '".$linkSearchCities."?q=%QUERY'}});
+citiesEngine.initialize();
+jQuery('#ville').typeahead({highlight:true,minLength:2},{name:'ville',displayKey:'value',source:citiesEngine.ttAdapter(),limit:10});
+jQuery('#ville').bind('typeahead:selected',function(obj,datum,name){jQuery('#city').val(datum.label);jQuery.data( jQuery('#createntreprise-form'),'selectedcity',datum.value);});
+jQuery('#ville').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedcity'))){jQuery('#city').val(0);}});
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		  }
+		   var formSelector     = jQuery('#advanced-searchform');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum - 1);
+		   }
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);		
+	});
+jQuery('.deleteEntreprise').css('cursor','pointer');
+jQuery('.deleteEntreprise').hover(function(){jQuery(this).css('color','#333');}, function(){jQuery(this).css('color','#dfe3e8');});
+jQuery('.deleteEntreprise').click(function( event ) {
+        event.preventDefault();
+        var itemId           = parseInt(jQuery(this).attr('id').replace('removeId-',''));
+        var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette entreprise ? </div>').attr('id','dialogDeleteItem');
+        dialogDeleteItem.dialog2({
+             		                title : 'Confirmer cette action !',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'});
+dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                var modalBody = jQuery('.modal').find('.modal-body');
+             		                var insertBtn = jQuery('.modal-footer').find('.btn-primary').eq(0);
+             		                insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'entrepriseid' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+                                                           insertBtn.btnLoading({on:false});
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#entrepriseId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#entrepriseId-'+itemId).remove();
+             		             		                               insertBtn.btnLoading({on:false});
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },1500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		   
+});
+";
+
+$jq->addOnload( $onLoad );
+$jq->addJavascriptFile( VIEW_BASE_PATH . '/js/typeahead/dist/typeahead.bundle.min.js');
+$jq->addStyleSheet(     VIEW_BASE_PATH . "/css/typeahead.css");
+
+?>
+<div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());             
+             $buttonCreate  = $buttonbar->button("Enregistrer une entreprise"  , "plus")->setPriority("primary");            
+             $buttonImport  = $buttonbar->button("Importer" , "upload");
+             $buttonExport  = $buttonbar->button("Exporter" , "download");
+             
+             if( $me->isAllowed("entreprises", "create" ) ) {
+             	 $buttonbar->add( $buttonCreate ,"createButton");
+             	 $buttonCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate));
+             }
+             if( $me->isAllowed("entreprises", "import" ) ) {
+             	 $buttonbar->add( $buttonImport ,"importButton");
+             	 $buttonImport->disable();
+             	 $buttonImport->onClick("event.preventDefault();");
+             }
+             if( $me->isAllowed("entreprises", "export" ) ) {
+             	$buttonbar->add( $buttonExport ,"exportButton");
+             	$buttonExport->disable();
+             	$buttonExport->onClick("event.preventDefault();");
+             }           
+
+              ?>
+<?php $this->headStyle()->captureStart() ?>
+#listOfEntreprises{margin-top:10px !important;}
+p.buttons .btn{padding:3px 10px;margin-left:5px;}
+p.buttons .pull-top{top:5px !important;position:absolute; color:#dfe3e8;}
+p.buttons .pull-right{right:5px !important;position:absolute;}
+.thumbnail .caption {height:210px;min-height: 210px;}
+<?php $this->headStyle()->captureEnd()   ?>           
+                  <div class="row" > 
+                      <div class="col-md-5"><?php echo $buttonbar; ?></div>                     
+                      <div class="col-md-7"> 
+                      <!--  
+                          <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                             <div class="input-group pull-right">
+                                <input value="<?php echo $filters['libelle']; ?>" id="generalfilter" name="generalfilter"  type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                                <span class="input-group-btn ">
+                                   <button class="btn btn-default default-search" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button>
+                                   <button id="show-advanced-searchform" class="btn btn-default" type="button">Recherche avancée</button>
+                                </span>
+                            </div>
+                          </form> -->
+                      </div>                      
+                  </div>                  
+                  <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+                      <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-searchform"   role="form">
+                         <div class="row simplerow-search-form-header">
+                            <a id="close-advanced-searchform" class="close"> Fermer</a>
+                            <h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3>
+                         </div>
+                          <div class="row">
+                            <div class="column col-md-2"> <label  for="libelle"> Désignation de l'entreprise:  </label> </div>
+                            <div class="column col-md-4">                                
+                                <input id="libelle" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                       title="Désignation de l'entreprise" placeholder="Désignation de l'entreprise"  name="libelle" value="<?php echo $filters['libelle']; ?>">
+                            </div>
+                            <div class="column col-md-2"> <label  for="datecreation"> Date de création :  </label> </div>
+                            <div class="column col-md-4">
+                              <?php echo $this->datePick("datecreation", $filters["datecreation"]); ?>
+                           </div>                                         
+                        </div>
+                        <div class="row">
+                           <div class="column col-md-2"> <label  for="group"> Groupe:  </label> </div>
+                           <div class="column col-md-4">
+                              <?php echo $this->formSelect("groupid", $filters["groupid"] , array() , $this->groups ); ?>
+                          </div> 
+                          <div class="column col-md-2"> <label   for="siteweb"> Site web: </label></div>    
+                          <div class="column col-md-4">
+                             <input id="siteweb" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                    title="Site web de l'entreprise"  placeholder="Site web de l'entreprise" name="siteweb" value="<?php echo $filters['siteweb']; ?>">
+                          </div>                            
+                        </div>          
+                        <div class="row">
+                            <div class="column col-md-2"> <label   for="email"> Adresse email : </label></div>
+                            <div class="column col-md-4">                                
+                                <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                       title="L'adresse email" placeholder="L'adresse email"  name="email" value="<?php echo $filters['email']; ?>">
+                            </div>  
+                           <div class="column col-md-2"> <label   for="phone"> Numéro de téléphone: </label></div>
+                           <div class="column col-md-4">
+                             <input id="phone" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                    title="Numéro de téléphone" placeholder="Numéro de téléphone" name="phone" value="<?php echo $filters['phone']; ?>">
+                          </div>   
+                        </div>                       
+                      <div class="row">
+                         <div class="column col-md-3"> <label  for="nbemployes"> Le nombre d'employés: </label> </div>
+                         <div class="col-md-3">  <?php echo $this->formSelect("nbemployes_min", intval($filters["nbemployes_min"]), array(), array(0=> "Minimal")+$listOfNbreEmployees ); ?></div> 
+                         <div class="col-md-3">  <?php echo $this->formSelect("nbemployes_max", intval($filters["nbemployes_max"]), array(), array(0=> "Maximal")+$listOfNbreEmployees ); ?></div>    
+                      </div>
+                      <div class="row">
+                         <div class="col-md-4"> <label class="label" for="country"> <b> Pays: </b> </label> </div>
+                         <div class="col-md-4"> <?php echo $this->formSelect("country" , $this->escape($filters["country"]) , array() , $this->countries()); ?></div>
+                         <div class="col-md-4"> <input id="ville" type="text"  name="ville"  title="La ville siège de l'entreprise" class="input typeahead" placeholder="La ville siège de l'entreprise" > 
+                         </div>
+                      </div>
+                      <div class="row">
+                          <div class="column col-md-2"> <label  for="maxitems"> Limiter la liste à : </label> </div>                           
+                          <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "8"         => 8    ,
+                                		                                                                     "10"        => 10   , 
+                                		                                                                     "25"        => 25   , 
+                                		                                                                     "50"        => 50   , 
+                                		                                                                     "100"       => 100  , 
+                                		                                                                     "500"       => 500  , 
+                                		                                                                     "1000"      => 1000 , 
+                                		                                                                     "2000"      => 2000 , 
+                                		                                                                     "5000"      => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                         </div>
+                         <div class="column col-md-6"> &nbsp; </div>
+                      </div>                                                                     
+                      <div class="row">
+                          <div class="column  col-md-2">
+                            <button type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search icon-white"></span > Rechercher</button>  
+                          </div>                      
+                          <div class="column  span10"></div>     
+                      </div> 
+                      <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+                      <input type="hidden" name="city"     id="city"     value="<?php echo $filters["city"]; ?>"  />
+                  </form>
+                </div>                                   
+            <?php
+            
+              $output  = "<div id=\"listOfEntreprises\" class=\"container\"> 
+                           <div class=\"row\"> ";
+                               if( count(   $entreprises ) ) {
+                               	            $me  = Sirah_Fabric::getUser();
+                               	   foreach( $entreprises as $entreprise ) {
+                               	   	        $entrepriseid      = intval( $entreprise["id"] );
+                               	   	        $pagekey           = $this->escape( $entreprise["pagekey"] );
+                               	   	        $entrepriseLibelle = $this->escape( $entreprise["libelle"] );
+                               	   	        $email             = $this->escape( $entreprise["email"] );
+                               	   	        $phone             = $this->escape( $entreprise["phone1"] );
+                               	   	        $zip               = $this->escape( $entreprise["zip"] );
+                               	   	        $presentation      = substr( $this->escape( $entreprise["presentation"] ) , 0 , 100 );
+                               	   	        $siteweb           = $this->escape( $entreprise["siteweb"] );
+                               	   	        $logo              = $this->escape( $entreprise["logo"] );
+                               	   	        $canEdit           = ( $me->isAdmin() || ( $me->userid == $entreprise["responsableid"] ) || ( $me->userid == $entreprise["creatorid"] ) );
+                               	   	        $canDelete         = ( $me->isAdmin() || ( $me->userid == $entreprise["responsableid"] ) );
+                               	   	        $linkEntreprise    = $this->url(array("module" => "admin","controller" => "entreprises", "action" => "infos", "pagekey" =>$pagekey ), "entreprise");
+                               	   	        $linkEdit          = $this->url(array("module" => "admin","controller" => "entreprises", "action" => "edit" , "id" => $entrepriseid), "default");
+                               	   	        $logoFile          = $defaultLogoFile;
+                               	   	        if( !empty( $logo ) ) {
+                               	   	        	$logoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $logo );
+                               	   	        	if( Sirah_Filesystem::exists( $logo ) ) {
+                               	   	        		$logoFile  = str_replace( DS, "/", $logoPathname );
+                               	   	        	}
+                               	   	        }
+                               	   	        $output  .=" <div id=\"entrepriseId-".$entrepriseid."\" class=\"col-xs-18 col-sm-6 col-md-3\"> ";
+                               	   	                 $output  .=" <div class=\"thumbnail\"> ";
+                               	   	                          $output  .="<a class=\"imageLink\" href=\"".$linkEntreprise."\"> <img align=\"center\" height=\"50px\" src=\"".$logoFile."\" title=\"Le logo de l'entreprise\" alt=\"Le logo de l'entreprise\"> </a>";
+                               	   	                          $output  .=" <div class=\"caption\"> ";
+                               	   	                                   $output     .="<h3> <a class=\"imageLink\" href=\"".$linkEntreprise."\"> ".$entrepriseLibelle." </a> </h3>";
+                               	   	                                   if( empty( $presentation ) ) {
+                               	   	                                   	  $output  .=" <p class=\"caption-presentation\"> La présentation de l'entreprise n'est pas disponible </p>";
+                               	   	                                   } else {
+                               	   	                                   	   $output .=" <p class=\"caption-presentation\">  ".$presentation."[...] </p>";
+                               	   	                                   }                         	   	                                   
+                               	   	                                   if( Zend_Uri::check( $siteweb ) ) {
+                               	   	                                   	  $output .="<p> <small> <i class=\"icon-link \"> </i> <a href=\"".$siteweb."\"> ".$siteweb." </a> </small> </p> ";
+                               	   	                                   } else {
+                               	   	                                   	  $output .="<p> <small> <i class=\"icon-link \"> </i> </small> </p> ";
+                               	   	                                   }                             	   	                                   	                                	   	                                   
+                               	   	                                   $output  .=" <p class=\"buttons\">  ";
+                               	   	                                            $output  .="<a href=\"#\" class=\"btn btn-primary\" role=\"button\"> <i class=\"glyphicon glyphicon-list\"> </i> Les offres </a>";
+                               	   	                                            $output  .="<a href=\"#\" class=\"btn btn-default\" role=\"button\"> <i class=\"glyphicon glyphicon-plus\"> </i> Suivre </a>";
+                               	   	                                            if( $canEdit ) {
+                               	   	                                            	$output  .="<a href=\"".$linkEdit."\" class=\"btn btn-default\" role=\"button\"> <i class=\"glyphicon glyphicon-edit\"> </i> Editer </a>";
+                               	   	                                            }
+                               	   	                                            if( $canDelete ) {
+                               	   	                                            	$output  .=" <i id=\"removeId-".$entrepriseid."\" class=\"glyphicon glyphicon-remove pull-right pull-top deleteEntreprise\"> </i>";
+                               	   	                                            }
+                               	   	                                   $output  .=" </p>";
+                               	   	                          $output  .=" </div> ";
+                               	   	                 $output  .=" </div> ";
+                               	   	        $output  .=" </div> ";
+                               	   }                              	
+                               }  else {
+                               	$output  .=" 
+                               	             <div class=\"panel panel-default\">
+                               	                <div class=\"panel-body\"> Aucune entreprise n'a été retrouvée relativement à vos critères de recherche. </div>
+                               	             </div> ";
+                               }        
+              $output .= "</div>";
+              
+              echo $output;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headScript();             	  
+              	  echo $this->headStyle();
+              }                   
+    ?>
+ </div>

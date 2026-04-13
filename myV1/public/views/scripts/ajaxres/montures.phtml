@@ -1,0 +1,304 @@
+<?php 
+$produits          = $this->produits;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$laboratoires      = $this->laboratoires;
+$marques           = $this->marques;
+$gammes            = $this->gammes;
+$me                = Sirah_Fabric::getUser();
+$parentProductKey  = $this->parentProductKey;
+$parentform        = $this->parentform;
+$ligneId           = $this->ligneId;
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller" => "ajaxres", "action" => "montureslist","parentform" => $parentform, "productKey" => $parentProductKey, "ligneid" => $ligneId, "module" => "public"), "default");
+
+$jq->addOnload("
+var parentFormSelector  = jQuery('#".$parentform."');
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#monturesListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+			
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+			
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchMontures').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#monturesListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+		searchData.genre    = formSelector.find('#genre').val();
+		searchData.matiere  = formSelector.find('#matiere').val();
+		searchData.modele   = formSelector.find('#modele').val();
+		searchData.colorid  = parseInt(formSelector.find('#colorid').val());
+		 
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#monturesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData      = {};
+		paginationData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+		paginationData.colorid  = parseInt(formSelector.find('#colorid').val());
+		paginationData.genre    = formSelector.find('#genre').val();
+		paginationData.matiere  = formSelector.find('#matiere').val();
+		paginationData.modele   = formSelector.find('#modele').val();
+		paginationData.libelle  = formSelector.find('#libelle').val();
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+		
+		var modalBox            = jQuery('.modal').find('.modal-body');			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+jQuery('.productItem').css('cursor','pointer');
+jQuery('.productItem').bind('mouseout',function(e){jQuery(this).find('.panel-white').eq(0).removeClass('panel-more-shadow');jQuery(this).find('.panel-img').eq(0).removeClass('panel-more-shadow');});
+jQuery('.productItem').bind('mouseover',function(e){jQuery(this).find('.panel-white').eq(0).addClass('panel-more-shadow');jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');});
+jQuery('.productItem').click(function(){
+	  jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');
+	  var itemid = parseInt(jQuery(this).attr('id').replace('productItemId-', ''));
+	  
+      var parentProductKey  = jQuery('#".$parentProductKey."');	  
+	  var selectProduit     = null;
+	  if( parentProductKey ) {
+		  selectProduit  = parentProductKey.find('.addProduct').eq(0);
+	  }	  	  
+	  if(selectProduit)	{
+		 selectProduit.trigger('add', [itemid,parentProductKey,'".$ligneId."'] );
+	  }   
+	  jQuery('#filterListProduits').dialog2('close');
+	  jQuery('#filterListProduits,.modal,.modal-backdrop').remove(true);
+	  jQuery('body').removeClass('modal-open');
+});");
+$pagination  = $this->pagination(array() , "Elastic" , "#");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-heading > form{margin-bottom:0;}
+.main-content section + section{border-top:none;}
+.img-responsive{display:inline;}
+.img-responsive,.panel-body-fw{text-align:center !important;}
+#produitsContainer{padding-left:0;padding-right:0;}
+.product-details,.product-other-infos > .list-group-item{padding:7px;}
+.product-stock-infos{margin-left:-1px;padding:0;}
+.product-stock-infos span{color:white;padding:5px;border-radius:0 4px 4px 0}
+.productlib{float:left;width:60%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:left}
+.productprice{float:left;width:40%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:right}
+.productlib h2, .productprice h2{font-size:15px;font-weight:bold;line-height:15px;}
+.productlib h3, .productprice h3{font-size:14px;}
+.product-description{height:90px;}
+.panel-plain .panel-heading, .panel .panel-heading{ border-bottom:none !important; }
+<?php $this->headStyle()->captureEnd()   ?>
+
+<section id="searchBox"  class="searchBox">
+   <div id="searchWrapper"  class="container-fluid">
+     <div class="panel panel-primary">
+	    <div class="panel-heading"> 
+		  <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez une monture, saisir la désignation...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Filtrer</button>
+               <button id="advancedSearchBtn" class="btn btn-warning" type="button"><span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer</button>
+            </span>
+		   </div>
+		     <input type="hidden" name="gammeid"   id="gammeid"   value="<?php echo intval($filters["gammeid"]);  ?>" /> 
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+		</div> 
+		<form id="monturesListSearchForm" class="form-horizontal" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >
+		<ul class="list-group"> 
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Genre :</b> </label> 
+				   <div class="col-md-7"> <?php echo $this->formSelect("genre",$filters["genre"], array("class" => "form-control"), $this->genres); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Modèle :</b> </label> 
+				   <div class="col-md-7"> <?php echo $this->formSelect("modele",$filters["modele"], array("class" => "form-control"), $this->modeles); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Matière :</b> </label> 
+				   <div class="col-md-7"> <?php echo $this->formSelect("matiere",$filters["matiere"], array("class" => "form-control"), $this->matieres); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Couleur :</b> </label> 
+				   <div class="col-md-7"> <?php echo $this->formSelect("colorid", intval($filters["colorid"]), array("class" => "form-control"), $this->colorsNames); ?>  </div> 
+               </div> 			   
+			</li>
+			 <input type="hidden" name="gammeid"   id="gammeid"   value="<?php echo intval($filters["gammeid"]);  ?>" /> 
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			
+		</ul> 
+		<div class="panel-footer"> 
+		   <button id="searchMontures" class="btn btn-primary searchMontures" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+           <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		</form>
+		
+	 </div> 
+   </div> 
+</section>
+
+<section id="produitsListSection"  class="produitsListSection">
+  <div id="produitsContainer"  class="container-fluid">
+    <div id="items"  class="row-fluid items">
+	    <?php 
+            $output = "";
+			$model  = new Model_produit();
+            if( count(  $produits) ) {
+				foreach($produits as $produit ) {
+					    $produitid   = intval($produit['produitid']);
+                        $produitRow  = $model->findRow( $produitid, "produitid", null , false );
+                        if( !$produitRow ) {
+                            continue;
+                        }
+                        $libelle     = $produit["libelle"] ;
+						$description = substr(strip_tags($produit["description"]), 0 ,100 )."...";
+                        $qtedispo    = $produit["qtedispo"];
+                        $category    = (!empty( $produit["categorie"]  ))? $produit["categorie"]   : "Non catégorisé";
+                        $laboratoire = (!empty( $produit["laboratoire"]))? $produit["laboratoire"] : "";
+                        $gamme       = (!empty( $produit["gamme"] )) ? $produit["gamme"]  : "";
+                        $marque      = (!empty( $produit["marque"])) ? $produit["marque"] : "";
+                        $prix_vente  = number_format( $produit["prix_vente_ttc"], 0 , "," , " ");
+                        $prix_achat  = number_format( $produit["prix_achat_ttc"], 0 , "," , " ");
+						$photoFile   = str_replace(DS , "/" , str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , APPLICATION_DATA_PATH . "/produits/photos/mini/default.jpg"));
+                        
+                        if( !empty( $produit["photo"] ) ) {
+                            $photoPath      = APPLICATION_DATA_PATH . DS . "produits" . DS . "photos" . DS . "mini" . DS . $produit["photo"];
+                            if( file_exists( $photoPath ) ) {
+                              	$photoPathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $photoPath );
+                              	$photoFile     = str_replace( DS , "/" , $photoPathname);
+                            }
+                        }						
+                        if(!$produitRow->stocked ) {
+                            $qtedispo = "<span class='bs-badge badge-warning'> Sur commande </span>";
+                        } else {
+                            $qteDispo = $model->getProduitQteDispo( $produitid, 0, $me->userid );
+                            if(!$qteDispo ) {
+                              	$agencesWithProduitDispo = $produitRow->getAgencesWithProduitDispo();
+                              	$qtedispo = (count( $agencesWithProduitDispo)) ? "<span class='badge badge-success'> Disponible dans les ".implode(", ", $agencesWithProduitDispo)." </span>" : "<span class='badge badge-danger'> Non disponible en stock </span>"; 
+                            } else {
+                              	$qtedispo = sprintf("<span class='badge badge-success'> Disponible en stock </span>");
+                            }
+                       }					   
+					   $output.= "<div id=\"productItemId-".$produitid."\" class=\"col-md-4 col-sm-6 col-xs-18 productItem\">";
+					          $output.= "<div class=\"panel panel-white\">";							        
+									$output.="<div class=\"panel-body panel-body-fw panel-img\"> <img height=\"150px\" class=\"img-responsive\" src=\"".$photoFile."\" alt=\"".$libelle."\" /> </div>";	
+							        $output.="<div class=\"panel-body product-stock-infos \">".$qtedispo." </div>";
+									$output.="<div class=\"panel-body product-details \">
+									             <div class=\"productlib\">   <h2>".$libelle   ."</h2> </div>
+												 <div class=\"productprice\"> <h2>".$prix_vente." F CFA</h2> </div>
+											  </div>";
+									$output.="<ul class=\"list-group product-other-infos\"> ";
+									   $output.="<li class=\"list-group-item product-description\"> ".$description." </li>";
+									   $output.="<li class=\"list-group-item\"> 
+                                                        <a href=\"#selectProduit-".$produitid."\" class=\"btn btn-success btn-block btn-lg selectProduit\"> Selectionner </a>									 
+									                 </li>";
+						           $output.="</ul>";
+							  $output.= "</div>";
+					   $output.= "</div>";
+				}
+			} else {
+				 $output.= "<div class=\"panel panel-white\"> <p class=\"text-center\"> AUCUN PRODUIT DE CE TYPE  N'A ETE RETROUVE DANS VOTRE BOUTIQUE</p> </div>";
+			}
+			
+			echo $output;			 
+		?>
+	</div> 
+  </div> 
+</section>
+<?php 
+      echo $pagination->render();
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

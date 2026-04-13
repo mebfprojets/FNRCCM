@@ -1,0 +1,70 @@
+<?php
+      $statsexes = $this->rows;
+	  $sexes     = array("M" => "Hommes", "F" => "Femmes", "H" => "Hommes", 1 => "Hommes", 2=> "Femmes");
+	  $localites = $this->localites;
+?>
+<table id="statsSexe" class="table table-bordered table-hover">
+		    <thead> <tr> <th width="50%"> localités </th> <th width="30%"> Genres </th> <th width="20%"> Nombre </th> </tr></thead>
+			<tbody>
+			   <?php
+			          $outputSexe    = "";
+					  $totalSexe     = 0;
+					  $totalLocalite = 0;
+					  $total         = 0;
+					  $modelRegistre = new Model_Registre();
+					  if(count( $localites )) {
+						  foreach( $localites as $localiteid => $localiteCode ) {
+							       $statSexes     = $modelRegistre->dashboardStatsexes($localiteid);
+								   $totalLocalite = 0;
+								   if(!isset( $sexes[$statSexes[0]["sexe"]] ) && !isset( $sexes[$statSexes[1]["sexe"]] )) {									   
+									   for($i=1; $i<= 2; $i++ ) {
+										   $localiteLibelle = ( $i == 1) ? $localiteCode : "";
+										   $rowBg           = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+										   $sexe            = (isset( $sexes[$i] )) ? $sexes[$i] : "Hommes";
+										   $sexeCode        = ($sexe == "Hommes"  ) ? "M" : "F";
+										   $linkList        = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","sexe"=> $statsexe['sexe'], "localiteid" => $localiteid),"default");
+										   $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+										          $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".$localiteLibelle." </a></td>";
+                     	 	                      $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".$sexe." </a></td>";
+                     	 	                      $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> 0 </a> </td>";
+                     	 	               $outputSexe.="</tr>";
+									   }
+								   } else {
+									   $precedentLocaliteid  = 0;
+									   for( $i=0; $i< count($statSexes); $i++ ) {
+										    if( empty( $statSexes[$i]["sexe"] )) {
+												continue;
+											}
+										    $localiteLibelle = ( $precedentLocaliteid != $statSexes[$i]["localiteid"]) ? $localiteCode : "";
+										    $rowBg           = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+										    $sexe            = (isset( $sexes[$statSexes[$i]["sexe"]] )) ? $sexes[$statSexes[$i]["sexe"]]: "Hommes";
+										    $sexeCode        = $statSexes[$i]["sexe"];
+											$nombre          = $statSexes[$i]['nombre'];
+											$total          += $nombre;
+											$totalLocalite  += $nombre;
+										    $linkList        = $this->url(array("module"=>"admin","controller"=> "registres","action"=>"list","sexe"=>$sexeCode,"localiteid" => $localiteid),"default");
+											$outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+										          $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".$localiteLibelle." </a></td>";
+                     	 	                      $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".$sexe." </a></td>";
+                     	 	                      $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".number_format($nombre, 0, " ", " ")."</a> </td>";
+                     	 	                $outputSexe.="</tr>";
+											$precedentLocaliteid = $statSexes[$i]["localiteid"];
+									   }
+								   }
+								   $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						           $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+                     	                      $outputSexe.="<td colspan=\"2\"> TOTAL ".$localiteCode.":    </td>";
+                     	                      $outputSexe.="<td> ".number_format( $totalLocalite, 0,' ', ' ')." </td>";
+                     	           $outputSexe.="</tr>";
+						  }
+						           $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						           $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+                     	                      $outputSexe.="<td colspan=\"2\"> NOMBRE TOTAL :    </td>";
+                     	                      $outputSexe.="<td> ".number_format( $total, 0,' ', ' ')." </td>";
+                     	           $outputSexe.="</tr>";
+					  }
+					  
+					  echo $outputSexe;
+			   ?>
+			</tbody>
+</table>

@@ -1,0 +1,13 @@
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 2
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 3
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 4
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 5
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 6
+[31-Jan-2023 01:14:32 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml:7
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/payments/fonctionnement.phtml on line 7
+[31-Jan-2023 06:54:25 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/payments/refused.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/payments/refused.phtml on line 2

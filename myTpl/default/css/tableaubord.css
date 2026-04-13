@@ -1,0 +1,39 @@
+.dashboard-panel-item-wrapper .dashboard-panel-item {
+    float: left;
+    margin-bottom:10px;
+    margin-right: 10px;
+    text-align: center;
+}
+.dashboard-panel-item a {
+    background-color: #FFFFFF;
+    background-position: -30px center;
+    border: 1px solid #CCCCCC;
+    border-radius: 5px;
+    color: #565656;
+    display: block;
+    float: left;
+    height: 97px;
+    text-decoration: none;
+    transition-duration: 0.8s;
+    transition-property: background-position, -moz-border-radius-bottomleft, -moz-box-shadow;
+    vertical-align: middle;
+    width: 108px;
+}
+a:link {
+    color: #025A8D;
+    outline: medium none;
+    text-decoration: none;
+}
+a, img {
+    margin: 0;
+    padding: 0;
+	}
+.dashboard-panel-item-wrapper img {
+    margin: 0 auto;
+    padding: 10px 0;
+}
+.dashboard-panel-item-wrapper span {
+    display: block;
+    text-align: center;
+	font-size: 68.8%;
+}

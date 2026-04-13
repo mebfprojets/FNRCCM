@@ -1,0 +1,102 @@
+<?php 
+   $data               = $this->data;
+   $entrepriseid       = $this->entrepriseid;
+   $countries          = $this->countries();
+   
+   $formSubmit         = $this->url(array("module"=>"admin","controller"=> "demandentreprises", "action" => "edit", "id"=>$entrepriseid) , "default" ) ;
+   $linkCancel         = $this->url(array("module"=>"admin","controller"=> "demandentreprises", "action" => "list") , "default" ) ;
+    
+   $basePath           = VIEW_BASE_PATH;	
+   $jq                 = $this->jQuery(); 
+   $buttonbar          = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler()); 
+   $buttonSave         = $buttonbar->button("Enregistrer","floppy-save")->setPriority("primary");
+   $buttonCancel       = $buttonbar->button("Annuler","ban-circle");     
+   
+   $buttonbar->add($buttonSave  , "saveButton");
+   $buttonbar->add($buttonCancel, "cancelButton");
+   
+   $buttonSave->setAttributes(  array("type" => "submit", "class" => "btn btn-success"));
+   $buttonCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonCancel->onClick("event.preventDefault() ; document.location.href= '".$linkCancel."' ;");   
+   $buttonSave->onClick("
+   	event.preventDefault();	
+   	var formSelector  = jQuery('#editEntrepriseForm');
+    var nomCommercial = jQuery.trim(formSelector.find('#nomcommercial').val());
+	if( SIRAH.util.isEmpty(nomCommercial)){
+		jQuery('#nomcommercial').addClass('input-error');
+		jQuery('#nomcommercial-validation-message').html('');
+		SIRAH.error.raise('nomcommercial-validation-message', 'Entrez le nom commercial de l\'entreprise cible');
+		return;
+	} else {
+		jQuery('#nomcommercial').removeClass('input-error');
+		jQuery('#nomcommercial-validation-message').html('');
+	}
+      formSelector.submit();  ");
+$onLoad = " ";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/js/editors/tinymce/tinymce.min.js");
+?>
+<form method="post" action="<?php echo $formSubmit;?>" id="editEntrepriseForm" role="form" class="form-horizontal editEntrepriseForm" enctype="multipart/form-data">
+	<div    class="content-box"> 
+        <ul class="list-group">
+		    <li class="list-group-item">
+			    <div class="form-group">            
+					<label class="col-md-2  col-sm-2 control-label"> Entreprise non autorisée: </label> 
+					<div   class="col-md-10 col-sm-10">
+					    <div class="radio-inline"> <label><input type="radio" name="blacklisted" id="blacklisted-yes" class="custom-radio" <?php echo ($data["blacklisted"]==1)? 'checked' : ''; ?> value="1"> Oui, Nom commercial interdit</label></div>
+					    <div class="radio-inline"> <label><input type="radio" name="blacklisted" id="blacklisted-no"  class="custom-radio" <?php echo ($data["blacklisted"]==0)? 'checked' : ''; ?> value="0"> Non  </label></div>
+					</div> 				
+				</div>
+			</li>
+            <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2  col-sm-2  control-label" for="nomcommercial"> Nom commercial*: </label>
+				   <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="nomcommercial" name="nomcommercial" type="text" maxlength="350" class="form-control" title="Nom commercial de l'entreprise" placeholder="Nom commercial de l'entreprise" value="<?php echo $data["nomcommercial"]; ?>">
+					         <span class="input-group-btn" style="width:0px;"></span>
+						   <input type="text" name="sigle" id="sigle" class="form-control" value="<?php echo $data["sigle"]; ?>" placeholder="Le sigle de l'entreprise" title="Le sigle de l'entreprise" />
+						</div>
+					</div> 			   
+				   <p id="nomcommercial-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2  control-label" for="denomination"> Dénomination: </label>
+				   <div   class="col-md-10 col-sm-10"><input title="Saisir la dénomination sociale de l'entreprise cible (facultatif)" type="text" name="denomination" id="denomination" class="form-control" placeholder="Dénomination sociale" value="<?php echo $data["denomination"]; ?>" /></div>        
+			    </div>
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2 control-label" for="activite"> Motif: </label>
+				   <div   class="col-md-10 col-sm-10"> <input type="text" title="Décrivez en quelques mots le motif de l'interdiction" name="activite" id="activite" class="form-control" value="<?php echo $data["activite"]; ?>" placeholder="Décrivez en quelques mots le motif de l'interdiction" /></div>       
+			    </div>
+			</li>
+        </ul>	
+		
+	<?php     
+	   $buttonsBar = $this->Btnbar(array() , $this->jqueryHandler());
+	   $toolCreate = $buttonsBar->button("Enregistrer","save")->setPriority("primary");
+	   $toolCancel = $buttonsBar->button("Annuler","chevron-left");
+	   
+	   $toolCreate->setAttributes(array("type"=> "submit"));
+	   $toolCancel->setAttributes(array("type"=> "submit"));
+		  
+	   $buttonsBar->add( $toolCancel , "cancelCreationButton");
+	   $buttonsBar->add( $toolCreate , "editButton");
+
+	   if(!$this->isAjax) {
+		   echo "<div class=\"panel-footer\"> ".$buttonsBar." </div>";
+	   } else {
+		   echo $this->jQuery();
+		   echo $this->headStyle();
+	   }  
+	?>
+	</div>
+	<input type="hidden" name="reserved"     id="reserved"     value="0" />
+	<input type="hidden" name="entrepriseid" id="entrepriseid" value="<?php echo $this->entrepriseid; ?>" />
+</form>
+ 

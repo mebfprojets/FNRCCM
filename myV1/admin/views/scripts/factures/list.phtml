@@ -1,0 +1,459 @@
+<?php 
+$me                 = Sirah_Fabric::getUser();
+$invoices           = $this->invoices;
+$filters            = $this->filters;
+$paginator          = $this->paginator;
+$categories         = $this->categories;
+$statuts            = $this->statuts;
+
+$basePath           = VIEW_BASE_PATH;
+$jq                 = $this->jQuery();
+
+$linkSearch         = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"list"  ),"default",true);
+$linkCreate         = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"create"),"default",true);
+$linkEdit           = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"edit"  ),"default",true);
+$linkDelete         = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"delete"),"default",true);
+$linkExport         = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"export"),"default",true);
+$linkExportPDF      = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"exportpdf"),"default",true);
+$linkExportCSV      = $this->url(array("module"=>"admin","controller"=> "factures", "action"=>"exportcsv"),"default",true);
+$linkOpenDocuments  = $linkUserDocuments = $this->url(array("module"=>"admin","controller"=>"userdocuments","action"=>"infos"),"default");
+$myDataPath         = $me->getDatapath();
+$docUrl             = $myDataPath . "ARCHIVES" . DS ."ERCCM_ListInvoices.pdf";
+
+$jq->addOnload("
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch,.resetSearchBtn,#resetSearchBtn').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector = jQuery('#globalFormSearch') ;
+	var searchData   = {};			
+	var maincontent	 = jQuery('#maincontent');				
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : {},
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });				
+});	
+jQuery('#searchInvoices').click(function(event){
+	event.preventDefault();
+	var formSelector               = jQuery('.advancedSearchForm').eq(0) ;
+	var searchData                 = {};		
+	searchData.numero              = formSelector.find('#numero').val();
+	searchData.name                = formSelector.find('#name').val();
+	searchData.page                = parseInt(formSelector.find('#page').val());
+	searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());	
+	searchData.catid               = parseInt(formSelector.find('#catid').val());
+	searchData.documentcatid       = parseInt(formSelector.find('#documentcatid').val());
+	searchData.memberid            = parseInt(formSelector.find('#memberid').val());		
+	searchData.registreid          = parseInt(formSelector.find('#registreid').val());
+	searchData.statutid            = parseInt(formSelector.find('#statutid').val());
+	searchData.date_year           = parseInt(formSelector.find('#date_year').val());
+	searchData.date_month          = parseInt(formSelector.find('#date_month').val());
+	searchData.date_day            = parseInt(formSelector.find('#date_day').val());
+	searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());		
+	var maincontent	               = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent , 'Chargement des données...' );
+	formSelector.attr('action', '".$linkSearch."');
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });
+});
+jQuery('#simpleSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector         = jQuery('#globalFormSearch') ;
+	var searchData           = {};
+	var pageNum              = parseInt(formSelector.find('#page').val());
+	
+	searchData.page          = pageNum;
+	searchData.maxitems      = parseInt(formSelector.find('#maxitems').val());	
+	 
+	searchData.searchQ       = searchData.searchq = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+	searchData.documentcatid = parseInt(jQuery('#globalFormSearch').find('#documentcatid').val());
+	searchData.registreid    = parseInt(jQuery('#globalFormSearch').find('#registreid').val());
+	searchData.catid         = parseInt(jQuery('#globalFormSearch').find('#catid').val());
+	var maincontent          = jQuery('#maincontent');		
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+	event.preventDefault();
+	if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		 return false;
+	}
+	var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+	var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+	var pageMaxitems        = formSelector.find('#maxitems').val();
+	if(jQuery(this).is('.nextPage')) {
+		  var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		  pageNum           = parseInt( currentBtnNum +1);
+	}
+	if( jQuery(this).is('.prevPage')) {
+		var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum              = parseInt( currentBtnNum - 1);
+	}
+	var paginationData                 = {};
+	paginationData.page                = pageNum;
+	paginationData.maxitems            = parseInt(formSelector.find('#maxitems').val());		
+	paginationData.catid               = parseInt(formSelector.find('#catid').val());
+	paginationData.numero              = formSelector.find('#numero').val();
+	paginationData.name                = formSelector.find('#name').val();
+	paginationData.page                = parseInt(formSelector.find('#page').val());
+	paginationData.maxitems            = parseInt(formSelector.find('#maxitems').val());	
+	paginationData.catid               = parseInt(formSelector.find('#catid').val());
+	paginationData.documentcatid       = parseInt(formSelector.find('#documentcatid').val());
+	paginationData.memberid            = parseInt(formSelector.find('#memberid').val());		
+	paginationData.registreid          = parseInt(formSelector.find('#registreid').val());
+	paginationData.statutid            = parseInt(formSelector.find('#statutid').val());
+	paginationData.date_year           = parseInt(formSelector.find('#date_year').val());
+	paginationData.date_month          = parseInt(formSelector.find('#date_month').val());
+	paginationData.date_day            = parseInt(formSelector.find('#date_day').val());
+	paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+	
+	var maincontent                    = jQuery('#maincontent');			
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : paginationData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });		
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedInvoicesId = function() {
+	var checkedItems = jQuery('#invoicesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	var checkedIds   = []; 
+	if( checkedItems) {
+		checkedItems.each(function() {
+			var invoiceid = parseInt(jQuery(this).attr('id').replace('invoiceids',''));
+			checkedIds.push(invoiceid);
+	    });
+	}
+	return checkedIds;
+};
+jQuery('#invoicesListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#invoicesListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#invoicesListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#invoicesListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#invoicesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','editButton']);
+	}
+});");
+
+$toolbar     = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolEdit    = $toolbar->tool("Modifier" , "pencil");
+$toolDelete  = $toolbar->tool("Supprimer", "icon-trash-o");
+$toolExport  = $toolbar->tool("Exporter" , "download");
+
+$toolbar->add( $toolEdit   , "editButton");
+$toolbar->add( $toolExport , "exportButton");
+$toolbar->add( $toolDelete , "deleteButton");
+
+ 
+$toolEdit->onClick(  sprintf("
+		            event.preventDefault(); 
+		            var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem  = jQuery('#invoicesListTable').find('input[type=\'checkbox\'][name=\'invoiceids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var invoiceid         = parseInt(checkedItem.attr('id').replace('invoiceids',''));
+		            document.location.href = '%s/invoiceid/'+invoiceid;", $linkEdit  ));
+$toolDelete->onClick(sprintf("
+		            event.preventDefault(); 
+		            var isDisabled  = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem = jQuery('#invoicesListTable').find('input[type=\'checkbox\'][name=\'invoiceids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var invoiceid           = parseInt(checkedItem.attr('id').replace('invoiceids',''));
+		            var dialogDeleteInvoice = jQuery('<div> Etes-vous sur de supprimer cette facture ? </div>').attr('id','dialogDeleteInvoice');
+                    dialogDeleteInvoice.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+                    dialogDeleteInvoice.dialog2('addButton','Oui', {primary: true ,click:function(){document.location.href = '%s/invoiceid/'+invoiceid;}}); 
+                    dialogDeleteInvoice.dialog2('addButton','Non', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+                    dialogDeleteInvoice.dialog2('open');", $linkDelete));
+
+if( $me->isAllowed("invoices","export") ) {
+	$toolbar->add( $toolExport, "exportButton");
+	$toolExport->dropdown(array("exportPDFButton" => "<span class=\"glyph-icon icon-file-pdf-o\">&nbsp</span>   Exporter la liste en PDF",
+						        "exportCSVButton" => "<span class=\"glyph-icon icon-file-excel-o\">&nbsp</span> Exporter la liste en EXCEL"), $this->jqueryHandler());
+
+    $buttonExportPDF = $toolExport->getDropdownItem("exportPDFButton");
+	if( $buttonExportPDF ) {
+		$buttonExportPDF->onClick(sprintf("
+									event.preventDefault(); 
+									var isDisabled          = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+									var checkedInvoices    = getCheckedInvoicesId();
+									var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+										click:function(event){
+												jQuery(this).dialog2('close');
+												var formSelector = jQuery('#invoicesListSearchForm');
+												SIRAH.request.post(jQuery('#invoicesListSearchForm'),'%s',{
+																	data:{'invoiceids[]':checkedInvoices},
+																	 success:function( data ){
+																			var mainContentSelector = jQuery('#maincontent');
+																			jQuery('#patientez').fadeOut('slow');
+																			jQuery('#sirah-page-message').fadeOut('slow');
+																			if( undefined !== data.error){
+																				SIRAH.error.raise(mainContentSelector,data.error,'error');
+																				return data;
+																			} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+																				SIRAH.loading.off(false);
+																				var listOfInvoiceUri= '%s';
+																				var dialogTitle     = encodeURIComponent('Liste des factures d\'approvisionnement');
+																				var linkViewDoc     = '%s?doc='+listOfInvoiceUri+'&dialogTitle='+dialogTitle;
+												 
+																				var documentDialog  = jQuery('<div/>').attr('id','documentDialog'); 
+																				documentDialog.dialog2({title:'Lecture du document..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+																				documentDialog.dialog2('open');
+																			} else if( undefined !== data.reload ) {
+																				var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+																				document.location.href  =  reloadurl ;
+																			} else {
+																				SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+																				return data;
+																			}
+																	 }
+												});
+										}
+									});
+									dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									dialogConfirmExport.dialog2('open');", $linkExportPDF,urlencode($docUrl), $linkOpenDocuments));
+	}
+		$buttonExportCSV = $toolExport->getDropdownItem("exportCSVButton");
+	if( $buttonExportCSV ) {
+		$buttonExportCSV->onClick(sprintf("event.preventDefault(); 
+										    var checkedInvoices     = getCheckedInvoicesId();	        
+										    var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+										    dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+										    dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																	    click:function(event){
+																			jQuery(this).dialog2('close');
+																			var formSelector = jQuery('<form/>').attr('id', 'exportListCSVForm').attr('method', 'post').attr('action', '%s');
+																			jQuery.each(checkedInvoices, function(index,inputValue){
+																						var checkedInput = jQuery('<input />').attr('type','hidden').attr('name','invoiceids[]').attr('value', inputValue);
+																						formSelector.append(checkedInput);
+																			}); 
+																			jQuery(document.body).append(formSelector); 
+																			formSelector.submit();	
+																	    }
+										    });
+										   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+										   dialogConfirmExport.dialog2('open');", $linkExportCSV));
+	}
+}
+
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single .chosen-single{height:35px;line-height:35px;}
+#periodstart_year_chosen .chosen-single,#startyear .chosen-single{border-top-right-radius:0px !important;border-bottom-right-radius:0px !important}
+#periodend_year_chosen   .chosen-single,#endyear   .chosen-single{border-top-left-radius:0px !important;border-bottom-left-radius:0px !important}
+.period-chosen           .chosen-single{border-radius:0px !important;}
+#periodstart_day_chosen  .chosen-single{border-top-left-radius:5px  !important;border-bottom-left-radius:5px !important;}
+#periodend_year_chosen  .chosen-single{border-top-right-radius:5px !important;border-bottom-right-radius:5px !important;}
+.whiteRow{background:#FFFFFF !important}
+.grayRow{ background:#F5F5F5 !important}
+<?php $this->headStyle()->captureEnd()   ?>
+<div  id="invoicesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	   <div  class="panel-heading bg-blue-alt">
+			<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+				<div class="input-group">
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("statutid"     , intval($filters["statutid"])     ,array("class" => "form-control statutid"), $this->statuts); ?></span>
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("catid"        , intval($filters["catid"])        ,array("class" => "form-control catid"), $this->categories); ?></span>
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("documentcatid", intval($filters["documentcatid"]),array("class" => "form-control documentcatid" ), $this->documentypes ); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ"  type="text" class="form-control" placeholder="Recherchez une facture, saisir la référence...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"      class="btn btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span> Filtrer</button>
+					   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Avancée</button>
+					   <button id="resetSearch"       class="btn btn-danger  resetSearch"       type="button"><span class="glyph-icon icon-remove"></span></button>
+					</span>
+				</div>
+				<input type="hidden" name="registreid" id="registreid" value="<?php echo intval($filters["registreid"]); ?>" /> 
+				<input type="hidden" name="documentid" id="documentid" value="<?php echo intval($filters["documentid"]); ?>" /> 
+				<input type="hidden" name="productid"  id="productid"  value="<?php echo intval($filters["productid"]); ?>" /> 
+				<input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum; ?>" /> 
+				<input type="hidden" name="maxitems"   id="maxitems"   value="<?php echo $this->pageSize; ?>" />			 
+			</form>
+    	</div>
+		<form id="invoicesListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		    <ul class="list-group">
+				<li class="list-group-item"> 
+				    <div class="form-group">
+					   <label class="col-md-2 col-sm-2 control-label"> <b> Type de produits:</b> </label> 
+					   <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("catid", intval($filters["catid"]),array("class"=> "form-control catid"), $this->categories); ?> </div> 
+				    
+					    <label class="col-md-2 col-sm-2 control-label"><b> Type de documents:</b> </label> 
+				        <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("documentcatid", intval($filters["documentcatid"]),array("class" => "form-control documentcatid"), $this->documentypes); ?> </div>
+					</div> 			   
+				</li>			 
+                <li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label"><b>Client:</b> </label> 
+						<div   class="col-sm-4 col-md-4"><input value="<?php echo $filters['name'];?>" type="text" name="name" id="name" class="form-control" placeholder="Nom et/ou prénom du client" /></div>
+						<label class="col-md-2 col-sm-2 control-label"><b> Statut:</b> </label> 
+					   <div   class="col-md-4 col-sm-"><?php echo $this->formSelect("statutid", intval($filters["statutid"]),array("class" => "form-control"),$this->statuts); ?> </div> 
+					</div>
+				</li>
+				 
+				<li class="list-group-item"> 
+					<div class="form-group"> 
+					    <label class="col-md-2  col-sm-2 control-label"> Date : </label>
+					    <div class="col-md-3"><?php echo $this->formSelect("date_day"  , $filters["date_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+					    <div class="col-md-3"><?php echo $this->formSelect("date_month", $filters["date_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+					    <div class="col-md-4"><?php echo $this->formSelect("date_year" , $filters["date_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+				    </div>
+				</li> 
+				<li class="list-group-item">
+					<div  class="form-group">                                
+						<label class="col-sm-2 col-md-2 control-label"> <b> Période invoice:</b> </label> 
+						<div   class="col-sm-10 col-md-10"> 
+							<div class = "input-group input-group-chosen period-chosen">
+							  <?php echo $this->formSelect("periode_start_day",  $filters["periode_start_day"] , array("class"=>"chosen grpChosen"),array("00"=>"Jour")+createDatesArray(),"");?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_start_month",$filters["periode_start_month"],array("class"=>"chosen grpChosen"),array("00"=>"Mois")+$this->months(),"-"); ?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_start_year2",$filters["periode_start_year2"], array("class"=>"chosen grpChosen"), array("0000"=>"Debut année")+createYearsArray(2005,(date("Y")) ));?>									  
+								
+							  <span class="input-group-addon chosen-grp-addon bg-primary"> Au : </span>
+							  <?php echo $this->formSelect("periode_end_day"  , $filters["periode_end_day"]     , array("class"=>"chosen grpChosen"),array("00"=>"Jour")+createDatesArray(),"");?> 
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_end_month", $filters["periode_end_month"], array("class"=>"chosen grpChosen"),array("00"=>"Mois")+$this->months(),"-"); ?>
+							  <span class="input-group-btn" style="width:0px;"></span>
+							  <?php echo $this->formSelect("periode_end_year", $filters["periode_end_year"]  , array("class"=>"chosen grpChosen"), array("0000"=>"Debut année")+createYearsArray(2005, (date("Y")+1) ));?>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div class="form-group"> 
+						<label class="col-md-2  col-sm-2 control-label">  <b> Limiter le nbre d'élements à:</b> </label> 
+						<div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=> 5000, "100000000" => "Tout")); ?> </div>
+					</div>
+				</li>	
+			</ul>
+		    <div class="panel-footer"> 
+		        <button id="searchInvoices" class="btn btn-primary searchInvoice" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+                <button id="resetSearch"    class="btn btn-danger  resetSearch"   type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		    </div>
+			<input type="hidden" name="registreid" id="registreid" value="<?php echo intval($filters["registreid"]); ?>" /> 
+			<input type="hidden" name="documentid" id="documentid" value="<?php echo intval($filters["documentid"]); ?>" /> 
+			<input type="hidden" name="productid"  id="productid"  value="<?php echo intval($filters["productid"]); ?>" />
+		    <input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum;    ?>"             />
+		</form>
+		<table id="invoicesListTable"  class="table table-hover table-bordered text-center">
+            <thead>
+				<tr>
+					<th width="3%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+					<th width='12%'> Références   </th>
+					<th width='10%'> Réf.Commandes</th>
+					<th width='10%'> Dates        </th>					 					 
+					<th width='25%'> Clients      </th>
+					<th width='10%'> Montants HT  </th>
+					<th width='10%'> Montants TTC </th>
+					<th width='15%'> Statuts      </th>
+				</tr>
+			</thead>                
+			<tbody>
+            <?php 
+				$output   = "";
+				if( count(   $invoices )) {
+					foreach( $invoices as $invoice ) {
+							 $invoiceid    = $invoice["invoiceid"];
+							 $clientName   = sprintf("%s %s",$invoice["lastname"],$invoice["firstname"]);
+							 $reference    = $invoice["numero"];
+							 $numCommande  = $invoice["numcommande"];
+							 $produits     = array();
+							 $valeurHT     = (floatval($invoice["valeur_ht"] ))?number_format($invoice["valeur_ht"] ,0,", "," ") : floatval($invoice["valeur_ht"]);
+							 $valeurTTC    = (floatval($invoice["valeur_ttc"]))?number_format($invoice["valeur_ttc"],0,", "," ") : floatval($invoice["valeur_ht"]);
+							 $dateInvoice  = (intval(  $invoice["date"]      ))?date("d/m/Y", $invoice["date"]): $invoice["date_invoice"];                     	  	       
+
+							 $bgColor      = $this->cycle(array('#FFFFFF','#F0F0F0'))->next();
+							 $linkInfos    = $this->url(array("controller"=>"factures","action"=>"infos","id"=> $invoiceid,"invoiceid"=> $invoiceid), "default",true);
+							 $statutLib    = (isset($statuts[$invoice["statutid"]]) && intval($invoice["statutid"])) ? $statuts[$invoice["statutid"]] : "";
+								
+							 $output      .= "<tr id=\"invoiceId-".$invoiceid."\" style=\"background-color:".$bgColor."\" class=\"invoiceIds\">";
+								   $output.="   <td> <input type=\"checkbox\" name=\"invoiceids[]\" id=\"invoiceids".$invoiceid."\" class=\"invoiceids\" /></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$reference   ." </a></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$numCommande ." </a></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$dateInvoice ." </a></td>";									
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$clientName  ." </a></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$valeurHT    ." </a></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$valeurTTC   ." </a></td>";
+								   $output.="   <td> <a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$statutLib   ." </a></td>";
+							 $output      .= "</tr>";                      	  	       
+					  }
+				} else {
+							   $output      .= "<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"8\"> AUCUNE FACTURE N'A ETE TROUVEE </td> </tr>";
+				}
+				echo $output;
+            ?>
+            </tbody>
+        </table>
+		<?php echo $pagination->render(); ?>
+    </div>
+</div>
+
+ 
+<?php 
+    if( $this->isAjax ) {     	 
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+    

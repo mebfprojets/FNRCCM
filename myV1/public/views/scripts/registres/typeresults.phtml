@@ -1,0 +1,23 @@
+<?php 
+$searchKey   = $this->searchKey; 
+$results     = $this->results;
+
+if( count(  $results ) ) {
+	$output  = "<div class=\"list-group no-top-border\">";
+    foreach($results  as $result ) {
+			$typeId     = intval($result['type']);
+			$typeLib    = ($typeId==2)?"Personnes Morales" : "Personnes Physiques";
+			$nbreResults= $result["nombre"];
+			$linkInfos  = $this->url(array("controller"=>"registres","action"=>"search","q"=>$searchKey,"type"=>$typeId),"default",true);
+			$output    .="   <a href=\"".$linkInfos."\" class=\"list-group-item\"> ";
+			       $output.="    <span class=\"badge\">".$nbreResults."</span>";
+				   $output.="    ".$typeLib;
+			$output       .=" </a> ";
+    }
+	$output  .= " </div>";  
+}  
+ 
+echo  $output ;
+
+?>
+             

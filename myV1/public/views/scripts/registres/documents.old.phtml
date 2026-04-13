@@ -1,0 +1,131 @@
+<?php 
+    $model         = new Model_Document();
+	$orderCart     = new Zend_Session_Namespace("ordercart");
+    $registre      = $this->registre;
+    $registreid    = $this->registreid;
+    $documents     = $this->documents; 
+    $cartDocuments = (isset($orderCart->documents))?$orderCart->documents : array();	
+ 
+	$linkAddToCart = $this->url(array("module"=>"public","controller"=>"ordercart","action"=>"addregistredoc"),"default",true) ;
+    $output        = "";
+    $output       .= "<ul class=\"list-group documentList\">";
+    $totalSize     = 0;
+    if( count(  $documents)) {
+    	foreach($documents as $document) {
+				$documentid   = intval($document["documentid"]);
+				$filename     = $document["filename"];
+				$filextension = strtolower($document["filextension"]);
+				$filemetadata = $document["filemetadata"];
+				$filesize     = $document["filesize"];
+				$libelle      = str_replace("document complet","fond de dossier",$model->filterIndex($document["filename"], $document["userid"] ));
+				$icone        = "glyph-icon icon-file";
+				$class        = "";
+				$title        = "Accéder au document";
+				
+				$filesize     = ( isset( $document["filepath"] ) && file_exists( $document["filepath"] ) ) ? filesize( $document["filepath"] ) : $document["filesize"] ;
+				$sizeKo       = Sirah_Functions::toByteString( $filesize, "" , 2 );
+				$totalSize   += $filesize;
+				
+                if( stripos($filename,"formulaire")!==false) {
+					$libelle  = "FORMULAIRE RCCM";
+				} elseif(stripos($filename,"dossier")!==false) {
+					$libelle  = "FOND DE DOSSIER";
+				} elseif(stripos($filename,"statut")!==false) {
+					$libelle  = "ACTES ET STATUTS";
+				}					
+				switch( $filextension ) {
+					case "pdf":
+						$icone = "glyph-icon icon-file-pdf-o";
+						break;
+					case "doc":
+					case "docx":
+						$icone = "glyph-icon icon-file-word-o";
+						break;
+					case "xml":
+						$icone = "glyph-icon icon-file-xml-o";
+						break;
+					case "ppt":
+						$icone = "glyph-icon icon-file-powerpoint-o";
+						break;
+					case "xls":
+					case "xlxs":
+					case "csv":
+						$icone = "glyph-icon icon-file-excel-o";
+						break;
+					case "png":
+					case "gif":
+					case "jpg":
+					case "jpeg":
+					case "bmp":
+						$icone = "glyph-icon icon-image-o";
+						$class = "dialogViewInfos";
+						break;    	  			
+				}    	  	    	  	
+				$documentKey= sprintf("documentId-%d-%d", $registreid, $documentid);    
+				
+				$output .=" <li id=\"".$documentKey."\" class=\"list-group-item\">
+								<div class=\"row\">                                 
+									<div class=\"col-md-6\"><span class=\"".$icone."\"></span> ". $libelle ."</div>
+                                    <div class=\"col-md-2\"><p class=\"text-mute\"> ".$sizeKo."</p> </div>	";	
+				$output .="<div class=\"col-md-4\">";					
+				if( isset($cartDocuments[$documentid])) {
+					$output .=" <div id=\"btnGroup-".$documentKey."\" class=\"btn-group\" role=\"group\">
+									<button type=\"button\" class=\"btn btn-success disabled pull-left\" id=\"delFromCartId-".$documentKey."\"><span class=\"glyph-icon icon-check\"></span> Ajouté au panier </button>										    
+								</div>";
+				} else {
+					$output.="  <div id=\"btnGroup-".$documentKey."\" class=\"btn-group\" role=\"group\">
+									<button type=\"button\" class=\"btn btn-danger pull-left addToCart\" title=\"Ajouter au panier\" id=\"addToCartId-".$documentKey."\"><span class=\"glyph-icon icon-shopping-cart\"> </span> Ajouter au panier </button>										    
+								</div>";
+				}					
+				
+				$output .="  </div>";					
+				$output .="</div></li> ";
+    	}
+    	$totalSizeKo = Sirah_Functions::toByteString( $totalSize );
+    	$output .= "    <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+    	                    <div class=\"row\">
+    	                        <div class=\"col-md-6\"> <p class=\"list-group-item-text\"> Taille totale : </p> </div>
+    	                        <div class=\"col-md-2\"> <p class=\"text-mute\"> ".$totalSizeKo."</p> </div>
+								<div class=\"col-md-4\"> </div>
+    	                    </div>
+    	                </li> ";
+    }  else {
+    	$output.= " <li class=\"list-group-item\" id=\"documentId-0\">
+    	               <p style=\"text-align:center;\" class=\"list-group-item-text\"> Aucun document n'a été trouvé. </p>
+    	            </li>";
+    }
+    $output     .= "</ul>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+        jQuery('.addToCart').css('cursor','pointer');
+        jQuery('.addToCart').click(function(){      
+		    var documentBtn = jQuery(this);
+			var documentKey = jQuery(this).attr('id');
+            var documentId  = documentKey.replace('addToCartId-','');
+			var documentKeys= documentId.split('-');
+			var registreid  = documentKeys[1];
+			var documentid  = documentKeys[2];
+			documentBtn.html('En cours...');documentBtn.addClass('disabled');
+            jQuery.ajax({url:'".$linkAddToCart."',async:true,dataType:'json',data:{'registreid':registreid,'documentid':documentid},type:'GET',
+			            beforeSend:function(){documentBtn.html('En cours...');documentBtn.addClass('disabled');},
+						success  : function(data) {
+							if( data.error !== undefined) {
+							    alert(data.error);
+								documentBtn.addClass('addToCart');
+								documentBtn.removeClass('disabled');
+								documentBtn.html('<span class=\'glyph-icon icon-shopping-cart\'></span> Ajouter au panier');
+							} else if(data.success !== undefined && data.counter !==undefined ) {
+							    jQuery('#cardUpdateBtn').trigger('addProduct');   	
+                                documentBtn.removeClass('addToCart');								
+							    documentBtn.removeClass('btn-danger').addClass('btn-success').addClass('disabled');
+								documentBtn.html('<span class=\'glyph-icon icon-check\'></span>Ajouté au panier');
+							}
+						}
+			});                  		             		            		       
+        });";    
+    $jq->addOnLoad($onLoad);
+?>
+             

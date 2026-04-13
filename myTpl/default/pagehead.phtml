@@ -1,0 +1,67 @@
+<?php
+  $baseUrl        = $this->baseUrl();
+  $tplPath        = VIEW_BASE_PATH;
+  $basePath       = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."application"  , APPLICATION_DATA_PATH );
+  $entrepriseLogo = str_replace( DS , "/" , $basePath . DS . "entreprise" .DS . "images" . DS . "logo.png" );
+  
+  $user           = Sirah_Fabric::getUser();
+  $layout         = Zend_Layout::getMvcInstance();
+  $view           = $layout->getView();    
+  $cacheManager   = Sirah_Fabric::getCachemanager();
+  $defaultSession = new Zend_Session_Namespace();
+  if( $view->user && ( isset( $view->user->userid ) ) ) {
+  	  $user       = $view->user;
+  }  
+  if(!isset($defaultSession->logoutoken)) {
+  	 $defaultSession->logoutoken = Sirah_User_Helper::getToken(15).time();
+  }
+  $logoutoken      = $defaultSession->logoutoken;
+  $linkDashboard   = $view->url(array("controller" => "dashboard","action" => "list")  , "dashboard");
+  $linkHome        = $view->url(array("controller" => "index"    ,"action" => "index") , "home"); 
+  $linkLogout      = $view->url(array("controller" => "account"  ,"action" => "logout", $logoutoken => "1" ), "default");
+  $linkProfile     = $view->url(array("controller" => "myprofile","action" => "infos"), "me");
+  $linkSettings    = $view->url(array("controller" => "account"  ,"action" => "settings"), "default");
+  $linkLogin       = $view->url(array("controller" => "account"  ,"action" => "login")   , "login"); 
+  $urlCreationDone = Sirah_Functions::url($view->url(array("controller" => "index"  , "action" => "index"), "default"),"" , 81 , APPLICATION_HOST);
+  $linkCreation    = Sirah_Functions::url($view->url(array("controller" => "account", "action" => "create"),"default"),"doneUri=".$urlCreationDone, 81 , APPLICATION_HOST);
+?>
+ <!-- L'entete fixe de la page -->
+  <div id="headNavigation" class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div id="sirah-page-head" class="container col-md-12" >  
+        <div id="logoCol" class="col-md-3" >
+           <a title="<?php echo 'Le logo de l\'entreprise' ?>" href="index.php"> 
+             <img align="center" src="<?php echo $tplPath; ?>/images/esup.png" /> 
+           </a>
+        </div>
+        <!-- La colonne du module de recherche -->
+        <div id="searchCol" class="searchbox col-md-5">  <img align="center" src="<?php echo $tplPath; ?>/images/entetesup.png" />  </div>
+        <!-- Fin de la colonne du module de recherche -->
+        <div id="navCol" class="col-md-4 pull-right">
+          <ul class="nav navbar-nav navbar-right pull-right ">           
+            <?php if($user->isLoggedIn()) : ?>
+            <li><a href="<?php echo $linkHome; ?>"> <i class="glyphicon glyphicon-home "></i> Accueil</a></li>
+            <li><a href="#about"> <i class="glyphicon glyphicon-globe "></i> Notifications </a></li>
+            <li class="dropdown">
+                 <a data-toggle="dropdown" class="dropdown-toggle" href="#"> <i class="glyphicon glyphicon-cog"></i> Moi <b class="caret"></b></a>
+                   <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dLabel">                   
+                      <li class="dropdown-header"> <?php echo $view->escape($user->lastname). " " . $view->escape($user->firstname) ; ?> </li>
+                      <li><a href="<?php echo $linkDashboard;  ?>"> <i class="glyphicon glyphicon-dashboard"></i> Tableau de bord</a></li>
+                      <li><a href="<?php echo $linkProfile;    ?>"> <i class="glyphicon glyphicon-user "></i> Mon profil</a></li>
+                      <li><a href="<?php echo $linkSettings;   ?>"> <i class="glyphicon glyphicon-cog "></i> Mes paramètres</a></li>
+                      <li><a href="<?php echo $linkLogout;     ?>"> <i class="glyphicon glyphicon-log-out "></i> Me déconnecter</a></li>
+                      
+                      <li class="divider"></li> 
+                      
+                      <li><a href="#"> <i class="glyphicon glyphicon-question-sign"></i> Besoin d'aide ? </a></li>
+                      <li><a href="#"> <i class="glyphicon glyphicon-envelope"></i> Contacter l'administrateur </a></li>                                                                                    
+              </ul>
+            </li>
+            <?php else: ?>
+               <li><a href="<?php echo $linkHome; ?>"> <i class="glyphicon glyphicon-home "></i> Accueil</a></li>
+               <li><a href="<?php echo $linkLogin; ?>"> <i class="glyphicon glyphicon-log-in"></i> Me connecter</a></li>
+            <?php endif; ?>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Fin de l'entete fixe de la page -->

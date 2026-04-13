@@ -1,0 +1,124 @@
+<?php 
+$front       = Zend_Controller_Front::getInstance();
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller"=>"orders"   ,"action"=>"create","module"=>"public"),"default",true);
+$linkCancel  = $this->url(array("controller"=>"registres","action"=>"search","module"=>"public"),"default",true);
+
+$basePath    = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+ 
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+ 
+jQuery('body').keydown(function(e) {if (e.keyCode===13) {jQuery('.btn-primary').trigger('click');}});
+jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';});  
+jQuery('.validateButton').click(function(e) {
+    e.preventDefault();
+    var formSelector     = jQuery('#ordersCreateForm');     
+    var customerLastName = jQuery.trim(jQuery('#customerLastName').val());
+	var customerFirstName= jQuery.trim(jQuery('#customerFirstName').val());
+    var email            = jQuery.trim(jQuery('#email').val());   
+    var telephone        = jQuery.trim(jQuery('#phone').val());
+    var country          = jQuery.trim(jQuery('#country').val());
+ 
+    if( SIRAH.util.isEmpty(customerLastName)){
+        jQuery('#customerLastName').addClass('input-error');
+        alert('Entrez un nom valide');
+        return;
+    } 
+    if( SIRAH.util.isEmpty(customerFirstName)){
+        jQuery('#customerFirstName').addClass('input-error');
+        alert('Entrez un prénom valide');
+        return;
+    }	
+    if( SIRAH.util.isEmpty(email) ){
+        jQuery('#email').addClass('input-error');
+        alert('Entrez une adresse email valide');
+        return;
+    }
+	if( SIRAH.util.isEmpty(telephone) ){
+        jQuery('#phone').addClass('input-error');
+        alert('Entrez un numéro de téléphone valide');
+        return;
+    }
+	if( SIRAH.util.isEmpty(country) ){
+        alert('Sélectionnez un pays');
+        return;
+    }
+      formSelector .submit();     
+}); ";  
+$jq->addOnLoad($onLoad);
+?>
+<div class="row"> 
+    <div class="col-xs-12 col-sm-4 col-md-4">
+	    <div class="panel panel-danger">
+	        <div class="panel-heading"><h4 class="panel-title"><span class="glyph-icon icon-credit-card"></span> Panier </h4> </div>
+		    <?php echo $this->partial("orders/articles.phtml", array()); ?>
+		</div>
+	</div>
+	<div class="col-xs-12 col-sm-8 col-md-8">
+		<div class="panel panel-default panel-more-shadow">
+			<div class="panel-body">
+				<div class="panel-desc"><h3><strong>Vos coordonnées de facturation </strong></h3></div> <hr>
+				<form class="ordersCreateFormform-row" id="ordersCreateForm" method="post" action="<?php echo $formSubmit; ?>" role="form">
+					<div class="form-group row"> 
+					    <div class="col-md-12">
+						    <label for="modepaiement">Mode de paiement : </label>
+						    <label class="radio"><input type="radio" name="modepaiement" id="modepaiement-1" value="1" <?php if($data['modepaiement']== "1") echo "checked"; ?>> MOBILE MONEY </label>
+						    <label class="radio"><input type="radio" name="modepaiement" id="modepaiement-2" value="2" <?php if($data['modepaiement']== "2") echo "checked"; ?>> CARTE VISA   </label>
+					    </div>
+					</div>
+					<div class="form-group row"> 
+					    <div class="col-md-6">
+							<label for="customerLastName">Nom(*):</label>
+							<input type="text" class="form-control" name="customerLastName" id="customerLastName" value="<?php echo $data['customerLastName'];?>" placeholder="Nom">
+						</div>
+						<div class="col-md-6">
+						    <label for="customerFirstName">Prénoms(*):</label>
+						    <input type="text" class="form-control" name="customerFirstName" id="customerFirstName" value="<?php echo $data['customerFirstName']; ?>"  placeholder="Prénom(s)" >
+					    </div>
+					</div>
+					<div class="form-group row"> 
+					    <div class="col-md-6">
+						    <label for="country"> Pays(*):</label>
+						    <?php echo $this->formSelect("country", $data['country'], array("class"=>"form-control countries"), $this->countries()); ?>
+					    </div>
+						<div class="col-md-6"> 
+							<label for="city"> Ville:</label>
+							<input type="text" class="form-control" name="city" id="city" value="<?php echo $data['city']; ?>"  placeholder="Ville">
+						</div>
+					</div>
+					<div class="form-group row"> 
+						<div class="col-md-6"> 
+							<label for="address">Adresse(*):</label>
+							<input type="text" class="form-control" name="address" id="address" value="<?php echo $data['address']; ?>"  placeholder="Adresse">
+						</div>
+						<div class="col-md-6"> 
+							<label for="city">Code Zip(*):</label>
+							<input type="text" class="form-control" name="zip" id="zip" value="<?php echo $data['zip']; ?>"  placeholder="Code ZIP">
+						</div>
+					</div>
+					<div class="form-group row"> 
+					    <div class="col-md-6"> 
+						    <label for="email"> Adresse email(*):</label>
+						    <input type="email" class="form-control" name="email" id="email" value="<?php echo $data['email'];?>" placeholder="Adresse email">
+					    </div>
+						<div class="col-md-6"> 
+						    <label for="phone"> Numéro de téléphone(*):</label>
+						    <input type="text"  class="form-control" name="phone" id="phone" value="<?php echo $data['phone'];?>" placeholder="Entrez un numéro de téléphone">
+					    </div>
+					</div>					
+				</form>
+			</div>			
+			<div class="panel-footer">
+				<div class="btn-group"><button id="cancelButton"   class="btn btn-danger  cancelButton">  <i class="glyph-icon icon-chevron-left"></i> Revenir sur le panier</button></div> 
+				<div class="btn-group"><button id="validateButton" class="btn btn-success validateButton"><i class="glyph-icon icon-credit-card"></i>  Valider et procéder au paiement <i class="glyph-icon icon-chevron-right"></i> </button></div>	
+			</div>
+		</div>      
+	</div>        
+</div>

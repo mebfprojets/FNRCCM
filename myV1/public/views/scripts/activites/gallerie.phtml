@@ -1,0 +1,64 @@
+<?php 
+
+    $photos    = $this->photos;
+    $activite  = $this->activite;
+    
+    $gallerie  = $this->gallerie;
+?>
+
+<div id="galleryPhotosWrapper" class="row">
+
+    <h2 > <?php echo $gallerie->libelle; ?> </h2>
+ 
+<?php if( count( $photos )) : ?>   
+ <div id="galleryPhotos" class="carousel slide" data-ride="carousel">
+    <?php 
+         $indicatorId = 0;
+         $outputPhoto = "<ol class=\"carousel-indicators\">";
+         foreach( $photos as $photo ) {
+         	      $itemActive   = ( $indicatorId == 0 ) ? "class=\"active\"" : "";
+         	      $outputPhoto .= "<li data-target=\"galleryPhotos\" data-slide-to=\"".$indicatorId."\" $itemActive > </li>";        	      
+         	      $indicatorId++;
+         }
+         $outputPhoto .= "</ol>";
+         
+         $slideId     = 0;
+         $outputPhoto = "<div class=\"carousel-inner\" role=\"listbox\">";
+         foreach( $photos as $photo ) {
+         	$photoFilePath = $photo["filepath"];
+         	$imageSrc      = "";
+         	$photoLibelle  = $photo["libelle"];
+         	$itemActive    = ( $slideId == 0 ) ? " active " : "";
+         	if( !empty( $photoFilePath ) ) {
+         		$photoFilePathName = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photoFilePath );
+         		if( Sirah_Filesystem::exists( $photoFilePath ) ) {
+         			$imageSrc = str_replace( DS, "/", $photoFilePathName );
+         		} 
+         	}
+         	if( empty( $imageSrc ))
+         		continue;
+         	$outputPhoto .= "<div id=\"slide-".$slideId."\" class=\"item $itemActive slide-".$slideId."\">";
+         	             $outputPhoto .= "<img src=\"".$imageSrc."\" alt=\"".$photoLibelle."\" />";
+         	             $outputPhoto .= "<div class=\"carousel-caption\"> ".$photoLibelle."</div>";
+         	$outputPhoto .= "</div>";
+         	$slideId++;
+         }
+         $outputPhoto .= "</div>";
+         
+         echo $outputPhoto;
+    
+    ?> 
+    <!-- Left and right controls -->
+  <a class="left carousel-control" href="#galleryPhotos" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">Précédent </span>
+  </a>
+  <a class="right carousel-control" href="#galleryPhotos" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only"> Suivante</span>
+  </a>       
+</div>
+<?php else: ?> 
+  <div class="row"> AUCUNE PHOTO N'A ETE CHARGEE DANS CETTE GALLERIE </div>
+<?php endif; ?>
+</div>

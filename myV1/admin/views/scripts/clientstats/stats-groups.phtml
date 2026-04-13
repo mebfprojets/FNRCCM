@@ -1,0 +1,40 @@
+<?php
+     $nbreClientsByGroup  = $this->rows;
+?>
+<table  class="table table-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="80%"> Groupes     </th>
+                     <th width="20%"> Nombre     </th>
+                </tr>         
+          </thead>
+          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $total       = 0;
+                     if( count(   $nbreClientsByGroup )) {
+                     	 foreach( $nbreClientsByGroup as $statGroup ) {
+                     	 	      if( empty( $statGroup['groupid'] ))
+                     	 	      	  continue;
+                     	 	     $rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                     	 	     $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output.="<td> ".$statGroup['groupe'] ." </td>";
+                     	 	            $output.="<td> ".$statGroup['nombre']." </td>";
+                     	 	     $output.="</tr>";
+                     	 	     $total += $statGroup['nombre'];
+                     	 }   
+                     	 $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $output.="<td> NOMBRE TOTAL DE clients:    </td>";
+                     	        $output.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+                     	 $output.="</tr>";
+                     }  else {
+						 $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						 $output.="<tr style=\"background-color:".$rowBg."\"><td colspan=\"3\"> AUCUN CLIENT N'A ETE ENREGISTRE DANS LA BASE DE DONNEES </td></tr>";
+					 }
+
+                     echo $output;
+              ?>
+          
+          </tbody>         
+   </table>

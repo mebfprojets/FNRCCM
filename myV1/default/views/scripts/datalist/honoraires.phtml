@@ -1,0 +1,309 @@
+<?php 
+$honoraires       = $this->honoraires;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$basePath         = ROOT_PATH."/templates/sirah";
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("controller" => "datalist" , "action"  => "honoraireslist" , "parentform"  => $parentform ) , "default");
+
+$statuts          = array( -1 => "Selectionnez le statut", 0 => "Non validé",  1 => "Validé" , 2 => "Clos");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var honoraireid  = parseInt(jQuery(this).attr('href').replace('#honoraireid-' , ''));
+	if( honoraireid && parentformSelector ) {
+		  var userFirstname              = jQuery('#firstname-'+honoraireid).val();
+		  var userLastname               = jQuery('#lastname-'+honoraireid).val();
+		  var userEmail                  = jQuery('#email-'+honoraireid).val();
+		  var userNumdossier             = jQuery('#numdossier-'+honoraireid).val();
+		  var userUserid                 = jQuery('#userid-'+honoraireid).val();
+		
+		  var parentHonoraireIdInput     = parentformSelector.find('input[name=\'honoraireid\']');
+		  var parentFirstnameSelector    = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector     = parentformSelector.find('input[name=\'lastname\']');
+		  var parentEmailSelector        = parentformSelector.find('input[name=\'email\']');
+		  var parentNumdossierSelector   = parentformSelector.find('input[name=\'numdossier\']');
+		  var parentUseridSelector       = parentformSelector.find('input[name=\'userid\']');
+		
+		  if( parentHonoraireIdInput   ) {
+		      parentHonoraireIdInput.val( honoraireid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(userEmail);
+		  }
+		  if( parentUseridSelector ) {
+		      parentUseridSelector.val( userUserid );
+		  }
+		 if(  parentNumdossierSelector ) {
+		      parentNumdossierSelector.val( userNumdossier );
+		  }		 
+	  } else {
+		 return false;
+	  }
+		honoraireSelect  = parentformSelector.find('#selectHonoraire');
+		if( honoraireSelect )	{
+		    honoraireSelect.trigger('select-item' , [honoraireid] );
+		} 
+		jQuery('#filterListHonoraires').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#advanced-honorairesearchform');
+		
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();
+		
+		var pageNum             = formSelector.find('#page').val();
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+		var defaultData         = {};
+		defaultData.teachername = formSelector.find('#teachername').val();
+		defaultData.cohortid    = formSelector.find('#cohortid').val();
+		defaultData.courseid    = formSelector.find('#courseid').val();
+		defaultData.page        = 1;
+		defaultData.maxitems    = pageMaxitems;
+		
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données...');
+		SIRAH.request.post('advanced-honorairesearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-honorairesearchform');
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();
+		var pageNum             = advancedFormSelector.find('#page').val();
+		var pageMaxitems        = advancedFormSelector.find('#maxitems').val();
+		var defaultData         = {};
+		defaultData.teachername = formSelector.find('#libelle').val();
+		defaultData.page        = 1;
+		defaultData.maxitems    = pageMaxitems;
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){	
+		var formSelector     = jQuery('#advanced-honorairesearchform');	   
+	    event.preventDefault();
+	    if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData         = {};
+		paginationData.teachername = formSelector.find('#teachername').val();
+		paginationData.cohortid    = formSelector.find('#cohortid').val();
+		paginationData.courseid    = formSelector.find('#courseid').val();
+		paginationData.page        = pageNum;
+		paginationData.maxitems    = pageMaxitems;
+		var modalBox               = jQuery('.modal').first();
+		var modalBody              = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données...' );
+		SIRAH.request.post('advanced-honorairesearchform' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+      <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+            ?>
+            
+                <div class="row" >
+                      <div class="col-md-7"><?php echo $buttonbar; ?></div>
+                      <div class="col-md-5"> 
+                          <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                             <div class="input-group pull-right">
+                                <input title="Veuillez saisir le prénom de l'enseignant" value="<?php echo $filters['teachername']; ?>" id="libelle" name="libelle" style="width:190px;" type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                                <span class="input-group-btn ">
+                                   <button class="btn btn-default defaultSearch" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button>
+                                   <button id="show-advanced-searchform" class="btn btn-default" type="button">Recherche avancée</button>
+                                </span>
+                            </div>
+                          </form>
+                      </div>
+                  </div>
+                  <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+                     <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-honorairesearchform"   role="form">
+                         <div class="row simplerow-search-form-header">
+                            <a id="close-advanced-searchform" class="close"> Fermer</a>
+                            <h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3>
+                         </div>
+                          <div class="row">
+                            <div class="column col-md-2"> <label  for="numdossier"> L'enseignant :  </label> </div>
+                            <div class="column col-md-4">                                
+                                <input id="teachername" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                       title="Nom de l'enseignant"  placeholder="Nom de l'enseignant"  name="teachername" value="<?php echo $filters['teachername']; ?>">
+                            </div>  
+                            <div class="column col-md-2"> <label  for="cohorte"> Cohorte :  </label> </div>
+                            <div class="column col-md-4">
+                              <?php echo $this->formSelect("cohortid" , $filters["cohortid"] , array() , $this->cohortes ); ?>
+                            </div>                              
+                       </div>
+                       <div class="row">                          
+                            <div class="column col-md-2"> <label  for="cohorte"> Module:  </label> </div>
+                            <div class="column col-md-4"> <?php echo $this->formSelect("courseid" , $filters["courseid"] , array() , $this->courses ); ?> </div>
+                            <div class="column col-md-6"> &nbsp; </div>
+                       </div>
+                       <div class="row">                          
+                            <div class="column col-md-2"> <label  for="statut"> Statut:  </label> </div>
+                            <div class="column col-md-4"><?php echo $this->formSelect("statut", $filters["statut"] , array() , $this->courses ); ?></div>
+                            <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                            <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->pageSize , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                           </div>                              
+                      </div>                                                                                               
+                      <div class="row">
+                          <div class="column  col-md-2">
+                            <button type="submit" class="btn btn-primary ajaxSearch"><span class="glyphicon glyphicon-search icon-white"></span > Filtrer </button>  
+                          </div>                      
+                          <div class="column  span10"></div>     
+                      </div> 
+                     <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+                  </form>
+                </div>                                               
+            <?php
+            $model   = new Model_Coursehonoraire();
+           //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "honorairesListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("Désignations"  , array("width" => "15%"))
+                    ->add("Enseignants"   , array("width" => "20%"))
+                    ->add("Modules cours" , array("width"=> "20%"))
+                    ->add("Cohortes"    , array("width" => "20%"))
+                    ->add("Durées"  , array("width" => "12%"))
+                    ->add("Cout/heure"  , array("width" => "13%"));            
+             $table->setHeader($header);             
+             if(count($honoraires)){
+             	foreach($honoraires as $honoraire){             		
+             	   $honoraireid      = intval($honoraire['honoraireid']);
+             	   $libelle          = $honoraire["libelle"] ;
+             	   $duree            = $honoraire["duree"] . " heures" ;
+             	   $cout             = number_format( $honoraire["cout"] , 2 , "," , " " ) ;
+             	   $numdossier       = $honoraire["numdossier"];
+             	   $teacheremail     = $honoraire["email"];
+             	   $userid           = $honoraire["teacherid"];
+             	   $teachername      = sprintf( "%s %s" , $this->escape($honoraire["teacherlastname"]) , $this->escape($honoraire["teacherfirstname"]) ) ;
+                   $cohortes         = $model->getCohortes( $honoraireid );
+             	   $cohorteCell      = ( !empty( $cohortes ) ) ? implode(", " , $cohortes ) : "Aucune formation valide";
+             	   $course           = $this->escape($honoraire["course"]) ;
+             	   $honoraireRow     = $table->row(array("id"  => "honoraireRowId-" . $honoraireid ));
+             	   $honoraireRow->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $numdossier  ."</a>" , array("id" => "libelle-" . $honoraireid ))
+             		            ->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $teachername ."</a>" , array("id" => "teachernameId-" . $honoraireid ))
+             		            ->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $course      ."</a>" , array("id" => "courseId-" . $honoraireid ))
+             		            ->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $cohorteCell ."</a>" , array("id" => "cohorteId-" . $honoraireid )) 
+             	                ->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $duree       ."</a>" , array("id" => "dureeId-" . $honoraireid ))
+             	                ->add("<a href=\"#honoraireid-".$honoraireid."\" class=\"selectClick\" >" . $cout        ."</a>" , array("id" => "coutId-" . $honoraireid ));          	   
+             	   $table->add($honoraireRow);
+             	   echo "<input type='hidden' id='numdossier-".$honoraireid."' name='numdossier-".$honoraireid."' value='".$numdossier."' />";
+             	   echo "<input type='hidden' id='email-".$honoraireid."'      name='email-".$honoraireid."'      value='".$teacheremail."' />";
+             	   echo "<input type='hidden' id='userid-".$honoraireid."'     name='userid-".$honoraireid."'     value='".$userid."' />";
+             	   echo "<input type='hidden' id='firstname-".$honoraireid."'  name='firstname-".$honoraireid."'  value='".$honoraire['teacherfirstname']."' />";
+             	   echo "<input type='hidden' id='lastname-".$honoraireid."'   name='lastname-".$honoraireid."'   value='".$honoraire['teacherlastname']."' />";
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             }    
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+      
+ </div>

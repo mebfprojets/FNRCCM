@@ -1,0 +1,145 @@
+<?php 
+$data            = $this->data;
+$modelDocument   = new Model_Document();
+$documents       = $this->documents;
+$categories      = array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B");
+$registreid      = $this->registreid;
+$registre        = $this->registre;
+$representant    = $this->representant;
+$domaine         = $this->domaine;
+$localite        = $this->localite;
+$modifications   = $this->modifications;
+$suretes         = $this->suretes;
+$annee           = date("Y", $registre->date);
+$localiteid      = $registre->localiteid;
+
+$linkDownload    = "";
+$linkRequest     = $this->url(array("controller"=>"requetes", "action" => "create","registreid" => $registreid,"module"=>"public"), "default");
+$linkCancel      = $this->url(array("controller"=>"registres","action" => "list","typeid" => 1,"typelib" => "physiques"), "registrelist");
+
+$basePath        = VIEW_BASE_PATH;
+$jq              = $this->jQuery();
+
+$jq->addOnLoad("jQuery('.makeRequest').click( function(event){event.preventDefault();document.location.href = '".$linkRequest."';});
+                jQuery('.cancelButton').click(function(event){event.preventDefault();document.location.href = '".$linkCancel."'; });");
+$creationDate    = "00/00/0000";
+$updateDate      = "00/00/0000";
+$registreDate    = "00/00/0000";
+$birthDate       = "00/00/0000";
+$creator         = Sirah_Fabric::getUser( $registre->creatorid     );
+$updatedUser     = Sirah_Fabric::getUser( $registre->updateduserid );
+$countries       = $this->countries();
+$nationalite     = "";
+
+if( $registre->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $registre->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $registre->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $registre->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+if( $registre->date ) {
+    $zendRegistreDate    = new Zend_Date( $registre->date, Zend_Date::TIMESTAMP );
+    $registreDate        = $zendRegistreDate->toString("dd MMMM yyyy");
+}
+if( $representant->datenaissance ) {
+    $zendBirthDate       = new Zend_Date( $representant->datenaissance, Zend_Date::DATETIME );
+    $birthDate           = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+}
+if( $representant->country) {
+	$nationalite         = (isset( $countries[$representant->country] )) ? $countries[$representant->country] : "";
+}
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+<div class="panel-heading"> <h4> Les informations du registre </h4> </div>
+   <ul  class="list-group">
+     <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Numéro RC:</b></div> 
+             <div class="col-md-8"><?php echo $registre->numero; ?></div>
+         </div>
+      </a>                
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Nom commercial:</b></div> 
+            <div class="col-md-8"><?php echo $registre->libelle; ?></div>
+         </div>
+      </a>
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Localité:</b></div> 
+            <div class="col-md-8"><?php echo ( $localite ) ? $localite->libelle : ""; ?></div>
+         </div>
+      </a>
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Secteur d'activité:</b></div> 
+            <div class="col-md-8"><?php echo ( $domaine ) ? $domaine->libelle : ""; ?></div>
+         </div>
+      </a>
+	  <?php if( $registre->description ): ?>
+		<li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <b> Description de l'activité:</b></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($registre->description); ?> </div>
+            </div>
+        </li>
+	  <?php endif; ?>
+	  <?php if($registre->date) : ?>
+        <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-12 "> Inscrit dans le registre à la date du <?php echo $registreDate; ?> </div> 
+            </div>
+        </li>
+      <?php endif; ?>
+</ul>
+<div class="panel-heading"> <h4> <span class='glyphicon glyphicon-user'></span> Les informations de l'exploitant </h4> </div>
+<ul  class="list-group">
+   <a class="list-group-item">
+     <div class="row"> 
+           <div class="col-md-4"> <b> Nom/Prénom:</b></div> 
+           <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s %s",$representant->nom, $representant->prenom ) : ""; ?></div>
+     </div>
+   </a>
+   <a class="list-group-item">
+      <div class="row"> 
+          <div class="col-md-4"> <b> Date & lieu naissance:</b></div> 
+          <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s à %s",date("d/m/Y", $representant->datenaissance), $representant->lieunaissance ) : ""; ?></div>
+      </div>
+   </a>
+   <a class="list-group-item">
+      <div class="row"> 
+           <div class="col-md-4"> <b> Adresse :</b></div> 
+           <div class="col-md-8"><?php echo ( $representant ) ? $representant->adresse : ""; ?></div>
+       </div>
+   </a>
+   <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <b> Fonction/Profession:</b></div> 
+            <div class="col-md-8"> <?php echo ( $representant ) ? $representant->profession: ""; ?> </div>
+        </div>
+   </li>
+   <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <b> Sexe:</b></div> 
+            <div class="col-md-8"> <?php echo ($representant)? (($representant->sexe == "M") ? "Homme": "Femme") : ""; ?> </div>
+        </div>
+    </li>   
+</ul>
+<div class="panel-heading"> <h4> <span class="glyphicon glyphicon-list"></span> Historique des modifications </h4></div>
+<?php echo $this->partial("registres/modifications.phtml", array("modifications" => $modifications, "registre" => $registre )); ?>
+<div class="panel-heading"> <h4> <span class="glyphicon glyphicon-file"></span> Les documents associés </h4></div>
+<?php echo $this->partial("registres/documents.phtml", array("documents" => $documents,"registre"=>$registre,"numero"=>$this->numero)); ?>
+<div class="panel-footer">    
+    <div class="btn-group"> <button class="btn btn-primary cancelButton"><i class="glyphicon glyphicon-chevron-left"> </i> Revenir sur la liste </button> 
+	<div class="btn-group"> <button class="btn btn-success makeRequest"> <i class="glyphicon glyphicon-send"> </i> Demander l'accès à ce registre </button> </div>
+</div> </div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?> 

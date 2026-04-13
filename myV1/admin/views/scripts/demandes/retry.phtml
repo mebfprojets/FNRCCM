@@ -1,0 +1,170 @@
+<?php 
+$me                  = Sirah_Fabric::getUser();
+$demandeid           = $this->demandeid;
+$data                = $this->data;
+$formSubmit          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"retry","demandeid"=>$demandeid),"default",true);
+$backList            = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"infos","demandeid"=>$demandeid),"default",true);
+  
+$jq                  = $this->jQuery(); 
+$onLoad              = " 
+jQuery('#nomcommercial').change(function(event){
+	var nomCommercial   = jQuery(this).val();
+	jQuery('#objet').val(nomCommercial);
+});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ',width:'100%',placeholder_text_single:'Sélectionnez un élement'});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#editButton').click(function(e){
+    e.preventDefault();   
+    jQuery(this).btnLoading({text:'Patientez...',icon:'icon-spinner4'});	
+    var formSelector  = jQuery('#editDemandeForm');
+    var nomCommercial = jQuery.trim(formSelector.find('#nomcommercial').val());
+	var keywords      = jQuery.trim(formSelector.find('#keywords').val());
+	var domaineid     = parseInt(formSelector.find('#domaineid').val());
+      
+	if( SIRAH.util.isEmpty(nomCommercial)){
+		jQuery('#nomcommercial').addClass('input-error');
+		jQuery('#nomcommercial-validation-message').html('');
+		SIRAH.error.raise('nomcommercial-validation-message', 'Entrez le nom commercial de l\'entreprise cible');
+		jQuery('#editButton').btnLoading({on:false});
+		return;
+	} else {
+		jQuery('#nomcommercial').removeClass('input-error');
+		jQuery('#nomcommercial-validation-message').html('');
+	}
+    
+ 	if( SIRAH.util.isEmpty(keywords)){
+		jQuery('#keywords').addClass('input-error');
+		jQuery('#keywords-validation-message').html('');
+		SIRAH.error.raise('keywords-validation-message', 'Veuillez renseigner les mots clés pour la recherche des noms commerciaux similaires');
+		alert('Veuillez renseigner les mots clés pour la recherche des noms commerciaux similaires');
+		jQuery('#editButton').btnLoading({on:false});
+		return;
+	} else {
+		jQuery('#keywords').removeClass('input-error');
+		jQuery('#keywords-validation-message').html('');
+	}
+	formSelector.submit();
+}); ";
+$basePath           = ROOT_PATH.'/myTpl/public';
+$viewBasePath       = VIEW_BASE_PATH;
+$jq->addOnLoad( $onLoad );
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.date.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.time.css");
+$jq->addStyleSheet($viewBasePath ."/css/typeahead.css");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.date.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.time.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/translations/fr_FR.js");
+$jq->addJavascriptFile($viewBasePath."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile($viewBasePath."/js/typeahead/dist/typeahead.bundle.min.js");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bootstrap-filestyle input{float:left;width:70%;}
+.bootstrap-filestyle label{float:left;width:30%;}
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single .chosen-single{height:35px;line-height:35px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit;?>" id="editDemandeForm" role="form" class="form-horizontal editDemandeForm" enctype="multipart/form-data">
+	<div    class="content-box"> 
+        <ul class="list-group">
+		    <?php if($me->isAdmin()): ?>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2  control-label" for="localiteid"> Juridiction* : </label>
+				   <div   class="col-md-10 col-sm-10"><?php echo $this->formSelect("localiteid", $data["localiteid"], array("class" => "form-control chosen"), $this->localites); ?></div>        
+			    </div>
+			</li>
+			<?php endif; ?>
+		    <li class="list-group-item">      
+				<div class="form-group">    
+					<label class="col-md-2  col-sm-2  control-label"> Catégorie*: </label>
+					<div   class="col-md-10 col-sm-10">
+						<label class="radio-inline pull-left"><input type="radio" name="personne_morale" id="personne_physique" value="0" <?php if($data["personne_morale"]=="0") echo "checked"; ?>> Personne Physique </label>          
+						<label class="radio-inline pull-left"><input type="radio" name="personne_morale" id="personne_morale"   value="1" <?php if($data["personne_morale"]=="1") echo "checked"; ?>> Personne Morale   </label>
+					</div>
+				</div>
+			</li>
+            <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2  col-sm-2  control-label" for="nomcommercial"> Nom commercial*: </label>
+				   <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="nomcommercial" name="nomcommercial" type="text" maxlength="350" class="form-control" title="Nom commercial de l'entreprise cible" placeholder="Nom commercial de l'entreprise cible" value="<?php echo $data["nomcommercial"]; ?>">
+					         <span class="input-group-btn" style="width:0px;"></span>
+						   <input  id="sigle"         name="sigle"         type="text" class="form-control" value="<?php echo $data["sigle"]; ?>" placeholder="Le sigle de l'entreprise" title="Le sigle de l'entreprise" />
+						</div>
+					</div> 			   
+				   <p id="nomcommercial-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2  control-label" for="denomination"> Dénomination: </label>
+				   <div   class="col-md-10 col-sm-10"><input title="Saisir la dénomination sociale de l'entreprise cible (facultatif)" type="text" name="denomination" id="denomination" class="form-control" placeholder="Raison sociale" value="<?php echo $data["denomination"]; ?>" /></div>        
+			    </div>
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2  control-label" for="formid"> Forme juridique* : </label>
+				   <div   class="col-md-10 col-sm-10"><?php echo $this->formSelect("formid", $data["formid"], array("class" => "form-control chosen"), $this->formes); ?></div>        
+			    </div>
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				    <label class="col-md-2  col-sm-2  control-label" for="domaineid"> Secteur activité*: </label>
+				    <div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]), array("class" => "form-control chosen"), $this->domaines ); ?> </div>       
+			    </div>
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2 control-label" for="article"> Activité déclarée : </label>
+				   <div   class="col-md-10 col-sm-10"> <input type="text" title="Décrire l'activité de l'entreprise en quelques mots (facultatif)" name="article" id="article" class="form-control" value="<?php echo $data["article"]; ?>" placeholder="Saisissez les informations de l'activité déclarée par le promoteur" /></div>       
+			    </div>
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2  col-sm-2  control-label" for="keywords"> Mots clés de recherche*: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="keywords" name="keywords" type="text" maxlength="200" class="form-control" title="Les mots clés recherchés pour la vérification de la disponibilité" placeholder="Mots clés recherchés pour la vérification de la disponibilité" value="<?php echo $data["keywords"]; ?>"></div> 			   
+				   <p id="keywords-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>			
+			<li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label"> Observations: </label>
+					<div   class="col-md-10 col-sm-10"><textarea name="observations" id="observations" class="form-control textarea-sm"> <?php echo $data["observations"]; ?> </textarea></div>              
+				</div>  
+			</li>
+        </ul>	
+         		
+	<?php     
+	    $buttonsBar = $this->Btnbar(array() , $this->jqueryHandler());
+	    $toolEdit   = $buttonsBar->button("Procéder à la vérification"       ,"chevron-right")->setPriority("primary");
+	    $toolCancel = $buttonsBar->button("Annuler et revenir sur la demande","chevron-left");
+	   
+	    $toolEdit->setAttributes(  array("type"=> "submit"));
+	    $toolCancel->setAttributes(array("type"=> "submit"));
+		  
+	    $buttonsBar->add( $toolCancel, "cancelCreationButton");
+	    $buttonsBar->add( $toolEdit  , "editButton");
+
+	    if(!$this->isAjax) {
+		   echo "<div class=\"panel-footer\"> ".$buttonsBar." </div>";
+	    } else {
+		   echo $this->jQuery();
+		   echo $this->headStyle();
+	    }  
+	?>
+	</div>
+	
+	<input type="hidden" name="demandeid"    id="demandeid"    value="<?php echo $this->demandeid; ?>"  />
+	<input type="hidden" name="entrepriseid" id="entrepriseid" value="<?php echo $this->entrepriseid;?>" />
+</form>
+ 
+
+ 
+ 

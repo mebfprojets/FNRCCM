@@ -1,0 +1,61 @@
+<?php 
+$front        = Zend_Controller_Front::getInstance();
+$data         = $this->data;
+$member       = $this->member;
+$commande     = $this->commande;
+$transaction  = $this->transaction;
+$errorMessage = $this->message;
+ 
+$linkCheckout = $this->url(array("controller"=>"orders" ,"action"=>"checkout","module"=>"public"),"default",true);
+$linkCancel   = $this->url(array("controller"=>"members","action"=>"dashboard","module"=>"public"),"default",true);
+$basePath     = VIEW_BASE_PATH;
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq     = $this->jQuery();  
+$jq->addOnLoad("
+    jQyery('#retryButton').click(function(event){ event.preventDefault();document.location.href='".$linkCheckout."';});
+	jQyery('#cancelButton').click(function(event){event.preventDefault();document.location.href='".$linkCancel."';});
+"); 
+?>
+<div class="container form-container">
+    <div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-6 center-margin">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="panel-body">
+				    <?php if(!empty($errorMessage)): ?>
+					    <div class="sirah-message panel-desc">  
+						    <div class=" alert alert-danger "><div class="alert-content"><h4 class="alert-title"> <?php printf("%s", $errorMessage); ?></h4> <p>  </p> </div> <a href="#" class="glyph-icon alert-close-btn icon-remove close clearMessage"></a> </div> 
+						</div> <hr>
+					<?php endif;?>
+					<form class="ordersCreateForm" id="ordersCreateForm" method="post" action="<?php echo $linkCheckout; ?>" autocomplete="off" role="form">
+						<div class="form-group col-md-6"> 
+						    <label for="lastname">Désignation:</label>
+							<input disabled="disabled" type="text" class="form-control" name="libelle" id="libelle" value="Achat de services de consultation des données du Fichier National"  placeholder="Achat de services de consultation des données du Fichier National" >
+						    <input type="hidden" name="designation" id="designation" value="Achat de services de consultation des données du Fichier National" />
+						</div>
+						<div class="form-group col-md-6"> 
+						    <label for="lastname">Total à payer:</label>
+							<input disabled="disabled"  type="text" class="form-control" name="montant" id="montant" value="<?php echo $data['montant'];?>" placeholder="Total à payer" >
+						    <input type="hidden" name="amount" id="amount" value="<?php echo $data['montant']; ?>" />
+						</div>
+						<div class="form-group col-md-6"> 
+						    <label for="lastname">Nom du Payeur:</label>
+							<input disabled="disabled" type="text" class="form-control" name="payeur" id="payeur" value="<?php echo $data['payeur'];?>"  placeholder="Nom et prénom du payeur" >
+						    <input type="hidden" name="cpm_custom" id="cpm_custom" value="<?php echo $data['payeur'];?>" />
+						</div>
+						<input type="hidden" name="currency" id="currency" value="CFA">  
+                        <input type="hidden" name="trans_id" id="trans_id" value="<?php echo $this->trans_id;?>"> 				
+					</form>
+				</div>
+				<div class="panel-footer">
+					<div class="btn-group"><button id="cancelButton" class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"> </i> Annuler </button></div> 
+					<div class="btn-group"><button id="retryButton"  class="btn btn-success retryButton"> Réessayer <i class="glyph-icon icon-check-circle"></i> </button></div>	
+				</div>
+			</div>      
+		</div>   
+    </div>      
+</div>

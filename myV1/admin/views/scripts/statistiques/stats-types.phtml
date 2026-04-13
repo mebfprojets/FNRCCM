@@ -1,0 +1,36 @@
+<?php
+      $statypes  = $this->rows;
+	  $types     = $this->types;
+?>
+<table id="statTypes" class="table table-bordered table-hover">
+		    <thead> <tr> <th width="80%"> Types de registres </th> <th width="20%"> Nombre </th> </tr></thead>
+			<tbody>
+			   <?php
+			          $outputType  = "";
+					  $totalType   = 0;
+					  
+					  if( count(   $statypes )) {
+						  foreach( $statypes as $statype ) {
+							       if(empty($statype['type']) || !isset($types[$statype['type']]))
+                     	 	      	  continue;
+                     	 	       $rowBg    = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                                   $linkList = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","type"=> $statype['type']),"default");
+                     	 	       $type     = $types[$statype['type']];
+								   $outputType.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $outputType.="<td> <a title=\"Accéder aux RCCM de ce type\" href=\"".$linkList."\"> ".$type." </a></td>";
+                     	 	            $outputType.="<td> <a title=\"Accéder aux RCCM de ce type\" href=\"".$linkList."\"> ".number_format($statype['nombre'], 0, " ", " ")." </a> </td>";
+                     	 	       $outputType.="</tr>";
+                     	 	       $totalType += $statype['nombre'];
+						  }
+						  $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						  $outputType.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $outputType.="<td> TOTAL :    </td>";
+                     	        $outputType.="<td> ".number_format( $totalType, 0,' ', ' ')." </td>";
+                     	  $outputType.="</tr>";
+					  } else {
+						           $outputType.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+					  }
+					  echo $outputType;
+			   ?>
+			</tbody>
+</table>

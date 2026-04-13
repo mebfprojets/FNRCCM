@@ -1,0 +1,36 @@
+<?php $this->headStyle()->captureStart() ?>
+table th, table td{text-align:center !important;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<?php 
+   $activite  = $this->activite; 
+   $resultats = $this->resultats;
+
+   $table     = $this->table(array("id" => "resultatsListTable", "class" => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable"), "style" => "text-align:center;"));
+   $header    = $table->row();  
+   $header->add("Niveaux d'avancement", array("width" => "35%"))
+          ->add("Chiffres"            , array("width" => "5%"))
+          ->add("Indicateurs"         , array("width" => "60%"));
+   
+   $table->setHeader( $header );
+    if(count(      $resultats)) {
+    	  foreach( $resultats as $resultat) {
+    	  	       $indicatid      = intval($resultat["indicatid"]);
+    	  	       $libelle        = $resultat["libelle"];
+    	  	       $chiffre        = $resultat["chiffre"];
+    	  	       $niveau         = $resultat["niveau_avancement"];
+    	  	       
+    	  	       $resultatRow    = $table->row(array("id" => "resultatRowId-" . $indicatid ));
+    	  	       
+    	  	       $resultatRow->add(" ".$niveau )->add(" ".$chiffre )->add(" ".$libelle);
+    	  	       $table->add( $resultatRow );
+    	  }
+    }  else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add(" Pas de résultats définis dans cette activité. ", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }
+    
+    echo  $table;
+        
+ ?>

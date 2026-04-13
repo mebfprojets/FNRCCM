@@ -1,0 +1,70 @@
+<?php 
+  $user        = $this->user;
+  $params      = $this->params;
+  $formSubmit  = $this->url(array("controller" => "account" , "action"  => "settings") , "default");
+  $typeOfUsers = array("Personne" , "friendnetwork" => "Mon réseau d'amis", "entreprisenetwork" => "Mon réseau d'entreprises" , "public" => "Tout le monde");
+?>
+<form action="<?php echo $formSubmit; ?>" method="post"  id="saveNotificationParams-form" role="form" >
+<ul class="list-group">
+       
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("systemnotification" , $params["systemnotification"] , null,array("1" , "0")); ?> Recevoir les notifications système
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("receive_publication_notifications" , $params["receive_publication_notifications"] , null ,array("1" , "0")); ?> Recevoir les publications de contenu
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+          </div>
+        </li> 
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("receive_comments_notifications" , $params["receive_comments_notifications"] , null ,array("1" , "0")); ?> Recevoir les notifications des commentaires
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+          </div>
+        </li> 
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("receive_alerts" , $params["receive_alerts"] , null ,array("1" , "0")); ?> Recevoir les alertes sur les offres
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+          </div>
+        </li>     
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("receive_newsletter" , $params["receive_newsletter"] , null ,array("1" , "0")); ?> Recevoir les nouveautés de SIRAH
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+          </div>
+      </li>         
+ </ul>
+ </form>
+<?php 
+if($this->isAjax) {
+	echo $jq;
+} else {
+	echo "<div class='row col-md-12' >
+	              <button id=\"editNotificationsParams\" type='submit' class=\"btn btn-success editParams\" > <i class=\"glyphicon glyphicon-floppy-disk\"></i> Appliquer les changements </button>
+	      </div>";
+}
+?>

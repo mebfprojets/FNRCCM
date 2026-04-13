@@ -1,0 +1,176 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("controller" =>"registremodifications", "action" => "csvimport" , "module" => "admin"), "default" );
+$linkImport = $this->url(array("controller" =>"registremodifications", "action" => "ajaximport", "module" => "admin"), "default" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px !important;display:inline-block !important;}
+.form-horizontal .checkbox,.form-horizontal .checkbox-inline,.form-horizontal .control-label,.form-horizontal .radio,.form-horizontal .radio-inline {padding-top:0!important}
+#dropzone {background:palegreen;width:100%;height:200px;line-height:10em;text-align:center;font-weight:bold;border:1px dashed green;}
+#dropzone.in {width:100%;height:200px;line-height: 40px;font-size: larger;}
+#dropzone.hover {background:lawngreen;}
+#dropzone.fade{-webkit-transition: all 0.3s ease-out;-moz-transition:all 0.3s ease-out;-ms-transition:all 0.3s ease-out;-o-transition:all 0.3s ease-out;transition:all 0.3s ease-out;opacity:1;} 
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$basePath = VIEW_BASE_PATH;
+$jq       = $this->jQuery();  
+$onLoad   = " 
+var importRegistres = function( rows, dialogSelector ){
+	jQuery('.modal-footer:first').find('button.btn').remove();
+	jQuery('#dialogUploadFile').dialog2('addButton','Annuler',{click:function(){jQuery('#dialogUploadFile').dialog2('close'); }});
+	jQuery('.modal-header:first').find('h3').first().html('Importation des registres en cours...');
+	var progressBarContainer = jQuery('<div/>').addClass('progressbar').addClass('progress-striped').attr('data-value','0').attr('id','progressbar');	
+	var progressBarValue     = jQuery('<div/>').addClass('progressbar-value').addClass('bg-red').addClass('tooltip-button').attr('data-original-title','Initialisation...').attr('id','progressBarValue')
+											   .append(jQuery('<div/>').addClass('progress-label').html('0%').attr('id','progressLabel'))
+											   .append(jQuery('<div/>').addClass('progress-overlay').attr('id','progressBarOverlay'));	
+	progressBarContainer.append(progressBarValue);
+	jQuery('#dialogUploadFile').html(progressBarContainer);
+	var progressBarTxt       = jQuery('<div/>').addClass('row').css('color','black').css('font-weight','bold').attr('id','progressBarTxt');
+	jQuery('#dialogUploadFile').append(progressBarTxt);
+	var nbre                 = 0;
+	var totalSuccess         = 0;
+	var totalRegistres       = rows.length;
+	var errorMessages        = [];
+	jQuery.each(rows, function(key, postData ) {	
+	      var numero         = rows[key].numero;		  
+	      setTimeout(function(){
+			var xhr          = jQuery.ajax({url:'".$linkImport."',async:true,dataType:'json',type:'POST',data:postData});
+			xhr.done(function( data ){
+				nbre++;
+				progressBarValue.attr('data-original-title','(Import du registre '+nbre+'/'+totalRegistres+')');
+		        progressBarTxt.html('(Import du registre numéro '+numero+' de '+nbre+'/'+totalRegistres+')');
+                if( data.error !== undefined ) {
+					/*SIRAH.error.raise(jQuery('#dialogUploadFile'),data.error, 'error');*/
+                    errorMessages.push(data.error);					
+				} else if( data.success !== undefined ) {
+				    totalSuccess++;
+				}
+				var percent    = Math.floor(nbre*(100/totalRegistres));
+				var percentTxt = percent+'%';
+				progressBarContainer.attr('data-value', percent );
+				progressBarValue.css('width', percentTxt);				
+				jQuery('#progressLabel').html(percentTxt);																																
+																
+				if( nbre == totalRegistres ) {
+					progressBarValue.removeClass('bg-red').addClass('bg-green');
+					if( errorMessages.length >= 1 ) {
+						SIRAH.error.raise(jQuery('#dialogUploadFile'),errorMessages,'error');
+					} else {
+						SIRAH.error.raise(jQuery('#dialogUploadFile'),'L\'opération d\'import des registres s\'est effectuée avec succès, au total,'+totalSuccess+' ont été importés', 'success');
+					}                   					
+					setTimeout(function(){jQuery('#dialogUploadFile').dialog2('close');return false;},25000);											        
+				}
+			});  
+		  }, 2500);
+	});
+};
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#csvfile').filestyle({buttonText:'Parcourir',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#importForm').fileupload({paramName:'csvfile',url:'".$formSubmit."',type:'POST',dataType:'json',dropZone: jQuery('#dropzone'),
+                               add : function(e,data) {
+								   var importBtn = jQuery('.modal-footer:first').find('button.btn').first();
+								   var cancelBtn = jQuery('.modal-footer:first').find('button.btn').last();
+								   importBtn.on('click', function( event ) {
+									     jQuery('#importForm').loadingOn();
+										 var jqXhr = data.submit();
+										 jqXhr.success(function(result, textStatus, jqXHR){
+											 if( result.error !== undefined ) {
+												 SIRAH.error.raise(jQuery('#dialogUploadFile'),'Opération terminée:'+result.error , 'error');
+                                                 jQuery('#importForm').loadingOff(); 
+                                                 return true;
+										     } else if((result.success !== undefined) && (result.rows !== undefined )) {
+												 jQuery('#importForm').loadingOff(); 
+												 var importResult = importRegistres(result.rows, jQuery('#dialogUploadFile'));
+												 return true;
+											 }
+										 });
+								   });
+							   },
+                               messages:{uploadedBytes:'Le fichier que vous voulez uploader est trop lourd'}
+});
+jQuery('#importForm').bind('fileuploadformsubmit',function(e,data) {var inputs = jQuery(this).find(':input');data.formData= inputs.serializeArray();});
+jQuery('#importForm').bind('fileuploadprogress', function(e, data) {
+       var progress = parseInt(data.loaded / data.total * 100, 10);
+       jQuery('#progress').css('width', progress+'%');
+       jQuery('#progress').html(progress+'%');
+});
+jQuery('#importForm').bind('fileuploaddrop', function(event,data) {
+       event.preventDefault();
+	   jQuery('#importForm').loadingOn();
+	   var jqXhr    = jQuery(this).fileupload('send', data );
+   	   jqXhr.success(function(result, textStatus , jqXHR){
+		    if( result.error !== undefined ) {
+				SIRAH.error.raise(jQuery('#dialogUploadFile'),'Opération terminée:'+result.error , 'error');
+                jQuery('#importForm').loadingOff(); 
+                return true;
+			} else if((result.success !== undefined) && (result.rows !== undefined )) {
+				jQuery('#importForm').loadingOff(); 
+				var importResult = importRegistres(result.rows, jQuery('#dialogUploadFile'));
+				return true;
+			}
+	   });	   
+	   jqXhr.error(function(result, textStatus, errorThrown){
+            SIRAH.error.raise(jQuery('#dialogUploadFile'),'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+            jQuery('#importForm').loadingOff(); 
+            return false;        
+       });
+});
+jQuery(document).bind('dragover',function(e){
+	var dropZone = jQuery('#dropzone'),timeout= window.dropZoneTimeout;
+    if (!timeout) {dropZone.addClass('in');}else{clearTimeout(timeout);}
+    var found = false,node = e.target;
+    do {if (node === dropZone[0]) {found = true;break;}  node = node.parentNode;} while (node != null);
+    if (found) {dropZone.addClass('hover');} else {dropZone.removeClass('hover');}window.dropZoneTimeout=null;dropZone.removeClass('in hover');
+            }, 100);
+";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/js-core/raphael.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+
+?>
+ 
+<div     class="content-box">    
+    <form method="post"  id="importForm" class="form-horizontal row" role="form" enctype="multipart/form-data"> 
+       <div class="form-group"> 
+              <div class="col-md-12 fileupload-progress fade">                
+                  <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                     <div id="progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+                  </div>
+                  <div class="progress-extended">&nbsp;</div>              
+              </div>
+       </div>
+	   <!--
+	   <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Votre fichier Excel* : </label>
+           <div   class="col-sm-8"> <input type="file" name="csvfile" id="csvfile" class="input-document"  /></div>        
+       </div>-->
+       <div id="dropzone" class="well form-group"> Glissez-déposer votre fichier Excel dans cette zone </div> 	   
+    </form>
+<?php 
+    $buttonsbar = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate = $buttonsbar->button("Importer","download")->setPriority("primary");
+    $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }
+   
+   ?>

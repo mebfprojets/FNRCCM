@@ -1,0 +1,45 @@
+<?php 
+   $contrats      = $this->contrats;
+   $basePath      = ROOT_PATH."/templates/sirah";
+   $imgPath       = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."application"  ,  APPLICATION_DATA_PATH . DS . "images"  );
+   $defaultImgFile= $imgPath . DS . "maison.png";
+   $output        = "";
+   $output        = "<ul style=\"text-align:center;\" class=\"list-group contratsList\">";
+    if(count( $contrats ) ) {
+    	$output .= " <li id=\"contratId-0\" class=\"list-group-item\">";
+    	$output .="
+    	                <div class=\"row\">
+    	                    	 <div class=\"col-md-3\"> Locataires        </div>
+    	                         <div class=\"col-md-4\"> Dates d'entrée    </div>
+    	                         <div class=\"col-md-5\"> Montants mensuels </div>
+    	                </div> </li> ";
+    	  foreach( $contrats as $contrat ) {
+    	  	       $contratId        = intval( $contrat["id"] );
+    	           $contratNom       = sprintf(" %s %s " , $contrat["nom"] , $contrat["prenom"] );
+    	           $contratContrat   = $contrat["code"];
+    	           $porteLibelle     = $contrat["porte"];
+    	           $dateEntree       = $contrat["date_entree"];
+    	           $porte            = $contrat["porte"];
+    	           $montant_mensuel  = number_format( $contrat["montant_mensuel"] , 0 , ",", " " );
+    	           $linkContrat      = $this->url( array("controller" => "contratbail" , "action" => "infos" , "id" => $contratId ), "default" );
+
+    	           $output .= " <li id=\"contratId-".$contratId."\" class=\"list-group-item\">
+    	                          <div class=\"row\">
+    	                             <div class=\"col-md-4\"><a title=\"Les informations du contrat de bail\" class='dialogViewInfos' href='".$linkContrat."'> ". $contratNom       . " </a> </div>   	                        
+                                     <div class=\"col-md-3\"><a title=\"Les informations du contrat de bail\" class='dialogViewInfos' href='".$linkContrat."'> ". $dateEntree       . " </a> </div>
+                                     <div class=\"col-md-3\"><a title=\"Les informations du contrat de bail\" class='dialogViewInfos' href='".$linkContrat."'> ". $montant_mensuel  . " </a> </div>
+                                  </div>
+    	                        </li> ";
+    	  }    	
+    } else {
+    	   $output .= " <li id=\"contratId-0\" class=\"list-group-item\">
+    	                    Aucun contrat de bail n'a été enregistré
+    	                </li>";
+    }
+
+    $output        .= "</ul>";
+    echo  $output ;
+    
+   
+?>
+             

@@ -1,0 +1,88 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("controller" =>"registrephysique", "action" => "exportfromdb", "module" => "admin"), "default" );
+$backList   = $this->url(array("controller" =>"registrephysique", "action" => "list"  , "module" => "admin"), "default" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox,.form-horizontal .checkbox-inline,.form-horizontal .control-label,.form-horizontal .radio,.form-horizontal .radio-inline {padding-top:0!important}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#importForm');
+      var  domaineid    = parseInt(jQuery.trim(formSelector.find('#domaineid').val()));
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty(domaineid )){
+          SIRAH.error.raise('importForm','Entrez une année valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('importForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); 
+   ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> Les paramètres de l'export</h3>
+    <form method="post"  id="importForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Source des documents*: </label>
+           <div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Source des document" value="<?php echo $data['srcpath']; ?>"  /></div>        
+       </div>
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Destination*: </label>
+           <div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Source des document" value="<?php echo $data['destpath']; ?>"  /></div>        
+       </div>	   
+	   <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Commencer par: </label>
+           <div   class="col-sm-6"> <input type="text" name="nbre_start" id="nbre_start" class="form-control" placeholder="Numéro de la page" value="<?php echo $data['nbre_start']; ?>"  /></div>        
+       </div>
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"  > Nombre maximal : </label>
+           <div   class="col-sm-6"> <input type="text" name="nbre_maximal" id="nbre_maximal" class="form-control" placeholder="Le nombre maximal" value="<?php echo $data['nbre_maximal']; ?>"  /></div>        
+       </div>
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("localite", $data["localite"], array("class"=>"form-control chosen"), $this->localites); ?> </div>   
+       </div> 
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Année* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("annee",$data["annee"], array("class"=>"form-control chosen"), $this->annees); ?> </div>   
+       </div>                         
+   </form>
+<?php 
+    $buttonsbar = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate = $buttonsbar->button("Exporter","download")->setPriority("primary");
+    $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

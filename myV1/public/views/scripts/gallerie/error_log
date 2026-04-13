@@ -1,0 +1,20 @@
+[27-Dec-2022 21:27:26 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/infos.phtml on line 2
+[27-Dec-2022 21:27:30 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/photos-list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/photos-list.phtml on line 2
+[27-Dec-2022 21:27:35 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/photos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/photos.phtml on line 2
+[27-Dec-2022 21:27:41 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/videos-list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/videos-list.phtml on line 2
+[27-Dec-2022 21:27:45 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/videos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/gallerie/videos.phtml on line 2

@@ -1,0 +1,73 @@
+<?php 
+$requete    = $this->requete;
+$requestid  = $requete->requestid;
+$formSubmit = $this->url(array("module" => "admin", "controller" =>"requetes", "action" => "process", "requestid" => $requestid, "validated" => 2 ), "default" );
+$backList   = $this->url(array("module" => "admin", "controller" =>"requetes", "action" => "list")  , "default" );
+$basePath   = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+tinymce.init({selector:'textarea',language:'fr_FR',plugins:'table,textcolor,colorpicker',menubar:'table',toolbar:'table | styleselect | bold italic |alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | advlist'});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#processButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector   = jQuery('#processRequestForm');
+      var  requestsubject = jQuery.trim(formSelector.find('#requestsubject').val());
+
+      if( SIRAH.util.isEmpty( requestsubject )){
+          SIRAH.error.raise('processRequestForm','Entrez l\'objet du message');
+          return;
+      }    
+      formSelector.submit();
+   }); ";  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . '/js/editors/tinymce/tinymce.min.js');
+
+?>
+<div     class="content-box">    
+    <form method="post"  id="processRequestForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">
+      <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Objet du message* : </label>
+           <div   class="col-sm-6"> <input type="text" name="requestsubject" id="requestsubject" value="<?php echo $this->requestSubject;  ?>"
+                                           class="form-control" placeholder="Objet du message"   /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Réponse à la demande: </label>
+           <div   class="col-sm-9"> 
+               <textarea name="requestmsg" id="requestmsg" class="form-control textarea-sm"> <?php echo $this->requestMessage;  ?> </textarea>
+           </div>            
+       </div>                                       
+      <input type="hidden" name="requestid" id="requestid" value="<?php echo $requestid; ?>" />
+      <input type="hidden" name="validated" id="validated" value="2" />
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Répondre à la demande","send")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-danger"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"processButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

@@ -1,0 +1,244 @@
+/* 
+        Navs styling
+*/
+
+// Navbar
+// -------------------------
+.navbar-nav {
+        > li {
+            > a {
+                    padding-top: 15px;
+                    padding-bottom: 15px;
+                    color: @gray !important;
+            }
+        }
+}
+
+.navbar-toggle {
+        .icon-bar {
+            background: @white !important;
+        }
+}
+
+.navbar-toggle-settings {
+        font-size: 24px;
+        padding: 1px 0 0 0;
+        width: 30px;
+        color: @gray;
+        border: 0;
+        border-radius: 0;
+
+        &:focus, &:hover {
+            color: @brand-primary;
+            background: transparent;
+        }
+}
+
+// Brand/project name
+
+.navbar-brand {
+        padding: 5px;
+        width: 210px;
+
+        &:hover,
+        &:focus {
+            text-decoration: none;
+        }
+}
+
+.navbar-side-menu-toggle {
+        float: left;
+        padding: 7px 5px 0 5px;
+
+        &:hover,
+        &:focus {
+            text-decoration: none;
+        }
+
+        .toggle-btn {
+            height: 35px;
+            background-color: transparent;
+            background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
+            border: 0;
+            padding: 0;
+            border-radius: 0;
+
+            &:focus {
+                    outline: none;
+            }
+            // Bars
+            .icon-bar {
+                    display: block;
+                    width: 20px;
+                    height: 2px;
+                    border-radius: 1px;
+                    background-color: @gray-light;
+            }
+            .icon-bar + .icon-bar {
+                    margin-top: 4px;
+            }
+
+            &:hover {
+                    .icon-bar {
+                            background-color: @brand-primary;
+                    }
+            }
+        }
+}
+
+@media screen and (min-width: 768px) {
+        .navbar-collapse {
+            padding-right: 0;
+            padding-left: 0;
+        }
+}
+
+// Tabs
+// -------------------------
+
+// Give the tabs something to sit on
+.nav-tabs {
+    border-bottom: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+    > li {
+        float: left;
+        // Make the list-items overlay the bottom border
+        margin-bottom: 0;
+
+        // Actual tabs (as links)
+        > a {
+            margin-right: 0;
+            line-height: @line-height-base;
+            border: 0;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            &:hover {
+                border-color: @nav-tabs-link-hover-border-color @nav-tabs-link-hover-border-color @nav-tabs-border-color;
+            }
+        }
+
+        // Active state, and its :hover to override normal :hover
+        &.active > a {
+            font-weight: 600;
+            &,
+            &:hover,
+            &:focus {
+                color: @nav-tabs-active-link-hover-color;
+                background-color: transparent;
+                border: 0;
+                border-bottom: 3px solid @brand-primary;
+                cursor: default;
+            }
+        }
+    }
+    // pulling this in mainly for less shorthand
+    &.nav-justified {
+        .nav-justified();
+        .nav-tabs-justified();
+    }
+}
+
+
+// Nav variations
+// --------------------------------------------------
+
+// Justified nav links
+// -------------------------
+
+.nav-justified {
+    width: 100%;
+
+    > li {
+        float: none;
+         > a {
+            text-align: center;
+            margin-bottom: 0;
+        }
+    }
+
+    > .dropdown .dropdown-menu {
+        top: auto;
+        left: auto;
+    }
+
+    @media (min-width: @screen-sm-min) {
+        > li {
+            display: table-cell;
+            width: 1%;
+            > a {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// Move borders to anchors instead of bottom of list
+//
+// Mixin for adding on top the shared `.nav-justified` styles for our tabs
+.nav-tabs-justified {
+    border-bottom: 0;
+
+    > li > a {
+        // Override margin from .nav-tabs
+        margin-right: 0;
+        border-radius: 0;
+        border-bottom: 3px solid transparent;
+        &:hover {
+            border-color: @nav-tabs-link-hover-border-color @nav-tabs-link-hover-border-color @nav-tabs-border-color;
+        }
+    }
+
+    > .active > a,
+    > .active > a:hover,
+    > .active > a:focus {
+        color: @nav-tabs-active-link-hover-color;
+            background-color: transparent;
+            border: 0;
+            border-bottom: 3px solid @brand-primary;
+            cursor: default;
+    }
+
+    @media (min-width: @screen-sm-min) {
+        > li > a {
+            border: 0;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+        }
+        > .active > a,
+        > .active > a:hover,
+        > .active > a:focus {
+            color: @nav-tabs-active-link-hover-color;
+            background-color: transparent;
+            border: 0;
+            border-bottom: 3px solid @brand-primary;
+            cursor: default;
+        }
+    }
+}
+
+
+// Tabbable tabs
+// -------------------------
+
+// Hide tabbable panes to start, show them when `.active`
+.tab-content {
+    > .tab-pane {
+        display: none;
+    }
+    > .active {
+        display: block;
+    }
+}
+
+
+// Dropdowns
+// -------------------------
+
+// Specific dropdowns
+.nav-tabs .dropdown-menu {
+    // make dropdown border overlap tab border
+    margin-top: -1px;
+    // Remove the top rounded corners here since there is a hard edge above the menu
+    .border-top-radius(0);
+}

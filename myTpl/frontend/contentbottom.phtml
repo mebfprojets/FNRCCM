@@ -1,0 +1,63 @@
+<?php
+  $tplPath            = VIEW_BASE_PATH;
+  $tplPath            = ROOT_PATH."/myTpl/public";
+  $me                 = Sirah_Fabric::getUser();
+  $layout             = Zend_Layout::getMvcInstance();
+  $view               = $layout->getView(); 
+  $basePath           = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."application"  , APPLICATION_DATA_PATH );  
+     
+  $linkLogin          = $view->url(array("controller" => "account", "action" => "login" , "module" => "public"), "default");
+  $linkCreateAccount  = $view->url(array("controller" => "account", "action" => "create", "module" => "public"), "default");
+  $linkRegistres      = $view->url(array("controller" => "registres", "action" => "list", "module" => "public"), "default");
+  
+  $jq                 = $view->jQuery();
+  $onLoad             = "jQuery('.createAccount').click(function(event ){event.preventDefault();document.location.href = '".$linkCreateAccount."';  });";
+  
+  $jq->addOnLoad( $onLoad );
+?>
+<?php $view->headStyle()->captureStart() ?>
+.grid-layout{position:relative;z-index:3;}
+.grid-layout img{height:100px;}
+.grid-layout h3{color:#009aca !important;font-size:1.3em !important;font-weight:bold;font-family: 'Raleway',sans-serif !important;text-decoration:underline}
+.grid-layout p{font-size:13px;    height:50px;}
+.grid-layout > .panel-body {padding: 0px;position:relative;z-index:3;border:1px solid #f5f5f5;}
+.grid-layout > .panel-footer {text-align:center;position:relative;z-index:3}
+.grid-layout:before {position:absolute;left:0;height:60%;bottom:0;width: 100%;content:"";background-color:#ffffff;z-index: 2;}
+.grid-layout:after{content:"";position:absolute;height:50%;width:96%;left:50%;bottom:2px;margin-left:-48%;-webkit-box-shadow:0 5px 7px #999999;box-shadow:0 5px 7px #999999;z-index:1;border-radius:10%;-webkit-transition: all 0.3s ease-in-out;-o-transition: all 0.3s ease-in-out;transition: all 0.3s ease-in-out;}
+<?php $view->headStyle()->captureEnd(); ?>
+<div class="col-xs-12 col-sm-4 col-md-4 equal-height-panels">
+	<div class="panel panel-default grid-layout">
+		<div class="panel-body">
+			<a title="Créer votre compte" href="<?php echo $linkCreateAccount; ?>" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/guest_register.png" /> </a>
+		</div>
+		<div class="panel-footer">
+			<h3> <a class="grid-layout-link" href="<?php echo $linkCreateAccount; ?>" title="Créer votre compte"> Abonnez-vous </a></h3>
+			<p>  Inscrivez vous en toute sécurité pour bénéficier des services du ERCCM... </p>
+		</div>
+	</div>
+</div>
+<div class="col-xs-12 col-sm-4 col-md-4 equal-height-panels">
+	<div class="panel panel-default grid-layout">
+		<div class="panel-body">
+			<a href="<?php echo $linkRegistres; ?>" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/searchdocuments.png" /> </a>
+		</div>
+		<div class="panel-footer">
+				<h3> <a href="<?php echo $linkRegistres; ?>" title="Recherher des personnes physiques ou des personnes morales..."> Rechercher des entreprises </a></h3>
+				<p>  Recherchez des Personnes Physiques ou des Personnes Morales... </p>
+		</div>
+	</div>
+</div>
+<div class="col-xs-12 col-sm-4 col-md-4 equal-height-panels">
+	<div class="panel panel-default grid-layout">
+		<div class="panel-body">
+			<a href="#" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/creditcard.png" /> </a>
+		</div>
+		<div class="panel-footer">
+				<h3> <a href="#" title="Effectuez en toute sécurité vos paiements..."> Paiements Sécurisés </a></h3>
+				<p>  Effectuez en toute sécurité vos paiements... </p>
+		</div>
+	</div>
+</div>
+		
+ 
+

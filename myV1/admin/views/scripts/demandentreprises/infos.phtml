@@ -1,0 +1,243 @@
+<?php 
+   $entreprise         = $this->entreprise;
+   $entrepriseid       = $entreprise->entrepriseid;
+   $domaine            = $this->domaine;
+   $forme              = $this->forme;
+   $countries          = $this->countries();
+   $entrepriseCountry  = (isset($countries[$entreprise->country])) ? $countries[$entreprise->country] : $entreprise->country;
+   $me                 = Sirah_Fabric::getUser();
+   
+   $paiements          = $this->paiements;
+   $commandes          = $this->commandes;
+   $documents          = $this->documents;
+   $factures           = $this->factures;
+   $clients            = $this->clients;
+   
+   $linkCreate         = $this->url(array("controller" => "entreprises", "action" => "create") , "default" ) ;
+   $linkEdit           = $this->url(array("controller" => "entreprises", "action" => "edit", "id" => $entrepriseid) , "default" ) ;
+   $linkCancel         = $this->url(array("controller" => "entreprises", "action" => "list"), "default" ) ;
+   $linkDelete         = $this->url(array("controller" => "entreprises", "action"=> "delete", "entrepriseids"=> $entrepriseid), "default");
+   $linkUploadDocuments= $this->url(array("controller" => "entreprises", "action"=> "upload", "entrepriseid" => $entrepriseid, "category" => 10), "default");
+   
+   $buttonbar          = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+    
+   $buttonCreate       = $buttonbar->button("Enregistrer une autre entreprise","plus");
+   $buttonEdit         = $buttonbar->button("Mettre à jour","edit");
+   $buttonCancel       = $buttonbar->button("Revenir sur la liste", "ban-circle");
+   $buttonDelete       = $buttonbar->button("Supprimer"           , "trash-o");
+   
+   $buttonbar->add( $buttonCreate, "createButton");
+   $buttonbar->add( $buttonEdit  , "editButton");
+   $buttonbar->add( $buttonDelete, "deleteButton");
+   $buttonbar->add( $buttonCancel, "cancelButton");
+   
+   $buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-primary"));
+   $buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-primary"));
+   $buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+   $buttonCancel->setAttributes(array("type" => "submit", "class" => "btn btn-warning"));
+   
+   $buttonCreate->onClick("event.preventDefault();document.location.href ='".$linkCreate."';");
+   $buttonEdit->onClick(  "event.preventDefault();document.location.href ='".$linkEdit."' ;");
+   $buttonCancel->onClick("event.preventDefault();document.location.href ='".$linkCancel."' ;");
+   $buttonDelete->onClick(sprintf("
+		 event.preventDefault(); 
+		 var dialogDeleteEntreprise = jQuery('<div> Etes-vous sur de supprimer cette entreprise ? </div>').attr('id','dialogDeleteEntreprise');
+         dialogDeleteEntreprise.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+         dialogDeleteEntreprise.dialog2('addButton','Oui, supprimer', {primary: true ,click:function(){document.location.href ='%s';}}); 
+         dialogDeleteEntreprise.dialog2('addButton','Non', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteEntreprise.dialog2('open');", $linkDelete));
+   
+   $creationDate           = "00/00/0000";
+   $updateDate             = "00/00/0000";
+   $entrepriseCreationDate = "00/00/0000";
+   $creator                = Sirah_Fabric::getUser( $entreprise->creatorid     );
+   $updatedUser            = Sirah_Fabric::getUser( $entreprise->updateduserid );
+   
+   if( $entreprise->datecreation) {
+       $zendDateCreation  = new Zend_Date( $entreprise->datecreation, Zend_Date::TIMESTAMP );
+       $entrepriseCreationDate = $zendDateCreation->toString("d MMM yyyy");
+   }  
+   if( $entreprise->creationdate ) {
+       $zendCreationdate  = new Zend_Date( $entreprise->creationdate, Zend_Date::TIMESTAMP );
+       $creationDate      = $zendCreationdate->toString("d MMM yyyy à H:m");
+   }
+   if( $entreprise->updatedate ) {
+       $zendUpdatedate    = new Zend_Date( $entreprise->updatedate , Zend_Date::TIMESTAMP );
+       $updateDate        = $zendUpdatedate->toString("d MMM yyyy à H:m");
+   }
+   
+   $this->toolsbar = $buttonbar ;
+   
+   $basePath       = VIEW_BASE_PATH;
+   $jq             = $this->jQuery();
+   $onLoad  = "jQuery('.uploadFile').click(function( event ) {
+                       event.preventDefault();
+                       var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+       dialogUploadFile.dialog2({title:'Enregistrer un document',content:'".$linkUploadDocuments."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+       dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+       dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+       dialogUploadFile.dialog2('open');          
+   });";
+
+$jq->addOnLoad( $onLoad );
+?>
+
+ <div  class="container" style="text-align:left;">
+  <div class="row">
+   <div class="col-md-7">
+    <div class="panel panel-default">
+	<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-home'></span> Les informations de la société </h4> </div>
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>Raison sociale:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->libelle);  ?></div>
+       </div>
+    </li>
+	<?php if( $forme) : ?>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="forme"> <b> Forme juridique:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($forme->libelle);  ?></div>
+       </div>
+    </li>
+    <?php endif; ?>
+    <?php if( $domaine) : ?>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="forme"> <b> Secteur d'activités:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($domaine->libelle);  ?></div>
+       </div>
+    </li>
+    <?php endif; ?>	
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="datecreation"> <b> Date de création:</b> </label></div> 
+            <div class="col-md-8"><?php echo $entrepriseCreationDate;  ?></div>
+       </div>
+     </li>	 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="capital"> <b> Capital:</b> </label></div> 
+            <div class="col-md-8"><?php echo ($entreprise->capital) ? number_format($entreprise->capital, 0, " ", " ")." F CFA" : "0 F CFA";  ?></div>
+       </div>
+     </li> 
+     <li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="address"> <b> Adresse : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->address);  ?></div>
+       </div>
+     </li> 
+	 <li class="list-group-item">     
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="pays"> <b> Pays/Ville :  </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entrepriseCountry);  ?></div>
+       </div>
+    </li>   
+    <li class="list-group-item">    
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><?php  printf("Fixe : %s / Mobile : %s", $entreprise->phone1, $entreprise->phone2);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->email);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">    
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->zip);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="siteweb"> <b> Site Web: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $entreprise->siteweb;  ?></div>
+       </div>
+    </li>  
+    <li class="list-group-item">  
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Responsable : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->responsable);  ?></div>
+       </div>
+    </li>
+  <?php if($creator->userid) : ?>
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-12 "> Enregistrée le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+    </div>
+   </li>
+  <?php endif; ?>
+  <?php if($updatedUser->userid) : ?>
+   <li class="list-group-item">
+     <div class="row"> 
+        <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+     </div>
+   </li>
+  <?php endif; ?> 
+  </ul>
+    <?php  //echo $buttonbar; ?>
+  </div>
+  </div>
+ 
+  <div class="col-md-5">
+   <div class="panel-group" id="accordion">
+       <?php if($me->isAllowed("clients", "list")): ?> 
+		<div class="panel panel-default">
+		    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#entrepriseClients"><span class='glyph-icon icon-user'></span> Les clients de la société </a></h4> </div>
+			<div id="entrepriseClients" class="panel-collapse collapse"> 
+			  <?php echo $this->partial("entreprises/clients.phtml", array("entreprise"=> $entreprise,"clients"=>$clients,"entrepriseid" => $entreprise->entrepriseid)); ?> 
+			  <?php if($me->isAllowed("clients", "create")): ?>  
+				 <div class="panel-footer">
+                    <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle addClient"> Enregistrer un client</button></div>
+                  </div>
+			 <?php endif; ?>
+			</div>			
+		</div>
+	   <?php endif; ?>
+	   <?php if($me->isAllowed("vcommandes", "list")): ?> 
+		<div class="panel panel-default">
+		    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#entrepriseCommandes"><span class='glyph-icon icon-th-list'></span> Historique des commandes </a></h4> </div>
+			<div id="entrepriseCommandes" class="panel-collapse collapse"> 
+			  <?php echo $this->partial("entreprises/commandes.phtml", array("entreprise"=> $entreprise,"commandes"=>$commandes, "entrepriseid" => $entreprise->entrepriseid)); ?> 
+			</div>			
+		</div>
+		<?php endif; ?>
+		<?php if($me->isAllowed("vfactures","list")): ?> 
+		<div class="panel panel-default">
+		  <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#entrepriseInvoices"><span class='glyph-icon icon-th-list'></span> Historique des factures</a></h4> </div>
+		  <div id="entrepriseInvoices" class="panel-collapse collapse"> 
+		    <?php echo $this->partial("entreprises/factures.phtml", array("entreprise"=> $entreprise, "factures"=> $factures, "entrepriseid" => $entreprise->entrepriseid)); ?> 
+		  </div>			
+		</div>
+		<?php endif; ?>
+		<?php if($me->isAllowed("vpaiements","list")): ?>
+		<div class="panel panel-default">
+		    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#entreprisePayments"><span class='glyph-icon icon-th-list'></span> Historique des paiements</a></h4> </div>
+			<div id="entreprisePayments" class="panel-collapse collapse"> 
+			   <?php echo $this->partial("entreprises/paiements.phtml", array("entreprise"=> $entreprise, "paiements"=> $paiements, "entrepriseid" => $entreprise->entrepriseid)); ?> 
+			</div>			
+		</div>
+		<?php endif; ?>
+		<div class="panel panel-default">
+		    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#entrepriseDocuments"><span class='glyph-icon icon-list-alt'></span> Historique des documents</a></h4> </div>
+			<div id="entrepriseDocuments" class="panel-collapse collapse"> 
+			    <?php echo $this->partial("entreprises/documents.phtml",array("documents" => $documents,"entreprise" => $entreprise,"entrepriseid" => $entrepriseid)); ?>
+			 <?php if($me->isAllowed("entreprises", "upload")): ?>  
+				 <div class="panel-footer">
+                    <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle uploadFile"> Rattacher un document</button></div>
+                  </div>
+			 <?php endif; ?>
+			</div>			
+		</div>
+     </div>
+   </div>  
+    <?php 
+          if($this->isAjax) {
+          	 echo $this->jQuery();
+          }
+      ?>
+</div>  </div>  

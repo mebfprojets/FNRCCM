@@ -1,0 +1,391 @@
+<?php 
+$data                   = $this->data;
+$documents              = $this->documents;
+$categories             = array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B");
+$situations             = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+$registreid             = $this->registreid;
+$registre               = $this->registre;
+$representant           = $this->representant;
+$domaine                = $this->domaine;
+$localite               = $this->localite;
+$annee                  = date("Y", $registre->date);
+$localiteid             = $registre->localiteid;
+$modifications          = $this->modifications;
+$suretes                = $this->suretes;
+$me                     = Sirah_Fabric::getUser();
+
+$basePath               = VIEW_BASE_PATH;
+$jq                     = $this->jQuery();
+
+$linkCreate             = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"create","annee"=>$annee,"localiteid"=> $localiteid), "default");
+$linkCancel             = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"list") , "default");
+$linkEdit               = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"edit"   , "registreid" => $registreid) , "default");
+$linkDelete             = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"delete" , "ids" => $registreid ), "default");
+$linkUploadDocuments    = $this->url(array("module"=>"admin","controller"=>"registres", "action"=>"upload", "registreid"=> $registreid, "category" => 7),"default");
+$linkIndexation         = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"updatedocs", "registreid"=>$registreid, "category" => 7),"default");
+$linkCreateModification = $this->url(array("module"=>"admin","controller"=>"registremodifications","action" => "create","parentid"=>$registreid), "default");
+$linkCreateSurete       = $this->url(array("module"=>"admin","controller"=>"registresuretes" ,"action"=>"create","parentid"=> $registreid), "default");
+$jq->addOnload("
+jQuery('.ajoutModification').click(function( event ){
+	event.preventDefault();
+	document.location.href = '".$linkCreateModification."';
+	/*var createModificationFormDialog = jQuery('<div></div>').attr('id','createModificationFormDialog').addClass('modal-medium');
+    createModificationFormDialog.dialog2({title:'Enregistrer une modification',content:'".$linkCreateModification."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});
+    createModificationFormDialog.dialog2('addButton','<span class=\'glyph-icon icon-save\'></span> Enregistrer la modification',{primary:true,
+                                       click:function(event) {
+										       event.preventDefault();
+             		                           var modalBody  = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn  = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var createForm = jQuery(this).find('form').eq(0);
+											   var  libelle   = jQuery.trim(createForm.find('#libelle').val());
+                                               var  numero    = jQuery.trim(createForm.find('#numero').val() );
+											   if( SIRAH.util.isEmpty(createForm.find('#libelle').val()) ) {
+												   SIRAH.error.raise(createModificationFormDialog, 'Entrez un nom commercial valide', 'error');
+                            		               insertBtn.btnLoading({on:false});
+                            		               return;
+											   }
+											   if( SIRAH.util.isEmpty( numero ) || (numero.length != 14)) {
+												   SIRAH.error.raise( createManagerFormDialog, 'Entrez un numéro de registre valide' , 'error');
+                            		               insertBtn.btnLoading({on:false});
+                            		               return;
+											   }
+											   SIRAH.request.post( createForm ,'".$linkCreateModification."',
+		                                                        {
+																   success : function(data) {
+																	    jQuery('#patientez').fadeOut('slow');
+             		                                                    SIRAH.loading.off(false);
+                                                                        if( !SIRAH.util.isEmpty(data.error ) ) {
+                            		                                         SIRAH.error.raise(createModificationFormDialog, data.error , 'error');
+                            		                                         insertBtn.btnLoading({on:false});
+                            		                                         return data;
+                            	                                         } else if(!SIRAH.util.isEmpty(data.success ) ) {
+                            		                                         SIRAH.error.raise(createModificationFormDialog, data.success , 'success');
+		                                                                     return data;
+                            	                                         }	else {
+                            		                                         SIRAH.error.raise(createModificationFormDialog, 'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                         insertBtn.btnLoading({on:false});
+                            		                                         return data;
+                            	                                         }																			
+																   }
+																});
+									   }										   
+	   });
+	   createModificationFormDialog.dialog2('addButton','Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}}); 
+       createModificationFormDialog.dialog2('open');*/
+});
+jQuery('.ajoutSurete').click(function( event ){
+	event.preventDefault();
+	document.location.href = '".$linkCreateSurete."';
+	/*var createSureteFormDialog = jQuery('<div></div>').attr('id','createSureteFormDialog').addClass('modal-medium');
+    createSureteFormDialog.dialog2({title:'Enregistrer une sûrété',content:'".$linkCreateSurete."',autoOpen:false,modalClass:'modal-wide',
+	                                removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});
+    createSureteFormDialog.dialog2('addButton','<span class=\'glyph-icon icon-save\'></span> Enregistrer la sûrété',{primary:true,
+                                   click:function(event) {
+										       event.preventDefault();
+             		                           var modalBody  = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn  = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var createForm = jQuery(this).find('form').eq(0);
+											   var  libelle   = jQuery.trim(createForm.find('#libelle').val());
+                                               var  numero    = jQuery.trim(createForm.find('#numero').val() );
+											   if( SIRAH.util.isEmpty(createForm.find('#libelle').val()) ) {
+												   SIRAH.error.raise(createSureteFormDialog, 'Entrez un nom commercial valide', 'error');
+                            		               insertBtn.btnLoading({on:false});
+                            		               return;
+											   }
+											   if( SIRAH.util.isEmpty( numero ) || (numero.length != 14)) {
+												   SIRAH.error.raise( createManagerFormDialog, 'Entrez un numéro de registre valide' , 'error');
+                            		               insertBtn.btnLoading({on:false});
+                            		               return;
+											   }
+											   SIRAH.request.post( createForm ,'".$linkCreateSurete."',
+		                                                        {
+																   success : function(data) {
+																	    jQuery('#patientez').fadeOut('slow');
+             		                                                    SIRAH.loading.off(false);
+                                                                        if( !SIRAH.util.isEmpty(data.error ) ) {
+                            		                                         SIRAH.error.raise(createSureteFormDialog, data.error , 'error');
+                            		                                         insertBtn.btnLoading({on:false});
+                            		                                         return data;
+                            	                                         } else if(!SIRAH.util.isEmpty(data.success ) ) {
+                            		                                         SIRAH.error.raise(createSureteFormDialog, data.success , 'success');
+		                                                                     return data;
+                            	                                         }	else {
+                            		                                         SIRAH.error.raise(createSureteFormDialog, 'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                         insertBtn.btnLoading({on:false});
+                            		                                         return data;
+                            	                                         }																			
+																   }
+																});
+									   }										   
+	});
+	createSureteFormDialog.dialog2('addButton','Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}}); 
+    createSureteFormDialog.dialog2('open');
+	*/
+});
+jQuery('.uploadFile').click(function( event ) {
+                         event.preventDefault();
+                         var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+                         dialogUploadFile.dialog2({title : 'Rattacher un document à ce registre de commerce',
+             		                               content : '".$linkUploadDocuments."',
+             		                               autoOpen: false,
+             		                               modalClass:'modal-wide',
+             		                               removeOnClose: true,
+             		                               closeOnEscape: true, 
+                                                   closeOnOverlayClick:false,
+             		                               showCloseHandle:true,
+             		                               initialLoadText: 'Chargement de la page, patientez...' });
+       dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+       dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+       dialogUploadFile.dialog2('open');          
+});");
+$buttonBar    = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Nouveau", "plus");
+$buttonEdit   = $buttonBar->button("Modifier", "edit");
+$buttonImport = $buttonBar->button("Re-Indexer", "refresh");
+$buttonDelete = $buttonBar->button("Supprimer", "trash-o");
+$buttonCancel = $buttonBar->button("Retour" , "arrow-left");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+$buttonBar->add( $buttonCreate , "createButton");
+if( $me->isAllowed("registrephysique", "edit"))
+    $buttonBar->add( $buttonEdit   , "editButton");
+if( $me->isAllowed("registrephysique", "updatedocs"))
+    $buttonBar->add( $buttonImport , "importButton");
+if( $me->isAllowed("registrephysique", "delete"))
+    $buttonBar->add( $buttonDelete , "deleteButton");
+
+$buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-primary"));
+$buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-warning"));
+$buttonImport->setAttributes(array("type" => "submit", "class" => "btn btn-info"));
+$buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+$buttonCancel->setAttributes(array("type" => "submit"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit ));
+$buttonDelete->onClick( sprintf("
+        event.preventDefault();
+        var dialogDeleteRegistre = jQuery('<div> Etes-vous sur de supprimer ce registre de commerce ? </div>').attr('id','dialogDeleteRegistre');
+        dialogDeleteRegistre.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteRegistre.dialog2('addButton','Oui, supprimer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteRegistre.dialog2('addButton','Non, ne pas supprimer', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteRegistre.dialog2('open');" , $linkDelete));
+$buttonImport->onClick( sprintf("
+        event.preventDefault();
+        var dialogDeleteRegistre = jQuery('<div> Etes-vous sur d\'effectuer cette opération? Elle va remplacer les documents joints actuels par de nouveaux documents </div>').attr('id','dialogDeleteRegistre');
+        dialogDeleteRegistre.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteRegistre.dialog2('addButton','Oui, je veux l\'effectuer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteRegistre.dialog2('addButton','Non, je ne veux pas', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteRegistre.dialog2('open');" , $linkIndexation));		
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+
+$creationDate            = "00/00/0000";
+$updateDate              = "00/00/0000";
+$registreDate            = "00/00/0000";
+$birthDate               = "00/00/0000";
+$creator                 = Sirah_Fabric::getUser( $registre->creatorid     );
+$updatedUser             = Sirah_Fabric::getUser( $registre->updateduserid );
+$countries               = $this->countries();
+$nationalite             = "";
+
+if( $registre->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $registre->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $registre->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $registre->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+if( $registre->date ) {
+    $zendRegistreDate    = new Zend_Date( $registre->date, Zend_Date::TIMESTAMP );
+    $registreDate        = $zendRegistreDate->toString("dd MMMM yyyy");
+}
+if( $representant->datenaissance ) {
+    $zendBirthDate       = new Zend_Date( $representant->datenaissance, Zend_Date::DATETIME );
+    $birthDate           = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+}
+if( $representant->country) {
+	$nationalite         = (isset( $countries[$representant->country] )) ? $countries[$representant->country] : "";
+}
+
+$this->toolsbar = $buttonBar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+
+<div  class="container" style="text-align:left;">
+  <div class="row">
+    <div  class="col-md-7">
+	   <div class="panel panel-default">
+	    <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Les informations du registre de commerce </h4> </div>  
+	    <ul class="list-group">
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="numero"> <b>   Numéro RC:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->numero);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="numcnss"> <b>   Numéro CNSS:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->numcnss);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="numifu"> <b>   Numéro IFU:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->numifu);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="libelle"> <b>   Nom commercial:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->libelle);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="localite"> <b>Localité:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo ( $localite ) ? $localite->libelle : ""; ?> </div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="domaine"> <b> Secteur d'activités:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo ( $domaine ) ? $domaine->libelle : ""; ?> </div>
+            </div>
+          </li>
+		  <?php if( $registre->description ): ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="presentation"> <b> Activité:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($registre->description); ?> </div>
+            </div>
+          </li>
+		  <?php endif; ?>
+		  <?php if($registre->date) : ?>
+           <li class="list-group-item">
+             <div class="row"> 
+                <div class="col-md-12 "> Inscrit dans le registre à la date du <?php echo $registreDate; ?> </div> 
+             </div>
+           </li>
+          <?php endif; ?>
+          <?php if($creator->userid) : ?>
+           <li class="list-group-item">
+             <div class="row"> 
+                <div class="col-md-12 "> Enregistré le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+             </div>
+           </li>
+          <?php endif; ?>
+          <?php if($updatedUser->userid) : ?>
+            <li class="list-group-item">
+              <div class="row"> 
+                <div class="col-md-12 "> Mis à jour pour la dernière fois, le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+              </div>
+           </li>
+          <?php endif; ?> 		  
+		</ul>
+	   </div>
+	   <div class="panel panel-default">
+	     <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-user'></span> Les informations de l'exploitant</h4> </div>
+		 <ul class="list-group">
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> N° Passport:</b></div> 
+                <div class="col-md-8"><?php echo $representant->passport; ?></div>
+            </div>
+           </li>
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Nom & Prénom  :</b></div> 
+                <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s %s", $representant->nom, $representant->prenom ) : ""; ?></div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Sexe:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? (($representant->sexe == "M") ? "Homme": "Femme") : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Né(e) le:</b></div> 
+                <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s à %s", $birthDate , $representant->lieunaissance ) : ""; ?></div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Adresse:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->adresse : ""; ?> </div>
+            </div>
+           </li>
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Nationalité:</b></div> 
+                <div class="col-md-8"> <?php echo $nationalite; ?> </div>
+            </div>
+           </li>		   
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Numéro de téléphone:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->telephone : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Adresse email:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->email : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Fonction/Profession:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->profession: ""; ?> </div>
+            </div>
+           </li>
+		 </ul>
+	   </div>
+	</div>	
+	<div  class="col-md-5">
+	    <div class="panel panel-default">
+           <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-edit'></span> Historique des modifications </h4></div> 
+          <?php echo $this->partial("registres/modifications.phtml", array("modifications" => $modifications, "registre" => $registre )); ?>
+		  <?php if($me->isAllowed("registremodifications","create")): ?> 
+			<div class="panel-footer">
+                <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle ajoutModification"> Ajouter une modification</button></div>
+            </div>
+		  <?php endif; ?>
+        </div>
+		<div class="panel panel-default">
+          <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-shield'></span> Historique des sûrétés </h4></div> 
+          <?php echo $this->partial("registres/suretes.phtml", array("suretes" => $suretes, "registre" => $registre )); ?>
+		  <?php if($me->isAllowed("registresuretes","create")): ?> 
+			<div class="panel-footer">
+                <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle ajoutSurete"> Ajouter une sûrété </button></div>
+            </div>
+		  <?php endif; ?>
+        </div>
+	    <div class="panel panel-default">
+           <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-file-pdf-o'></span> Les documents indexés </h4></div> 
+          <?php echo $this->partial("registrephysique/documents.phtml" , array("documents" => $documents, "registre" => $registre )); ?>
+		  <?php if($me->isAllowed("registres","upload")): ?> 
+			<div class="panel-footer">
+                <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle uploadFile"> Ajouter un document</button></div>
+            </div>
+		  <?php endif; ?>
+        </div>
+	</div>
+  </div>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

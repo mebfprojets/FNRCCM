@@ -1,0 +1,73 @@
+<?php
+    $entreprise = $this->entreprise;
+	$domaine    = $this->domaine;
+	$forme      = $this->forme;
+?>
+<ul class="list-group">
+    <?php if(!empty( $entreprise->numrccm)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Numéro RC:</b></div> 
+			<div class="col-md-8"><?php echo $this->escape($entreprise->numrccm);  ?></div>
+		</div>
+	</li>
+    <?php endif; ?>	
+	<?php if(!empty( $entreprise->numcnss)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Numéro CNSS:</b></div> 
+			<div class="col-md-8"><?php echo $this->escape($entreprise->numcnss);  ?></div>
+		</div>
+	</li>
+	<?php endif; ?>	
+	<?php if(!empty( $entreprise->numifu)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Numéro IFU:</b></div> 
+			<div class="col-md-8"><?php echo $this->escape($entreprise->numifu);  ?></div>
+		</div>
+	</li>
+    <?php endif; ?>	
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Nom commercial:</b></div> 
+			<div class="col-md-8"><?php echo $this->escape($entreprise->nomcommercial);  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b> Dénomination:</b></div> 
+			<div class="col-md-8"><?php echo $this->escape($entreprise->denomination);  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-md-4"><b>Sigle:</b></div> 
+			 <div class="col-md-8"><?php echo $this->escape($entreprise->sigle);  ?></div>
+		</div>
+	</li>
+	<?php if(!empty( $localite)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-md-4"><b>Localité:</b></div> 
+			 <div class="col-md-8"><?php echo $localite->libelle ; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>			
+	<?php if(!empty( $domaine)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-md-4"><b> Secteur d'activités:</b></div> 
+			 <div class="col-md-8"> <?php echo $domaine->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+    <?php if( $entreprise->article): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-md-4"><b> Activité:</b></div> 
+			 <div class="col-md-8"><?php echo $this->escape($entreprise->article); ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+</ul>

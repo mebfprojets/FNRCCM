@@ -1,0 +1,72 @@
+<?php
+$me           = Sirah_Fabric::getUser();
+$commande     = $this->commande;
+$commandeid   = $this->commandeid;
+$lignes       = $this->lignes;
+$prestataire  = $fournisseur = $this->fournisseur;
+$modelProduit = $this->modelProduit;
+$produits     = $this->produits;
+$modalites    = $this->modalites;
+
+$demande      = $this->demande;
+$engindemande = $enginDemande = $this->engindemande;
+$engin        = $this->engin;
+$engintype    = $this->engincategorie;
+$enginmarque  = $this->enginmarque;
+$centre       = $this->centre;
+$centreid     = $enginDemande->centreid;
+$centretype   = $this->centretype;
+$chantier     = $this->chantier;
+$chantierLib  = ( $chantier ) ? $chantier->libelle : "";
+
+$modele       = (!empty($this->modele))?$this->modele : "default";
+
+$contenu      = $this->partial("acommandes/modeles/{$modele}.phtml",array("commande"=>$commande,"engindemande"=>$enginDemande,"demande"=>$demande,"fournisseur"=>$fournisseur,
+															              "lignes"=>$lignes,"produits"=>$produits,"chantier"=>$chantier,"centre"=>$centre,"centretype"=>$centretype,
+															              "engin"=>$engin,"enginid"=>$enginid,"categorie"=>$engincategorie,"marque"=>$enginmarque,"modalites"=>$modalites));
+$printHeader      = true;
+$headerContent    = "";
+try {
+  $headerContent  = $this->partial("demandes/modeles/{$modele}.header.phtml",array("chantier"=>$chantier,"demande"=>$demande));
+} catch(Exception $e ) {
+  $printHeader    = false;
+}
+$showHeader       = !$printHeader;
+$headerPaddings   = ($printHeader)?5 : 45;
+$me               = Sirah_Fabric::getUser();
+$PDF              = new ProjectPdf_Default();
+$PDF->SetCreator(sprintf("%s %s", $me->lastname, $me->firstname ));
+$PDF->SetMargins(15,$headerPaddings, 15);
+$PDF->SetFooterMargin(30);
+$PDF->SetPrintHeader($printHeader);
+$PDF->SetTitle("Bon de commande");
+
+$margins         = $PDF->getMargins();
+$contenuWidth    = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+$PDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$PDF->AddPage('P', 'A4');
+$margins         = $PDF->getMargins();
+$contenuWidth    = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+
+if( $printHeader && !empty($headerContent) ) {
+	$PDF->setFillColor( 525 , 255 , 255 );
+	$PDF->setTextColor( 0 , 0 , 0 );
+	$PDF->writeHTMLCell($contenuWidth, 0, "","",$headerContent,  0, 0, true, "top", true);						
+	$PDF->Ln();
+}
+
+$PDF->SetFont("helvetica" , "" , 10);
+
+$PDF->writeHTML( $contenu , true , false , true , false , '' );
+
+if( $this->isAjax ) {
+	$commandeFilename = "bonDeCommande".sprintf("%06d" , $commandeid ).".pdf";
+	$myDataPath       = $me->getDatapath();
+    $fileTmpPath      = $myDataPath . $commandeFilename;
+    echo $PDF->Output(  $fileTmpPath , "F");
+	echo ZendX_JQuery::encodeJson(array("success" => "La création du bon de commande s'est effectuée avec succès","tmpDocument" => $fileTmpPath ));
+    exit;
+} else {
+	$commandeFilename = "bonDeCommande".sprintf("%06d", $commandeid ).".pdf";
+    echo $PDF->Output( $commandeFilename , "D");
+}

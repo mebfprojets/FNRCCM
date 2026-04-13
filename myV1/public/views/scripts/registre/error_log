@@ -1,0 +1,87 @@
+[27-Dec-2022 21:31:22 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/advancedsearch.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/advancedsearch.phtml on line 2
+[27-Dec-2022 21:31:26 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/create.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/create.phtml on line 2
+[27-Dec-2022 21:31:29 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/dashboard.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/dashboard.phtml on line 2
+[27-Dec-2022 21:31:33 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/dirigeants.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/dirigeants.phtml on line 2
+[27-Dec-2022 21:31:37 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Model_Document' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/documents.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/documents.phtml on line 2
+[27-Dec-2022 21:31:40 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/edit.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/edit.phtml on line 2
+[27-Dec-2022 21:31:43 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/infos.phtml on line 2
+[27-Dec-2022 21:31:47 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/registre/list.phtml on line 2
+[27-Dec-2022 21:31:47 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/list.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/list.phtml on line 4
+[27-Dec-2022 21:31:52 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/localitiesresults.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/localitiesresults.phtml on line 2
+[27-Dec-2022 21:31:54 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/login.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/login.phtml on line 2
+[27-Dec-2022 21:31:59 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/modifications.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/modifications.phtml on line 2
+[27-Dec-2022 21:32:01 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/morale.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/morale.phtml on line 2
+[27-Dec-2022 21:32:06 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/registre/morales.phtml on line 2
+[27-Dec-2022 21:32:06 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/morales.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/morales.phtml on line 4
+[27-Dec-2022 21:32:09 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/physique.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/physique.phtml on line 2
+[27-Dec-2022 21:32:13 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/registre/physiques.phtml on line 2
+[27-Dec-2022 21:32:13 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/physiques.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/physiques.phtml on line 4
+[27-Dec-2022 21:32:16 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/profile.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/profile.phtml on line 2
+[27-Dec-2022 21:32:19 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/registre/recipients.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/recipients.phtml on line 2
+[27-Dec-2022 21:32:23 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/related.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/related.phtml on line 2
+[27-Dec-2022 21:32:28 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/search.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/search.phtml on line 2
+[27-Dec-2022 21:32:32 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/suretes.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/suretes.phtml on line 2
+[27-Dec-2022 21:32:37 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/registre/typeresults.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/registre/typeresults.phtml on line 2

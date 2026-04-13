@@ -1,0 +1,68 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller" =>"registres", "action" => "numerisation", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller" =>"registrephysique", "action" => "list", "module" => "admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+$invalidHtml = $this->invalidHtml;	
+$missingHtml = $this->missingHtml;	
+$validHtml   = $this->validHtml;	
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+    <div class="form-group"> 
+           <label class="col-sm-3 control-label"> OPS* : </label>
+           <div   class="col-sm-6"> <input type="text" name="ops_username" id="ops_username" class="form-control" placeholder="Nom et prénom de l'opératrice (Ex:MME-DAYAMBA)" value="<?php echo $data["ops_username"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source* : </label>
+           <div   class="col-sm-6"> <input type="text" name="srcfolder" id="srcfolder" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["srcfolder"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier de destination* : </label>
+           <div   class="col-sm-6"> <input type="text" name="destfolder" id="destfolder" class="form-control" placeholder="Dossier de destination des documents" value="<?php echo $data["destfolder"]; ?>" /></div>        
+    </div>
+     
+     
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Convertir les documents numérisés","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

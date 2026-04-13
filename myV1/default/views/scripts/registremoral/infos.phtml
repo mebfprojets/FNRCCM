@@ -1,0 +1,172 @@
+<?php 
+$data              = $this->data;
+$documents         = $this->documents;
+$categories        = array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B");
+$registreid        = $this->registreid;
+$registre          = $this->registre;
+$entreprise        = $this->entreprise;
+$domaine           = $this->domaine;
+$localite          = $this->localite;
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkCreate        = $this->url(array("controller"=>"registremoral","action"=> "create") , "default");
+$linkCancel        = $this->url(array("controller"=>"registremoral","action"=> "list" ) , "default");
+$linkEdit          = $this->url(array("controller"=>"registremoral","action"=> "edit"   , "registreid" => $registreid) , "default");
+$linkDelete        = $this->url(array("controller"=>"registremoral","action"=> "delete" , "ids" => $registreid ), "default");
+
+$jq->addOnload("");
+
+$buttonBar    = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Ajouter un registre", "plus");
+$buttonEdit   = $buttonBar->button("Mettre à jour", "edit");
+$buttonDelete = $buttonBar->button("Supprimer", "trash-o");
+$buttonCancel = $buttonBar->button("Revenir sur la liste" , "ban");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonEdit   , "createButton");
+$buttonBar->add( $buttonEdit   , "editButton");
+$buttonBar->add( $buttonDelete , "deleteButton");
+$buttonBar->add( $buttonCancel , "cancelButton");
+
+$buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-primary"));
+$buttonEdit->setAttributes(  array("type" => "submit"));
+$buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+$buttonCancel->setAttributes(array("type" => "submit"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit ));
+$buttonDelete->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkDelete));
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+
+$creationDate    = "00/00/0000";
+$updateDate      = "00/00/0000";
+$creator         = Sirah_Fabric::getUser( $registre->creatorid     );
+$updatedUser     = Sirah_Fabric::getUser( $registre->updateduserid );
+
+if( $registre->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $registre->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("d MMM Y à H:m");
+}
+if( $registre->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $registre->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("d MMM Y à H:m");
+}
+
+$this->toolsbar = $buttonBar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+
+<div    id="registreInfosWrapper"  class="row">   
+    <div  class="col-sm-6">
+       <div class="content-box">
+           <h3  class="content-box-header"> <b> Les informations du registre </b> </h3>
+           <div class="divider"> </div>
+           <div class="content-box-wrapper ">
+             <div class="list-group pad4A">
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Numéro du registre:</b></div> 
+                       <div class="col-md-7"><?php echo $registre->numero; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Type de registre:</b></div> 
+                       <div class="col-md-7"><?php echo (isset($categories[$registre->category])) ? $categories[$registre->category] : ""; ?></div>
+                   </div>
+                 </a>                 
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Dénommination:</b></div> 
+                       <div class="col-md-7"><?php echo $registre->libelle; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Localité:</b></div> 
+                       <div class="col-md-7"><?php echo ( $localite ) ? $localite->libelle : ""; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Domaine d'activité:</b></div> 
+                       <div class="col-md-7"><?php echo ( $domaine ) ? $domaine->libelle : ""; ?></div>
+                   </div>
+                 </a>
+                <?php if($creator->userid) : ?>
+                 <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-12 "> Créé le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+                    </div>
+                  </a>
+                 <?php endif; ?>
+                 <?php if($updatedUser->userid) : ?>
+                  <a class="list-group-item">
+                     <div class="row"> 
+                       <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+                     </div>
+                 </a>
+                <?php endif; ?>                
+            </div>
+           </div>
+           <h3  class="content-box-header"> <b> Les informations de l'entreprise </b> </h3>
+           <div class="divider"> </div>
+           <div class="content-box-wrapper ">
+             <div class="list-group pad4A">
+                  <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Nom commercial :</b></div> 
+                       <div class="col-md-7"><?php echo ( $entreprise ) ? $entreprise->libelle : ""; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Gérant:</b></div> 
+                       <div class="col-md-7"><?php echo ( isset($data["administrateur"]) ) ? $data["administrateur"]: ""; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Adresse :</b></div> 
+                       <div class="col-md-7"><?php echo ( $entreprise ) ? $entreprise->adresse : ""; ?></div>
+                   </div>
+                 </a>               
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Téléphone :</b></div> 
+                       <div class="col-md-7"><?php echo ( $entreprise ) ? $entreprise->phone1 : ""; ?></div>
+                   </div>
+                 </a>
+                 <a class="list-group-item">
+                    <div class="row"> 
+                       <div class="col-md-5"> <b> Au capital de:</b></div> 
+                       <div class="col-md-7"><?php echo ( $entreprise ) ? number_format( $entreprise->capital, 0, " ", " " ) : ""; ?></div>
+                   </div>
+                 </a>                
+              </div>  
+           </div>
+                                                                             
+       </div>    
+    </div>
+    <div     class="col-sm-6">
+        <div class="panel panel-default">
+           <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-list-alt'></span> Les documents</h4></div> 
+          <?php echo $this->partial("registremoral/documents.phtml" , array("documents" => $documents)); ?>
+        </div>
+    </div>
+    
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+   
+   
+    

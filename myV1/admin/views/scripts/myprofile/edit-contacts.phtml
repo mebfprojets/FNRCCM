@@ -1,0 +1,178 @@
+<?php 
+$data               = $this->data;
+$formSubmit         = $this->url(array("controller" =>"myprofile", "action" => "editcontact") , "default");
+$backList           = $this->url(array("controller" =>"myprofile", "action" => "infos") , "default");
+$linkSearchCities   = $this->url(array("controller" =>"ajaxres"  , "action" => "cities"), "default" );
+$cities             = $this->cities;
+$formNames          = $this->formNames;
+$basePath           = ROOT_PATH."/myTpl/default";
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%; margin:auto;}
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{height : 45px;line-height: 30px;font-size: 1.3em;}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio{color: #333333;font-size: 18px;font-weight: normal;padding:20px;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = "";
+$onLoad.= "var cities      =".ZendX_JQuery::encodeJson( $cities ).";";
+$onLoad.= "
+   jQuery('#country').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+   var citiesEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                      local: cities,
+                                      remote:{url:'".$linkSearchCities."?q=%QUERY'}});
+   citiesEngine.initialize();
+   jQuery('#ville').typeahead({highlight:true,minLength:2},{name:'ville',displayKey:'value',source:citiesEngine.ttAdapter(),limit:10});
+   jQuery('#ville').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedcity'))){jQuery('#city').val(0);}}); 
+   jQuery('#ville').bind('typeahead:selected',function(obj,datum,name){jQuery('#city').val(datum.label);jQuery.data( jQuery('#insertcarreer-form'),'selectedcity',datum.value);});
+   jQuery('#country').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+   jQuery('#".$formNames['email']."').bind('blur change',function(e){
+      e.preventDefault();
+      var email = jQuery.trim(jQuery(this).val());
+     if(SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').removeClass('input-error');
+        jQuery('#email-validation-message').html('');
+      } else {
+        jQuery('#email').addClass('input-error');
+        return;
+      }
+  });      
+  jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+  jQuery('.saveMyContacts').click(function(e)
+  {
+      e.preventDefault();      
+      var  formSelector = jQuery('#editcontacts-form');
+      var  email        = jQuery.trim(jQuery('#".$formNames['email']."').val());      
+      if(!SIRAH.validators.isEmailAddress(email)){
+         jQuery('#email').addClass('input-error');
+         jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+      } else {
+         jQuery('#".$formNames['email']."').removeClass('input-error');
+         jQuery('#email-validation-message').html('');
+      }     
+      jQuery('#".$formNames['email']."').val(email);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+  $ville  = ( isset( $data["ville"] ) ) ? $this->escape($data["ville"])  : null;
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editcontacts-form"   role="form">
+<div class="container">
+<ul class="list-group">
+  <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="email"> <b> Adresse email: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['email']; ?>" class="input" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Mon adresse email" placeholder="Mon adresse email"  name="<?php echo $formNames['email']; ?>" value="<?php echo $data['email']; ?>">
+         </div>
+         <p id="email-validation-message" class="validation-message"></p>  
+     </div>
+  </li>
+  <li class="list-group-item">    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="tel_dom"> <b> Téléphone domicile : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['tel_dom']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="input"
+                      title="Mon numéro de téléphone domicile" placeholder="Mon numéro de téléphone domicile" name="<?php echo $formNames['tel_dom']; ?>" value="<?php echo $data['tel_dom']; ?>">
+          </div>   
+     </div>         
+ </li>
+ <li class="list-group-item">  
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="tel_"> <b> Téléphone bureau: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="<?php echo $formNames['tel_bureau']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="input"
+                    title="Mon numéro de téléphone de bureau" placeholder="Mon numéro de téléphone de bureau" name="<?php echo $formNames['tel_bureau']; ?>" value="<?php echo $data['tel_bureau']; ?>">
+         </div>
+    </div>   
+ </li>
+ <li class="list-group-item">  
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="tel_mob"> <b> Téléphone Mobile : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="<?php echo $formNames['tel_mob']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="input"
+                    title="Mon numéro de téléphone mobile" placeholder="Mon numéro de téléphone mobile" name="<?php echo $formNames['tel_mob']; ?>" value="<?php echo $data['tel_mob']; ?>">
+         </div>
+    </div>
+</li>
+<li class="list-group-item">    
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="code_postal"> <b> Code postal: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="code_postal" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="input"
+                    title="Indiquez votre code postal" placeholder="Indiquez votre code postal" name="code_postal" value="<?php echo $data['code_postal']; ?>">
+         </div>
+    </div>
+</li>
+<li class="list-group-item">         
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="adresse"> <b> Adresse: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="address" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="input"
+                    title="Indiquez votre adresse de logement" placeholder="Indiquez votre adresse" name="address" value="<?php echo $data['address']; ?>">
+         </div>
+    </div>
+</li>
+<li class="list-group-item"> 
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="rue"> <b> Rue : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="rue" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="input"
+                    title="Indiquez la rue" placeholder="Indiquez la rue" name="rue" value="<?php echo $data['rue']; ?>">
+         </div>
+   </div>
+</li>
+<li class="list-group-item">                                     
+   <div class="row">    
+         <div class="col-md-4"> <label class="label" for="country"> <b> Pays: </b> </label> </div>
+         <div class="col-md-8">
+            <?php echo $this->formSelect("country" , $data["country"] , array() , $this->countries()); ?>         
+         </div>
+    </div>
+</li>
+<li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="city"> <b> La ville : </b> </label> </div>
+         <div class="col-md-8"> <input id="ville" type="text"  name="ville" value="<?php echo $this->ville; ?>" title="La ville dans laquelle vous habitez"
+                                       class="input typeahead" placeholder="La ville dans laquelle vous habitez" > </div>
+     </div>
+</li>
+<li class="list-group-item">    
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="department"> <b>Departement / Région: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="department" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="input"
+                    title="Indiquez le département dans lequel vous travaillez" placeholder="Indiquez votre départment" name="department" value="<?php echo $data['department']; ?>">
+         </div>
+    </div>           
+</li>
+</ul>  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="btn-group">
+                       <button type="submit" class="btn btn-default btn-primary saveMyContacts"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>   
+<input type="hidden" name="city"  id="city"  value="<?php echo $data["city"]; ?>"  />
+<input type="hidden" name="<?php echo $this->csrfTokenId; ?>" id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />
+</form>

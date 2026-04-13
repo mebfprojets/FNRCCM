@@ -1,0 +1,98 @@
+<?php
+$activite             = $this->activite;
+$localisation         = $this->localisation;
+$categorie            = $this->categorie;
+$produit              = $this->produit;
+$parent               = $this->parent;
+$beneficiaires        = $this->beneficiaires;
+$partenaires          = $this->partenaires;
+$resultats            = $this->resultats;
+$dateFin              = $creationDate = $dateDebut = $updateDate = "00/00/0000";
+$creator              = Sirah_Fabric::getUser($activite->creatorid);
+$updatedUser          = Sirah_Fabric::getUser($activite->updateduserid);
+$zoneIntervention     = "";
+
+if( $activite->datedebut ) {
+	$zendDateDebut    = new Zend_Date( $activite->datedebut, Zend_Date::TIMESTAMP );
+	$dateDebut        = $zendDateDebut->toString("d MMM Y");
+}
+if( $activite->datefin ) {
+	$zendDateFin      = new Zend_Date( $activite->datefin, Zend_Date::TIMESTAMP );
+	$dateFin          = $zendDateFin->toString("d MMM Y");
+}
+if( $activite->creationdate ) {
+	$zendCreationdate = new Zend_Date( $activite->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("d MMM Y");
+}
+if( $activite->updatedate ) {
+	$zendUpdatedate   = new Zend_Date( $activite->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate       = $zendUpdatedate->toString("d MMM Y");
+}
+ if( count( $localisation) ) {
+	$zoneIntervention = sprintf("<b> Région:</b> %s, <b>Province:</b> %s, <b> Département:</b> %s, <b>Commune:</b> %s, <b>à l'adresse:</b> %s",
+			                    $localisation["region"] , $localisation["province"], $localisation["ville"],
+			                    $localisation["commune"], $localisation["addresse"] ) ;
+ }
+
+?>
+ <ul class="list-group">
+     <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Désignation de l'activité:</b></div> 
+              <div class="col-md-8"> <b><?php echo $activite->libelle; ?> </b> </div>
+         </div>
+     </li>
+     <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Réalisée dans la période du :</b></div> 
+            <div class="col-md-2"><?php echo $dateDebut; ?></div>
+            <div class="col-md-1"> au </div>
+            <div class="col-md-2"> <?php echo $dateFin; ?> </div>
+         </div>
+     </li>
+     <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Domaine d'activités:</b></div> 
+              <div class="col-md-8"><?php echo ( $categorie ) ? $categorie->libelle : ""; ?></div>
+         </div>
+     </li>
+     <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Type de produit:</b></div> 
+              <div class="col-md-8"><?php echo ( $produit ) ? $produit->libelle : ""; ?></div>
+         </div>
+     </li>
+     <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Zone d'intervention:</b></div> 
+              <div class="col-md-8"> <?php echo $zoneIntervention; ?> </div>
+         </div>
+     </li>
+    <?php if( $parent ) : ?>
+     <?php $linkParent  = $this->url(array("controller" => "activites", "action" => "infos", "id" => $parent->activityid)); ?>
+       <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Hérite de l'activité:</b></div> 
+              <div class="col-md-8"><?php echo "<a href=\"".$linkParent."\"> ".$linkParent." </a>"; ?></div>
+         </div>
+       </li>
+     <?php endif; ?>
+     
+     <?php if( count( $partenaires ) ) : ?>
+      <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Partenaires:</b></div> 
+              <div class="col-md-8"> <?php echo implode(" / ", $partenaires ); ?> </div>
+         </div>
+     </li>
+     <?php endif; ?>
+     
+     <?php if( count( $beneficiaires ) ) : ?>
+      <li class="list-group-item">
+         <div class="row"> 
+              <div class="col-md-4"> <b> Au bénéfice de:</b></div> 
+              <div class="col-md-8"> <?php echo implode(" / ", $beneficiaires ); ?> </div>
+         </div>
+     </li>
+   <?php endif; ?>                      
+</ul>

@@ -1,0 +1,70 @@
+<?php
+  $tplPath   = VIEW_BASE_PATH;
+  
+  $filters   = $this->filters;
+  $localites = $this->localites;
+  $linkSearch= $this->url(array("module" => "public", "controller" => "statistiques", "action" => "sexe"), "default");
+  $types     = array( 0 => " ", 1 => "Personnes physiques", 2 => "Personnes morales", 3=> "Surété");
+  $model     = $this->model;
+  
+  
+?>
+
+
+   <table style="text-align:left;" class="table tabl-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="30%"> Localités           </th>
+                     <th width="30%"> Hommes              </th>
+                     <th width="30%"> Femmes              </th>
+                     <th width="10%"> Total               </th>
+                </tr>         
+          </thead>
+          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $nbreTotal   = 0;
+                     if( count(  $localites )) {
+                     	 foreach($localites as $localiteid => $localiteLibelle ) {
+                     	 	     if( !intval( $localiteid ))
+                     	 	     	 continue;
+                     	 	     $nbreFArray   = $model->getNbreBySexe( $localiteid , "F");
+                     	 	     $nbreMArray   = $model->getNbreBySexe( $localiteid , "M");
+                     	 	     $nbreF        = ( count( $nbreFArray )) ? $nbreFArray[0]["nombre"] : 0;
+                     	 	     $nbreM        = ( count( $nbreMArray )) ? $nbreMArray[0]["nombre"] : 0;
+                     	 	     $nbreLocalite = $nbreF + $nbreM;
+                     	 	     $rowBg        = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+                     	 	     $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output.="<td style=\"background-color:".$rowBg."\"> ".$localiteLibelle  ." </td>";
+                     	 	            $output.="<td style=\"background-color:".$rowBg."\"> ".$nbreF           ." </td>";
+                     	 	            $output.="<td style=\"background-color:".$rowBg."\"> ".$nbreM           ." </td>";
+                     	 	            $output.="<td style=\"background-color:".$rowBg."\"> <b> ".$nbreLocalite ."</b> </td>";
+                     	 	     $output.="</tr>";                    	 	 
+                     	 	     $nbreTotal += $nbreLocalite;
+                     	 }  
+                     	 $rowBg  = $this->cycle(array("#F0F0F0","#FFFFFF"));
+                     	 $output.="<tr style=\"".$rowBg."\">";
+                     	               $output.="<td style=\"background-color:".$rowBg."\"> <b> ENSEMBLE </b> </td>";
+                     	               $output.="<td style=\"text-align:right;background-color:".$rowBg."\" align=\"right\" colspan=\"3\">
+                     	                        <b> ".number_format( $nbreTotal , 0, " ", " " )." </b> </td>";
+                     	 $output.="</tr>";                    	                   	
+                     }  else {
+                     	$output.="<tr>";
+                     	                $output.="<td align=\"center\" colspan=\"4\"> PAS DE DONNEE STATISTIQUE DANS CETTE CATEGORIE </td>";
+                     	$output.="</tr>";
+                     }
+
+                     echo $output;
+              ?>
+          
+          </tbody>         
+</table>
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

@@ -1,0 +1,83 @@
+<html dir="ltr" mozdisallowselectionprint moznomarginboxes>
+<?php 
+    //On initialise les variables nécessaires
+    $layout   = $this->layout();
+    $baseUrl  = $this->baseUrl();
+    $tplPath  = ROOT_PATH."/myTpl/rccm";       
+?>
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="google" content="notranslate">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <style>
+        #loading {position:fixed;width: 100%;height: 100%;left: 0;top: 0;right: 0;bottom: 0;display: block;background: #fff;z-index: 10000;}
+        #loading img {position:absolute;top: 50%;left: 50%;margin: -23px 0 0 -23px;}
+ </style>
+<?php echo $this->headMeta() ?>
+ <?php
+           echo $this->headLink() ;
+           echo $this->headStyle(); 
+           echo $this->headScript();
+           echo "<script type=\"text/javascript\">
+                     window.SIRAH ||(window.SIRAH={}); 
+                     SIRAH.basePath = \"".$tplPath."/\";
+					 
+                 </script>";
+ ?>
+  
+</head>
+<body>
+<div id="loading"><img src="<?php echo $tplPath; ?>/assets-minified/images/spinner/loader-dark.gif" alt="Chargement..."></div>
+
+  <!--  DEBUT DE LA PAGE DU THEME -->
+    <div id="sb-site">  
+       <div id="page-wrapper">
+            <!-- HEADER DE LA PAGE -->
+               <?php echo $this->render("pagehead.phtml")   ?>
+            <!-- FIN DU HEADER DE LA PAGE -->
+            
+            <!-- SIDEBAR DE LA PAGE -->
+               <?php echo $this->render("pagesidebar.phtml")   ?>
+            <!-- FIN DU SIDEBAR DE LA PAGE  -->
+            
+            <!-- CONTENU DE LA PAGE -->
+            <div id="page-content-wrapper" class="rm-transition ">
+             <?php if( !empty($this->toolsbar ) ): ?>
+              <div id="page-nav" class="navbar navbar-default toolsBar" role="navigation"> <?php echo $this->toolsbar; ?></div> 
+             <?php endif; ?>          
+            
+             <div id="page-content">
+                  <div class="page-box"> 
+                      <?php if(!empty($this->title)): ?>  
+                         <h3 class="page-title">  <?php echo strtoupper( $this->title ); ?> <small><?php echo $this->subtitle; ?> </small> </h3>	
+		              <?php endif; ?>
+		              
+		              <!--Le bloc des messages d'erreurs-->
+                           <?php echo $this->errormessage(); ?>
+                      <!--Fin du bloc des messages d'erreurs-->
+                      
+                       <div id="sirah-page-content" class="sirah-page-content page-content-no-scrollable" >
+                           <div id="maincontent" class="col-md-12 layoutcontent maincontent ">
+                              <?php echo $layout->content ?> <br/>
+                           </div>
+                       </div>	
+	             </div>
+              </div>            
+           </div>
+           <!-- FIN DU CONTENU DE LA PAGE -->
+    
+       </div>
+    </div>
+  <!--  FIN DE LA PAGE DU THEME -->
+<div id="spinnerContainer" class="spinnerContainer disabled">
+  <div id="spinnerBox" class="spinner">
+      <span class="spinnerText"> Patientez... </span>
+      <div class="bounce1"></div>
+      <div class="bounce2"></div>
+      <div class="bounce3"></div>
+  </div>
+</div>
+</body>
+<?php echo $this->jQuery();?>
+</html>

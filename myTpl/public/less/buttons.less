@@ -1,0 +1,47 @@
+
+/*
+        Button styling
+*/
+.btn {
+    outline: none !important;
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+.btn-primary {
+    .button-variant(@btn-primary-color; @brand-primary; @btn-primary-border);
+}
+.btn-success {
+    .button-variant(@btn-success-color; @brand-success; @btn-success-border);
+}
+.btn-info {
+    .button-variant(@btn-info-color; @brand-info; @btn-info-border);
+}
+.btn-warning {
+    .button-variant(@btn-warning-color; @brand-warning; @btn-warning-border);
+}
+.btn-danger {
+    .button-variant(@btn-danger-color; @brand-danger; @btn-danger-border);
+}
+.btn-link {
+    box-shadow: none;
+}
+
+.btn-round {
+    border-radius: 50px;
+}
+
+// Button Sizes
+// --------------------------------------------------
+
+.btn-lg {
+      // line-height: ensure even-numbered height of button next to large input
+      .button-size(@padding-large-vertical; @padding-large-horizontal; @font-size-large; @line-height-large; @border-radius-large);
+}
+.btn-sm {
+      // line-height: ensure proper height of button next to small input
+      .button-size(@padding-small-vertical; @padding-small-horizontal; @font-size-small; @line-height-small; @border-radius-small);
+}
+.btn-xs {
+    .button-size(@padding-xs-vertical; @padding-xs-horizontal; @font-size-small; @line-height-small; @border-radius-small);
+}
+
+@import "bootstrap-social.less";

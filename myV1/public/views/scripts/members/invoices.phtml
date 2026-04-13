@@ -1,0 +1,59 @@
+<?php 
+    $invoices      = $this->invoices;
+    $member        = $this->member;
+	$memberid      = $this->memberid;
+    $me            = Sirah_Fabric::getUser();
+    $output        = "  <table id=\"invoicesList\" class=\"table table-stripped table-responsive invoicesList\">
+                            <thead>
+                                <tr>
+                                    <th width=\"width:15%\"> Dates           </th>
+                                    <th width=\"width:15%\"> Numéros         </th>     
+                                    <th width=\"width:30%\"> Modes paiements </th> 
+                                    <th width=\"width:20%\"> Statuts         </th>									
+									<th width=\"width:20%\" style=\"text-align:right;\"> Montants        </th>
+									
+                                </tr>
+                            </thead>";  
+    if( count(  $invoices ) ) {
+   	            $invoiceTotal= 0;
+   	    foreach($invoices  as $invoice ) {
+   	   	        $invoiceid     = $invoice["invoiceid"];
+                $reference     = $invoice["numero"];
+                $valeur        = number_format($invoice["montant_total"], 0 , ", "," ");
+                $date          = (isset($invoice["date_invoice"]))? $invoice["date_invoice"] : date("d/m/Y", $invoice["date"]);                     	  	       
+                $statutLib     = (isset($invoice["statut"]      ))? $invoice["statut"]       : "";
+				$modePaiement  = (isset($invoice["modepaiement"]) && $invoice["modepaiement"]=="2")? "Carte Visa" : "Mobile Money";
+   	   	        $rowBg         = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+				$invoiceTotal += $invoice["montant_total"];
+   	   	        $linkInfos     = $this->url(array("module"=>"public","controller"=>"invoices","action"=>"infos","id"=>$invoiceid,"invoiceid"=>$invoiceid),"default",true);
+   	   	        if( isset($invoice["date"]) && intval($invoice["date"])) {
+					$zendDate  = new Zend_Date($invoice["date"],Zend_Date::TIMESTAMP);
+					if( $zendDate ) {
+						$date  = $zendDate->toString("dd MMM YYYY");
+					}
+				}
+   	   	        $output       .="<tr id=\"invoiceId-".$invoiceid ."\" style=\"background-color:".$rowBg."\"> ";					
+					$output   .="   <td width=\"width:15%\"><a title=\"Consulter les informations de cette facture\" href=\"".$linkInfos."\">".$date        ."</a></td>";
+					$output   .="   <td width=\"width:15%\"><a title=\"Consulter les informations de cette facture\" href=\"".$linkInfos."\">".$reference   ."</a></td>"; 
+					$output   .="   <td width=\"width:30%\"><a title=\"Consulter les informations de cette facture\" href=\"".$linkInfos."\">".$modePaiement."</a></td>"; 
+                    $output   .="   <td width=\"width:20%\"><a title=\"Consulter les informations de cette facture\" href=\"".$linkInfos."\">".$statutLib   ."</a></td>";					
+					$output   .="   <td width=\"width:20%\" style=\"text-align:right;\"><a title=\"Consulter les informations de cette facture\" href=\"".$linkInfos."\">".$valeur."F CFA</a></td>";					
+   	   	        $output       .="</tr>";
+   	    }
+   	    $rowBg                 = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	    $invoiceTotalFormat    = number_format( $invoiceTotal, 0 , ",", " " );
+   	    $output               .="<tr id=\"invoiceId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                                <td colspan=\"4\" style=\"text-align:right;\"> TOTAL </td>
+									<td style=\"text-align:right;\"> ".$invoiceTotalFormat." F CFA </td>
+   	                             </tr>";
+   } else {
+   	    $output              .=" <tr> <td style=\"text-align:center;\" colspan=\"5\"> Aucune facture n'a été trouvée. </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+ 
+?>
+             

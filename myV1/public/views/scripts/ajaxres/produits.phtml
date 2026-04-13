@@ -1,0 +1,340 @@
+<?php 
+$produits          = $this->produits;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$laboratoires      = $this->laboratoires;
+$marques           = $this->marques;
+$gammes            = $this->gammes;
+$me                = Sirah_Fabric::getUser();
+$parentProductKey  = $this->parentProductKey;
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller" => "ajaxres", "action" => "produitslist", "parentform" => $parentform), "default");
+
+$jq->addOnload("
+var parentformSelector  = jQuery('#".$parentform."');
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var produitid  = parseInt(jQuery(this).attr('href').replace('#produitid-', ''));
+	   if(produitid && parentformSelector ) {
+		  var produitLibelle         = jQuery('#libelle-'+produitid).val();
+		  
+		  var parentAssureuridInput   = parentformSelector.find('input[name=\'produitid\']');
+		  var parentLibelleSelector   = parentformSelector.find('input[name=\'produit\']');
+		  var parentEmailSelector     = parentformSelector.find('input[name=\'email\']');
+		  var parentReferenceSelector = parentformSelector.find('input[name=\'code\']');
+		  var parentPhoneSelector1    = parentformSelector.find('input[name=\'tel1\']');
+		  var parentPhoneSelector2    = parentformSelector.find('input[name=\'tel2\']');
+		
+		  if( parentAssureuridInput   ) {
+		      parentAssureuridInput.val(produitid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val( produitLibelle);
+		  }	
+		} else {
+		    return false;
+	    }
+		selectAssureur  = parentformSelector.find('#selectAssureur');
+		if(selectAssureur)	{
+		   selectAssureur.trigger('select-item', [produitid] );
+		} 
+		jQuery('#filterListproduits').dialog2('close');
+});
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#produitsListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		pageNum++;
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		searchData.catid    = parseInt(formSelector.find('#catid').val());		
+		var keywordsText    = jQuery.trim(jQuery('#produitsListSearchForm').find('#keywords').val());
+		 
+		searchData.libelle  = keywordsText;
+		searchData.gammeid  = parseInt(formSelector.find('#gammeid').val());
+		searchData.marqueid = parseInt(formSelector.find('#marqueid').val());	
+		searchData.laboid   = parseInt(formSelector.find('#laboid').val());	
+		var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector      = jQuery('#produitsListSearchForm') ;
+		var searchData        = {};
+		var pageNum           = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page       = pageNum;
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.catid      = parseInt(formSelector.find('#catid').val());		
+		var keywordsText      = jQuery.trim(jQuery('#produitsListSearchForm').find('#keywords').val());
+		 
+		searchData.libelle    = keywordsText;
+		searchData.gammeid    = parseInt(formSelector.find('#gammeid').val());
+		searchData.marqueid   = parseInt(formSelector.find('#marqueid').val());	
+		searchData.laboid     = parseInt(formSelector.find('#laboid').val());			
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#show-advanced-searchform').click(function(event){event.preventDefault();jQuery('#advanced-searchform').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#produitsListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var keywordsText    = jQuery.trim(jQuery('#produitsListSearchForm').find('#keywords').val());
+		 
+		searchData.libelle  = keywordsText;
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector      = jQuery('#produitsListSearchForm') ;
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.laboid     = parseInt(formSelector.find('#laboid').val());
+		searchData.gammeid    = parseInt(formSelector.find('#gammeid').val());
+		searchData.marqueid   = parseInt(formSelector.find('#marqueid').val());
+		
+		var keywordsText      = jQuery.trim(jQuery('#produitsListSearchForm').find('#keywords').val());
+		searchData.libelle    = keywordsText;
+		
+        var modalBox          = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+jQuery('.productItem').css('cursor','pointer');
+jQuery('.productItem').bind('mouseout',function(e){
+		jQuery(this).find('.panel-white').eq(0).removeClass('panel-more-shadow');
+		jQuery(this).find('.panel-img').eq(0).removeClass('panel-more-shadow');
+	});
+
+jQuery('.productItem').bind('mouseover',function(e){
+	 jQuery(this).find('.panel-white').eq(0).addClass('panel-more-shadow');
+	 jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');
+});
+
+jQuery('.productItem').click(function(){
+	  jQuery(this).find('.panel-img').eq(0).addClass('panel-more-shadow');
+	  var itemid = parseInt(jQuery(this).replace('#productItemId-', ''));
+      jQuery('#".$parentProductKey."').val(itemid);	  
+	  selectProduit  = parentformSelector.find('#selectProduit');
+	  if(selectProduit)	{
+		 selectClient.trigger('select-item' , [itemid] );
+	  } 
+	  jQuery('#filterListProduits').dialog2('close');
+});
+
+");
+
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-heading > form{margin-bottom:0;}
+.main-content section + section{border-top:none;}
+.img-responsive{display:inline;}
+.img-responsive,.panel-body-fw{text-align:center !important;}
+#produitsContainer{padding-left:0;padding-right:0;}
+.product-details,.product-other-infos > .list-group-item{padding:7px;}
+.product-stock-infos{margin-left:-1px;padding:0;}
+.product-stock-infos span{color:white;padding:5px;border-radius:0 4px 4px 0}
+.productlib{float:left;width:55%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:left}
+.productprice{float:left;width:45%;font-family: Helvetica, Arial, "Nimbus Sans L", "Liberation Sans", FreeSans, sans-serif;text-align:right}
+.productlib h2, .productprice h2{font-size:16px;font-weight:bold;line-height: 15px;}
+.productlib h3, .productprice h3{font-size:14px;}
+.product-description{height:90px;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<section id="searchBox"  class="searchBox">
+   <div id="searchWrapper"  class="container-fluid">
+     <div class="panel panel-primary">
+	    <div class="panel-heading"> 
+		  <form  class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['libelle']; ?>" id="generalfilter" name="generalfilter"  type="text" class="form-control" placeholder="Recherchez un produit, saisir la désignation...">
+		     <span class="input-group-btn ">
+               <button class="btn btn-default simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Filtrer</button>
+               <button id="show-advanced-searchform" class="btn btn-default" type="button"> <span class="glyph-icon icon-align-justify"></span> Recherche avancée</button>
+            </span>
+		   </div>
+		  </form>
+		</div> 
+		<form id="advanced-searchform" class="form-horizontal" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >
+		<ul class="list-group"> 
+		    <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Gamme :</b> </label> 	
+				   <div class="col-md-7"> <?php echo $this->formSelect("gammeid",intval($filters["gammeid"]), array("class" => "form-control"), $this->gammes ); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Laboratoire :</b> </label> 
+				   <div class="col-md-7"> <?php echo $this->formSelect("laboid",intval($filters["laboid"]), array("class" => "form-control"), $this->laboratoires); ?>  </div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Marque:</b> </label> 	
+				   <div class="col-md-7"><?php echo $this->formSelect("marqueid", intval( $data["marqueid"]), array("class" => "form-control"), $this->marques ); ?></div> 
+               </div> 			   
+			</li>
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-md-3 control-label">  <b> Type de produits:</b> </label> 	
+				   <div class="col-md-7"> <?php echo $this->formSelect("catid", intval( $data["catid"]), array("class" => "form-control"), $this->categories); ?> </div> 
+               </div> 			   
+			</li>						
+		</ul> 
+		<div class="panel-footer"> 
+		   <button class="btn btn-primary search" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+           <button class="btn btn-danger  resetSearch"  type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		</form>
+		
+	 </div> 
+   </div> 
+</section>
+
+<section id="produitsListSection"  class="produitsListSection">
+  <div id="produitsContainer"  class="container-fluid">
+    <div id="items"  class="row-fluid items">
+	    <?php 
+            $output = "";
+			$model  = new Model_produit();
+            if( count(  $produits) ) {
+				foreach($produits as $produit ) {
+					    $produitid   = intval($produit['produitid']);
+                        $produitRow  = $model->findRow( $produitid, "produitid", null , false );
+                        if( !$produitRow ) {
+                            continue;
+                        }
+                        $libelle     = $produit["libelle"] ;
+						$description = substr(strip_tags($produit["description"]), 0 ,100 )."...";
+                        $qtedispo    = $produit["qtedispo"];
+                        $category    = (!empty( $produit["categorie"]  ))? $produit["categorie"]   : "Non catégorisé";
+                        $laboratoire = (!empty( $produit["laboratoire"]))? $produit["laboratoire"] : "";
+                        $gamme       = (!empty( $produit["gamme"] )) ? $produit["gamme"]  : "";
+                        $marque      = (!empty( $produit["marque"])) ? $produit["marque"] : "";
+                        $prix_vente  = number_format( $produit["prix_vente_ttc"], 0 , "," , " ");
+                        $prix_achat  = number_format( $produit["prix_achat_ttc"], 0 , "," , " ");
+						$photoFile   = str_replace(DS , "/" , str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , APPLICATION_DATA_PATH . "/produits/photos/mini/default.jpg"));
+                        
+                        if( !empty( $produit["photo"] ) ) {
+                            $photoPath      = APPLICATION_DATA_PATH . DS . "produits" . DS . "photos" . DS . "mini" . DS . $produit["photo"];
+                            if( file_exists( $photoPath ) ) {
+                              	$photoPathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $photoPath );
+                              	$photoFile     = str_replace( DS , "/" , $photoPathname);
+                            }
+                        }						
+                        if(!$produitRow->stocked ) {
+                            $qtedispo = "<span class='bs-badge badge-warning'> Sur commande </span>";
+                        } else {
+                            $qteDispo = $model->getProduitQteDispo( $produitid, 0, $me->userid );
+                            if(!$qteDispo ) {
+                              	$agencesWithProduitDispo = $produitRow->getAgencesWithProduitDispo();
+                              	$qtedispo = (count( $agencesWithProduitDispo)) ? "<span class='badge badge-success'> Disponible dans les ".implode(", ", $agencesWithProduitDispo)." </span>" : "<span class='badge badge-danger'> Non disponible en stock </span>"; 
+                            } else {
+                              	$qtedispo = sprintf("<span class='badge badge-success'> Disponible en stock </span>");
+                            }
+                       }					   
+					   $output.= "<div id=\"productItemId-".$produitid."\" class=\"col-md-4 col-sm-6 col-xs-18 productItem\">";
+					          $output.= "<div class=\"panel panel-white\">";							        
+									$output.="<div class=\"panel-body panel-body-fw panel-img\"> <img heigh=\"150px\" class=\"img-responsive\" src=\"".$photoFile."\" alt=\"".$libelle."\" /> </div>";	
+							        $output.="<div class=\"panel-body product-stock-infos \">".$qtedispo." </div>";
+									$output.="<div class=\"panel-body product-details \">
+									             <div class=\"productlib\">   <h2>".$libelle   ."</h2> </div>
+												 <div class=\"productprice\"> <h2>".$prix_vente." F CFA</h2> </div>
+											  </div>";
+									$output.="<ul class=\"list-group product-other-infos\"> ";
+									   $output.="<li class=\"list-group-item product-description\"> ".$description." </li>";
+									   $output.="<li class=\"list-group-item\"> 
+                                                        <a href=\"#selectProduit-".$produitid."\" class=\"btn btn-success btn-block btn-lg selectproduit\"> Selectionner </a>									 
+									                 </li>";
+						           $output.="</ul>";
+							  $output.= "</div>";
+					   $output.= "</div>";
+				}
+			} else {
+				 $output.= "<p> AUCUN PRODUIT N'A ETE RETROUVE DANS VOTRE BOUTIQUE</p>";
+			}
+			
+			echo $output;
+			echo $pagination->renderBasic(); 
+		?>
+	</div> 
+  </div> 
+</section>
+
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

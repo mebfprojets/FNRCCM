@@ -1,0 +1,91 @@
+<?php
+    $demande              = $this->demande;
+	$statut               = $this->statut;
+	$demandeType          = $this->demandeType;
+	$localite             = $this->localite;
+	
+	$creationDate         = "00/00/0000";
+	$updateDate           = "00/00/0000";
+	$demandeDate          = "00/00/0000";
+	 
+	$creator              = Sirah_Fabric::getUser( $demande->creatorid     );
+	$updatedUser          = Sirah_Fabric::getUser( $demande->updateduserid );
+
+	if( $demande->creationdate ) {
+		$zendCreationdate = new Zend_Date( $demande->creationdate , Zend_Date::TIMESTAMP );
+		$creationDate     = $zendCreationdate->toString("dd MMM Y à H:m");
+	}
+	if( $demande->updatedate ) {
+		$zendUpdatedate   = new Zend_Date($demande->updatedate , Zend_Date::TIMESTAMP );
+		$updateDate       = $zendUpdatedate->toString("dd MMM Y à H:m");
+	}
+	if( $demande->date ) {
+		$zendDemandeDate  = new Zend_Date($demande->date, Zend_Date::TIMESTAMP);
+		$demandeDate      = $zendDemandeDate->toString("dd MMMM yyyy");
+	}
+	$badgeColor           = ($demande->disponible)?"bs-badge badge-success" : "bs-badge badge-danger";
+?>
+<ul class="list-group">
+    <?php if($demandeType): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Type:</b></div> 
+			<div class="col-sm-9 col-md-9"><?php echo  $demandeType->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+	<?php if($statut): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Statut:</b></div> 
+			<div class="col-sm-9 col-md-9"><span class="<?php echo $badgeColor; ?>"> <?php echo ($statut)? $statut->libelle : ""; ?></span></div>
+		</div>
+	</li>
+	<?php endif; ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Référence:</b></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->numero;  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Objet:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $demande->libelle; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b>Nom commercial souhaité:</b></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->objet;  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Mots clés:</b></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->keywords;  ?></div>
+		</div>
+	</li>
+	<?php if($localite): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b> Juridiction:</b></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $localite->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>				
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><b>Date de création:</b></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $demandeDate; ?> </div>
+		</div>
+	</li>				 
+	<?php if(!empty($demande->observations)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"> <label class="label" for="observations"> <b> Observations:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $this->escape($demande->observations); ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>				
+</ul>

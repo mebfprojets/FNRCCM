@@ -1,0 +1,72 @@
+<?php 
+$formtoken  = $this->formtoken;
+$formSubmit = $this->url(array("controller"=> "recoverpwd", "action"=> "reset"), "default" );
+$linkCancel = $this->url(array("controller"=> "account"   , "action"=> "login"), "default" );
+$basePath   = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+ body{overflow:hidden;}
+ .jqstooltip{position:absolute;left:0px;top:0px;visibility:hidden;background:rgb(0, 0, 0) transparent;background-color:rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$this->headScript()->appendFile(    $basePath . "/assets-minified/widgets/wow/wow.js");
+$this->headLink()->appendStylesheet($basePath . "/assets-minified/widgets.css");
+$this->headScript()->appendScript("wow = new WOW({animateClass:'animated',offset: 100});wow.init();", 'text/javascript');
+$jq     = $this->jQuery();  
+$onLoad = "  
+  jQuery('.cancel').click(function(e){e.preventDefault(); document.location.href  = '".$linkCancel."';});
+  jQuery('.changePwd').click(function(e){
+      e.preventDefault();     
+      var  password            = jQuery.trim(jQuery('#password').val());
+      var  confirmedpassword   = jQuery.trim(jQuery('#confirmedpassword').val());
+      
+      if(SIRAH.util.isEmpty(password)){
+         SIRAH.error.raise('resetpasswordform','Entrez un mot de passe valide');
+         return;
+      }  
+      if(SIRAH.util.isEmpty(confirmedpassword) || (confirmedpassword!=password)){
+         SIRAH.error.raise('resetpasswordform','La valeur de confirmation est différente du mot de passe');
+         return;
+      }  
+      jQuery('#resetpasswordform').submit();
+      
+  }); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+
+<form id="resetpasswordform" method="post" action="<?php echo $formSubmit; ?>" class="col-md-4 center-margin" data-parsley-validate="">
+  <div class="panel-layout wow bounceInDow animated" style="visibility:visible;animation-name:bounceInDown">
+    <div id="login-form" class="content-box bg-default">
+        <div class="meta-box meta-box-offset">
+             <img src="<?php echo $basePath."/images/login_avatar.png";  ?>" align="center" class="meta-image img-thumbnail img-circle" />
+             <h3  class="meta-heading    font-size-16"> <?php echo $this->title; ?> </h3>
+             <h3  class="meta-subheading font-size-13 font-gray"> <?php echo $this->subtitle; ?> </h3>
+        </div>
+                
+       <div class="content-box-wrapper pad20A">
+         <div class="form-group"> <?php echo $this->errormessage(); ?></div>
+         <div class="form-group">
+            <label for="newpassword"> Entrez votre nouveau mot de passe : </label>
+            <div class="input-group input-group-lg">
+               <span  class="input-group-addon addon-inside bg-white font-primary"><i class="glyph-icon icon-unlock-alt"></i></span>
+               <input class="form-control" type="password" name="password" id="password" data-toggle="tooltip" data-placement="right"
+                      placeholder="Entrez le nouveau mot de passe"  autocomplete="off"   data-original-title="Vous devrez entrer au moins 7 caractères" >
+            </div>
+         </div>
+         <div class="form-group">
+            <label for="confirmedpassword"> Confirmez votre nouveau mot de passe :  </label>
+            <div class="input-group input-group-lg">
+               <span  class="input-group-addon addon-inside bg-white font-primary"><i class="glyph-icon icon-lock"></i></span>
+               <input class="form-control" type="password" name="confirmedpassword" data-toggle="tooltip" data-placement="right"
+                      id="confirmedpassword" placeholder="Confirmez le nouveau mot de passe"  autocomplete="off" data-original-title="Veuillez indiquer ce que vous avez saisi dans le champ précédent" >
+            </div>
+         </div>
+         <div class="form-group"><button type="submit" class="btn btn-block btn-primary changePwd"> CHANGER </button></div>
+         <div class="form-group"><button type="submit" class="btn btn-block cancel"> ANNULER </button></div>
+        </div>                
+   </div>
+ </div>
+ <input id="formtoken" type="hidden" name="<?php echo $formtoken ; ?>" value="formtoken" /> 
+</form> 

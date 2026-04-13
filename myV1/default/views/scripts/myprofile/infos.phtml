@@ -1,0 +1,369 @@
+<?php
+$profile             = $this->profile;
+$coordonnees         = $this->coordonnees;
+$avatar              = $this->avatar;
+$documents           = $this->documents;
+
+$linkEditProfile     = $this->url(array("controller" => "myprofile", "action" => "edit") , "default");
+$linkEditContacts    = $this->url(array("controller" => "myprofile", "action" => "address") , "default");
+$linkChangeAvatar    = $this->url(array("controller" => "myprofile", "action" => "changeavatar") , "default");
+$linkUploadDocuments = $this->url(array("controller" => "myprofile", "action" => "upload") , "default");
+$linkEditPresentation= $this->url(array("controller" => "myprofile", "action" => "presentation") , "default");
+$linkEditSettings    = $this->url(array("controller" => "myprofile", "action" => "settings"), "default");
+
+$avatarFile          = VIEW_BASE_PATH."/images/login_avatar.png";
+if( $avatar ) {
+	$avatarPath      = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $avatar->filename;
+	$avatarPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+	if( Sirah_Filesystem::exists( $avatarPath ) ) {
+		$avatarFile  = str_replace( DS , "/" , $avatarPathname );
+	}	
+}
+$jq             = $this->jQuery();
+$jq->addJavascriptFile( VIEW_BASE_PATH ."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile( VIEW_BASE_PATH . '/js/typeahead/dist/typeahead.bundle.min.js');
+$jq->addJavascriptFile( VIEW_BASE_PATH . '/js/myProfile.js');
+$jq->addJavascriptFile( VIEW_BASE_PATH .'/js/chosen/ajaxchosen.min.js');
+$jq->addStyleSheet(     VIEW_BASE_PATH ."/css/typeahead.css");
+$onLoad         = "
+  
+   jQuery('.documentList  li').find('.deleteDocument').hide();
+   jQuery('.documentList  li').hover(function(){jQuery(this).find('.deleteDocument').show();}, function(){jQuery(this).find('.deleteDocument').hide();});
+   jQuery('a.list-group-item').click(function(event){event.preventDefault();return;});
+   jQuery('h4.list-group-item-heading,p.list-group-item-text').click(function(event){
+           event.preventDefault(); 
+           var viewLink        = jQuery(this).closest('a.list-group-item').attr('href');
+	       var viewTitle       = jQuery(this).closest('a.list-group-item').attr('title');
+	       var dialogViewInfos = jQuery('<div/>').attr('id','dialogViewInfos').addClass('modal-medium');             		 
+	       dialogViewInfos.dialog2({title : viewTitle,content : viewLink ,autoOpen: false,modalClass:'modal-wide',
+	             		         removeOnClose: true,
+	             		         closeOnEscape: false, 
+	                             closeOnOverlayClick: true,
+	             		         showCloseHandle:true,
+	             		         initialLoadText: 'Chargement...'            		                       
+	             		        });        		
+	      dialogViewInfos.dialog2('addButton','Fermer',{primary:true,click : function(){jQuery(this).dialog2('close');}});              		
+	      dialogViewInfos.dialog2('open');});    
+  jQuery('.profile-presentation').shorten({showChars:300}); 
+  jQuery('.setParams').click(function( event ) {
+          event.preventDefault();
+          var dialogSettings   = jQuery('<div/>').attr('id','dialogSettings').addClass('modal-medium');             		 
+          dialogSettings.dialog2({
+             		               title : 'Mettre à jour les paramètres de confidentialité de mon profil',
+             		               content : '".$linkEditSettings."',
+             		               autoOpen: false,
+             		               modalClass:'modal-wide',
+             		               removeOnClose: true,
+             		               closeOnEscape: false, 
+                                   closeOnOverlayClick: true,
+             		               showCloseHandle:true,
+             		               initialLoadText: 'Chargement...'});             		                      		
+           dialogSettings.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Enregistrer',{primary:true,click : 
+             		               function(   event ) {
+             		                           event.preventDefault();
+             		                           var modalBody = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var settingsForm = jQuery(this).find('form').eq(0);
+             		                           SIRAH.request.post( settingsForm ,'".$linkEditSettings."',
+             		                                              {
+             		                                                  success : function(data) {
+             		                                                          jQuery('#patientez').fadeOut('slow');
+             		                                                          SIRAH.loading.off(false);
+             		                                                          if( !SIRAH.util.isEmpty( data.error ) ) {
+                            		                                               SIRAH.error.raise( dialogSettings , data.error , 'error');
+                            		                                               insertBtn.btnLoading({on:false});
+                            		                                               return data;
+                            	                                                } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                               SIRAH.error.raise( dialogSettings , data.success , 'success');
+                            		                                               setTimeout(function(){insertBtn.btnLoading({on:false});jQuery('#sirah-page-message').remove();dialogSettings.dialog2('close');},2000);
+                            	                                                }	else {
+                            		                                               SIRAH.error.raise( dialogSettings ,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                               insertBtn.btnLoading({on:false});
+                            		                                               return data;
+                            	                                                } 
+             		                                                  }
+             		                                           });           	
+             		                           }});
+              dialogSettings.dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span> Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});              		
+              dialogSettings.dialog2('open'); 
+  });
+  jQuery('.general-data').click(function( event ) {
+       event.preventDefault();    
+       var dialogEditProfile   = jQuery('<div></div>').attr('id','dialogEditProfile').addClass('modal-medium');             		 
+       dialogEditProfile .dialog2({
+             		         title : 'Mettre à jour mes informations personnelles',
+             		         content : '".$linkEditProfile."',
+             		         autoOpen: false,
+             		         modalClass:'modal-wide',
+             		         removeOnClose: true,
+             		         closeOnEscape: false, 
+                             closeOnOverlayClick: true,
+             		         showCloseHandle:true,
+             		         initialLoadText: 'Chargement...'});        		
+       dialogEditProfile.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Enregistrer',{primary : true,click : 
+             		              function( event ) {
+             		                           event.preventDefault();
+             		                           var modalBody = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var editForm = jQuery(this).find('form').eq(0);
+             		                           SIRAH.request.post(editForm,'".$linkEditProfile."',{
+             		                                                                                  success : function(data) {
+             		                                                                                      jQuery('#patientez').fadeOut('slow');
+             		                                                                                      SIRAH.loading.off(false);            		                                                                                      
+                            	                                                                         if( !SIRAH.util.isEmpty(data.error ) ) {
+                            		                                                                          SIRAH.error.raise( dialogEditProfile , data.error , 'error');
+                            		                                                                          insertBtn.btnLoading({on:false});
+                            		                                                                          return data;
+                            	                                                                          } else if(!SIRAH.util.isEmpty(data.success ) ) {
+                            		                                                                         SIRAH.error.raise( dialogEditProfile , data.success , 'success');
+                            		                                                                         setTimeout(function(){insertBtn.btnLoading({on:false});jQuery('#sirah-page-message').remove(); dialogEditProfile.dialog2('close');},2000);
+                            	                                                                          }	else {
+                            		                                                                         SIRAH.error.raise( dialogEditProfile ,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                                                         insertBtn.btnLoading({on:false});
+                            		                                                                         return data;
+                            	                                                                          }		                  		                                                                                   
+             		                                                                                   }             		                                                                                  
+             		                                                                                });            		   
+                                                           }}); 
+       dialogEditProfile .dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span> Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+       dialogEditProfile .dialog2('open');          
+   });   
+jQuery('.editMyPresentation').click(function(){    
+       var dialogEditPresentation   = jQuery('<div></div>').attr('id','dialogEditPresentation').addClass('modal-medium');             		 
+       dialogEditPresentation.dialog2({
+             		                     title : 'Mettre à jour ma présentation',
+             		                     content : '".$linkEditPresentation."',
+             		                     autoOpen: false,
+             		                     modalClass:'modal-wide',
+             		                     removeOnClose: true,
+             		                     closeOnEscape: false, 
+                                         closeOnOverlayClick: true,
+             		                     showCloseHandle:true,
+             		                     initialLoadText: 'Chargement...'            		                       
+             		                  });        		
+       dialogEditPresentation.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Enregistrer',{primary:true,click : 
+             		                  function(){
+             		                              var modalBody = jQuery('.modal').find('.modal-body');
+             		                              var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                              insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                              SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                              var editForm = jQuery(this).find('form').eq(0);
+             		                              SIRAH.request.post(editForm,'".$linkEditPresentation."',{
+             		                                                 success : function(data) {
+             		                                                               jQuery('#patientez').fadeOut('slow');
+             		                                                               SIRAH.loading.off(false);            		                                                                                      
+                            	                                                   if(!SIRAH.util.isEmpty( data.error ) ) {
+                            		                                                   SIRAH.error.raise( dialogEditPresentation , data.error , 'error');
+                            		                                                   insertBtn.btnLoading({on:false});
+                            		                                                   return data;
+                            	                                                   } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                                   SIRAH.error.raise( dialogEditPresentation , data.success , 'success');
+                            		                                                   setTimeout(function(){insertBtn.btnLoading({on:false});jQuery('#sirah-page-message').remove();dialogEditPresentation.dialog2('close');},2000);
+                            	                                                   } else {
+                            		                                                   SIRAH.error.raise(dialogEditPresentation,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                                   insertBtn.btnLoading({on:false});
+                            		                                                   return data;
+                            	                                                   }		                  		                                                                                   
+             		                                                     }             		                                                                                  
+             		                                             });             		   
+                                                           }}); 
+       dialogEditPresentation.dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span>Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+       dialogEditPresentation.dialog2('open');          
+   });  
+jQuery('.myContacts').click(function(){
+       var dialogEditContacts   = jQuery('<div></div>').attr('id','dialogContacts');             		 
+       dialogEditContacts.dialog2({
+             		         title : 'Mettre à jour mes coordonnées',
+             		         content : '".$linkEditContacts."',
+             		         autoOpen: false,
+             		         modalClass:'modal-wide',
+             		         removeOnClose: true,
+             		         closeOnEscape: false, 
+                             closeOnOverlayClick: true,
+             		         showCloseHandle:true,
+             		         initialLoadText: 'Chargement...'});        		
+       dialogEditContacts.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Mettre à jour ',{primary : true,click : 
+             		               function(){
+             		                           var modalBody = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var editForm = jQuery(this).find('form').eq(0);             		                          
+             		                           SIRAH.request.post(editForm,'".$linkEditContacts."', {
+             		                                              success : function( data ) {
+             		                                                               jQuery('#patientez').fadeOut('slow');
+             		                                                               SIRAH.loading.off(false);            		                                                                                      
+                            	                                                   if(!SIRAH.util.isEmpty( data.error ) ) {
+                            		                                                   SIRAH.error.raise( dialogEditContacts , data.error , 'error');
+                            		                                                   insertBtn.btnLoading({on:false});
+                            		                                                   return data;
+                            	                                                   } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                                   SIRAH.error.raise( dialogEditContacts , data.success , 'success');
+                            		                                                   setTimeout(function(){insertBtn.btnLoading({on:false});jQuery('#sirah-page-message').remove();dialogEditContacts.dialog2('close');},2000);
+                            	                                                   } else {
+                            		                                                   SIRAH.error.raise(dialogEditContacts,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                                   insertBtn.btnLoading({on:false});
+                            		                                                   return data;
+                            	                                                   }		                  		                                                                                   
+             		                                                     }             		                                                                                  
+             		                                             });  
+             		                                     		   
+                                             }}); 
+       dialogEditContacts.dialog2('addButton','Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+       dialogEditContacts.dialog2('open');          
+   });   
+jQuery('.uploadFile').click(function( event ) {
+           event.preventDefault();
+           var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+           dialogUploadFile.dialog2({
+             		         title : 'Enregistrer un document',
+             		         content : '".$linkUploadDocuments."',
+             		         autoOpen: false,
+             		         modalClass:'modal-wide',
+             		         removeOnClose: true,
+             		         closeOnEscape: false, 
+                             closeOnOverlayClick: true,
+             		         showCloseHandle:true,
+             		         initialLoadText: 'Chargement de la page, patientez...'            		                       
+             		        });
+       dialogUploadFile.dialog2('addButton','<span class=\'glyphicon glyphicon-upload\'></span> Charger ' ,{ primary : true }); 
+       dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+       dialogUploadFile.dialog2('open');});   
+   var avatarUpload  = function(){
+       var dialogChangeAvatar   = jQuery('<div></div>').attr('id','dialogChangeAvatar');             		 
+       dialogChangeAvatar.dialog2({
+             		                title : 'Changer mon avatar',
+             		                content : '".$linkChangeAvatar."',
+             		                autoOpen: false,
+             		                modalClass:'modal-wide',
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement de la page, patientez...'            		                       
+             		              });        		            		
+       dialogChangeAvatar.dialog2('open');          
+   };   
+   jQuery('.editPanel').tooltip();
+   jQuery('.editPanel').css('cursor' , 'pointer');
+   jQuery('#avatarRow').css('cursor' , 'pointer');
+   jQuery('#avatarRow').click(function(){avatarUpload();});
+   jQuery('#avatarRow').mouseenter(function(){
+     var avatarOffset  = jQuery(this).offset();   
+     var buttonRow     = jQuery('<div/>').addClass('row').attr('id','avatarButtonRow').css('position','absolute');
+     var avatarButton  = jQuery('<button class=\'btn btn-primary\'> <i class=\'glyphicon glyphicon-edit glyphicon glyphicon-white\'></i> Changer mon avatar </button>');
+     var imgWidth      = parseInt(jQuery(this).find('img').eq(0).width());
+     var imgHeight     = parseInt(jQuery(this).find('img').eq(0).height());
+     buttonRow.append(avatarButton);
+     avatarButton.css('width',imgWidth);
+     avatarButton.bind('click' , function(){ avatarUpload(); });
+     
+     buttonRowTop      = parseInt(avatarOffset.top)  + imgHeight/(1.25);
+     buttonRowLeft     = parseInt(avatarOffset.left) + 10;     
+     jQuery('body').append(buttonRow);
+     buttonRow.css({top:buttonRowTop ,left:buttonRowLeft});  
+   }); 
+   jQuery('#avatarRow').mouseleave(function(){jQuery('#avatarButtonRow').remove();});
+   jQuery('body').attr('data-spy','scroll').attr('data-target', '#userProfileMenu').attr('data-offset','100');
+  ";
+$jq->addOnLoad($onLoad);
+
+$jq->addStyleSheet( VIEW_BASE_PATH ."/css/userprofile.css");
+
+if(  $profile->birthday ) {
+	 $birthday      = new Zend_Date($profile->birthday , Zend_Date::TIMESTAMP);
+	 $dateNaissance = $birthday->toString("dd MMMM yyyy");
+} else {
+	 $dateNaissance = "00/00/0000";
+}
+?>
+<?php $this->headStyle()->captureStart() ?>
+body{padding-top:1px !important;}
+.only-left div.three-columns .col1 #sirah-page-content{width:800px !important; padding:0 !important;}
+div#sirah-page-mainblock-wrapper,#sirah-page-content,#maincontent{margin:0 !important; padding:0 !important;}
+div#sirah-page-leftblock-wrapper{margin-top:220px !important;position:fixed;}
+.panel-body {padding:15px 15px 5px 15px;}
+.panel-footer {background-color: #f5f5f5;border-bottom-left-radius: 3px;border-bottom-right-radius: 3px;border-top: 1px solid #ddd;padding:5px 10px;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div class="nopaddings nomargins container" style="margin:0 !important;padding:0 !important;">
+<!-- Première section : les informations générales du profil de l'utilisateur -->
+ <div id="general" class="container nopaddings" style="padding-top:55px !important;">
+  <div class="panel panel-default" >  
+   <div class="panel-body">
+       <div  class="col-md-3"> 
+           <div id="avatarRow" class="row avatar-row">
+               <img id="myavatarThumbnail" src="<?php echo $avatarFile; ?>"; align="center" class="img-rounded img-thumbnail"  />
+          </div>
+       </div>
+       <div  class="col-md-9">
+                <div id="profileMainRow" class="row profile-main-row">
+                    <h2 class="profile-main-header"><?php printf(" %s %s" , $this->escape($profile->lastname) , $this->escape($profile->firstname)); ?></h2>
+                    <h3> <?php echo $this->escape($profile->professionalstate); ?> </h3>
+                    <div class="row profile-main-body myPresentation">                       
+                         <p class="profile-presentation"> <?php echo $profile->presentation; ?> </p>
+                    </div>                  
+                </div>
+         </div>
+     </div>
+     <div class="panel-footer">
+          <div class="controls">
+               <ul class="nav nav-pills">
+                  <li><a class="editMyPresentation active" href="#"><span class="glyphicon glyphicon-edit"></span>  Mettre à jour ma présentation </a></li>
+                  <li><a  title="Partager mon profil à des contacts" class="shareProfile" href="#"><span class="glyphicon glyphicon-share-alt"></span> Partager mon profil </a></li>
+                  <li><a  title="Mettre à jour les paramètres d'accès à mon profil" class="setParams" href="#"><span class="glyphicon glyphicon-cog"></span> Paramètres </a></li>
+               </ul>
+          </div>
+     </div>    
+  </div>
+  <div class="row profile-panel nopaddings" >
+     <div class="col-md-7 nopaddings" >
+         <div class="col-md-12 nopaddings-left" >
+             <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class="glyphicon glyphicon-user"></span> Mes informations personnelles 
+                                                                    <span title="Mettre à jour mes informations" class="glyphicon glyphicon-edit pull-right editPanel general-data"></span></h4></div>              
+                  <?php echo $this->partial("myprofile/infosprofile.phtml", array("profile" => $profile)); ?>
+                  <div class="panel-footer">
+                       <div class="controls">
+                           <a class="general-data" href="#"> <i class="glyphicon glyphicon-edit"></i> Mettre à jour mes informations personelles </a>
+                       </div>
+                  </div>
+             </div>           
+         </div>
+         <div class="col-md-12 nopaddings-left" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-book'></span> Mes documents personnels</h4></div>
+                <?php echo $this->partial("myprofile/documents.phtml" , array("documents" => $documents )); ?>
+                  <div class="panel-footer">
+                     <div class="controls">
+                           <a class="uploadFile" href="#"> <i class="icon-upload"></i> Enregistrer un document </a>
+                     </div>
+                  </div>                             
+            </div> 
+          </div>
+     </div>
+     <div class="col-md-5 col-md-pull-right nopaddings" >
+         <div class="col-md-12 nopaddings-right" >       
+            <div class="panel panel-default">
+               <div class="panel-heading"><h4 class="panel-title"> <span class='glyphicon glyphicon-phone-alt'></span> Mes coordonnées
+                                                                    <span title="Mettre à jour mes coordonnées" class="glyphicon glyphicon-edit pull-right editPanel myContacts"></span></h4></div>
+                   <?php echo ( $coordonnees ) ? $this->partial("myprofile/infoscontact.phtml", array("coordonnees" => $coordonnees)) : "<div class=\"panel-body\"> Les informations des coordonnées ne sont pas enregistrées </div>"; ?>
+                   <div class="panel-footer">
+                       <div class="controls">
+                           <a class="myContacts" href="#"> <i class="glyphicon glyphicon-edit"></i> Mettre à jour mes coordonnées </a>
+                       </div>
+                  </div>
+               </div>  
+          </div>         
+          <div class="col-md-12 nopaddings-right" >
+  
+          </div> 
+     </div>    
+  </div>
+</div>
+<!-- Fin de la première section -->
+</div>

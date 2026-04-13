@@ -1,0 +1,66 @@
+<?php 
+    $demande     = $this->demande;
+    $documents   = $this->documents;  
+	$model       = new Model_Document();
+    
+	$output      = "";
+    $output     .= "<ul class=\"list-group documentList\">";
+    $totalSize   = 0;
+    if( count(   $documents)) {
+    	foreach( $documents as $document) {
+				 $documentid   = intval($document["documentid"]);
+				 $filename     = $document["filename"];
+				 $fileExtension= strtolower($document["fileExtension"]);
+				 $filemetadata = $document["filemetadata"];
+				 $filesize     = $document["filesize"];
+				 $libelle      = $model->filterIndex($filename, $document["userid"] );
+				 $documentTitle= $document["category"];
+				 $icone        = "glyph-icon icon-file-pdf";
+				 $class        = "openDocumentDialog";
+				 $title        = "Accéder au document";
+				
+				 $filesize     = ( isset($document["filepath"]) && file_exists( $document["filepath"] ) ) ? filesize( $document["filepath"] ) : $document["filesize"] ;
+				 $sizeKo       = Sirah_Functions::toByteString( $filesize, "" , 2 );
+				 $totalSize   += $filesize;
+				
+				 switch( $fileExtension ) {
+						case "pdf":
+							$icone = "glyph-icon icon-file-pdf";
+							break;
+						case "png":
+						case "gif":
+						case "jpg":
+						case "jpeg":
+						case "bmp":
+							$icone = "glyph-icon icon-file-image-o";
+							$class = "dialogViewInfos";
+							break;    	  			
+				 }    	  	    	  	
+				 $linkView  = $this->url(array("module"=>"public","controller"=>"userdocuments","action"=>"download","id"=>$documentid),"default",true);    	  	
+				 $output   .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+									<div class=\"row\">						  
+										<div class=\"col-md-1\"><span title=\"Télécharger le document\" id=\"fileId-".$documentid."\"  class=\"glyph-icon icon-download downloadDocument\"></span></div>   
+										<div class=\"col-md-9\"><span class=\"".$icone."\"></span><a class='".$class."' title='".$title."' href='".$linkView."'>".$documentTitle." </a></div>
+										<div class=\"col-md-2\"><p class=\"text-mute\"> ".$sizeKo."</p> </div>                                                             
+									</div>
+							    </li> ";
+		}
+		$totalSizeKo = Sirah_Functions::toByteString( $totalSize );
+		$output     .= "<li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+							<div class=\"row\">
+								<div class=\"col-md-10\"> <p class=\"list-group-item-text\"> Taille totale : </p> </div>
+								<div class=\"col-md-2\"> <p class=\"text-mute\"> ".$totalSizeKo."</p> </div>
+							</div>
+						</li> ";
+    }  else {
+    	$output .= " <li class=\"list-group-item\" id=\"documentId-0\"><p class=\"list-group-item-text\"> Aucun document n'a été rattaché à cette demande. </p></li>";
+    }
+    $output     .= "</ul>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+     
+    $jq->addOnLoad($onLoad);
+?>
+             

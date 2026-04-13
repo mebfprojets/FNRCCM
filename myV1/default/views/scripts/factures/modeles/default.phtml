@@ -1,0 +1,131 @@
+<?php
+$me                 = Sirah_Fabric::getUser();
+$invoice            = $this->invoice;
+$invoiceid          = $this->invoiceid;
+$address            = $this->address;
+$commande           = $this->commande;
+$commandeid         = $this->commandeid;
+$lignes             = $this->lignes;
+$member             = $client   = $this->member;
+$modelProduit       = $this->modelProduit;
+$produits           = $products = $this->produits;
+
+$memberid           = (isset($this->memberid))? $this->memberid : 0;
+$memberCode         = (!empty($member->code ))? $member->code   : sprintf("%06d", $memberid);
+$addressEmail       = ($address)? $address->email        : $member->email;
+$addressPhone       = ($address)? $address->phone        : $member->tel1;
+$addressLib         = ($address)? $address->address      : $member->address;
+$addressCity        = ($address)? $address->city         : "";
+$customerName       = sprintf("%s %s", $member->lastname,$member->firstname);
+
+$fraisTransaction   = (isset($this->frais_transaction))? $this->frais_transaction : 0;
+$numeroTransaction  = (isset($this->num_transaction  ))? $this->num_transaction   : "";
+$invoiceModePaiement= (isset($this->modePaiement     ))? $this->modePaiement      : "TOUCHPAY";
+$invoiceDatePaiement= (isset($this->datePaiement) && intval($this->datePaiement))?$this->datePaiement : time();
+
+$invoiceDate        = (intval($invoiceDatePaiement   ))? date("d/m/Y",$invoiceDatePaiement) : date("d/m/Y", $invoice->date);
+$zendDate           = (intval($invoiceDatePaiement   ))? new Zend_Date($invoiceDatePaiement, Zend_Date::TIMESTAMP) : new Zend_Date($invoice->date, Zend_Date::TIMESTAMP);
+
+if( $zendDate )  {
+	$invoiceDate    = $zendDate->toString("dd MMMM yyyy");
+}
+$output             ="<table cellspacing=\"0\" cellpadding=\"1\" border=\"0\" width=\"100%\" >";
+	$output        .="<tr>";
+	$output        .="    <td width=\"50%\" align=\"left\">";
+		$output    .="      <p style=\"font-size:23px;color: #666;\"><strong> FACTURE </strong></p>";
+		$output    .="      <table cellspacing=\"1\" cellpadding=\"1\" border=\"0\" width='100%' >";
+			$output.= sprintf("<tr><td width=\"100%%\" colspan=\"2\"><strong>Numéro:</strong> %s </td></tr>",$invoice->numero);
+			$output.= sprintf("<tr><td width=\"100%%\" colspan=\"2\"><strong>Réf. Commande:</strong> %s </td></tr>",$commande->ref);
+			$output.= sprintf("<tr><td width=\"100%%\" colspan=\"2\"><strong>Payée le:</strong> %s </td></tr>", $invoiceDate);
+			$output.= sprintf("<tr><td width=\"100%%\" colspan=\"2\"><strong>Mode de règlement:</strong> %s </td></tr>", $invoiceModePaiement);
+			//$output.= sprintf("<tr><td width=\"100%%\" colspan=\"2\"><strong>Réf. transaction :</strong> %s </td></tr>", $numeroTransaction  );
+		$output    .="      </table>";
+	$output        .="  </td>";
+	$output        .="  <td width=\"50%\" align=\"right\">";
+		$output    .="     <p align=\"right\" style=\"font-size:23px;color:#666666;text-align:right\"><strong> Client(e) facturé(e) </strong></p>";
+		$output    .="     <table cellspacing=\"1\" cellpadding=\"1\" border=\"0\" width='100%' >";
+			$output.= sprintf("<tr><td width=\"100%%\"><strong>%s</strong></td></tr>"             ,stripslashes($customerName));
+			$output.= sprintf("<tr><td width=\"100%%\"><strong>Code :</strong> %s</td></tr>",stripslashes($memberCode));
+			$output.= sprintf("<tr><td width=\"100%%\"><strong>Adresse:</strong> %s</td></tr>"    ,stripslashes($addressLib));
+			$output.= sprintf("<tr><td width=\"100%%\"><strong>Telephone:</strong> %s</td></tr>"  ,stripslashes($addressPhone));
+			$output.= sprintf("<tr><td width=\"100%%\"><strong>Email:</strong> %s</td></tr>"      ,stripslashes($addressEmail));
+		$output    .="     </table>";
+	$output        .="  </td>";
+	$output        .="</tr>";
+$output .=" </table><br/>";
+
+$output .= "<table cellspacing=\"0\" cellpadding=\"3\" width=\"100%\" border=\"1\" style=\"text-align:center;line-height:2;\">";
+$output .="
+                <tr style=\"font-weight:bold;border:1px solid #cccccc;background-color:#f2f2f2;\">
+				    <td width=\"10%\" style=\"text-align:center;border:1px solid #cccccc;width:10%;\"> Réf.         </td>
+					<td width=\"35%\" style=\"text-align:center;border:1px solid #cccccc;width:35%;\"> Désignations </td>
+					<td width=\"15%\" style=\"text-align:center;border:1px solid #cccccc;width:15%;\"> Prix Unit.   </td>
+					<td width=\"10%\" style=\"text-align:right; border:1px solid #cccccc;width:10%;\"> Qté          </td>
+					<td width=\"15%\" style=\"text-align:right; border:1px solid #cccccc;width:15%;\"> Montants HT  </td>
+				    <td width=\"15%\" style=\"text-align:right; border:1px solid #cccccc;width:15%;\"> Montants TTC </td>
+				</tr>";
+
+$valeurTotal      = $valeurSubTotal = 0;
+$valeurTotalTva   = 0;
+$valeurTotalHt    = 0;
+$valeurTotalBic   = 0;
+
+$valeurTotal      = $valeurSubTotal = 0;
+$valeurTotalTva   = 0;
+$valeurTotalHt    = 0;
+$valeurTotalBic   = 0;
+ 
+if( count(  $lignes)) {
+	foreach($lignes as $ligne ) {
+		    $reference      = $ligne["reference"];
+		    $produit        = $ligne["libelle"];
+			$quantite       = sprintf("%s",number_format( $ligne["quantite"]  , 0 , "," , " "));
+			$prix_unit      = sprintf("%s",number_format( $ligne["prix_unit"] , 0 , "," , " "));
+			$valeurHT       = $ligne["valeur_ht"];
+			$valeurTTC      = $ligne["valeur_ttc"];
+			$valeurTotalHt += $ligne["valeur_ht"];
+			$valeurTotal   += $ligne["valeur_ttc"];
+
+			$montantHT      = (floatval($valeurHT ))?sprintf("%s F CFA",number_format($valeurHT ,0," "," ")) : $valeurHT;
+			$montantTTC     = (floatval($valeurTTC))?sprintf("%s F CFA",number_format($valeurTTC,0," "," ")) : $valeurTTC;
+
+			$output        .="
+								<tr>
+									<td width=\"10%\" style=\"text-align:center;border:1px solid #cccccc;\">".$reference  ."</td>
+									<td width=\"35%\" style=\"text-align:center;border:1px solid #cccccc;\">".$produit    ."</td>
+									<td width=\"15%\" style=\"text-align:center;border:1px solid #cccccc;\">".$prix_unit  ."</td>
+									<td width=\"10%\" style=\"text-align:right;border:1px solid #cccccc;\"> ".$quantite   ."</td>
+									<td width=\"15%\" style=\"text-align:right;border:1px solid #cccccc;\"> ".$montantHT  ."</td>
+									<td width=\"15%\" style=\"text-align:right;border:1px solid #cccccc;\"> ".$montantTTC ."</td>
+								</tr>";
+	}
+	$valeurTotalTva = $valeurTotal;
+    $output        .="
+						<tr style=\"font-weight:bold;\">
+							<td align=\"right\" width=\"70%\" colspan=\"4\" style=\"text-align:right;border:1px solid #cccccc;\"> NET A PAYER : </td>
+							<td align=\"right\" width=\"30%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".sprintf("%s F CFA",number_format($valeurTotalHt,0," "," "))."</td>
+						</tr>";
+	if( APPLY_TVA && $commande->valeur_tva && VAL_TVA) {
+		$output   .="
+						<tr style=\"font-weight:bold;\">
+							<td align=\"right\" width=\"70%\" colspan=\"4\" style=\"text-align:right;border:1px solid #cccccc;\"> TVA (".VAL_TVA."%) : </td>
+							<td align=\"right\" width=\"30%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".sprintf("%s F CFA",number_format($valeurTotalTva,0," "," "))."</td>
+						</tr>";
+	}
+    if( floatval($fraisTransaction) ) {
+		$output   .="
+						<tr style=\"font-weight:bold;\">
+							<td align=\"right\" width=\"70%\" colspan=\"4\" style=\"text-align:right;border:1px solid #cccccc;\"> FRAIS DE TRANSACTION : </td>
+							<td align=\"right\" width=\"30%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".sprintf("%s F CFA",number_format($fraisTransaction,0," "," "))."</td>
+						</tr>";
+		$valeurTotal= $valeurTotal + floatval($fraisTransaction);
+	}
+    $output       .="
+						<tr style=\"font-weight:bold;\">
+							<td align=\"right\" width=\"70%\" colspan=\"4\" style=\"text-align:right;border:1px solid #cccccc;\"> TOTAL A PAYER : </td>
+							<td align=\"right\" width=\"30%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".sprintf("%s F CFA",number_format($valeurTotal,0," "," "))."</td>
+						</tr>";
+}
+$output .="     </table>";
+
+echo $output;

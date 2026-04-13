@@ -1,0 +1,37 @@
+<?php
+     $statStatuts  = $this->rows;
+?>
+<table id="statsLocalites" class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th width="90%"> Status </th>                                         
+			<th width="10%"> Nombre </th>
+		</tr>         
+	</thead>          
+	<tbody>
+	<?php 
+		$output      = "";
+		$total       = 0;
+		if( count(   $statStatuts )) {
+			foreach( $statStatuts as $statStatut) {
+					 $rowBg    = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+					 $linkList = $this->url(array("module" => "admin","controller"=> "demandes","action"=> "list","statutid"=> $statStatut['statutid']), "default");  								 
+					 $output.="<tr style=\"background-color:".$rowBg."\">";
+							$output.="<td> <a title=\"Accéder à toutes les demandes de ce statut\" href=\"".$linkList."\"> ".$statStatut['statut']." </a> </td>";                   	 	                             	 	            
+							$output.="<td> <a title=\"Accéder à toutes les demandes de ce statut\" href=\"".$linkList."\"> ".$statStatut['nombre']  ." </a> </td>";
+					 $output.="</tr>";  
+					 $total += $statStatut['nombre'];                    	 	
+			} 
+			$output.="<tr>";
+					$output.="<td> TOTAL :    </td>";
+					$output.="<td> ".number_format($total, 0, ' ', ' ')." </td>";
+			$output.="</tr>";
+		}  else {
+			    $output       .=" <tr> <td style=\"text-align:center;\" colspan=\"3\"> AUCUNE INFORMATION DE CE TYPE N'A PU ETRE TROUVEE. </td> </tr>";
+		}
+
+		echo $output;
+    ?>
+	  
+	</tbody>         
+</table>

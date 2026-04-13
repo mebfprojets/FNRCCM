@@ -1,0 +1,311 @@
+<?php 
+$captcha            = $this->captcha;
+$messages           = $this->messages;
+$token              = $this->token;
+$tokenId            = $this->csrfTokenId;
+$tokenValue         = $this->csrfTokenValue;
+$data               = $this->data;
+$formNames          = $fn = $this->formNames;
+$defaultCountry     = (isset($data["country"]) && !empty($data["country"])) ? $data["country"] : "BF";
+
+$urlCreationDone    = Sirah_Functions::url($this->url(array("module"=>"public","controller"=>"account","action"=>"dashboard","module"=> "public"),"default",true),"" , 81 , APPLICATION_HOST);
+$formSubmit         = $this->url(array("module"=>"public","controller"=>"account","action"=>"create"),"default",true);
+$linkCancel         = $this->url(array("module"=>"public","controller"=>"index"  ,"action"=>"index") ,"default",true);
+$linkCheckUsername  = $this->url(array("module"=>"public","controller"=>"ajaxres","action"=>"checkusername",$tokenId=>$tokenValue),"default",true);
+$linkCheckEmail     = $this->url(array("module"=>"public","controller"=>"ajaxres","action"=>"checkemail",$tokenId=>$tokenValue),"default",true);
+$civilites          = array("Mr"=>"Monsieur","Mme"=>"Madame","Mle"=>"Mademoiselle","Excellence"=>"Son excellence","Maître"=>"Maître","Dr"=>"Docteur","Pr"=>"Professeur");
+$situations         = array("Célibataire" => "Célibataire","Marié(e)" => "Marié(e)","Divorcé(e)" => "Divorcé(e)","Veuf(ve)"=> "Veuf(ve)");
+$registerDoneUri    = $this->registerDoneUri;
+$basePath           = ROOT_PATH ."/myTpl/public/";
+$headScript         = $this->headScript();
+$headScript->appendFile("https://www.google.com/recaptcha/api.js","text/javascript");
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " 
+var  formSelector= jQuery('#createAccountForm');
+jQuery('.birthday,#".$fn['birthday']."').pickadate({format:'dd/mm/yyyy',formatSubmit:'dd/mm/yyyy',hiddenName:true,hiddenSuffix:'__suffix',hiddenPrefix:'prefix__',selectYears:100,selectMonths:true,min:new Date(1950,1,1),max:new Date(),onStart:function(){this.set('select','".$data["birthday"]."');}});
+jQuery('.createButton').click(function( event ){
+    event.preventDefault();      
+    var formSelector= jQuery('#createAccountForm');
+    var firstname   = jQuery.trim(formSelector.find('#".$fn['firstname']."').val());
+    var lastname    = jQuery.trim(formSelector.find('#".$fn['lastname']."').val());
+    var email       = jQuery.trim(formSelector.find('#".$fn['email']."').val());
+    var credential  = jQuery.trim(formSelector.find('#".$fn['password']."').val());
+    var credential2 = jQuery.trim(formSelector.find('#".$fn['confirmedpassword']."').val());
+    var phone1      = jQuery.trim(formSelector.find('#".$fn['phone1']."').val());
+      
+    if(SIRAH.util.isEmpty(lastname)){
+         formSelector.find('#".$fn['lastname']."').addClass('input-error');
+         formSelector.find('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+    } else {
+         formSelector.find('#".$fn['lastname']."').removeClass('input-error');
+         formSelector.find('#name-validation-message').html('');
+    }
+    if(SIRAH.util.isEmpty(firstname)){
+        formSelector.find('#".$fn['firstname']."').addClass('input-error');
+        formSelector.find('#name-validation-message').html('');
+        SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+        return;
+    }  else {
+        formSelector.find('#".$fn['firstname']."').removeClass('input-error');
+        formSelector.find('#name-validation-message').html('');
+    }    
+    if( SIRAH.util.isEmpty(phone1)){
+        formSelector.find('#".$fn['phone1']."').addClass('input-error');
+        formSelector.find('#phone-validation-message').html('');
+        SIRAH.error.raise('phone-validation-message','Entrez un numéro de téléphone valide');
+        return;
+    }  else {
+        formSelector.find('#".$fn['phone1']."').removeClass('input-error');
+        formSelector.find('#phone-validation-message').html('');
+    }
+    if(!SIRAH.validators.isEmailAddress(email)){
+        formSelector.find('#".$fn['email']."').addClass('input-error');
+        formSelector.find('#email-validation-message').html('');
+        SIRAH.error.raise('email-validation-message','Entrez un email valide');
+        return;
+    }  else {
+        formSelector.find('#".$fn['email']."').removeClass('input-error');
+        formSelector.find('#email-validation-message').html('');
+    }     
+    if( SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+        formSelector.find('#".$fn['password']."').addClass('input-error');
+        formSelector.find('#password-validation-message').html('');
+        SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide, doit contenir au moins 4 caractères');
+        return;
+    } else {
+        formSelector.find('#credential').removeClass('input-error');
+        formSelector.find('#password-validation-message').html('');
+    }      
+    if( credential2 !== credential){
+        formSelector.find('#".$fn['confirmedpassword']."').addClass('input-error');
+        formSelector.find('#confirmedpassword-validation-message').html('');
+        SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+        return;
+    } else {
+        formSelector.find('#".$fn['confirmedpassword']."').removeClass('input-error');
+        formSelector.find('#confirmedpassword-validation-message').html('');
+    }
+    formSelector.find('#".$fn['lastname']."').val(lastname);
+    formSelector.find('#".$fn['firstname']."').val(firstname);
+    formSelector.find('#".$fn['email']."').val(email);
+    formSelector.find('#".$fn['phone1']."').val(phone1);
+    formSelector.find('#".$fn['password']."').val(credential);
+    formSelector.find('#".$fn['confirmedpassword']."').val(credential2);
+    formSelector.submit();
+});
+jQuery('#".$fn['lastname']."').bind('blur change',function(e){
+    e.preventDefault();
+    var lastname = jQuery.trim(jQuery(this).val());
+    if(!SIRAH.util.isEmpty(lastname)){
+        jQuery('#".$fn['lastname']."').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+    } else {
+        jQuery('#".$fn['lastname']."').addClass('input-error');
+        return;
+    }
+});  
+jQuery('#".$fn['firstname']."').bind('blur change',function(e){
+    e.preventDefault();
+    var firstname = jQuery.trim(jQuery(this).val());
+    if(!SIRAH.util.isEmpty(firstname)){
+        jQuery('#".$fn['firstname']."').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+    }  else {
+        jQuery('#".$fn['firstname']."').addClass('input-error');
+        return;
+    }
+});  
+ 
+formSelector.find('#".$fn['email']."').bind('blur change',function(e){
+    e.preventDefault();
+	var  formSelector = jQuery('#createAccountForm');
+    var email         = jQuery.trim(jQuery(this).val());
+	if( SIRAH.validators.isEmailAddress(email)){	
+        formSelector.find('#email-validation-message').html('Vérification de l\'adresse Email...');	  
+		SIRAH.request.get(formSelector,'".$linkCheckEmail."', {data:{code:email},beforeSend: function(){},			   
+							success : function( data ) {
+								formSelector.find('#email-validation-message').html('');
+								formSelector.find('#".$fn['email']."').removeClass('input-error');
+								if( data.error !== undefined   ) {
+									formSelector.find('#".$fn['email']."').addClass('input-error');
+									formSelector.find('#email-validation-message').html('');
+									SIRAH.error.raise('email-validation-message',data.error);
+								}
+							}
+		  });
+	} else {
+		formSelector.find('#".$fn['email']."').addClass('input-error');
+		formSelector.find('#email-validation-message').html('');
+		SIRAH.error.raise('email-validation-message','Entrez une adresse email valide');
+		return;
+	}         	  
+});    
+jQuery('#".$fn['password']."').bind('blur change',function(e){
+    e.preventDefault();
+    var credential = jQuery.trim(jQuery(this).val());
+    if( SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+        jQuery('#".$fn['password']."').addClass('input-error');
+        jQuery('#password-validation-message').html('');
+        SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+        return;
+    }  else {
+        jQuery('#".$fn['password']."').removeClass('input-error');
+        jQuery('#password-validation-message').html('');
+    }    
+});  
+jQuery('#".$fn['confirmedpassword']."').bind('blur change',function(e){
+    e.preventDefault();
+    var credential   = jQuery.trim(jQuery('#".$fn['password']."').val());
+    var credential2  = jQuery.trim(jQuery(this).val());
+    if( credential2 !== credential){
+        jQuery('#".$fn['confirmedpassword']."').addClass('input-error');
+        jQuery('#confirmedpassword-validation-message').html('');
+        SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+        return;
+    } else {
+        jQuery('#".$fn['confirmedpassword']."').removeClass('input-error');
+        jQuery('#confirmedpassword-validation-message').html('');
+    }      
+});  
+jQuery('#".$fn['phone1']."').bind('blur change',function(e){
+    e.preventDefault();
+    var phone1 = jQuery.trim(jQuery(this).val());
+    if(!SIRAH.util.isEmpty(phone1)){
+        jQuery('#".$fn['phone1']."').removeClass('input-error');
+        jQuery('#phone-validation-message').html('');
+    }  else {      
+        jQuery('#".$fn['phone1']."').addClass('input-error');
+        return;     
+    }
+});  
+ jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';}); ";
+$jq->addOnLoad($onLoad);
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.date.css");
+$jq->addStyleSheet(    $basePath ."/scripts/widgets/pickadate/themes/default.time.css");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.date.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/picker.time.js");
+$jq->addJavascriptFile($basePath ."/scripts/widgets/pickadate/translations/fr_FR.js");
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="createAccountForm" autocomplete="off" class="form-horizontal" role="form" >
+    <div class="panel panel-default">
+		<ul class="list-group">
+		    <li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-sm-hidden col-xs-hidden col-md-2 control-label" for="name">Nom & Prénoms*: </label>
+					<div   class="col-sm-12     col-md-10">
+						<div class="input-group">
+						   <?php echo $this->formSelect($fn['civilite'], $data[$fn['civilite']], array("class" => "form-control") , $civilites); ?>
+						   <span  class="input-group-btn" style="width:0px;"></span>
+						   <input id="<?php echo $fn['lastname']; ?>" type="text" maxlength="150" class="form-control" title="Nom de famille" placeholder="Nom de famille" name="<?php echo $fn['lastname']; ?>"  value="<?php echo $data[$fn['lastname']];?>">
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <input id="<?php echo $fn['firstname'];?>" type="text" maxlength="300" class="form-control" title="Prénom"         placeholder="Prénom"         name="<?php echo $fn['firstname'];?>" value="<?php echo $data[$fn['firstname']];?>">											  
+						</div>						
+					</div>
+					<p id="name-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>
+		    <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-sm-hidden col-xs-hidden col-md-2 control-label" for="name"> Email*: </label>
+					<div   class="col-sm-12 col-md-10"><input id="<?php echo $fn['email']; ?>" autocomplete="off" type="text" maxlength="200" class="form-control no-autofill" title="Votre adresse email" placeholder="Votre adresse email"  name="<?php echo $fn['email']; ?>" value="<?php echo $data[$fn['email']]; ?>"></div>              
+				</div>  
+				<p id="email-validation-message" class="validation-message"></p>   
+		    </li>
+		    <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-sm-hidden col-xs-hidden col-md-2 control-label" for="name"> Mot de passe*:</label>
+					<div   class="col-sm-12 col-md-10">
+						<div class="input-group">
+							<input autocomplete="new-password" name="<?php echo $fn['password']; ?>"          id="<?php echo $fn['password']; ?>"          type="password" placeholder="Saisissez votre mot de passe" maxlength="12" title="Votre mot de passe" class="form-control" />
+							<span class="input-group-btn" style="width:0px;"></span>
+							<input autocomplete="new-password" name="<?php echo $fn['confirmedpassword']; ?>" id="<?php echo $fn['confirmedpassword']; ?>" type="password" placeholder="Confirmez le mot de passe"    maxlength="12" title="Confirmez le mot de passe" class="form-control">
+						</div>
+					</div>                 
+				</div>
+			 <p id="password-validation-message"          class="validation-message"></p> 
+			 <p id="confirmedpassword-validation-message" class="validation-message"></p>  
+		    </li>
+			<li class="list-group-item">       
+				<div class="form-group">
+				    <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">Nationalité:</label>
+					<div   class="col-sm-12 col-md-10"><?php echo $this->formSelect($fn['nationalite'],strtolower($data[$fn['nationalite']]) , array("class" => "form-control") , $this->nationalites()); ?> </div>					
+				</div>  
+		    </li>
+			<li class="list-group-item">       
+				<div class="form-group">
+				    <label class="col-sm-hidden col-xs-hidden col-md-2 control-label"> Résidence*: </label>
+					<div   class="col-sm-12 col-md-10">
+					    <div class="input-group">
+				            <?php echo $this->formSelect($fn['country'], $data[$fn['country']], array("class"=>"form-control countries"), $this->countries()); ?>  			   
+					        <span  class="input-group-btn" style="width:0px;"></span>
+							<input value="<?php echo $data[$fn['address']]; ?>" id="<?php echo $fn['address']; ?>" name="<?php echo $fn['address']; ?>" type="text" maxlength="220" title="Votre adresse" placeholder="Votre adresse" class="form-control">
+				        </div>
+					</div> 
+				</div>  
+		    </li>
+			<li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label">  <b>Téléphone*:</b> </label> 
+					<div   class="col-sm-12 col-md-10">
+						<div class="input-group">
+						   <input name="<?php echo $fn['phone1']; ?>" id="<?php echo $fn['phone1']; ?>" type="text" maxlength="26" class="form-control" title="Numéro de téléphone"  placeholder="Numéro de téléphone"  value="<?php echo $data[$fn['phone1']]; ?>">
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <input name="<?php echo $fn['phone2']; ?>" id="<?php echo $fn['phone2']; ?>" type="text" maxlength="26" class="form-control" title="Votre second numéro de téléphone (Facultatif)" placeholder="Votre second numéro de téléphone (Facultatif)" value="<?php echo $data[$fn['phone2']]; ?>">											  
+						</div>					
+					</div>
+					<p id="phone-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>		             
+			<li class="list-group-item">
+				<div class="form-group">  
+					<label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Sexe*:</b> </label> 
+					<div   class="col-sm-12 col-md-4"> 
+						<label class="radio-inline pull-left"><input type="radio" name="<?php echo $fn['sexe'];?>" id="sexe-m" value="M" <?php if($data[$fn['sexe']]== "M") echo "checked"; ?>>Homme</label>	  
+						<label class="radio-inline pull-left"><input type="radio" name="<?php echo $fn['sexe'];?>" id="sexe-f" value="F" <?php if($data[$fn['sexe']]== "F") echo "checked"; ?>>Femme</label>
+					</div>
+					<div class="col-sm-hidden col-md-6">&nbsp;</div>    
+				</div>  
+			</li> 				
+			<li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  </label>
+					<div   class="col-sm-12 col-md-10">
+						<div class="checkbox pull-left">
+							<label>
+								<input type="checkbox" id="<?php echo $fn['agree_tos']; ?>" name="<?php echo $fn['agree_tos']; ?>" value="1" />En cochant cette case, j'accepte et je reconnais avoir pris connaissance des <a target="_blank" id="cguButton" class="cguButton" href="<?php echo $linkCGU; ?>" title="Prendre connaissance des termes du services d'utilisation de la plateform">Conditions Générales d'Utilisation des services de la plateforme du Fichier National.</a>
+							</label>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+				    <label class="col-sm-hidden col-xs-hidden col-md-2 control-label">  <b> Captcha </b> </label>
+				    <div class="col-sm-12 col-md-10">
+					    <div class="col-md-12 g-recaptcha" data-sitekey="<?php echo API_GOOGLE_RECAPTCHA_SITE_KEY; ?>"></div>
+					</div>
+				</div>
+			</li>  
+		</ul> 
+		<div class="panel-footer">
+			<div class="btn-group"><button id="cancelButton" class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"> </i>  Annuler </button></div> 
+			<div class="btn-group"><button id="createButton" class="btn btn-primary createButton"><i class="glyph-icon icon-save"> </i> Enregistrer </button></div>	
+		</div>
+	</div>
+	<input id="<?php echo $fn['matrimonial'];?>" type="hidden" name="<?php echo $fn['matrimonial'];?>" value="Célibataire" />
+	<input id="<?php echo $fn['username']; ?>"    type="hidden" name="<?php echo $fn['username']; ?>"    value="<?php echo $data['username']; ?>" />
+	<input id="<?php echo $fn['socialstate']; ?>" type="hidden" name="<?php echo $fn['socialstate']; ?>" value="Célibataire" />
+    <input id="<?php echo $fn['city']; ?>"        type="hidden" name="<?php echo $fn['city']; ?>" value="0" />     
+    <input id="registerDoneUri"                   type="hidden" name="doneUri"    value="<?php echo $urlCreationDone; ?>" /> 
+    <input id="t"                                 type="hidden" name="t"          value="<?php echo $token; ?>" /> 
+	<input id="<?php echo $tokenId; ?>"           type="hidden" name="<?php echo $tokenId; ?>"  value="<?php echo $tokenValue; ?>"  />
+</form>

@@ -1,0 +1,44 @@
+<?php 
+             $instances       = $this->rows;
+             $modelHonoraire  = new Model_Coursehonoraire();
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "instancesListTable","class" => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("<input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" />" , array("width" => "1%"))
+                    ->add("Horaires"  , array("width" => "25%"))
+                    ->add("Enseignants" , array("width" => "24%"))
+                    ->add("Modules de cours"       , array("width" => "20%"))
+                    ->add("Cohortes" , array("width" => "25%"))
+                    ->add("Confirmé"      , array("width" => "5%"));         
+             $table->setHeader($header);             
+             if( count(  $instances ) ) {
+             	foreach( $instances as  $instance ){             		
+             	   $instanceid    = intval( $instance['instanceid']  );
+             	   $honoraireid   = intval( $instance["honoraireid"] );
+             	   $course        = $instance["course"] ;
+             	   $cohortes      = $modelHonoraire->getCohortes( $honoraireid );
+             	   $cohorteCell   = ( !empty( $cohortes ) ) ? implode(", " , $cohortes ) : "Aucune formation valide";
+                   $enseignant    = sprintf(" %s %s " , $instance["lastname"] , $instance["firstname"] );
+                   $confirmed     = ( $instance["verified"] ) ? "Oui" : "Non";
+             	   $instanceDate  = sprintf("%s - %s" , $instance["startdate"] , $instance["endate"]);
+             	   
+             	   $bgColor       = ( $instance["verified"] ) ? "alert success" : "alert danger";
+             	   
+             	   $instanceRow   = $table->row(array("id" => "instanceRowId-" . $instanceid , "class" => $bgColor ) );
+             	   
+             	   $instanceRow->add("<input type=\"checkbox\" name=\"instanceids[]\" id=\"instanceids" . $instanceid."\" />" , array("id" => "checkboxCell-" . $instanceid ))
+             	               ->add("<a href=\"".$this->url(array('controller' => 'courseinstance', 'action' => 'infos' , 'id' => $instanceid ))."\">". $instanceDate."</a>", array("id" => "date-" . $instanceid ))
+             	               ->add("<a href=\"".$this->url(array('controller' => 'courseinstance', 'action' => 'infos' , 'id' => $instanceid ))."\">". $enseignant  ."</a>", array("id" => "typeId-" . $instanceid ))            		           
+             		           ->add("<a href=\"".$this->url(array('controller' => 'courseinstance', 'action' => 'infos' , 'id' => $instanceid ))."\">". $course      ."</a>", array("id" => "courseId-" . $instanceid ))
+             		           ->add("<a href=\"".$this->url(array('controller' => 'courseinstance', 'action' => 'infos' , 'id' => $instanceid ))."\">". $cohorteCell ."</a>", array("id" => "cohortId-" . $instanceid ))
+             	               ->add("<a href=\"".$this->url(array('controller' => 'courseinstance', 'action' => 'infos' , 'id' => $instanceid ))."\">". $confirmed   ."</a>", array("id" => "confirmedId-" . $instanceid ));
+             	   $table->add( $instanceRow );
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             }
+    
+              // On affiche le tableau
+              echo $table;

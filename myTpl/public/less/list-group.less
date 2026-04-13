@@ -1,0 +1,25 @@
+a.list-group-item {
+    // Hover state
+    &:hover,
+    &:focus {
+        text-decoration: none;
+        background-color: @list-group-hover-bg;
+    }
+
+    // Active class on item itself, not parent
+    &.active,
+    &.active:hover,
+    &.active:focus {
+        color: @list-group-active-color;
+        background-color: @list-group-active-bg;
+        border-color: @list-group-active-border;
+
+        // Force color to inherit for custom content
+        .list-group-item-heading {
+            color: inherit;
+        }
+        .list-group-item-text {
+            color: @list-group-active-text-color;
+        }
+    }
+}

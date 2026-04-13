@@ -1,0 +1,70 @@
+<?php
+     $nbreClientsByPrescriptor = $this->rows;
+?>
+ <table  class="table table-bordered table-hover">
+          <thead>
+                <tr><th width="40%"> Cliniques </th><th width="40%">Prescripteurs</th><th width="10%"> Nombre </th><th width="10%"> Cumul</th></tr>         
+          </thead>
+          
+          <tbody>
+		         <?php
+				       $output            = "";
+                       $total             = 0;
+					   $totalClinique     = 0;
+					   $cliniqueid        = 0;
+					   $precedentClinique = null;
+					   $i                 = 1;
+					   
+					   if( count(   $nbreClientsByPrescriptor )) {
+						   foreach( $nbreClientsByPrescriptor as  $prescriptorStat ) {
+							        $cliniqueName  = $prescriptorStat["clinique"];
+									if(($cliniqueid  !== $prescriptorStat["cliniqueid"]) && ($cliniqueid != 0)) {
+										$totalCliniqueVal = number_format( $totalClinique, 0, ",", " ");
+         		    	                $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+         			                    $output.=" <tr style=\"background-color:".$rowBg."\" class=\"font-blue font-bold\"> 
+         			                                   <td style=\"text-align:left;\" colspan=\"2\">  TOTAL  de ".$precedentClinique."</a></td>
+         			                                   <td style=\"text-align:right;\"> ".$totalCliniqueVal."</td> 
+													   <td style=\"text-align:right;\"> ".$total." </td>
+												     </tr>";         			    
+         			                    $totalClinique = 0;
+									} elseif($cliniqueid == $prescriptorStat["cliniqueid"] ) {
+										$cliniqueName  =  "";
+									}
+									$prescripteur  = $prescriptorStat["prescripteur"];
+									$nombre        = $prescriptorStat["nombre"] ;
+                                    $total        += $prescriptorStat["nombre"] ;	
+                                    $totalClinique+= $prescriptorStat["nombre"] ;										
+									
+									$rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+									$output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output .="<td> ".$cliniqueName." </td>";
+                     	 	            $output .="<td> ".$prescripteur." </td>";                     	 	                             	 	            
+                     	 	            $output .="<td style=\"text-align:right;\"> ".$nombre." </td>";
+										$output .="<td style=\"text-align:right;\"> ".$total." </td>";
+                     	 	     $output.="</tr>";  
+                     	 	     $cliniqueid        = $prescriptorStat["cliniqueid"];
+								 $precedentClinique = $prescriptorStat["clinique"];
+								 $i++;
+						   }
+						         $rowBg            = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+         	                     $totalCliniqueVal = number_format( $totalClinique, 0, ",", " ");
+         	                     $output          .="<tr style=\"background-color:".$rowBg."\" class=\"font-blue font-bold\"> 
+         	                                           <td style=\"text-align:left;\" colspan=\"2\"> TOTAL de ".$precedentClinique." </td>
+         	                                           <td style=\"text-align:right;\">  ".$totalCliniqueVal." </td> 
+													   <td style=\"text-align:right;\">  ".$total           ." </td> 
+													</tr>";
+													
+								$totalVal       = number_format( $total, 0 , ",", " ");
+         	                    $rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+         	                    $output        .=" <tr style=\"background-color:".$rowBg."\" class=\"text-danger font-bold\"> 
+         	                                           <td style=\"text-align:left;\" colspan=\"3\"> NOMBRE TOTAL DE CLIENTS  </td> 
+         	                                           <td style=\"text-align:right;\">".$totalVal." </td> </tr>";					
+					   } else {
+						   $rowBg               = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						   $output             .=" <tr style=\"background-color:".$rowBg."\"><td colspan=\"4\"> AUCUN CLIENT N'A ETE ENREGISTRE DANS LA BASE DE DONNEES </td></tr>";
+					   }
+					   
+					   echo $output;
+				 ?>
+		  </tbody>
+		</table>

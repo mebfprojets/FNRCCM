@@ -1,0 +1,54 @@
+<?php 
+    $jq  = $this->jQuery();
+    
+    $onLoad  = "jQuery('.mdp').bsdatepicker({orientation:'auto',format:'yyyy-mm-dd'});";
+    
+    $jq->addOnLoad( $onLoad );
+    
+    $basePath    = VIEW_BASE_PATH;
+    $jq->addJavascriptFile($basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+    $jq->addStyleSheet(    $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+    
+   echo $this->jQuery();
+
+?>
+
+<div class="panel panel-default">
+   <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Mode de paiement par bon </h4></div> 
+   <ul class="list-group">
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="numerocheque"> <b> Numéro du bon :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_numero" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du chèque" placeholder="Numéro du bon"  name="mode_paiement_numero" class="form-control" /></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="adress"> <b> Lieu d'édition:</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_address" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Lieu d'édition" placeholder="Lieu d'édition"  name="mode_paiement_address" class="form-control" /></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="date"> <b> Date d'édition :</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->datePick("mode_paiement_date" , date("Y-m-d"), array(), array("class" => "form-control mdp")); ?></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="assureurid"> <b> L'assureur:</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->formSelect("mode_paiement_assureurid", 0 , array("class" => "form-control"), $this->assureurs ); ?> </div>
+         </div>     
+      </li>
+      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="chequebanque"> <b> Part assureur : </b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_partA" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Banque associée au chèque" placeholder="Part assureur"  name="mode_paiement_partA" class="form-control" /></div>
+         </div>     
+      </li>
+</ul>
+</div>

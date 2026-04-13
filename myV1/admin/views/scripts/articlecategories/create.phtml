@@ -1,0 +1,83 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("module"=>"admin","controller" =>"articlecategories","action"=>"create"),"default",true);
+$backList   = $this->url(array("module"=>"admin","controller" =>"articlecategories","action"=>"list")  ,"default",true);
+$basePath   = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+	e.preventDefault();      
+	var formSelector = jQuery('#createCategorieForm');
+	var title        = jQuery.trim(formSelector.find('#title').val());
+	var code         = jQuery.trim(formSelector.find('#code').val());
+	  
+	if( SIRAH.util.isEmpty( title )){
+		jQuery('#title').addClass('input-error');
+		jQuery('#title-validation-message').html('');
+		SIRAH.error.raise('title-validation-message','Entrez une désignation valide');
+		return;
+	} else {
+		jQuery('#title').removeClass('input-error');
+		jQuery('#title-validation-message').html('');
+	} 	
+	jQuery('#code').val(code);		
+	jQuery('#title').val( title );
+	formSelector.submit();
+}); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="createCategorieForm" role="form" class="form-horizontal">
+    <div class="panel panel-default" >
+		<ul class="list-group">	    
+			<li class="list-group-item">
+				<div class="form-group"> 
+					<label class="col-md-2  col-sm-2 control-label"> Code* :</label> 
+					<div   class="col-md-10 col-sm-10"><input id="code" name="code" type="text" maxlength="20" class="form-control" title="Le code du type d'activité" placeholder="Le code du type d'activité" value="<?php echo $data["code"]; ?>"></div>                 
+					<p id="code-validation-message" class="validation-message"></p> 
+				</div>   
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2  col-sm-2  control-label" for="code"> Désignation*: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="title" name="title" type="text" maxlength="250" class="form-control" title="Titre de la catégorie" placeholder="Titre de la catégorie" value="<?php echo $data["title"]; ?>"></div> 			   
+				   <p id="title-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>				 		
+			<li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label"> Description: </label>
+					<div   class="col-md-10 col-sm-10"><textarea name="description" id="description" class="form-control textarea-sm"> <?php echo $data["description"]; ?> </textarea></div>              
+				</div>  
+			</li>	
+		</ul>  
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+   
+   $toolCreate->setAttributes(array("type"=> "submit"));
+   $toolCancel->setAttributes(array("type"=> "submit"));
+      
+   $buttonsbar->add( $toolCancel , "cancelCreationButton");
+   $buttonsbar->add( $toolCreate , "createButton");
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+</div> 
+</form>

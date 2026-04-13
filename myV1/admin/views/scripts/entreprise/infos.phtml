@@ -1,0 +1,157 @@
+<?php 
+   $entreprise         = $this->entreprise;
+   $domaine            = $this->domaine;
+   $forme              = $this->forme;
+   $countries          = $this->countries();
+   $projects           = $this->projects;
+   $entrepriseCountry  = (isset($countries[$entreprise->country])) ? $countries[$entreprise->country] : $entreprise->country;
+   
+   $linkEdit           = $this->url(array("controller"=>"entreprise","action"=>"edit","id"=> $entreprise->entrepriseid,"module"=>"admin") , "default" ) ;
+   
+   $buttonbar          = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+    
+   $buttonEdit         = $buttonbar->button("Mettre à jour les informations de la société","edit");
+   $buttonCancel       = $buttonbar->button("Annuler" , "ban-circle");
+   
+   $buttonbar->add($buttonEdit   ,"saveButton");
+   
+    $buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-primary"));
+    $buttonCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonEdit->onClick("document.location.href= '".$linkEdit."' ;");
+   
+   $creationDate           = "00/00/0000";
+   $updateDate             = "00/00/0000";
+   $entrepriseCreationDate = "00/00/0000";
+   $creator                = Sirah_Fabric::getUser( $entreprise->creatorid     );
+   $updatedUser            = Sirah_Fabric::getUser( $entreprise->updateduserid );
+   
+   if( $entreprise->datecreation) {
+       $zendDateCreation  = new Zend_Date( $entreprise->datecreation, Zend_Date::TIMESTAMP );
+       $entrepriseCreationDate = $zendDateCreation->toString("d MMM yyyy");
+   }  
+   if( $entreprise->creationdate ) {
+       $zendCreationdate  = new Zend_Date( $entreprise->creationdate, Zend_Date::TIMESTAMP );
+       $entrepriseCreationDate      = $zendCreationdate->toString("d MMM yyyy à H:m");
+   }
+   if( $entreprise->updatedate ) {
+       $zendUpdatedate    = new Zend_Date( $entreprise->updatedate , Zend_Date::TIMESTAMP );
+       $updateDate        = $zendUpdatedate->toString("d MMM yyyy à H:m");
+   }
+   
+ 
+?>
+
+ <div  class="container" style="text-align:left;">
+  <div class="row">
+   <div class="col-md-7">
+    <div class="panel panel-default">
+	<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-home'></span> Les informations de la société </h4> </div>
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>Raison sociale:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->libelle);  ?></div>
+       </div>
+    </li>
+	<?php if( $forme) : ?>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="forme"> <b> Forme juridique:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($forme->libelle);  ?></div>
+       </div>
+    </li>
+    <?php endif; ?>
+    <?php if( $domaine) : ?>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="forme"> <b> Secteur d'activités:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($domaine->libelle);  ?></div>
+       </div>
+    </li>
+    <?php endif; ?>	
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="datecreation"> <b> Date de création:</b> </label></div> 
+            <div class="col-md-8"><?php echo $entrepriseCreationDate;  ?></div>
+       </div>
+     </li>	 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="capital"> <b> Capital:</b> </label></div> 
+            <div class="col-md-8"><?php echo ($entreprise->capital) ? number_format($entreprise->capital, 0, " ", " ")." F CFA" : "";  ?></div>
+       </div>
+     </li> 
+     <li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="address"> <b> Adresse : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->address);  ?></div>
+       </div>
+     </li> 
+	 <li class="list-group-item">     
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="pays"> <b> Pays/Ville :  </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entrepriseCountry);  ?></div>
+       </div>
+    </li>   
+     <li class="list-group-item">    
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><?php  printf("Fixe : %s / Mobile : %s", $entreprise->phone1, $entreprise->phone2);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->email);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">    
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->zip);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="siteweb"> <b> Site Web: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $entreprise->siteweb;  ?></div>
+       </div>
+    </li>  
+    <li class="list-group-item">  
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Responsable : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->responsable);  ?></div>
+       </div>
+    </li>
+  <?php if($creator->userid) : ?>
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-12 "> Enregistrée le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+    </div>
+   </li>
+  <?php endif; ?>
+  <?php if($updatedUser->userid) : ?>
+   <li class="list-group-item">
+     <div class="row"> 
+        <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+     </div>
+   </li>
+  <?php endif; ?> 
+  </ul>
+    <?php  echo $buttonbar; ?>
+  </div>
+  </div>
+ 
+  <div class="col-md-5">
+    <div class="panel panel-default">
+	   <div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-th'></span> Les projets de la société </h4></div>
+	   <?php echo $this->partial("entreprise/projects.phtml" , array("projects" => $projects, "entreprise" => $entreprise)); ?>
+     </div>
+   </div>  
+    <?php 
+          if($this->isAjax) {
+          	 echo $this->jQuery();
+          }
+      ?>
+</div>  </div>  

@@ -1,0 +1,126 @@
+<?php
+    $tplPath       = VIEW_BASE_PATH;
+    $demandes      = $this->demandes;
+    $filters       = $this->filters;
+    $paginator     = $this->paginator;
+    $linkSearch    = $this->url(array("controller"=>"requetes","action"=>"list","module"=>"public"), "default");
+	$linkCreate    = $this->url(array("controller"=>"requetes","action"=>"create","registreid"=>$registreid,"module"=>"public"),"default", true);
+
+    $statuts       = $this->statuts;
+    if( null != $paginator ) {
+  	  //On crée et affiche la pagination
+  	  $pagination  = $this->pagination(array(),"Elastic",$this->url(array("controller"=>"demandes","action"=>"list","module"=>"public"),"default"), array(), array("class" => "panel-footer paginationControl"));
+  	  
+    }
+    $jq         = $this->jQuery();
+    $onLoad     = "
+        jQuery('.sirahPaginationBtn').click(function(event){
+			event.preventDefault();
+			if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+			var formSelector       = jQuery('#globalFormSearch');
+			var pageNum            = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+			var pageMaxitems       = formSelector.find('#maxitems').val();
+			if( jQuery(this).is('.nextPage')) {
+				var currentBtnNum  = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+				pageNum            = parseInt( currentBtnNum +1);
+			}
+			if( jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+			var paginationData     = {};
+			paginationData.maxitems= pageMaxitems;
+			paginationData.page    = pageNum;
+			paginationData.searchQ = formSelector.find('#searchQ').val();
+			paginationData.statutid= parseInt(formSelector.find('#statutid').val());   
+			var maincontent	       = jQuery('#maincontent');
+			SIRAH.loading.on( maincontent , 'Chargement des données...' );
+			SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:paginationData,beforeSend:function(){},
+							   error  : function(data){maincontent.html(data).after(data);SIRAH.loading.off(false);},
+							   success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							   update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+			});
+			SIRAH.loading.off(false);
+		});
+        jQuery('.simpleSearch,#simpleSearch').click(function( event ){
+		    event.preventDefault();		            
+		    var formSelector    = jQuery('#globalFormSearch'); 
+		    var searchData      = {};
+		    searchData.searchQ  = formSelector.find('#searchQ').val();
+		    searchData.statutid = parseInt(formSelector.find('#statutid').val());
+		    var maincontent	    = jQuery('#maincontent');	
+		    SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		    SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+							  error  : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		    });
+		    SIRAH.loading.off(false);		                
+		});
+        jQuery('.resetSearchBtn,#resetSearchBtn').click(function( event ){ event.preventDefault(); document.location.href='".$linkSearch."'; });";
+   
+   $jq->addOnLoad( $onLoad );
+?>
+<div id="panelListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		    <form class="form-horizontal globalFormSearch" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		        <div class="input-group">
+				    <span class="input-group-btn selectBtn"> <?php echo $this->formSelect("statutid", intval($filters["statutid"]),array("class" => "form-control input-lg"), $this->statuts); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ" type="text" class="form-control input-lg" placeholder="Recherchez une demande, saisir des mots clés...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"   class="btn btn-lg btn-primary simpleSearch"   type="button"><span class="glyph-icon icon-search"></span> </button>
+					   <button id="resetSearchBtn" class="btn btn-lg btn-danger  resetSearchBtn" type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>" /> 
+				<input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+			</form>
+		</div>
+        <table class="table table-hover table-striped sirah-ui-table scrollable demandesListTable" id="demandesListTable" style="width:100%">
+			<thead>
+				<th width="13%"> Dates        </th>
+				<th width="15%"> Juridictions </th>
+                <th width="32%"> Objets       </th> 								 										
+				<th width="20%"> Promoteurs   </th>
+                <th width="20%"> Statuts      </th>				
+			</thead>
+			<?php
+				$output        = "";
+				if( count(   $demandes ) ) {
+					foreach( $demandes as $demande ) {
+							 $demandeid        = $demande["demandeid"];
+							 $demandeTypeId    = $demande["typeid"];
+							 $demandeLibelle   = $demande["libelle"];
+							 $demandeLocalite  = $demande["localite"];
+                             $promoteurName    = (isset($demande["promoteur"]) && !empty($demande["promoteur"]))?$demande["promoteur"] : ((isset($demande["promoteurName"]))?$demande["promoteurName"] : "");
+							 $demandeType      = $demande["type"];
+							 $demandeStatut    = $demande["statut"];
+							 $zendDate         = (intval($demande['date']))?new Zend_Date($demande['date'],Zend_Date::TIMESTAMP) : null;
+							 $dateDemande      = ( $zendDate )? $zendDate->toString("dd MMMM yyyy") : null;
+
+							 $linkInfos        = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"infos","demandeid"=>$demandeid), "default",true);
+							 $output   .=" <tr id=\"demandeRowId-".$demandeid."\">";
+								$output.= "<td width=\"13%\"><a href=\"".$linkInfos."\" title=\"Afficher les informations de cette demande\"> ".$dateDemande." </a></td>";	
+								$output.= "<td width=\"15%\" class=\"email-body\"> <a href=\"".$linkInfos."\" title=\"Afficher les informations de cette demande\"> ".$demandeLocalite."</a> </td>";											
+								$output.= "<td width=\"32%\" class=\"email-title\"><b><a href=\"".$linkInfos."\" title=\"Afficher les informations de cette demande\"> ".$demandeLibelle."</a> </b> </td>";
+								$output.= "<td width=\"15%\" class=\"email-body\"> <a href=\"".$linkInfos."\" title=\"Afficher les informations de cette demande\"> ".$promoteurName."</a> </td>";											
+								$output.= "<td width=\"20%\"><a href=\"".$linkInfos."\" title=\"Afficher les informations de cette demande\"> ".$demandeStatut."</a></td>";
+							 $output .=" </tr>";
+					}
+				} else {
+							 $output .="<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"7\"> AUCUNE DEMANDE N'A ETE TROUVEE </td></tr>";
+				}
+				echo $output;
+			?>
+		</table>
+		<div class="panel-footer"><?php  echo $pagination->render(); ?></div>
+    </div>
+</div>
+ 
+
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

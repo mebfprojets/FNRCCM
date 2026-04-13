@@ -1,0 +1,116 @@
+<html lang="en">
+<?php 
+    //On initialise les variables nécessaires
+    $layout        = $this->layout();
+    $baseUrl       = $this->baseUrl();
+    $tplPath       = ROOT_PATH."/templates/sirah";
+    
+    $columns       = $this->columns;
+    $bodyClasses   = (!$this->bodyClasses) ? array() : $this->bodyClasses;
+    
+    if(in_array("left",$columns) && in_array("right",$columns) && empty($bodyClasses)){
+       $bodyClasses    = array();
+    } elseif(in_array("left",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-left";
+    } elseif(in_array("right",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-right";
+    } elseif(in_array("content",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-content";
+    }      
+?>
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8"/> 
+<?php echo $this->headMeta() ?>
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/bootstrap.min.css'; ?>"    />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/bootstrap-theme.min.css'; ?>"  />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/bootstrap-modal.css'; ?>"  />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/bootstrap-responsive.css'; ?>"  />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/prettify.css'; ?>"  />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/uxsfbtfg/jqsira.css'; ?>"  />
+<link rel="stylesheet"  href="<?php echo $tplPath.'/css/template.css'; ?>"    />
+ <?php
+           echo $this->headLink() ;
+           echo $this->headStyle();            
+           echo "<script type=\"text/javascript\">
+                     window.SIRAH ||(window.SIRAH={}); 
+                     SIRAH.basePath = \"".$tplPath."/\";
+                 </script>";
+ ?>
+</head>
+<body <?php echo (!empty($bodyClasses)) ? " class=' base ".implode(' ',$bodyClasses)."' " : ""; ?>>
+  <!--Entete principale du site-->
+   <?php echo $this->render("pagehead.phtml")   ?>
+  <!--Fin entete principale du site-->
+     
+  <!--Le corps du site-->
+   <div id="sirah-page-body" class="colmask wrapper three-columns" >
+   
+     <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >
+                  
+          <!--Bloc central de la page du site-->
+            <div id="sirah-page-mainblock-wrapper" class="col1">    
+              <!--Envellope de la page principale-->
+               <div id="sirah-page-mainblock-wrapper-br" class="sirah-page-blend-corner-br" >
+                  <div id="sirah-page-mainblock-wrapper-bl" class="sirah-page-blend-corner-bl" >
+                    <div id="sirah-page-mainblock-wrapper-tr" class="sirah-page-blend-corner-tr" >
+                       <div id="sirah-page-mainblock-wrapper-tl" class="sirah-page-blend-corner-tl" >
+                       
+                          <!--Le contenu principal la page du site-->
+                           <div id="sirah-page-mainblock"  >
+                             
+                             <!--Le bloc de la barre des taches de l'application -->
+                              <?php echo $this->render("pagetoolbar.phtml")   ?>
+                             <!--Fin du bloc de la barre des taches de l'application-->
+                                                        
+                             <!--Le bloc des messages d'erreurs-->
+                               <?php echo $this->errormessage() ;?>
+                             <!--Fin du bloc des messages d'erreurs-->
+                             
+                             <!--Le bloc du titre de la page-->
+                             <div id="sirah-page-title" class="sirah-title">
+                                  <h3><?php echo $this->escape($this->title); ?> </h3>
+                             </div>
+                             <!--Fin du bloc du titre de la page-->
+                           
+                             <!--Le bloc du contenu de la page-->
+                             <div id="sirah-page-content" class="sirah-page-content">
+                                   <?php echo $this->layout()->content ?>
+                             </div>
+                             <!--Fin du bloc du contenu de la page-->
+                           
+                           </div>
+                         <!--Fin du contenu principal de la page du site-->
+                         
+                      </div>
+                   </div>
+                 </div>
+               </div>
+            <!--Fin de l'envellope de la page principale-->        
+         </div>
+         <!--Fin du bloc principal de la page du site-->
+   
+     
+        <!--Le bloc gauche du corps du site-->
+         <div id="sirah-page-leftblock-wrapper" class="col2" >
+            <?php echo $this->render("leftmodules.phtml")   ?>      
+         </div>  
+        <!--Fin du bloc de gauche du site--> 
+     
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+            <?php echo $this->render("rightmodules.phtml")   ?>        
+         </div>  
+        <!--Fin du bloc de droite du corps du site-->     
+        
+       </div>
+    </div>   
+  </div> 
+  <!--Fin corps du site-->        
+     
+  <!--Pied de page du site-->
+   <?php echo $this->render("pagefooter.phtml")   ?>  
+  <!--Fin pied de page du site-->    
+</body>
+</html>

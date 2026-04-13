@@ -1,0 +1,32 @@
+<?php 
+     $linkLogin  = $this->url(array("module" => "admin","controller" => "account"  ,"action" => "login")   , "login");
+	 $basePath   = VIEW_BASE_PATH;
+     $avatarFile = $basePath."/images/login_avatar.png";
+?>
+<p><span style="font-family: times new roman,times; font-size: medium; background-color: #ffffff;">  Page d'accueil de la plateforme. Description du projet </span></p>
+
+<p><span style="font-family: times new roman,times; font-size: medium; background-color: #ffffff;">C’est une application web centralisée, extensible et modulaire, dont l’accès est partagé de façon sécurisée entre plusieurs utilisateurs regroupés par rôles et limités par des permissions d’accès aux fonctionnalités.</span></p>
+
+<?php 
+
+/*
+$toolbar     = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate  = $toolbar->tool("Nouveau"  , "plus");
+$toolEdit    = $toolbar->tool("Modifier" , "edit");
+$toolDelete  = $toolbar->tool("Supprimer", "trash-o");
+$toolImport  = $toolbar->tool("Importer" , "upload");
+$toolExport  = $toolbar->tool("Exporter" , "download");
+$toolReleve  = $toolbar->tool("Relevé de notes", "file");
+ 
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolImport, "importButton");
+$toolbar->add( $toolExport, "exportButton");
+$toolbar->add( $toolReleve, "releveButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onHover("alert('Test');");
+ 
+
+$this->toolsbar = $toolbar;*/
+?>

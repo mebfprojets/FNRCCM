@@ -1,0 +1,65 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller"=>"registres", "action" => "globalstats", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller"=>"registrephysique", "action" => "list", "module" => "admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+     <!--
+	 <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Type de registre* : </label>
+           <div   class="col-sm-6"> <?php //echo $this->formSelect("category", $data["category"], array("class"=>"form-control"), array("A" => "Personnes Physiques", "B" => "Personnes Morales", "M" => "Modifications")); ?> </div> 		   
+     </div>   -->  
+     <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localités concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("localites",$data["localites"], array(), $localites,""); ?> </div>   
+     </div>       
+    <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Années concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("checked_annees", $data["checked_annees"], array(), $annees, ""); ?> </div>   
+     </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source* : </label>
+           <div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["srcpath"]; ?>" /></div>        
+    </div>      
+   </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Valider les dossiers","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

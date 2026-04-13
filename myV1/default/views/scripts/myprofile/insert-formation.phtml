@@ -1,0 +1,121 @@
+<?php 
+$data               = $this->data;
+$formSubmit         = $this->url(array("controller" =>"myprofile" , "action" => "insertformation"));
+$backList           = $this->url(array("controller" =>"myprofile" , "action" => "infos"));
+
+$basePath           = ROOT_PATH."/templates/sirah";
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.colbuttonsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+
+textarea, input[type="text" class="input"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input
+{
+  height : 45px;
+  line-height: 30px;
+  font-size: 1.3em;
+}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio
+{
+    color: #333333;
+    font-size: 18px;
+    font-weight: normal;
+    padding:20px;
+    }
+
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('.cancel').click(function(e)
+  {
+    e.preventDefault();
+    document.location.href='".$backList."';
+   });
+  
+
+  jQuery('.insertCarreer').click(function(e)
+  {
+      e.preventDefault();      
+     
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="insertcarreer-form"   role="form">
+<div class="container">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="annee" > <b> L'année de formation: </b> </label> </div>
+         <div class="col-md-8"><input id="annee" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                      title="annee" placeholder="L'année de formation" name="annee" value="<?php echo intval($data['annee']); ?>"></div>
+     </div> 
+      <div class="row">              
+         <div class="col-md-4"> <label class="label" for="universite"> <b> Structure de formation (université): </b> </label> </div>
+         <div class="col-md-8">
+               <input id="universite" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="universite" placeholder="La structure de formation" name="universite" value="<?php echo $this->escape($data['universite']); ?>">
+          </div> 
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="intitule"> <b> Intitulé de la formation: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="intitule" type="text" class="input" maxlength="125" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="intitule" placeholder="L'intitulé de la formation" name="intitule" value="<?php echo $this->escape($data['intitule']); ?>">
+          </div> 
+     </div>       
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="secteur"> <b> Diplome / Attesation obtenue: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="diplome" type="text" class="input" maxlength="125" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="diplome" placeholder="Diplome obtenu" name="diplome" value="<?php echo $this->escape($data['diplome']); ?>">
+          </div> 
+     </div>       
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="country"> <b> Le pays concerné: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect("country" , $this->escape($data["country"]) , array() , $this->countries()); ?></div>
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="ville"> <b> La ville : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="ville" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="ville" placeholder="Indiquez la ville de la formation" name="ville" value="<?php echo $this->escape($data['ville']); ?>">
+          </div> 
+     </div>                       
+     <div class="row">
+               <div class="col-md-4"> <label class="label" for="sexe"> <b> Décrire votre formation: </b> </label> </div>
+               <div class="col-md-8">
+                   <textarea  name="description" id="description" class="textarea" rows="10" cols="55">
+                       <?php echo $data["description"]; ?>
+                   </textarea> 
+               </div>  
+     </div> 
+  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                       <button type="submit" class="btn btn-default btn-primary insertFormation"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancel">Annuler</button>         
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+<input type="hidden" name="profileid"           id="profileid"           value="<?php echo $data["profileid"]; ?>" />
+</form>
+

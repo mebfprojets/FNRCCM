@@ -1,0 +1,35 @@
+<?php
+      $statsexes = $this->rows;
+	  $sexes     = array("M"=>"Hommes","F"=>"Femmes","H"=>"Hommes",1=>"Hommes",2=> "Femmes");
+?>
+<table id="statsSexe" class="table table-bordered table-hover">
+	<thead> <tr><th width="0%"> Genres </th> <th width="20%"> Nombre </th> </tr></thead>
+	<tbody>
+			   <?php
+			          $outputSexe    = "";
+					  $total         = 0;
+					  if( count(   $statsexes ) ) {
+						  foreach( $statsexes as $statSexe ) {
+							       $rowBg           = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+								   $sexe            = (isset( $sexes[$statSexe["sexe"]])) ? $sexes[$statSexe["sexe"]]: "Hommes";
+								   $nbreClients     = $statSexe["nombre"];
+								   $total          += $nbreClients;
+								   $linkList        = $this->url(array("controller"=> "clients","action"=> "list","sexe"=> $statSexe["sexe"]),"default");
+								   $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	                  $outputSexe.="<td> <a title=\"Voir la liste des clients\" href=\"".$linkList."\"> ".$sexe." </a></td>";
+                     	 	                  $outputSexe.="<td> <a title=\"Voir la liste des clients\" href=\"".$linkList."\"> ".number_format($nbreClients,0,' ',' ')." </a> </td>";
+                     	 	       $outputSexe.="</tr>";
+						  }
+						  $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						  $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $outputSexe.="<td> NOMBRE TOTAL DE clients:    </td>";
+                     	        $outputSexe.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+                     	  $outputSexe.="</tr>";
+					  } else {
+						           $outputSexe.="<tr><td colspan=\"3\"> Aucun client n'a été trouvé </td></tr>";
+					  }
+					  
+					  echo $outputSexe;
+			   ?>
+	</tbody>
+</table>

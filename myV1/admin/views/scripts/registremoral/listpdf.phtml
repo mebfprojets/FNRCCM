@@ -1,0 +1,86 @@
+<?php
+$registres     = $this->registres;
+$localites     = $this->localites;
+$filters       = $this->filters;
+
+$PDF           = new Sirah_Pdf_Default();
+$PDF->setTitle("   Liste des registres de type Personnes Morales" );
+$PDF->setSubject(" Liste des registres de type Personnes Morales");
+
+$margins       = $PDF->getMargins();
+$contenuWidth  = $PDF->getPageWidth()-$margins["left"]-$margins["right"];
+$PDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$PDF->AddPage();
+
+$PDF->Ln(10);
+
+$PDF->SetFont("helvetica" , "" , 8 );
+$PDF->Cell($contenuWidth , 7 , " Ouagadougou le " . date("d/m/Y" ) , 0 , 0 , "R");
+
+$PDF->Ln(10);
+
+
+$PDF->SetFont("helvetica","B",11);
+$PDF->setFillColor( 222 , 222 , 222 );
+$PDF->setTextColor( 0 , 0 , 0 );
+if( isset($filters["localiteid"]) && intval($filters["localiteid"] ) && isset($localites[$filters["localiteid"]]) ) {
+	$PDF->Cell( $contenuWidth , 7 , sprintf("LISTE DES REGISTRES DE TYPE PERSONNES MORALES DE LA LOCALITE %s", strtoupper( $localites[$filters["localiteid"]] )), "B" , 0 , "C" , 1 );
+} else {
+	$PDF->Cell( $contenuWidth , 7 , "LISTE DES REGISTRES DE TYPE PERSONNES MORALES" , "B" , 0 , "C" , 1 );
+}
+  
+$PDF->Ln(15);
+
+$PDF->SetFont("helvetica" , "B" , 11 );
+$PDF->SetFillColor( 51, 153, 255 );
+$PDF->SetTextColor( 255 , 255 , 255 );
+
+$PDF->MultiCell( 25 , 10 , "NUMEROS", 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->MultiCell( 25 , 10 , "ANNEES", 1 , 'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->MultiCell( 35 , 10 , "LOCALITES", 1 ,'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->MultiCell( 35 , 10 , "DENOMMINATIONS", 1 ,'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->MultiCell( 30 , 10 , "GERANTS", 1 ,'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->MultiCell( ( $contenuWidth - 150 ), 10 , "DOMAINES", 1 ,'C', true , 0 , "" , "" , true, 0 , false, true, 0 , "M" );
+
+$PDF->Ln(10);
+$PDF->setTextColor( 0 , 0 , 0 );
+$PDF->SetFont("helvetica" , "" , 9 );
+
+if( count(   $registres ) ) {
+	foreach( $registres as $registre ) {
+		     $registreid     = intval($registre['registreid']);
+             $libelle        = $registre["libelle"] ;
+             $numero         = $registre["numero"] ;
+             $description    = $registre["description"] ;
+             $administrateur = $registre["administrateur"] ;
+             $domaine        = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+             $localite       = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+             $annee          = $registre["annee"]; 
+			 
+			 $pdfY   = $PDF->GetY();
+          	 if( $pdfY > 240 ) {
+          	 	 $PDF->AddPage();
+          	 }
+		
+		     $PDF->MultiCell( 25 , 20 , "\n".$numero  , 1 ,'C', false, 0 );		     
+		     $PDF->MultiCell( 25 , 20 , "\n".$annee   , 1 ,'C', false, 0 );		      	  	
+      	  	 $PDF->MultiCell( 35 , 20 , "\n".$localite, 1  ,'C', false, 0 );   
+      	  	 $PDF->MultiCell( 35 , 20 , "\n".$libelle , 1  ,'C', false, 0 );
+      	  	 $PDF->MultiCell( 30 , 20 , "\n".$administrateur , 1  ,'C', false, 0 );
+      	  	 $PDF->MultiCell( ( $contenuWidth - 150 ) , 20 , "\n".$domaine , 1 ,'C', false, 0 );
+      	  	
+      	  	 $PDF->Ln(20);
+	}
+} else {
+	         $PDF->setTextColor( 0 , 0  ,0 );
+      	     $PDF->MultiCell( $contenuWidth , 20 , " Aucune ligne valide n'a été retrouvée " , 1 ,'C', false , 0 , "" , "" , true, 0 , false , true, 0 , "M");
+      	     $PDF->Ln( 10 );
+}
+
+$PDF->Ln( 10 );
+echo $PDF->Output("listregistrephysiques.pdf","D");

@@ -1,0 +1,141 @@
+<?php 
+   $model       = new Model_Document();
+   $registre    = $this->registre;
+   $numero      = ( $registre ) ? $registre->numero : "";
+   $documents   = $this->documents;  
+   $linkDelete  = $this->url(array("controller" => "userdocuments", "action" => "delete", "module" => "admin"), "default") ;
+   $linkInfos   = $this->url(array("controller" => "userdocuments", "action" => "infos", "module" => "admin"), "default") ;
+   $linkDownload= $this->url(array("controller" => "userdocuments", "action" => "download", "module" => "admin"), "default") ;
+   $output      = "";
+   $output     .= "<ul class=\"list-group documentList\">";
+   $totalSize   = 0;
+    if(count($documents)) {
+    	  foreach($documents as $document) {
+    	  	$documentid   = intval($document["documentid"]);
+    	  	$filename     = $document["filename"];
+    	  	$filextension = strtolower($document["filextension"]);
+    	  	$filemetadata = $document["filemetadata"];
+    	  	$filesize     = $document["filesize"];
+    	  	$libelle      = $model->filterIndex( $filename, $numero );
+    	  	$icone        = "glyph-icon icon-file";
+			$class        = "openDocumentDialog";
+			$title        = "Accéder au document";
+    	  	
+    	  	$filesize     = ( isset( $document["filepath"] ) && file_exists( $document["filepath"] ) ) ? filesize( $document["filepath"] ) : $document["filesize"] ;
+			$sizeKo       = Sirah_Functions::toByteString( $filesize, "", 1);
+    	  	$totalSize   += $filesize;
+    	  	    	  	 
+    	  	
+    	  	switch( $filextension ) {
+    	  		case "pdf":
+    	  			$icone = "glyph-icon icon-file-pdf-o";
+    	  			break;
+    	  		case "doc":
+    	  		case "docx":
+    	  			$icone = "glyph-icon icon-file-word-o";
+    	  			break;
+    	  		case "xml":
+    	  			$icone = "glyph-icon icon-file-xml-o";
+    	  			break;
+    	  		case "ppt":
+    	  			$icone = "glyph-icon icon-file-powerpoint-o";
+    	  			break;
+    	  		case "xls":
+    	  		case "xlxs":
+    	  		case "csv":
+    	  			$icone = "glyph-icon icon-file-excel-o";
+    	  			break;
+    	  		case "png":
+    	  		case "gif":
+    	  		case "jpg":
+    	  		case "jpeg":
+    	  		case "bmp":
+    	  			$icone = "glyph-icon icon-image-o";
+					$class = "dialogViewInfos";
+    	  			break;    	  			
+    	  	}    	  	    	  	
+    	  	$linkView  = $this->url(array("controller" => "userdocuments", "action" => "infos", "id" => $documentid , "module" => "admin") , "default");    	  	
+    	  	$output   .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+                              <div class=\"row\">
+                                 <div class=\"col-md-1\"><span title=\"Supprimer le document\"   id=\"closeId-".$documentid."\" class=\"glyph-icon icon-remove pull-left deleteDocument \"></span></div>							  
+                                 <div class=\"col-md-1\"><span title=\"Télécharger le document\" id=\"fileId-".$documentid."\"  class=\"glyph-icon icon-download downloadDocument\"></span></div>   
+								 <div class=\"col-md-7\">
+                                       <span class=\"".$icone."\"></span>
+                                       <a class='".$class."' title='".$title."' href='".$linkView."'>". $libelle ." </a>
+                                 </div>
+                                 <div class=\"col-md-3\"><p class=\"text-mute\"> ".$sizeKo."</p> </div>                                                             
+                              </div>
+                          </li> ";
+    	  }
+    	  $totalSizeKo = Sirah_Functions::toByteString( $totalSize );
+    	  $output   .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+    	                     <div class=\"row\">
+    	                        <div class=\"col-md-9\"> <p class=\"list-group-item-text\"> Taille totale : </p> </div>
+    	                        <div class=\"col-md-3\"> <p class=\"text-mute\"> ".$totalSizeKo."</p> </div>
+    	                     </div>
+    	                 </li> ";
+    }  else {
+    	$output .= " <li class=\"list-group-item\" id=\"documentId-0\">
+    	               <p style=\"text-align:center;\" class=\"list-group-item-text\"> Aucun document n'a été rattaché à ce registre de commerce. </p>
+    	             </li>";
+    }
+    $output     .= "</ul>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+	   jQuery('.openDocumentDialog').click(function(event){
+		       event.preventDefault();
+		       var contentLink     = jQuery(this).attr('href');
+		       var documentDialog  = jQuery('<div></div>').attr('id','documentDialog'); 
+			   documentDialog.dialog2({title:'Lecture du document...',content:contentLink,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true, closeOnOverlayClick:false,showCloseHandle:true,initialLoadText:'Chargement de la page, patientez...' });        		            		
+               documentDialog.dialog2('open'); 	          
+	   });
+	   jQuery(document).delegate('.pdfDialog', 'dialog2.content-update', function(){
+			   var e    = jQuery(this);
+			   var span = e.find('.headerInfos');
+			   span.each(function(i, obj){
+				   var el = jQuery( this );
+				   el.css('display', 'block');
+				   el.css('color', 'black');
+				   el.appendTo('.modal-header:first');
+			   });			   
+	    });
+       jQuery('.deleteDocument,.downloadDocument').css('cursor','pointer');
+	   jQuery('.downloadDocument').click(function(event){ event.preventDefault();var itemId= parseInt(jQuery(this).attr('id').replace('fileId-',''));document.location.href= '".$linkDownload."/documentid/'+itemId;});
+       jQuery('.deleteDocument').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer ce document ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose: true,closeOnEscape: false, closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'documentid' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){
+             		             		                               jQuery('#documentId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });
+      
+    ";    
+    $jq->addOnLoad($onLoad);
+?>
+             

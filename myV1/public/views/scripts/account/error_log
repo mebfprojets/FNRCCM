@@ -1,0 +1,28 @@
+[27-Dec-2022 21:23:38 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/account/activation.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/activation.phtml on line 2
+[27-Dec-2022 21:23:46 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/account/emailactivation.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/emailactivation.phtml on line 2
+[27-Dec-2022 21:23:49 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/account/login.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/login.phtml on line 2
+[27-Dec-2022 21:23:52 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/account/modification.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/modification.phtml on line 2
+[27-Dec-2022 21:23:56 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/account/register.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/register.phtml on line 2
+[27-Dec-2022 21:24:00 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/account/sendactivationtoken.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/sendactivationtoken.phtml on line 2
+[27-Dec-2022 21:24:04 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/account/settings.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/account/settings.phtml on line 2

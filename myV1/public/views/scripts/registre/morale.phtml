@@ -1,0 +1,160 @@
+<?php 
+$me              = Sirah_Fabric::getUser();
+$data            = $this->data;
+$documents       = $this->documents;
+$categories      = array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B");
+$registreid      = $this->registreid;
+$registre        = $this->registre;
+$entreprise      = $this->entreprise;
+$domaine         = $this->domaine;
+$localite        = $this->localite;
+$forme           = $this->forme;
+$modifications   = $this->modifications;
+$suretes         = $this->suretes;
+$dirigeants      = $this->dirigeants;
+
+$linkDownload    = "";
+$linkRequest     = $this->url(array("controller"=>"requetes" ,"action" => "create","registreid" => $registreid,"module"=>"public"), "default");
+$linkCancel      = $this->url(array("controller"=>"registres","action" => "list","typeid" => 2,"typelib" => "morales"  ), "registrelist");
+
+$basePath        = VIEW_BASE_PATH;
+$jq              = $this->jQuery();
+
+$jq->addOnLoad("
+jQuery('.makeRequest').click( function(event){event.preventDefault();document.location.href = '".$linkRequest."';});
+jQuery('.homeButton,.cancelButton').click(function(event){ event.preventDefault();document.location.href ='".$linkCancel."'; });");
+$creationDate    = "00/00/0000";
+$updateDate      = "00/00/0000";
+$registreDate    = "00/00/0000";
+$birthDate       = "00/00/0000";
+$creator         = Sirah_Fabric::getUser( $registre->creatorid     );
+$updatedUser     = Sirah_Fabric::getUser( $registre->updateduserid );
+$countries       = $this->countries();
+$nationalite     = "";
+
+if( $registre->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $registre->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $registre->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $registre->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+if( $registre->date ) {
+    $zendRegistreDate    = new Zend_Date( $registre->date, Zend_Date::TIMESTAMP );
+    $registreDate        = $zendRegistreDate->toString("dd MMMM yyyy");
+}
+if( $representant->datenaissance ) {
+    $zendBirthDate       = new Zend_Date( $representant->datenaissance, Zend_Date::DATETIME );
+    $birthDate           = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+}
+if( $representant->country) {
+	$nationalite         = (isset( $countries[$representant->country] )) ? $countries[$representant->country] : "";
+}
+?>
+<div class="panel-heading"><h4><span class="glyphicon glyphicon-star"></span> Les informations du registre </h4> </div>
+<ul  class="list-group">
+     <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Numéro RC:</b></div> 
+             <div class="col-md-8"><?php echo $registre->numero; ?></div>
+         </div>
+      </a>                
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Nom commercial:</b></div> 
+            <div class="col-md-8"><?php echo $registre->libelle; ?></div>
+         </div>
+      </a>
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Localité:</b></div> 
+            <div class="col-md-8"><?php echo ( $localite ) ? $localite->libelle : ""; ?></div>
+         </div>
+      </a>
+      <a class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <b> Domaine d'activité:</b></div> 
+            <div class="col-md-8"><?php echo ( $domaine ) ? $domaine->libelle : ""; ?></div>
+         </div>
+      </a>
+	  <?php if( $registre->description ): ?>
+		<li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <b> Description de l'activité:</b></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($registre->description); ?> </div>
+            </div>
+        </li>
+	  <?php endif; ?>
+	  <?php if($registre->date) : ?>
+        <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-12 "> Inscrit dans le registre à la date du <?php echo $registreDate; ?> </div> 
+            </div>
+        </li>
+      <?php endif; ?>
+</ul>
+<div class="panel-heading"> <h4> <span class="fa fa-institution"></span> Les informations de la société </h4> </div>
+<ul  class="list-group">
+   <a class="list-group-item">
+      <div class="row"> 
+          <div class="col-md-4"> <b> Raison sociale :</b></div> 
+          <div class="col-md-8"><?php echo ( $entreprise ) ? $entreprise->libelle : ""; ?></div>
+      </div>
+    </a>
+    <?php if( $forme) : ?>
+    <a class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="forme"> <b> Forme juridique:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($forme->libelle);  ?></div>
+       </div>
+    </a>
+    <?php endif; ?>
+     <a class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="capital"> <b> Capital social:</b> </label></div> 
+            <div class="col-md-8"><?php echo ($entreprise->capital) ? number_format($entreprise->capital, 0, " ", " ")." F CFA" : "0 F CFA";  ?></div>
+       </div>
+     </a> 
+     <a class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="address"> <b> Adresse du siège: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->address);  ?></div>
+       </div>
+     </a>   
+    <a class="list-group-item">    
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><?php  printf("Fixe : %s / Mobile : %s", $entreprise->phone1, $entreprise->phone2);  ?></div>
+       </div>
+    </a> 
+    <a class="list-group-item">    
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($entreprise->zip);  ?></div>
+       </div>
+    </a> 
+    <a class="list-group-item">     
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="siteweb"> <b> Site Web: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $entreprise->siteweb;  ?></div>
+       </div>
+    </a>  
+</ul>
+<div class="panel-heading"> <h4> <span class="fa fa-group"></span> Les dirigeants </h4></div>
+<?php echo $this->partial("registres/dirigeants.phtml", array("dirigeants"=>$dirigeants, "registre"=>$registre )); ?>
+<div class="panel-heading"> <h4> <span class="glyphicon glyphicon-list"></span> Historique des modifications </h4></div>
+<?php echo $this->partial("registres/modifications.phtml", array("modifications" => $modifications, "registre" => $registre )); ?>
+<div class="panel-heading"> <h4> <span class="glyphicon glyphicon-file"></span> Les documents associés </h4></div>
+<?php echo $this->partial("registres/documents.phtml", array("documents" => $documents,"registre"=>$registre,"numero"=>$this->numero)); ?>
+<div class="panel-footer">
+    <div class="btn-group"> <button class="btn btn-primary cancelButton"><i class="glyphicon glyphicon-chevron-left"> </i>  Revenir sur la liste  </button> </div>  
+    <div class="btn-group"> <button class="btn btn-success makeRequest"> <i class="glyphicon glyphicon-send"> </i> Demander l'accès à ce registre </button> </div>    
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?> 

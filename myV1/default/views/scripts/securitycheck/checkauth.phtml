@@ -1,0 +1,73 @@
+<?php 
+$messages    = $this->errormessages;
+$formSubmit  = $this->url(array("controller" => "securitycheck", "action" => "reauthenticate") , "default" );
+$basePath    = ROOT_PATH."/templates/sirah";
+$user        = $this->user;
+$avatar      = (Sirah_Filesystem::fie_exists($user->avatar)) ? $user->avatar : $basePath."/images/logo.png";
+
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+
+<?php $this->headStyle()->captureStart() ?>
+
+  div#useraccount-login
+  {
+     width:99%;
+     height:auto;
+     text-align:center;
+     margin:50px auto auto auto;
+     overflow:hidden;
+  }
+  
+  form#useraccount-loginform
+  {
+    width: 410px;
+    height:auto;
+    padding:10px;
+    margin:0 auto 10px;
+    background-color: #F7F7F7;
+    border-radius: 2px 2px 2px 2px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  form#useraccount-loginform div
+  {
+     text-align:left;
+  }
+  
+
+form.form-horizontal .controls 
+{
+    margin-left: 80px;
+}
+
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+  $jq     = $this->jQuery();  
+  $onLoad = " ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+
+<div id="useraccount-login" class="authentication">
+    <img src="<?php echo $avatar;  ?>"   align="center" />
+    <form method="post" action="<?php echo $formSubmit;  ?>" accept-charset="UTF-8"  id="securitycheck-loginform" class="form-horizontal">        
+       <div class="control-group" style="text-align:center;"><?php echo $this->errormessage($messages); ?></div>
+       <div class="control-group" style="text-align:center;">
+             <img src="<?php echo $basePath."/images/login_avatar.png";  ?>" width="90px" align="center" class="img-circle img-polaroid" />
+            <div class="controls">
+               <input type="text"   name="credential" id="credential"  class="input-large" autocomplete="off" placeholder="Entrez votre mot de passe" />> 
+            </div>
+            
+           <div class="controls">
+               <button type="submit" class="btn btn-primary ">Vérifier</button> 
+           </div>
+        </div>
+     
+    </form>
+</div>

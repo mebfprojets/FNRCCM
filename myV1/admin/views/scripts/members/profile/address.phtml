@@ -1,0 +1,24 @@
+<?php 
+$member      = $this->member;
+$memberid    = $this->memberid;
+?>
+ <ul class="list-group">
+         <li class="list-group-item"  title="Accéder aux informlitions de ce member">
+            <div class="row"> 
+                <div class="col-md-5"> <b> Adresse:</b></div> 
+                <div class="col-md-7"><?php echo $member->address; ?></div>
+            </div>
+         </li>
+		 <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-5"> <b> Adresse email:</b></div> 
+                <div class="col-md-7"><?php echo $member->email; ?></div>
+            </div>
+         </li>
+		 <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-5"> <b> Téléphone:</b></div> 
+                <div class="col-md-7"><?php printf("%s %s", $member->tel1, $member->tel2); ?></div>
+            </div>
+         </li>                                  
+</ul>

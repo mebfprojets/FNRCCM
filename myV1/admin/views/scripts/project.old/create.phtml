@@ -1,0 +1,162 @@
+<?php 
+$data                   = $this->data;
+$beneficiaires          = $this->entreprises;
+$types                  = $this->types;
+$domaines               = $this->domaines;
+$cities                 = $this->cities;
+$formNames              = $this->formNames;
+$formSubmit             = $this->url(array("module" => "admin","controller" =>"project", "action" => "create") , "default" );
+$backList               = $this->url(array("module" => "admin","controller" =>"project", "action" => "infos")      , "default" );
+$linkSearchEntreprises  = $this->url(array("module" => "admin","controller" =>"ajaxres", "action" => "countries")  , "default" );
+$linkSearchTypes        = $this->url(array("module" => "admin","controller" =>"ajaxres", "action" => "projectypes"), "default" );
+$linkSearchCities       = $this->url(array("module" => "admin","controller" =>"ajaxres", "action" => "cities"), "default" );
+
+$basePath               = ROOT_PATH."/myTpl/default";
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%;margin:auto;}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio{color: #333333;font-size: 18px;font-weight: normal;padding:20px;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = "";
+$onLoad.= "var types       =".ZendX_JQuery::encodeJson( $types ).";";
+$onLoad.= "var beneficiaires =".ZendX_JQuery::encodeJson( $beneficiaires ).";";
+$onLoad.= "var cities      =".ZendX_JQuery::encodeJson( $cities ).";";
+$onLoad.= "
+var citiesEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                   local: cities,remote:{url: '".$linkSearchCities."?q=%QUERY'}});
+citiesEngine.initialize();
+var typeEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                 local : types,remote:{url:'".$linkSearchTypes."?q=%QUERY'}});
+typeEngine.initialize(); 
+var beneficiaireEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                       local :beneficiaires,remote:{url:'".$linkSearchEntreprises."?q=%QUERY'}});
+beneficiaireEngine.initialize();
+jQuery('#".$formNames['beneficiaire']."').typeahead({highlight:true,minLength:2},{name:'".$formNames['beneficiaire']."',displayKey:'value',source:beneficiaireEngine.ttAdapter(),limit: 10});
+jQuery('#".$formNames['beneficiaire']."').bind('typeahead:selected',function(obj,datum,name){jQuery('#".$formNames['beneficiaireid']."').val(datum.label);jQuery.data(document.body,'selectedprofesssion',datum.value );});
+jQuery('#".$formNames['beneficiaire']."').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedbeneficiaire'))){jQuery('#".$formNames['beneficiaireid']."').val(0);}});
+
+jQuery('#".$formNames['typevalue']."').typeahead({highlight:true,minLength:2},{name:'".$formNames['typevalue']."',displayKey:'value',source:typeEngine.ttAdapter(),limit: 10});
+jQuery('#".$formNames['typevalue']."').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedtype'))){jQuery('#".$formNames['type']."').val(0);}});
+jQuery('#".$formNames['typevalue']."').bind('typeahead:selected',function(obj,datum,name){jQuery('#".$formNames['type']."').val(datum.label);jQuery.data(document.body,'selectedtype',datum.value );});
+
+jQuery('#".$formNames['ville']."').typeahead({highlight:true,minLength:2},{name:'".$formNames['ville']."',displayKey:'value',source:citiesEngine.ttAdapter(),limit:10});
+jQuery('#".$formNames['ville']."').bind('typeahead:selected',function(obj,datum,name){jQuery('#".$formNames['city']."').val(datum.label);jQuery.data( jQuery('#insertproject-form'),'selectedcity',datum.value);});
+jQuery('#".$formNames['ville']."').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedcity'))){jQuery('#".$formNames['city']."').val(0);}});
+
+jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});
+jQuery('.insertProject').click(function(e){e.preventDefault();});
+jQuery('#".$formNames['domaineid']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun domaine ne correspond à '});
+jQuery('#".$formNames['country']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '}); ";
+$jq->addOnLoad($onLoad);
+$beneficiaire                 = (isset($data["beneficiaire"]))        ? $this->escape($data["beneficiaire"]) : null;
+$type                         = (isset($data["typevalue"]))           ? $this->escape($data["typevalue"])    : null;
+$ville                        = (isset($data["ville"]))               ? $this->escape($data["ville"])        : null;
+$data["periode_start_day"]    = (isset($data["periode_start_day"]))   ? $data["periode_start_day"]           : "00";
+$data["periode_start_month"]  = (isset($data["periode_start_month"])) ? $data["periode_start_month"]         : "00";
+$data["periode_start_year"]   = (isset($data["periode_start_year"]))  ? $data["periode_start_year"]          : "0000";  
+$data["periode_end_day"]      = (isset($data["periode_end_day"]))     ? $data["periode_end_day"]             : "00";
+$data["periode_end_month"]    = (isset($data["periode_end_month"]))   ? $data["periode_end_month"]           : "00";
+$data["periode_end_year"]     = (isset($data["periode_end_year"]))    ? $data["periode_end_year"]            : "0000";
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="insertproject-form"   role="form">
+<div class="container">
+<ul class="list-group">
+   <li class="list-group-item"> 
+      <div class="row">              
+         <div class="col-md-4"> <label class="label" for="theme"> <b> Thème du projet*: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['theme']; ?>" type="text" class="input" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="L'intitulé du projet" placeholder="L'intitulé du projet" name="<?php echo $formNames['theme']; ?>" value="<?php echo $this->escape($data['theme']); ?>">
+          </div> 
+     </div>
+   </li>
+   <li class="list-group-item">     
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="type"> <b> Type de projet: </b> </label> </div>
+         <div class="col-md-8"> <input id="<?php echo $formNames['typevalue']; ?>" type="text" class="input typeahead" placeholder="Le type de projet" 
+                                       title="Le type de projet" value="<?php echo $type; ?>" name="<?php echo $formNames['typevalue']; ?>" > </div>
+     </div>
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" > <b> Le bénéficiaire : </b> </label> </div>
+         <div class="col-md-8"> <input id="<?php echo $formNames['beneficiaire']; ?>" name="<?php echo $formNames['beneficiaire']; ?>" type="text" class="input typeahead" placeholder="L'entreprise qui a beneficié du projet" 
+                                       title="L'entreprise qui a beneficié du projet" value="<?php echo $beneficiaire; ?>" > </div>
+     </div>
+   </li>
+   <li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="domaine"> <b> Le secteur d'activités*: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect($formNames['domaineid'] , intval($data["domaineid"]), array(), $domaines ); ?></div> 
+     </div>
+   </li> 
+   <li class="list-group-item">     
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="country"> <b> Pays concerné*: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect($formNames['country'], $this->escape($data["country"]) , array() , $this->countries()); ?></div>
+     </div>
+   </li>
+   <li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="city"> <b> La ville concernée*: </b> </label> </div>
+         <div class="col-md-8"> <input id="<?php echo $formNames['ville']; ?>" type="text"  name="<?php echo $formNames['ville']; ?>" value="<?php echo $ville; ?>" title="La ville rattachée à la la fonction"
+                                       class="input typeahead" placeholder="La ville rattachée à la la fonction" > </div>
+     </div>
+   </li>
+  <li class="list-group-item">                 
+     <div class="row">    
+         <div class="col-md-3"> <label class="label" for="periode"> <b> Dans la période du: </b>  </label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect($formNames['periode_start_month'], $data["periode_start_month"], array(),array(0 =>"Mois")+$this->months()); ?></div>
+         <div class="col-md-2"><?php echo $this->formSelect($formNames['periode_start_year'] , $data["periode_start_year"] , array(),array(0 =>"Année")+createYearsArray( ( intval(date("Y")) - 40 ), intval(date("Y")) ) );?></div>
+         <div class="col-md-1"> au </div>
+         <div class="col-md-2"><?php echo $this->formSelect($formNames['periode_end_month'], $data["periode_end_month"], array(), array(0 =>"Mois")+$this->months()); ?></div>
+         <div class="col-md-2"><?php echo $this->formSelect($formNames['periode_end_year'] , $data["periode_end_year"] , array(), array(0 =>"Année")+createYearsArray(( intval(date("Y")) - 40 ), intval(date("Y")) ) );?></div>          
+    </div>
+   </li>
+  <li class="list-group-item"> 
+      <div class="row">              
+         <div class="col-md-4"> <label class="label" for="website"> <b> Site web: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['website']; ?>" type="text" class="input" maxlength="80" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le site web de présentation du projet" placeholder="Le site web de présentation du projet" name="<?php echo $formNames['website']; ?>" value="<?php echo $this->escape($data['website']); ?>">
+          </div> 
+     </div>
+  </li>
+  <li class="list-group-item">     
+    <div class="row">
+               <div class="col-md-4"> <label class="label" for="sexe"> <b> Décrivez brièvement cette expérience: </b> </label> </div>
+               <div class="col-md-8">
+                   <textarea  name="<?php echo $formNames['presentation']; ?>" id="<?php echo $formNames['presentation']; ?>" class="textarea" rows="5" cols="55">
+                       <?php echo $data["presentation"]; ?>
+                   </textarea> 
+               </div>  
+     </div> 
+  </li>
+</ul>  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                       <button type="submit" class="btn btn-default btn-primary insertProject"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancel">Annuler</button>         
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?>
+   <?php echo $this->headStyle(); ?>  
+   <?php endif; ?>
+   </div>
+<input type="hidden" name="<?php echo $this->csrfTokenId; ?>"              id="<?php echo $this->csrfTokenId; ?>"               value="<?php echo $this->csrfTokenValue; ?>"    />
+<input type="hidden" name="<?php echo $formNames['profileid']; ?>"          id="<?php echo $formNames['profileid']; ?>"         value="<?php echo $data["profileid"]; ?>"    />
+<input type="hidden" name="<?php echo $formNames['beneficiaireid']; ?>"     id="<?php echo $formNames['beneficiaireid']; ?>"    value="<?php echo $data["beneficiaireid"]; ?>" />
+<input type="hidden" name="<?php echo $formNames['type']; ?>"               id="<?php echo $formNames['type']; ?>"              value="<?php echo $data["type"]; ?>" />
+<input type="hidden" name="<?php echo $formNames['city']; ?>"               id="<?php echo $formNames['city']; ?>"              value="<?php echo $data["city"]; ?>"         />
+<input type="hidden" name="<?php echo $formNames['periode_start_day']; ?>"  id="<?php echo $formNames['periode_start_day']; ?>" value="<?php echo $data["periode_start_day"]; ?>"  />
+<input type="hidden" name="<?php echo $formNames['periode_end_day']; ?>"    id="<?php echo $formNames['periode_end_day']; ?>"   value="<?php echo $data["periode_end_day"]; ?>"  />
+</form>

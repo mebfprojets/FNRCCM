@@ -1,0 +1,113 @@
+<?php
+  $tplPath            = VIEW_BASE_PATH;
+  $me                 = Sirah_Fabric::getUser();
+  $layout             = Zend_Layout::getMvcInstance();
+  $view               = $layout->getView();  
+  
+  $helperBroker       = Zend_Controller_Action_HelperBroker::getStaticHelper("Csrf");
+  
+  $csrfTokenId        = $helperBroker->getTokenId(15);
+  $csrfTokenValue     = $helperBroker->getToken(300);
+  $csrfFormNames      = $helperBroker->getFormNames(array("username","password") , false );
+  
+  $defaultSession     = new Zend_Session_Namespace();
+  if(!isset($defaultSession->logoutoken)) {
+  	$defaultSession->logoutoken = Sirah_User_Helper::getToken(15).time();
+  }
+  $logoutoken         = $defaultSession->logoutoken;
+
+  $linkStatLocalites  = $view->url(array("controller" => "statistiques", "action" => "localites"), "frontend");
+  $linkStatDomaines   = $view->url(array("controller" => "statistiques", "action" => "domaines" ), "frontend");
+  $linkStatSexes     = $view->url(array("controller"  => "statistiques", "action" => "sexe"     ), "frontend");
+  
+  $linkLogin          = $view->url(array("controller" => "account", "action" => "login" , "module" => "public"), "default");
+  $linkCreateAccount  = $view->url(array("controller" => "account", "action" => "create", "module" => "public"), "default");
+  $linkDashboard      = $view->url(array("controller" => "account", "action" => "dashboard", "module" => "public"), "default");
+  $linkLogout         = $view->url(array("controller" => "account", "action" => "logout", "module" => "public", $logoutoken => "1"), "default");
+  $linkRequests       = $view->url(array("controller" => "requetes","action" => "list", "module" => "public"), "default");
+  $linkSettings       = $view->url(array("controller" => "account", "action" => "settings", "module" => "public"), "default");
+  $forgotPasswordLink = $this->url(array("controller" => "recoverpwd", "action" => "init" , "module" => "public")  , "default");
+  
+  $jq                 = $view->jQuery();
+  $onLoad             = "
+                          jQuery('.recoverMyPwd').click(function( event ){event.preventDefault(); document.location.href = '".$forgotPasswordLink."'; });
+                          jQuery('.createAccount').click(function(event ){event.preventDefault(); document.location.href = '".$linkCreateAccount."';  });
+                          jQuery('.login').click(function( event ){ 
+                                 event.preventDefault();
+                                 var loginForm  = jQuery('#useraccountLoginForm') ;
+                                 var  username  = jQuery.trim(jQuery('#username').val());
+                                 var  credential= jQuery.trim(jQuery('#password').val());      
+                                 if( SIRAH.util.isEmpty(username)){
+                                    jQuery('#username').addClass('input-error');
+                                    SIRAH.error.raise('useraccountLoginForm','Entrez un identifiant valide');
+                                    return;
+                                 }      
+                                 if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+                                    jQuery('#password').addClass('input-error');
+                                    SIRAH.error.raise('useraccountLoginForm','Entrez un mot de passe valide');
+                                    return;
+                                 }
+                                  loginForm.submit();});
+                           ";
+  
+  $jq->addOnLoad( $onLoad );
+?>
+<?php $view->headStyle()->captureStart() ?>
+.rightMenuPanel ul, .rightMenuPanel > ul > li {margin:0 !important;}
+.rightMenuPanel > .list-group-item.active, .rightMenuPanel > .list-group-item.active:hover, 
+.rightMenuPanel > .list-group-item.active:focus {background-color:red !important; background-image:none;}
+.rightMenuPanel > .active > a, .list-group > .active > a:hover, .list-group > .active > a:focus {color: #ffffff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);}
+.list-group > .active > a {order: 0 none;box-shadow:0;padding:0;position: relative;text-shadow: 0;z-index: 2;}
+.form-horizontal .form-group {margin-left: -15px;margin-right: -15px;}
+<?php $view->headStyle()->captureEnd(); ?>
+
+<?php if( $me->isGuest()): ?>
+<div  class="panel panel-default">
+ <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-user"></span> MON COMPTE </h4></div>
+ <div class="panel-body" style="padding-top:10px">
+  <form id="useraccountLoginForm" method="post" action="<?php echo $linkLogin; ?>" class="form-horizontal" role="form">
+   <div style="margin-bottom:5px" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span><input name="username" type="text" class="form-control" id="username" placeholder="Votre adresse email" value="" autocomplete="off" ></div>
+   <div style="margin-bottom:5px" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span><input type="password" class="form-control" id="password" placeholder="Votre mot de passe" name="password" autocomplete="off" ></div>
+   
+   <div style="margin-bottom:5px;width:100%;" class="input-group"><button style="width:100%;" type="submit" class="btn btn-primary login"> <i class="glyphicon glyphicon-log-in"></i> CONNEXION </button></div>
+   <div style="margin-bottom:5px;width:100%;" class="input-group"> <button style="width:100%;" type="submit" class="btn btn-secondary createAccount"> <i class="glyphicon glyphicon-user"></i> M'INSCRIRE </button></div>
+   <div style="margin-bottom:5px;width:100%;" class="row">
+       <div class="col-md-7 checkbox-primary pull-left"> <label><input id="rememberme" type="checkbox" name="rememberme" value="1"> Restez connecté </label> </div>
+	   <div class="col-md-5 pull-right"> <a class="recoverMyPwd"  href="#" title="Réinitialisation de mon mot de passe">Besoin d'aide? </a> </div>
+   </div>
+     <input type="hidden" name="<?php echo $csrfTokenId; ?>"  id="<?php echo $csrfTokenId; ?>"  value="<?php echo $csrfTokenValue; ?>" />   
+     <input type="hidden" name="continue"  id="continue"  value="" />
+  </form>
+</div>
+</div>
+<div  class="panel panel-default">
+  <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="	glyphicon glyphicon-exclamation-sign"></span> AVEC LE ERCCM </h4></div>
+     <ul class="list-group">
+         <li class="list-group-item"> <i class="fa fa-check-square"></i> Consultez l'historique des entreprises et commerçants en ligne     </li>
+	     <li class="list-group-item"> <i class="fa fa-check-square"></i> Accédez aux informations légales inscrites au Registre du Commerce </li>
+		 <li class="list-group-item"> <i class="fa fa-download"></i> Téléchargez les formulaires, les statuts et les fonds de dossiers </li>
+	</ul>
+</div>
+<?php else: ?>
+<div  class="panel panel-default">
+ <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-user"></span> MON COMPTE </h4></div>
+  <ul class="list-group">
+        <li class="list-group-item"> <a href="<?php echo $linkDashboard; ?>"> <i class="glyphicon glyphicon-dashboard "> </i> Tableau de bord </a></li>
+        <li class="list-group-item"> <a href="<?php echo $linkRequests;  ?>"> <i class="glyphicon glyphicon-shopping-cart "> </i> Mon panier     </a></li>
+		<li class="list-group-item"> <a href="<?php echo $linkSettings;  ?>"> <i class="glyphicon glyphicon-cog "> </i> Mes paramètres        </a></li>
+        <li class="list-group-item"> <a href="<?php echo $linkRequests;  ?>"> <i class="glyphicon glyphicon-th-list "> </i> Mes demandes d'accès      </a></li>
+        <li class="list-group-item"> <a href="<?php echo $linkLogout;    ?>"> <i class="glyphicon glyphicon-log-out "> </i> Déconnexion       </a></li>
+  </ul>
+ 
+</div>
+<?php endif; ?>
+
+<div  class="panel panel-default">
+  <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-stats"></span> Statistiques </h4></div>
+     <ul class="list-group rightModMenu">
+         <li class="list-group-item <?php echo ($this->isController == "stat-localites") ? 'active' : ''; ?>"> <a href="<?php echo $linkStatLocalites; ?>"> <i class="glyphicon glyphicon-chevron-right"></i> Par localité </a></li>
+	     <li class="list-group-item <?php echo ($this->isController == "stat-domaines" ) ? 'active' : ''; ?>"> <a href="<?php echo $linkStatDomaines;  ?>"> <i class="glyphicon glyphicon-chevron-right"></i> Par domaine d'activités </a></li>
+         <li class="list-group-item <?php echo ($this->isController == "stat-sexes"    ) ? 'active' : ''; ?>"> <a href="<?php echo $linkStatSexes;    ?>"> <i class="glyphicon glyphicon-chevron-right"></i>  Par sexe </a></li>
+	</ul>
+</div>
+

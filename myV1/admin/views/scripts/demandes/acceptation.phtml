@@ -1,0 +1,36 @@
+<?php 
+$demande         = $this->demande;
+$demandeid       = $this->demandeid;
+ 
+$jq              = $this->jQuery();
+$linkCancel      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"infos"  ,"demandeid"=>$demandeid), "default");
+$linkReserve     = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"reserve","demandeid"=>$demandeid), "default");
+ 
+
+$onLoad          = "
+    jQuery('.cancel').click(function(event){ event.preventDefault();document.location.href=\"".$linkCancel."\";});
+    jQuery('.reserve').click(function(event){event.preventDefault();document.location.href=\"".$linkReserve."\";});
+";
+
+$jq->addOnLoad($onLoad);
+
+$basePath        = ROOT_PATH.'/myTpl/public';
+
+$jq->addJavascriptFile($basePath ."/scripts/widgets/collapse/collapse.js");
+?>
+
+<div style="margin-bottom:10px;"  class="row">
+    <h2 class="title-hero"> <?php printf("Voulez-vous réserver le nom commercial %s ?", $demande->objet ); ?></h2>
+    <div class="divider"> </div>
+	
+	
+</div>
+<div style="margin-bottom:20px;"  class="row">
+    <div class="col-md-6">
+	    <a class="btn btn-lg btn-danger cancel"> <i class="glyph-icon icon-chevron-left"> </i> ANNULER</a>
+	</div>
+	
+	<div class="col-md-6">
+	    <a class="btn btn-lg btn-success reserve"> RESERVER <i class="glyph-icon icon-chevron-right"> </i> </a>
+	</div>
+</div>

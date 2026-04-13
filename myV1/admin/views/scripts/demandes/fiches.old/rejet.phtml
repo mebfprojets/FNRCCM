@@ -1,0 +1,186 @@
+<?php
+$demande              = $this->demande;
+$demandeid            = $this->demandeid;
+$localite             = $this->localite;
+$entreprise           = $this->entreprise;
+$demandeur            = $this->demandeur;
+$identite             = $this->identite;
+$identiteTypeRow      = $this->identiteType;
+$data                 = $this->data;
+$me                   = (isset($data["me"]    ))? $data["me"]       :  null;
+$demandeDate          = ( $demande )? date("d/m/Y", $demande->date) : date("d/m/Y");
+$nationalites         = $this->nationalites();
+
+$myLastName           = $me->lastname;
+$myFirstName          = $me->firstname;
+
+$demandeNumero        = $demande->numero;
+$demandeObjet         = $demande->objet;
+
+$demandeurName        = (isset($demandeur->name      ))? $demandeur->name       : "";
+$demandeurFirstname   = (isset($demandeur->firstname ))? $demandeur->firstname  : "";
+$demandeurLastname    = (isset($demandeur->lastname  ))? $demandeur->lastname   : "";
+$demandeurAdresse     = (isset($demandeur->adresse   ))? $demandeur->adresse    : "";
+$demandeurEmail       = (isset($demandeur->email     ))? $demandeur->email      : "";
+$demandeurTelephone   = (isset($demandeur->telephone ))? $demandeur->telephone  : "";
+$demandeurCountry     = (isset($demandeur->country   ))? strtolower($demandeur->country) : "bf";
+$demandeurNationalite = (isset($nationalites[$demandeurCountry]))? $nationalites[$demandeurCountry] : "";
+$demandeurSexe        = (isset($demandeur->sexe      ))? $demandeur->sexe       : "";
+$demandeurProfession  = (isset($demandeur->profession))? $demandeur->profession : "";
+$demandeurAdresse     = sprintf("Tel : %s, Adresse : %s",$demandeurTelephone, $demandeurAdresse);
+
+$promoteurName        = (isset($promoteur->name      ))? $promoteur->name       : "";
+$promoteurTelephone   = (isset($promoteur->telephone ))? $promoteur->telephone  : "";
+$promoteurAdresse     = (isset($promoteur->adresse   ))? $promoteur->adresse    : "";
+$promoteurAdresse     = sprintf("Tel: %s, Adresse: %s",  $promoteurTelephone, $promoteurAdresse);
+
+if( $identite ) {
+	$identiteType     = ( $identiteTypeRow )? $identiteTypeRow->libelle : "CNIB";
+	$demandeurIdentite= sprintf("%s numéro %s établi le %s à %s ", $identiteType->libelle, $identite->numero,$identite->date_etablissement,$identite->lieu_etablissement);
+    $demandeurIdentiteOrganisme = $identite->organisme_etablissement;
+} else {
+	$demandeurIdentite          = "";
+	$demandeurIdentiteOrganisme = "";
+}
+$NomCommercial        = ( $entrepriseRow )?$entrepriseRow->nomcommercial : "";
+$Sigle                = ( $entrepriseRow )?$entrepriseRow->sigle         : "";
+$Denomination         = ( $entrepriseRow )?$entrepriseRow->denomination  : "";
+
+$localiteName         = ( $localite      )?$localite->libelle            : "";
+  
+$output.= "<form method=\"post\" action=\"#\" enctype=\"multipart/form-data\">";
+$output.= "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">
+                <tr>
+                    <td valign=\"top\" align=\"left\" width=\"50%\"> 
+					    <p style=\"vertical-align:top;text-align:justify;font-size:14pt;\">
+					        MINISTERE DU COMMERCE, DE L’INDUSTRIE ET DE L’ARTISANAT
+									-------------------------
+					    </p> 
+						<p style=\"vertical-align:top;text-align:justify;font-size:14pt;\">
+					        LA MAISON DE L’ENTREPRISE DU BURKINA FASO
+									-------------------------
+					    </p> 
+						<p style=\"vertical-align:top;text-align:justify;font-size:14pt;\">
+					        FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER
+                                    ------------------------- 
+					    </p>
+						<p style=\"vertical-align:top;text-align:justify;font-size:14pt;\">
+					        DIRECTION DE LA FACILITATION DES AFFAIRES
+									-------------------------
+					    </p>
+					</td>
+                    <td align=\"center\" valign=\"top\" style=\"vertical-align:top;\" width=\"50%\"> &nbsp;</td>
+                </tr>
+          </table>";         
+$output.="<table style=\"border-collapse:collapse;margin:0px;\" border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\">
+            <tr><td height=\"20\" style=\"height:25px;background-color:#0a5993;\" align=\"center\" valign=\"middle\" bgcolor=\"#0a5993\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:12pt;padding:5px;color:#FFF;\"> ATTESTATION DE REJET N° {$demandeNumero} </span> </td></tr>
+            <tr nobr=\"true\">
+			    <p style=\"font-family:arial;font-size:11pt;text-align:justify\"> <strong> Nous, soussigné .....{$myLastName}...{$myFirstName}, ... GEFFIER / GREFFIER EN CHEF...... </strong></p> 
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\"> Vu la demande de recherche de disponibilité et de réservation N°....<strong>{$numDemande}</strong>....de Mr/Mme ....{$demandeurName} </p>
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\"> Vu la Directive pour l’attribution des dénominations sociales et des noms commerciaux d’entreprises au Burkina Faso ;</p>
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\"> Après examen au fond, déclarons indisponible ou rejetons l’attribution de : </p>
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+				    <span style=\"font-family:arial;font-size:11pt;\"> La Dénomination Sociale: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Denomination."</span> <br/><br/>
+				</p>
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+				    <span style=\"font-family:arial;font-size:11pt;\"> Le Nom Commercial: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$NomCommercial."</span> <br/><br/>
+				</p>
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+				    <span style=\"font-family:arial;font-size:11pt;\"> Le Sigle: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Sigle."</span>
+				</p>
+
+				<p style=\"font-family:arial;font-size:11pt;text-align:justify\">
+				    au promoteur ci-après:
+				</p>
+			</tr>
+            <tr nobr=\"true\">
+				<td width=\"75%\" > 
+					<span style=\"font-family:arial;font-size:11pt;\"> Nom et Prénom(s): </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$promoteurName."</span> 
+				</td>
+				<td width=\"25%\"> &nbsp;</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Adresse: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$promoteurAdresse."</span> 
+				</td>
+            </tr>
+			<tr><td height=\"20\" style=\"height:25px;background-color:#CCCCCC;\" align=\"center\" valign=\"middle\" bgcolor=\"#CCCCCC\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:10pt;padding:5px;\"> REFERENCES DE LA PIECE D'IDENTITE </span> </td></tr>
+            <tr nobr=\"true\">
+				<td colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".$promoteurIdentite."</span> 
+				</td>
+            </tr>
+            <tr nobr=\"true\">
+				<td colspan=\"2\"> 
+				    <span style=\"font-family:arial;font-size:11pt;\"> Délivré(e) par : </span>
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".$promoteurIdentiteOrganisme."</span> 
+				</td>
+            </tr>
+            <tr nobr=\"true\">
+				<td colspan=\"2\"> 
+				    <span style=\"font-family:arial;font-size:11pt;\"> Profession : </span>
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".$promoteurProfession."</span> 
+				</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td colspan=\"2\"> 
+				    <p style=\"font-family:arial;font-size:11pt;\"> Pour des causes absolues de rejet suivantes : <br/></p>
+					<ul>
+					    <li> DS, NC ou Sigle a un lien avec l’Etat ; </li>
+						<li> DS, NC ou Sigle déjà attribué (e) à un organisme d’Etat ; </li>
+						<li> DS, NC ou Sigle constitué (e) d’un terme ou d’une expression à caractère international; </li>
+						<li> DS, NC ou Sigle évoque les signes ou symboles officiels ou sacrés du Burkina Faso ; </li>
+						<li> DS, NC ou Sigle contraire à la sécurité intérieure et à l’intérêt public; </li>
+						<li> DS, NC ou Sigle contraire à l’ordre public ou aux bonnes mœurs ; </li>
+						<li> DS, NC ou Sigle à un caractère trompeur ; </li>
+						<li> DS, NC ou Sigle constitué (e ) l’origine géographique des produits. </li>
+					</ul>
+				</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td colspan=\"2\"> 
+				    <p style=\"font-family:arial;font-size:11pt;text-align:right;\"> En foi de quoi la présente attestation est délivrée pour servir et valoir ce que de Droit.</p>
+				</td>
+            </tr>
+		</table>";
+ 		  
+$myName    = sprintf("%s %s", $me->lastname, $me->firstname);
+$todayDate = date("d/m/Y");
+$output.=<<<EOF
+<table width="100%" cellspacing="2" border=0 cellpadding="2">   
+    <tr>
+        <td valign="middle" width="50%">
+            <p> .......................</p>
+        </td>
+        <td align="right" valign="middle" width="50%">
+            <p style="font-size:10pt;"> Fait à {$localiteName}, le ......<b> {$todayDate} </b>........</p>
+            <p> &nbsp; </p>
+        </td>
+    </tr>
+    <tr>
+	    <td width="40%">
+            <p>
+                <b><u> LE DEMANDEUR </u></b><br/><br/> 
+                <b> </b><br/>
+            </p> 
+        </td>
+        <td width="40%">
+            <p>
+                <b><u> L'AGENT COMPÉTENT</u></b><br/><br/> 
+                <b> {$myName} </b><br/>
+            </p> 
+        </td>
+         
+    </tr>
+
+</table> 
+EOF;
+ 
+$output.= "</form>";
+
+echo $output;

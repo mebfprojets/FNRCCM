@@ -1,0 +1,169 @@
+<html >
+<?php 
+    //On initialise les variables nécessaires
+    $layout        = $this->layout();
+    $baseUrl       = $this->baseUrl();
+    $tplPath       = ROOT_PATH."/myTpl/frontend";     
+
+    $columns       = (isset($this->columns))?$this->columns : array("left","right");
+    $bodyClasses   = (!$this->bodyClasses) ? array() : $this->bodyClasses;
+    
+    if(in_array("left",$columns) && in_array("right",$columns) && empty($bodyClasses)){
+    	$bodyClasses   = array();
+    } elseif(in_array("left",$columns) && empty($bodyClasses)) {
+    	$bodyClasses[] = "only-left";
+    } elseif(in_array("right",$columns) && empty($bodyClasses)) {
+    	$bodyClasses[] = "only-right";
+    } elseif(in_array("content",$columns) && empty($bodyClasses)) {
+    	$bodyClasses[] = "only-content";
+    }
+    $showLeftColumn    = in_array("left",$columns);
+    $showRightColumn   = in_array("right",$columns);
+    
+    $showLeftColumn    = in_array("left"    , $columns);
+    $showRightColumn   = in_array("right"   , $columns);
+	$showContentBottom = in_array("content-bottom", $columns);
+	$showNewsMod       = in_array("news-mod", $columns);
+    $view              = $layout->getView();
+    $message           = $view->messages;
+?>
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <style>
+        #loading {position:fixed;width: 100%;height: 100%;left: 0;top: 0;right: 0;bottom: 0;display: block;background: #fff;z-index: 10000;}
+        #loading img {position:absolute;top: 50%;left: 50%;margin: -23px 0 0 -23px;}
+#content-bottom{margin:10px auto;padding:5px;}
+#content-bottom .row{margin-right:0px;}
+.grid-layout img{height:150px;}
+.grid-layout h3{color:#009aca !important}
+.grid-layout{position:relative;z-index:3;}
+.grid-layout > .panel-body {
+  padding: 0px;
+  position:relative;
+  z-index:3
+}
+.grid-layout > .panel-footer {
+  text-align: center;
+  position:relative;
+  z-index:3
+}
+.grid-layout:before {
+    position: absolute;
+    left: 0;
+    height: 60%;
+    bottom: 0;
+    width: 100%;
+    content: "";
+    background-color: #ffffff;
+    z-index: 2;
+}
+.grid-layout:after {
+    content: "";
+    position: absolute;
+    height: 50%;
+    width: 96%;
+    left: 50%;
+    bottom: 2px;
+    margin-left: -48%;
+    -webkit-box-shadow: 0 5px 7px #999999;
+    box-shadow: 0 5px 7px #999999;
+    z-index: 1;
+    border-radius: 10%;
+    -webkit-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+ </style>
+<?php echo $this->headMeta() ?>
+ <?php
+           echo $this->headLink() ;
+           echo $this->headStyle(); 
+           echo $this->headScript();
+           echo "<script type=\"text/javascript\">
+                     window.SIRAH ||(window.SIRAH={}); 
+                     SIRAH.basePath = \"".$tplPath."/\";
+                 </script>";
+ ?>
+</head>
+
+<body class="<?php echo (!empty($bodyClasses)) ? " class='sr_page_body ".implode(' ',$bodyClasses)."' " : "sr_page_body"; ?>">
+    <!-- L'entete fixe de la page -->
+      <?php echo $this->render("pagehead.phtml")   ?>
+    <!-- Fin de l'entete fixe de la page -->
+    
+    <!-- Message défilant -->
+       <!-- <div id="msgHighlighting" class="container-fluid" style="text-align:center;width:90%">
+         <div class="row">
+           <div class="col-md-2"> &nbsp; </div>
+           <div class="col-md-8">
+            <marquee style="color:red;" color="red" bgcolor="#dfe3e8" width="100%" direction="left" loop="0">  
+              UN FICHIER UNIQUE AU SERVICE DES OPERATEURS ECONOMIQUES ET DES INVESTISSEURS ETRANGERS. 
+            </marquee>
+          </div>
+          <div class="col-md-2"> &nbsp; </div>
+         </div>
+       </div>-->
+    <!-- Fin Message défilant -->
+	
+	<div class="container mainContainer" id="mainContainer">
+	   <div id="contentWrapper" class="contentWrapper row">
+	       <div  class="col-12 col-md-3 col-sm-3 modulesBlock" id="leftModulesBlock"> 
+		      <?php 
+                 if( $showLeftColumn ) {
+                     echo $this->render("leftmodules.phtml") ;
+                 }   
+              ?> 
+		   </div>
+		   <div  class="col-12 col-md-6 col-sm-6 mainComponentWrapper" id="mainComponentWrapper"> 
+		     <?php if( !empty( $message ) ) : ?>
+                     <div id="currentMsg" class="row alert alert-danger"> <?php echo $message; ?> <i class='glyphicon glyphicon-remove close clearMessage'></i> </div>
+                <?php endif; ?> 
+                <!--Le bloc des messages d'erreurs-->
+                    <?php echo $this->errormessage(); ?>
+                <!--Fin du bloc des messages d'erreurs-->
+                                            
+              <div id="maincontent" class="panel panel-default nomargins nopaddings"> 
+                  <?php if(!empty($this->title)): ?> 
+                      <div id="viewBaseTitle" class="panel-heading greenpanel viewBaseTitle"> <h4> <?php echo $this->title; ?> </h4> </div>
+                  <?php endif; ?> 
+                  <?php echo $layout->content ?>
+              </div>
+			  <?php if($showNewsMod): ?>
+			  <div class="container-fluid news-mod" id="newsmod">
+			    <div class="row"><?php echo $this->render("newsmod.phtml") ; ?></div>
+			  </div>
+			  <?php endif; ?> 
+			  <?php if($showContentBottom): ?>
+			  <div class="container-fluid content-bottom" id="content-bottom">
+			    <div class="row"><?php echo $this->render("contentbottom.phtml") ; ?></div>
+			  </div>
+			  <?php endif; ?> 
+		   </div>
+		   <div  class="col-12 col-md-3 col-sm-3 modulesBlock" id="rightModulesBlock"> 
+		      <?php 
+                   if( $showRightColumn) {
+                       echo $this->render("rightmodules.phtml") ;
+                   }  
+             ?>
+		   </div>
+	   </div>
+	</div>
+	
+	
+	
+    
+   
+    
+    
+
+
+</body>
+ 
+<?php      
+      echo $this->jQuery();
+ ?>
+ 
+ 
+</html>

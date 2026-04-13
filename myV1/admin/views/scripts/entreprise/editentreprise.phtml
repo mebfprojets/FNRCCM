@@ -1,0 +1,169 @@
+<?php 
+   $entreprise         = $this->entreprise;
+   $countries          = $this->countries();
+   $entrepriseCountry  = (isset($countries[$entreprise->country])) ? $countries[$entreprise->country] : $entreprise->country;
+   
+   $formSubmit         = $this->url(array("module" => "admin","controller"  => "entreprise" , "action" => "edit" , "id"  => $entreprise->id) , "default" ) ;
+   $linkCancel         = $this->url(array("module" => "admin","controller"  => "entreprise" , "action" => "infos" , "id"  => $entreprise->id) , "default" ) ;
+     
+   $buttonbar          = $this->buttonbar(array() , $this->jqueryHandler());   
+   $buttonSave         = $buttonbar->button(" Sauvegarder les données ","floppy-save")->setPriority("primary");
+   $buttonCancel       = $buttonbar->button("Annuler","ban-circle");
+   
+   $buttonSave->setAttributes(array("type"   => "submit"));
+   $buttonCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonbar->add($buttonSave ,"saveButton");
+   $buttonbar->add($buttonCancel ,"cancelButton");
+   
+   $buttonCancel->onClick("event.preventDefault() ; document.location.href= '".$linkCancel."' ;");   
+   $buttonSave->onClick("
+   	event.preventDefault();	
+   	var  formSelector= jQuery('#editentreprise-form');
+    var  libelle     = jQuery.trim(jQuery('#libelle').val());
+    var  telephone   = jQuery.trim(jQuery('#telephone').val());
+   	var  email       = jQuery.trim(jQuery('#email').val());
+    var  codepostal  = jQuery.trim(jQuery('#codepostal').val());
+   		
+    if(SIRAH.util.isEmpty(libelle)){
+         jQuery('#libelle').addClass('input-error');
+         jQuery('#libelle-validation-message').html('');
+         SIRAH.error.raise('libelle-validation-message',' Entrez une désignation valide pour l\'entreprise ');
+         return;
+      } else {
+         jQuery('#libelle').removeClass('input-error');
+         jQuery('#libelle-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(telephone)){
+        jQuery('#telephone').addClass('input-error');
+        jQuery('#telephone-validation-message').html('');
+         SIRAH.error.raise('telephone-validation-message','Entrez un numéro de téléphone valide');
+         return;
+      }  else {
+         jQuery('#telephone').removeClass('input-error');
+         jQuery('#telephone-validation-message').html('');
+      }
+   	  if(SIRAH.util.isEmpty(codepostal)){
+        jQuery('#codepostal').addClass('input-error');
+        jQuery('#codepostal-validation-message').html('');
+         SIRAH.error.raise('codepostal-validation-message','Entrez un code postal valide');
+         return;
+      }  else {
+         jQuery('#codepostal').removeClass('input-error');
+         jQuery('#codepostal-validation-message').html('');
+      }
+   	 if(!SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').addClass('input-error');
+        jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez une addresse email valide');
+         return;
+      }  else {
+         jQuery('#email').removeClass('input-error');
+         jQuery('#email-validation-message').html('');
+      }                  
+      jQuery('#telephone').val(telephone);
+      jQuery('#libelle').val(libelle);
+   	  jQuery('#email').val(email);
+      formSelector.submit();  ");
+?>
+ <form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editentreprise-form"   role="form"> 
+ <div class="col-md-12" style="text-align:left;">
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>  Désignation de l'entreprise:</b> </label></div> 
+            <div class="col-md-8"> <input id="libelle" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="La désignation de l'entreprise" placeholder="Désignation"  name="libelle" value="<?php echo $this->escape($entreprise->libelle); ?>"></div>
+       </div>
+       <p id="libelle-validation-message" class="validation-message"></p>  
+     </li> 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="ifu"> <b> IFU :</b> </label></div> 
+            <div class="col-md-8"> <input id="ifu" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Le numéro IFU de l'entreprise" placeholder="Le numéro IFU de l'entreprise"  name="ifu" value="<?php echo $this->escape($entreprise->ifu); ?>"> </div>
+       </div>
+     </li> 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="slogan"> <b> Slogan :</b> </label></div> 
+            <div class="col-md-8"> <input id="slogan" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Le slogan de l'entreprise" placeholder="Le slogan de l'entreprise"  name="slogan" value="<?php echo $this->escape($entreprise->slogan); ?>"> </div>
+       </div>
+     </li> 
+     <li class="list-group-item">    
+       <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><input id="telephone" type="text" maxlength="48" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le numéro de telephone de l'entreprise" placeholder="Le numéro de téléphone"  name="telephone" value="<?php echo $this->escape($entreprise->telephone); ?>"></div>
+       </div>
+       <p id="telephone-validation-message" class="validation-message"></p>
+    </li> 
+    <li class="list-group-item">   
+       <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail : </b> </label> </div> 
+            <div class="col-md-8"> <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Adresse e-mail de l'entreprise" placeholder="Adresse email"  name="email" value="<?php echo $this->escape($entreprise->email); ?>"> </div>
+       </div>
+       <p id="email-validation-message" class="validation-message"></p>  
+    </li> 
+    <li class="list-group-item">    
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><input id="codepostal" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le code postal de l'entreprise" placeholder="Code postal"  name="codepostal" value="<?php echo $this->escape($entreprise->codepostal); ?>"></div>
+       </div>
+       <p id="codepostal-validation-message" class="validation-message"></p>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="siteweb"> <b> Site Web: </b> </label> </div> 
+            <div class="col-md-8"><input id="siteweb" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="L'adresse du site web de l'entreprise" placeholder="Site web"  name="siteweb" value="<?php echo $this->escape($entreprise->siteweb); ?>"></div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+         <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="pays"> <b> Pays :  </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->formSelect("country" , $entreprise->country, array() , $this->countries()); ?>   </div>
+       </div>
+    </li> 
+    <li class="list-group-item">     
+        <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="ville"> <b> Ville : </b> </label> </div> 
+            <div class="col-md-8"><input id="ville" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="La ville de l'entreprise" placeholder="Ville"  name="ville" value="<?php echo $this->escape($entreprise->ville); ?>"></div>
+       </div>
+   </li> 
+   <li class="list-group-item">  
+        <div class="row col-md-12"> 
+            <div class="col-md-4"><label class="label" for="fax"> <b> Fax  : </b> </label> </div> 
+            <div class="col-md-8"><input id="fax" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Le téléphone fax de l'entreprise" placeholder="Le téléphone fax"  name="fax" value="<?php echo $this->escape($entreprise->fax); ?>"></div>
+       </div>
+   </li> 
+   <li class="list-group-item">     
+          <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Adresse : </b> </label> </div> 
+            <div class="col-md-8"><input id="adresse" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="L'adresse de l'entreprise" placeholder="L'adresse"  name="adresse" value="<?php echo $this->escape($entreprise->adresse); ?>"></div>
+       </div>
+  </li> 
+  <li class="list-group-item">  
+        <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="adresse"><b> Responsable de l'entreprise : </b> </label> </div> 
+            <div class="col-md-8"><input id="responsable" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                         title="Le responsable de l'entreprise" placeholder="Le responsable"  name="responsable" value="<?php echo $this->escape($entreprise->responsable); ?>"></div>
+       </div>
+ </li>
+  </ul>
+  </div>
+  
+    <?php 
+          if(!$this->isAjax) {
+          	  echo $buttonbar;
+          } else {
+          	echo $this->jQuery();
+          }
+      ?>
+  </form>     

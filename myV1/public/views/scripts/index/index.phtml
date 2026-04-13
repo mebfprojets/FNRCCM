@@ -1,0 +1,24 @@
+<?php 
+     $linkLogin  = $this->url(array("module"=>"public","controller"=>"account","action" => "login") ,"login");
+	 $basePath   = VIEW_BASE_PATH;
+     $avatarFile = $basePath."/images/login_avatar.png";
+?>
+ 
+<?php $this->headStyle()->captureStart() ?>
+.rounded {border-radius: 0.35rem !important;}
+.img-responsive{width:100% !important;box-shadow:0 2px 4px #d8e1e8;border: 1px solid rgba(0,0,0,.125)!important;background-color: #fff;background-clip: border-box;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div class="col-md-5 col-sm-5 col-xs-12"> <img class="pull-left img-fluid img-responsive swiper-lazy rounded" src="<?php echo ROOT_PATH; ?>/myTpl/public/images/HomeImage.png" /></div>
+<div class="col-md-7 col-sm-7 col-xs-12">
+	<h1 class="section-hero"> FNRCCM : Fichier National du Registre de Commerce et du Crédit Mobilier  </h1>                              
+	<div  class="section-body"> 
+	   <p> Le ERCCM est une plateforme de services en ligne du <a title="A propos de cette structure" href="/project/structure"> Fichier National du Registre du Commerce et du Crédit Mobilier (FNRCCM) </a> créée dans le but d'archiver, de centraliser et de rendre accessibles au public des informations contenues dans les Registres du Commerce et du Crédit Mobilier (RCCM) immatriculés au Burkina Faso. </p>
+	   <p> Cette plateforme permet la recherche et la consultation en ligne des <a title="Consulter les types de documents officiels" href="#"> documents officiels </a>  des entreprises immatriculées à la <a target="_blank" title="En savoir plus sur la maison de l'entreprise" href="https://www.me.bf"> Maison de l'Entreprise du Burkina Faso </a>. </p>
+	
+	</div>                           
+</div>                      
+
+<?php 
+
+ 
+?>

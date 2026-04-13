@@ -1,0 +1,453 @@
+<?php 
+$accounts          = $this->users;
+$filters           = $this->filters;
+$params            = $this->params;
+$paginator         = $this->paginator;
+$roles             = array("Selectionnez un rôle")+$this->roles;
+
+$filterRolename    = ( isset($roles[$filters["roleid"]])) ? $roles[$filters["roleid"]] : "";
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("controller"=>"accounts","action"=>"list")  , "default",true);
+$linkCreate        = $this->url(array("controller"=>"accounts","action"=>"create"), "default",true);
+$linkEdit          = $this->url(array("controller"=>"accounts","action"=>"edit")  , "default",true);
+$linkDelete        = $this->url(array("controller"=>"accounts","action"=>"delete"), "default",true);
+$linkAssignRole    = $this->url(array("controller"=>"accounts","action"=>"assignroles") , "default",true);
+$linkDisplayRights = $this->url(array("controller"=>"accounts","action"=>"rights") , "default",true);
+$linkAssignRights  = $this->url(array("controller"=>"accounts","action"=>"assignrights") , "default",true);
+$linkImport        = $this->url(array("controller"=>"accounts","action"=>"import"), "default",true);
+$linkExport        = $this->url(array("controller"=>"accounts","action"=>"export"), "default",true);
+
+$jq->addOnload("
+var basicLoadPage    = function() {
+};
+var getCheckedUsersId= function() {
+	var checkedItems = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	var checkedIds   = []; 
+	if( checkedItems) {
+		checkedItems.each(function() {
+			var userid   = parseInt(jQuery(this).attr('id').replace('userids',''));
+			checkedIds.push(userid);
+	   });
+	}
+	return checkedIds;
+};
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('.reset,.resetSearch,#resetSearchBtn').eq(0).click(function( event ){ event.preventDefault(); document.location.href = '".$linkSearch."'; });		
+jQuery('#closeAdvancedSearchform').click(function(event){event.preventDefault();jQuery('#accountsListSearchForm-wrapper').hide();});
+jQuery('#showAdvancedSearchform,#advancedSearchBtn').click(function( event){event.preventDefault();jQuery('#accountsListSearchForm-wrapper').show();});
+jQuery('.defaultSearch,.default-search,.simpleSearch,#simpleSearch').click(function(event){
+	event.preventDefault();
+	var maincontent	        = jQuery('#maincontent');
+	var formSelector        = jQuery('#globalFormSearch');
+	var pageNum             = jQuery('#page').val();
+	var pageMaxitems        = jQuery('#maxitems').val();		
+	var searchData          = {};
+	searchData.maxitems     = pageMaxitems;
+	searchData.page         = pageNum;
+	searchData.globalfilter = searchData.name = searchData.searchQ =  formSelector.find('#searchQ').val();
+	searchData.roleid       = parseInt(formSelector.find('#roleid').val());
+	searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());
+	SIRAH.loading.on( maincontent , ' Patientez, chargement des données... ');
+	SIRAH.request.post('globalFormSearch','".$linkSearch."' , 
+					   {
+						  data       : searchData,
+						  dataType   : 'html' ,
+						  beforeSend : function(){},
+						  error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();}		
+						});
+});
+var keyPressedReqhasSent = false;
+var makeRequestTimer     = defaultXHR  = null;
+var charsPressed         = 0;
+jQuery('#searchQ').on('keypress paste', function( event ){
+	charsPressed++;	
+	if(event.type=='keyup' && event.keyCode!=8) return;
+	if( makeRequestTimer) clearTimeout(makeRequestTimer);
+	if( defaultXHR ) defaultXHR.abort();	   
+	makeRequestTimer = setTimeout(function() {		      
+		var formSelector         = jQuery('#globalFormSearch');
+		var advancedFormSelector = jQuery('#accountsListSearchForm');
+		var maincontent	         = jQuery('#maincontent');
+
+		var defaultData          = {};
+		defaultData.name         = searchKey = defaultData.searchQ = formSelector.find('#searchQ').val(); 
+		defaultData.roleid       = parseInt(formSelector.find('#roleid').val());
+		defaultData.localiteid   = parseInt(formSelector.find('#localiteid').val()); 			
+		defaultData.page         = 1;
+		defaultData.showsearch   = 0;
+		defaultData.maxitems     = advancedFormSelector.find('#maxitems').val();
+		if( searchKey.length >= 5 ) {
+			SIRAH.loading.on(jQuery('#globalfilterRow'), 'Patientez...');
+			SIRAH.request.post('globalFormSearch', '".$linkSearch."',{data: defaultData,dataType:'html',async:true,
+								 beforeSend:function(jqXHR) {defaultXHR = jqXHR;keyPressedReqhasSent=true;},
+								 error     :function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;},
+								 success   :function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;},
+								 update    :function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;}		
+			});
+		}		      
+	},5000);
+});			
+jQuery('.search,.searchAccounts,#searchAccounts').click(function(event){
+	event.preventDefault();
+	var formSelector                = jQuery('#accountsListSearchForm');
+	var pageNum                     = jQuery('#page').val();
+	var pageMaxitems                = jQuery('#maxitems').val();	
+	var searchData                  = {};
+	searchData.maxitems             = pageMaxitems;
+	searchData.page                 = pageNum;
+	searchData.roleid               = parseInt(formSelector.find('#roleid').val());
+	searchData.localiteid           = parseInt(formSelector.find('#localiteid').val());
+	searchData.lastname             = formSelector.find('#lastname').val();
+	searchData.firstname            = formSelector.find('#firstname').val();
+	searchData.username             = formSelector.find('#username').val();
+	searchData.phone                = formSelector.find('#phone').val();
+	searchData.email                = formSelector.find('#email').val();
+	searchData.username             = formSelector.find('#username').val();
+	searchData.sexe                 = formSelector.find('#sexe').val();
+	var maincontent	                = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent,'Chargement des données...' );		
+	SIRAH.request.post('advanced-searchform' , '".$linkSearch."' , 
+					   {
+						  dataType   : 'html' ,
+						  data       : searchData,
+						  beforeSend : function() {},
+						  error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();}		
+					   });
+    SIRAH.loading.off(false);									 
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		return false;
+	}
+	var formSelector       = jQuery('#accountsListSearchForm');
+	var pageNum            = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+	var pageMaxitems       = formSelector.find('#maxitems').val();
+	if( jQuery(this).is('.nextPage')) {
+		var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum             = parseInt( currentBtnNum +1);
+	}
+	if( jQuery(this).is('.prevPage')) {
+		var currentBtnNum     = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum               = parseInt( currentBtnNum - 1);
+	}
+	var paginationData        = {};
+	paginationData.maxitems   = pageMaxitems;
+	paginationData.page       = pageNum;
+	paginationData.phone      = jQuery('#phone').val();
+	paginationData.roleid     = parseInt(formSelector.find('#roleid').val());
+	paginationData.localiteid = parseInt(formSelector.find('#localiteid').val());
+	paginationData.username   = formSelector.find('#username').val();
+	paginationData.lastname   = formSelector.find('#lastname').val();
+	paginationData.firstname  = formSelector.find('#firstname').val();
+	paginationData.email      = formSelector.find('#email').val();
+	var maincontent	          = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent , 'Chargement des données...' );
+	SIRAH.request.post('accountsListSearchForm' , '".$linkSearch."' , 
+					   {
+						  dataType   : 'html' ,
+						  data       : paginationData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);}		
+					  });
+	SIRAH.loading.off(false);		
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+jQuery('#accountsListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','actionsButton','editButton']);});
+jQuery('#accountsListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','actionsButton','editButton']);});
+jQuery('#accountsListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','actionsButton','editButton']);});
+jQuery('#accountsListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','actionsButton','editButton']);
+	}
+});");
+
+$toolbar       = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate    = $toolbar->tool("Nouveau compte", "plus");
+$toolEdit      = $toolbar->tool("Modifier" , "edit");
+$toolDelete    = $toolbar->tool("Supprimer", "trash-o");
+$buttonActions = $toolbar->tool("Plus","plus-sign");
+
+$toolbar->add( $toolCreate    , "createButton");
+$toolbar->add( $toolEdit      , "editButton");
+$toolbar->add( $toolDelete    , "deleteButton");
+$toolbar->add( $buttonActions , "actionsButton");
+
+$buttonActions->dropdown(array("assignRole"=>" Attribuer des rôles","displayRights"=>" Afficher ses permissions","assignRights"=>" Définir ses permissions") , $this->jqueryHandler());
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->onClick("
+		            event.preventDefault();
+		            var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem  = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var userid       = parseInt(checkedItem.attr('id').replace('userids',''));
+		            var username     = jQuery('#name-'+userid).text();
+		            var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		            dialogEdit.dialog2({title:'Mettre à jour les informations du compte de '+username,content:'".$linkEdit."/userid/'+userid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+		            dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Enregistrer',{primary : true,click :
+		                                function(){var editForm = jQuery(this).find('form').eq(0);SIRAH.request.post(editForm,'".$linkEdit."/userid/'+userid);}});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-ban\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$toolDelete->onClick(" 
+                        event.preventDefault();
+						var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						var checkedUsers = getCheckedUsersId();  		        
+						if( isDisabled || SIRAH.util.isEmpty(checkedUsers)) {
+							SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							return;
+						}
+		                var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les comptes selectionnés ? Ces comptes seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+             		    dialogDelete.dialog2({title:'Attention , confirmer cette action !',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+             		    dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                        function(){
+             		                                    jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'userids[]':checkedUsers},type:'GET' ,
+             		                                            success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedUsers = getCheckedUsersId();  	            		
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                   setTimeout(function(){jQuery.each(checkedUsers, function(key,userid) {jQuery('#userRowId-'+userid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                                }
+             		                                            }
+             		                                        });     		
+                                                        }}); 
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		   dialogDelete.dialog2('open');");
+$assignRoleTool = $buttonActions->getDropdownItem("assignRole");
+$assignRoleTool->setIcon("tasks")
+			   ->onClick("event.preventDefault();
+						   var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						   var checkedItem  = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked').eq(0);             		        
+						   if( isDisabled || !checkedItem) {
+							   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							   return;
+							}
+						   var userid       = parseInt(checkedItem.attr('id').replace('userids',''));
+						   var username     = jQuery('#name-'+userid).text();
+						   var roleDialog   = jQuery('<div></div>').attr('id','roleDialog').addClass('modal-medium');             		 
+						   roleDialog.dialog2({title:'Assigner des roles à '+username,content:'".$linkAssignRole."/userid/'+userid,modalClass:'modal-wide',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick: true,showCloseHandle:true,initialLoadText: 'Patientez , chargement...' });        		
+						   roleDialog.dialog2('addButton','<span class=\'glyph-icon icon-chevron-left\'></span> Annuler' ,{primary: false,click:function(){jQuery(this).dialog2('close');}}); 
+						   roleDialog.dialog2('addButton','<span class=\'glyph-icon icon-floppy-saved\'></span> Assigner',{primary: true ,click:function(){ var editForm = jQuery(this).find('form').eq(0);SIRAH.request.post(editForm,'".$linkAssignRole."/userid/'+userid);}}); 
+						                		
+						   roleDialog.dialog2('open');     ");
+$displayRightsTool = $buttonActions->getDropdownItem("displayRights");
+if( $displayRightsTool ) {
+	$displayRightsTool->setIcon("th-large")
+		              ->onClick("
+								   event.preventDefault();
+								   var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+								   var checkedItem  = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked').eq(0);             		        
+								   if( isDisabled || !checkedItem) {
+									   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+									   return;
+									}
+								   var userid       = parseInt(checkedItem.attr('id').replace('userids',''));
+								   var username     = jQuery('#name-'+userid).text();
+								   var dialogRights = jQuery('<div></div>').attr('id','dialogRights').addClass('scrollable');             		 
+								   dialogRights.dialog2({title:'Visualiser les permissions de '+username+' sur la plateforme',content :'".$linkDisplayRights."/userid/'+userid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText:'Patientez, chargement...'});        		
+								   dialogRights.dialog2('addButton','OK' ,   {primary: true,click : function(){jQuery(this).dialog2('close');}});              		
+								   dialogRights.dialog2('open');     ");
+}	
+$assignRightsTool = $buttonActions->getDropdownItem("assignRights");
+if( $assignRightsTool ) {
+	$assignRightsTool->setIcon("check")
+			         ->onClick("
+								event.preventDefault();
+								var checkedItem  = jQuery('#accountsListTable').find('input[type=\'checkbox\'][name=\'userids[]\']:checked').eq(0);          		        
+								if( SIRAH.util.isEmpty( checkedItem ) ) {
+									SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+									return;
+								}
+								var userid             = parseInt(checkedItem.attr('id').replace('userids',''));
+								var username           = jQuery('#name-'+userid).text();
+								var dialogAssignRights = jQuery('<div></div>').attr('id','dialogAssignRights').addClass('scrollable');             		 
+								dialogAssignRights.dialog2({title:'Définir des permissions pour '+username+' sur la plateforme',content:'".$linkAssignRights."/userid/'+userid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Patientez , chargement...' });        		
+								dialogAssignRights.dialog2('addButton','<span class=\'glyph-icon icon-check\'></span>Attribuer permissions',{primary:true,click:function(e){e.preventDefault();var rightsForm= jQuery(this).find('form').eq(0);SIRAH.request.post(rightsForm,'".$linkAssignRights."/userid/'+userid);}});  
+								dialogAssignRights.dialog2('addButton','<span class=\'glyph-icon icon-ban\'></span> Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');}});            		
+								dialogAssignRights.dialog2('open');   ");
+}
+$this->toolsbar = $toolbar;
+$pagination     = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+?>
+
+<div id="usersAccountListWrapper"  class="row">
+    <div  class="panel-heading bg-green">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" class="form-horizontal">
+		    <div class="input-group">	
+				<span class="input-group-btn selectBtn"><?php echo $this->formSelect("roleid"    , intval($filters["roleid"])    ,array("class"=>"form-control"), $roles); ?></span>			
+				<span class="input-group-btn selectBtn"><?php echo $this->formSelect("localiteid", intval($filters["localiteid"]),array("class"=>"form-control"), $this->localites); ?></span>
+				<input value="<?php echo $this->searchQ;?>" id="searchQ" name="searchQ" type="text" class="form-control" placeholder="Recherchez le compte d'un utilisateur...">			  
+				<span class="input-group-btn ">			   
+				   <button id="simpleSearch"      class="btn btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+				   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+				   <button id="resetSearchBtn"    class="btn btn-danger resetSearch"        type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+				</span>
+		    </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+		<form id="accountsListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		    <ul class="list-group">
+				<li class="list-group-item">
+					<div     class="form-group">
+					  <label class="col-sm-2 control-label">  <b> Nom:</b> </label> 
+					  <div   class="col-sm-4"><input value="<?php echo $filters['lastname'];?>"  type="text" name="lastname"  id="lastname"  class="form-control" placeholder="Nom de famille" /></div>
+					  <label class="col-sm-2 control-label">  <b> Prénom:</b> </label> 
+					  <div   class="col-sm-4"><input value="<?php echo $filters['firstname'];?>" type="text" name="firstname" id="firstname" class="form-control" placeholder="Prénom" /></div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+					  <label class="col-sm-2 control-label">  <b> Juridiction:</b> </label> 
+					  <div   class="col-sm-4"> <?php echo $this->formSelect("localiteid",$filters["localiteid"], array("class"=> "chosen") , array("Selectionnez une juridiction")+$this->localites); ?> </div>
+					  <label class="col-sm-2 control-label">  <b> Rôle:</b> </label> 
+					  <div   class="col-sm-4"> <?php echo $this->formSelect("roleid"    ,$filters["roleid"]    , array("class"=> "chosen") , array("Selectionnez un rôle")+$this->roles); ?> </div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+					  <label class="col-sm-2 control-label">  <b>Téléphone:</b> </label> 
+					  <div   class="col-sm-4"><input value="<?php echo $filters['phone'];?>" type="text" name="phone" id="phone" class="form-control" placeholder="Téléphone" /></div>
+					  <label class="col-sm-2 control-label">  <b>Adresse email:</b> </label> 
+					  <div   class="col-sm-4"><input value="<?php echo $filters['email'];?>" type="text" name="email" id="email" class="form-control" placeholder="Adresse email" /></div>
+					</div>
+				</li>					
+				<li class="list-group-item">
+					<div  class="form-group">
+					  <label class="col-sm-2 control-label">  <b> Sexe: </b> </label> 
+					  <div   class="col-sm-4"> 
+						<label class="radio-inline"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if(strtolower($filters["sexe"]) == "m") echo "checked"; ?>> Homme </label>          
+						<label class="radio-inline"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if(strtolower($filters["sexe"]) == "f") echo "checked"; ?>> Femme </label>
+					  </div>
+					  <div   class="col-sm-6"> &nbsp; </div>							  
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+					  <label class="col-sm-2 control-label">  <b> Etat: </b> </label> 
+					   <div class="col-sm-2"><label class="checkbox"><?php echo $this->formCheckbox("activated",$filters["activated"],null,array("1","0"));?> Compte activé</label></div> 					  
+					   <div class="col-sm-2"><label class="checkbox"><?php echo $this->formCheckbox("locked"   ,$filters["locked"]   ,null,array("1","0"));?> Compte verrouillé </label></div> 
+					   <div class="col-sm-2"><label class="checkbox"><?php echo $this->formCheckbox("blocked"  ,$filters["blocked"]  ,null,array("1","0"));?> Compte bloqué</label></div> 
+					   <div class="col-sm-2"><label class="checkbox"><?php echo $this->formCheckbox("expired"  ,$filters["expired"]  ,null,array("1","0"));?> Compte expiré</label></div> 
+					   <div class="col-sm-2"><label class="checkbox"><?php echo $this->formCheckbox("admin"    ,$filters["admin"]    ,null,array("1","0"));?> Compte administrateur</label></div> 
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">					
+						<label class="col-sm-2 control-label">  <b> Afficher:</b> </label> 
+						<div class="col-sm-4">
+							<div class = "input-group input-group-chosen">			 
+								  <?php echo $this->formSelect("maxitems",$this->maxitems ,array("class"=> "form-control chosen"), array("10"=>10,"20"=>20,"25"=>25,"30"=>30,"40"=>40,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=>5000,"100000000" => "Tout")); ?> 
+								  <span class="input-group-addon chosen-grp-addon bg-primary"> Elements</span>
+							</div>
+						</div>
+						<div class="col-sm-6">&nbsp;</div>									
+					</div>
+				</li>
+		    </ul>
+		    <div class="panel-footer"> 
+		        <button class="btn btn-primary search searchAccounts" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+                <button class="btn btn-danger  reset  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+	        </div>
+		   <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+		   <input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+		</form>
+    </div>
+	<table id="accountsListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+        <thead>
+            <tr> 
+				<th width="3%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+				<th width="17%"> Rôles                </th> 
+				<th width="30%"> Noms                 </th> 
+				<th width="15%"> Identifiants         </th> 
+				<th width="15%"> Juridictions         </th> 
+				<th width="20%"> Dernières connexions </th> 
+			</tr>
+        </thead>                
+        <tbody>
+        <?php 
+			$output   = "";
+			if( count(   $accounts ) ) {
+				foreach( $accounts as $account ) {
+						   $userid           = intval($account['userid']);
+						   $userAccount      = Sirah_Fabric::getUser( $userid );
+						   $dateInscription  = (intval($account["registeredDate"]))   ? date("d/m/Y à H:i:s", $account["registeredDate"])    : "Non précisé";
+						   $dateConnexion    = (intval($account["lastConnectedDate"]))? date("d/m/Y à H:i:s", $account["lastConnectedDate"]) : "Non précisé";
+						   $locked           = intval( $account['locked']);
+						   $activated        = intval( $account['activated']);
+						   $blocked          = intval( $account['blocked']);
+						   $localiteLibelle  = (isset( $account['localite']) && !empty($account['localite']))?$account['localite'] : "Non défini";
+						   $username         = $account["username"];
+						   $rolename         = $userAccount->getRole(); 
+						   $nom              = sprintf(" %s %s", $account["lastname"] , $account["firstname"]);
+						   $linkInfos        = $this->url(array("controller"=>"accounts","action"=>"infos","userid"=>$userid),"default",true);
+						   $avatarFile       = $avatarDefaultFile;
+						   $bgClass          =" ";
+						   if( !empty( $account["avatar"] ) ) {
+								$avatarPath         = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $account["avatar"];
+								if( file_exists( $avatarPath ) ) {
+									$avatarPathname = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+									$avatarFile     = str_replace( DS , "/" , $avatarPathname );
+								}
+							}
+							if ( !$activated || $blocked )  {
+								  $bgClass          = "alert danger";
+							}     
+                            if( strlen($rolename) > 20 ) {
+								$rolename           = sprintf("%s...", substr($rolename, 0, 20));
+							}                       	  	
+							$avatarHtml  = "<div class=\"col-md-3 pad0A\"> <img class=\"img-thumbnail img-thumb\"  src=\"".$avatarFile."\" /> </div><div id='name-".$userid."' class=\"col-md-9 pad1A\">  ".$nom." </div>";
+							$output     .= "<tr class=\"".$bgClass."\" id=\"userRowId-".$userid."\">";
+									$output .= "<td> <input type=\"checkbox\" name=\"userids[]\" id=\"userids".$userid."\" class=\"userids\" /> </td>";
+									$output .= "<td> <a title=\"Voir les informations du compte utilisateur\" href=\"".$linkInfos."\">".$rolename        ."</a> </td>";
+									$output .= "<td> <a title=\"Voir les informations du compte utilisateur\" href=\"".$linkInfos."\">".$avatarHtml      ."</a> </td>";
+									$output .= "<td> <a title=\"Voir les informations du compte utilisateur\" href=\"".$linkInfos."\">".$username        ."</a> </td>";
+									$output .= "<td> <a title=\"Voir les informations du compte utilisateur\" href=\"".$linkInfos."\">".$localiteLibelle ."</a> </td>";
+									$output .= "<td> <a title=\"Voir les informations du compte utilisateur\" href=\"".$linkInfos."\">".$dateConnexion   ."</a> </td>";
+							$output    .= "</tr>";
+							
+							$output .= "<input type=\"hidden\"  name='userLocked-".$userid."'    value='".intval( $locked    )."'  />" ;
+							$output .= "<input type=\"hidden\"  name='userBlocked-".$userid."'   value='".intval( $blocked   )."'  />" ;
+							$output .= "<input type=\"hidden\"  name='userActivated-".$userid."' value='".intval( $activated )."'  />" ;
+				}                              	
+			}  else {
+						    $output .= "<tr>";
+								   $output .= "<td style=\"text-align:center !important;\" align=\"center\" colspan=\"6\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+						    $output .= "</tr>";
+			}                              
+		    echo $output;                      
+        ?>                
+                </tbody>           
+        </table>
+		<?php  echo $pagination->render(); ?>
+</div>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+   
+   
+    

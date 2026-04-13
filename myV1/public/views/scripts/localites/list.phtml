@@ -1,0 +1,24 @@
+<?php
+  $tplPath       = VIEW_BASE_PATH;
+  
+  $beneficiaires   = $this->beneficiaires;
+
+?>
+
+<?php if( count( $beneficiaires ) ): ?>
+        <?php 
+           $catOutput = "<ul class=\"list-group beneficiairesList\">";
+              foreach( $beneficiaires as $beneficiaire ) {
+              	       $beneficiaireid = intval($beneficiaire["beneficiaireid"]);
+              	       $libelle        = $beneficiaire["libelle"];
+              	       $urlLibelle     = Sirah_Functions_String::cleanUtf8( $libelle );
+              	 
+              	       $linkBeneficiaire= $this->url(array("controller" => "beneficiaires", "action" => "infos", "beneficiaireid" => $beneficiaireid, "libelle" => $urlLibelle), "beneficiaires");
+              	       $catOutput    .= "<li id=\"beneficiaireid-".$beneficiaireid."\" class=\"list-group-item\"> <a title='Voir les activités réalisées avec ce type de beneficiaires' href='".$linkBeneficiaire."'> ". $libelle ." </a></li> ";
+              } 
+           $catOutput.= "</ul>";
+           
+           echo $catOutput;
+        ?> 
+<?php endif; ?>
+

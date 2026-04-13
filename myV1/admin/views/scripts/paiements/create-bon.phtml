@@ -1,0 +1,195 @@
+<?php 
+$data                = $this->data;
+$commandes           = $this->commandes;
+$commande            = $this->commande;
+$commandeid          = $this->commandeid;
+$assureurid          = $this->assureurid;
+$numCommande         = ( $commande ) ? $commande->ref : null;
+$formSubmit          = $this->url(array("controller" =>"apaiements", "action" => "create"), "default" );
+$backList            = $linkCancel = $this->url(array("controller" =>"apaiements", "action" => "list"), "default" );
+$linkSearchCommande  = $this->url(array("controller"  => "ajaxres","action" => "acommandeslist" ,"parentform" => "createPaiement"), "default");
+$modesPaiement       = array(0 => "Selectionnez un mode de paiement", 1 => "En Espèces", 2 => "Chèque", 3 => "Virement", 4 => "Bon assureur");
+$basePath            = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = "
+jQuery('#paiementdocument').filestyle({buttonText:'Chercher le document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('.datepicker').bsdatepicker({orientation:'auto',format:'yyyy-mm-dd'});
+jQuery('#montant').mask('000 000 000 000 000', {placeholder: '--- --- --- ---',reverse: true});
+jQuery('#mode').change(function( event ){
+	var mode               = parseInt(jQuery(this).val());
+	var commandeid         = parseInt(jQuery('#createPaiement').find('#commandeid').val() );
+	document.location.href = '".$formSubmit."/commandeid/'+commandeid+'/mode/'+mode;
+});
+jQuery('#selectBank').bind('selectThis' , function(event, param1 ) {
+       event.preventDefault();
+	   var bankid      = parseInt(jQuery('#createPaiement').find('#mode_paiement_bankid').val() );
+	   if( !commandeid && param1 ) {
+		    bankid =  param1;
+			jQuery('#createPaiement').find('#mode_paiement_bankid').val(param1)
+	   }	   	         
+});
+jQuery('#selectCommande').bind('chooseThis' , function(event, param1 ) {
+       event.preventDefault();
+	   var commandeid  = parseInt(jQuery('#createPaiement').find('#commandeid').val() );
+	   var mode        = parseInt(jQuery('#createPaiement').find('#mode').val() );
+	   if( !commandeid && param1 ) {
+		    commandeid =  param1;
+			jQuery('#createPaiement').find('#commandeid').val(param1)
+	   }	   
+	   if( commandeid && mode ) {
+		   document.location.href = '".$formSubmit."/commandeid/'+commandeid+'/mode/'+mode;
+	   } 	         
+});  
+jQuery('.searchCommande').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListCommandes').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une commande client',content: '".$linkSearchCommande."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		              closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); });
+jQuery('.searchBank').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une banque',content: '".$linkSearchBank."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); });		
+            ";
+$jq->addOnLoad( $onLoad );
+$jq->addJavascriptFile( $basePath ."/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+$jq->addStyleSheet(    $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+?>
+<form method="post"  id="createPaiement" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+  <div     class="panel panel-default">
+   <ul class="list-group">
+         <li class="list-group-item">
+            <div  class="row">              
+              <label class="col-sm-4 control-label"> Le bon numérisé: </label>
+              <div class="col-sm-8"> <input type="file" name="paiementdocument" id="paiementdocument"  /> </div>  
+            </div>
+	    </li>
+        <li class="list-group-item">
+            <div  class="row">
+              <label class="col-sm-4 control-label"> Numéro: </label>
+              <div   class="col-sm-8"> <input type="text" name="numero" id="numero" class="form-control" placeholder="Numéro de la quittance" value="<?php echo $data["numero"]; ?>" /> </div>        
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div  class="row">
+               <label class="col-sm-4 control-label"> La commande*: </label>
+               <div   class="col-sm-8"> 
+		         <div class="input-group">
+			         <input type="text" name="commande" id="commande" class="form-control disabled" placeholder="Selectionnez une commande" value="<?php echo $numCommande; ?>" /> 
+		             <div class="input-group-btn">
+				        <button title="Selectionnez une commande" type="submit" class="btn btn-primary searchCommande"><span class="glyph-icon icon-search"></span> Selectionner </button>
+				     </div> 
+			     </div>
+		       </div>		                     
+               <input type="hidden" name="commandeid" id="commandeid" value="<?php echo intval($this->commandeid); ?>" />
+		       <input type="hidden" name="selectCommande" id="selectCommande"  />
+            </div>
+        </li>
+		<li class="list-group-item">
+            <div  class="row">
+              <label class="col-sm-4 control-label">Mode paiement*: </label>
+              <div class="col-md-8"> <?php echo $this->formSelect("mode",4, array("class" => "form-control"), $modesPaiement); ?>  </div> 
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+               <label class="col-sm-4 control-label"> Date*: </label>
+               <div class="col-md-2"><?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+               <div class="col-md-3"><?php echo $this->formSelect("date_month", $data["date_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+               <div class="col-md-3"><?php echo $this->formSelect("date_year" , $data["date_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+            </div>
+        </li>                       
+        <li class="list-group-item">
+            <div  class="row">
+              <label class="col-sm-4 control-label">Montant*: </label>
+              <div class="col-md-8"> <input type="text" name="montant" id="montant" class="form-control" placeholder="Montant" value="<?php echo $this->lastSolde; ?>" />  </div> 
+            </div>
+       </li>              
+       <?php if(!intval( $assureurid )): ?>      
+        <li class="list-group-item">
+           <div class="row"> 
+            <label class="col-sm-4 control-label"> L'assureur *: </label>
+            <div class="col-md-8"> <?php echo $this->formSelect("mode_paiement_assureurid", 0 , array("class" => "form-control"), $this->assureurs ); ?> </div>
+           </div>     
+         </li>
+      <?php else: ?>
+        <input type="hidden" name="mode_paiement_assureurid" id="mode_paiement_assureurid" value="<?php echo intval($assureurid); ?>" />
+      <?php endif; ?>
+       <li class="list-group-item">
+        <div class="row"> 
+            <label class="col-sm-4 control-label"> Numéro du bon*: </label>
+            <div class="col-md-8"> <input id="mode_paiement_numero" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du bon" placeholder="Numéro du bon"  name="mode_paiement_numero" class="form-control" value="<?php echo $data["mode_paiement_numero"]; ?>" /></div>
+         </div>     
+      </li>          
+      <li class="list-group-item">
+        <div class="row"> 
+            <label class="col-sm-4 control-label"> Date d'édition: </label>
+            <div class="col-md-8"><input type="text" name="mode_paiement_date" id="mode_paiement_date"" class="form-control datepicker" value="<?php echo $data["mode_paiement_date"]; ?>" /></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <label class="col-sm-4 control-label"> Lieu d'édition: </label>
+            <div class="col-md-8"> <input id="mode_paiement_address" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Lieu d'édition" placeholder="Lieu d'édition"  name="mode_paiement_address" class="form-control" /></div>
+         </div>     
+      </li>        	   
+     </ul>
+</div>
+<?php 
+  $buttonsbar = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+  $toolCreate = $buttonsbar->button("Enregistrer le bon", "save")->setPriority("primary");
+  $toolCancel = $buttonsbar->button("Annuler","ban");
+      
+  $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+  $toolCancel->setAttributes(array("type" => "submit"));
+      
+  $buttonsbar->add($toolCreate , "createButton");
+  $buttonsbar->add($toolCancel , "cancelCreationButton");
+     
+  $toolCreate->onClick("
+     		event.preventDefault();
+     		var formSelector = jQuery('#createPaiement');
+			var numero       = formSelector.find('#mode_paiement_numero').val();
+     		var commandeid   = parseInt(formSelector.find('#commandeid').val());
+     		var montant      = parseFloat(formSelector.find('#montant').val());
+     		var modePaiement = parseInt(formSelector.find('#mode').val());
+			if( SIRAH.util.isEmpty( numero )) {
+				SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement selectionner le numéro du bon');
+     		    return;
+			}
+     		if(!commandeid ) {
+     		    SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement selectionner une commande');
+     		    return;
+            }
+            if(!montant ) {
+     		    SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement saisir un montant');
+     		    return;
+            }
+            if(!mode ) {
+     		    SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement selectionner un mode de paiement valide');
+     		    return;
+            }			
+     		formSelector.submit();");
+     $toolCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel ));
+     
+     if( !$this->isAjax )
+     	echo $buttonsbar;
+?>
+</form>
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }  
+?>

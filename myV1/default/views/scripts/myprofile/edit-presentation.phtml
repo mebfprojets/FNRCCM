@@ -1,0 +1,109 @@
+<?php 
+$data        = $this->data;
+$formNames   = $this->formNames;
+$formSubmit  = $this->url(array("controller" =>"myprofile" , "action" => "presentation") , "default");
+$backList    = $this->url(array("controller" =>"myprofile" , "action" => "infos") , "default" );
+
+$basePath    = ROOT_PATH."/templates/sirah";
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%; margin:auto;}
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{height:45px;line-height:30px;font-size:1.3em;}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('#".$formNames['professionalstate']."').bind('blur change',function(e){
+      e.preventDefault();
+      var professionalstate = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(professionalstate)){
+        jQuery('#".$formNames['professionalstate']."').removeClass('input-error');
+        jQuery('#professionalstate-validation-message').html('');
+      } else {
+        jQuery('#".$formNames['professionalstate']."').addClass('input-error');
+        return;
+      }
+  });       
+ jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+ jQuery('.saveInfos').click(function(e)
+ {
+      e.preventDefault();      
+      var  formSelector      = jQuery('#editpresentation-form');
+      var  presentation      = jQuery.trim(jQuery('#".$formNames['presentation']."').val());
+      var  professionalstate = jQuery.trim(jQuery('#".$formNames['professionalstate']."').val());
+      
+      if(SIRAH.util.isEmpty(professionalstate)){
+         jQuery('#".$formNames['professionalstate']."').addClass('input-error');
+         jQuery('#professionalstate-validation-message').html('');
+         SIRAH.error.raise('professionalstate-validation-message','Entrez votre statut professionnel');
+         return;
+      } else {
+         jQuery('#".$formNames['professionalstate']."').removeClass('input-error');
+         jQuery('#professionalstate-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty( presentation )){
+        jQuery('#".$formNames['presentation']."').addClass('input-error');
+        jQuery('#presentation-validation-message').html('');
+         SIRAH.error.raise('presentation-validation-message','Entrez quelques mots de votre présentation');
+         return;
+      }  else {
+         jQuery('#presentation').removeClass('input-error');
+          jQuery('#presentation-validation-message').html('');
+      }         
+      jQuery('#".$formNames['professionalstate']."').val(professionalstate);
+      jQuery('#".$formNames['presentation']."').val(firstname);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editpresentation-form"   role="form">
+<div class="container">
+ <ul class="list-group">
+ <li class="list-group-item">                        
+   <div class="row">    
+         <div class="col-md-3"> <label class="label" for="professionalstate"> <b> Statut professionnel *: </b> </label> </div>
+         <div class="col-md-9">
+             <input id="<?php echo $formNames['professionalstate']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Votre statut professionnel" placeholder="Votre statut professionnel" name="<?php echo $formNames['professionalstate']; ?>" value="<?php echo $data['professionalstate']; ?>">
+         </div>
+         <p id="professionalstate-validation-message" class="validation-message"></p> 
+    </div>
+ </li>
+ <li class="list-group-item">      
+     <div class="row">
+        <div class="col-md-3"><label class="label" for="sexe"><b> Présentation *: </b></label></div>
+        <div class="col-md-9">
+          <textarea  name="<?php echo $formNames['presentation']; ?>" id="<?php echo $formNames['presentation']; ?>" class="textarea" cols="50" rows="8" maxlength="800">
+               <?php echo $data["presentation"]; ?>
+          </textarea> 
+       </div>
+       <p id="presentation-validation-message" class="validation-message"></p>   
+    </div>
+ </li>
+</ul>   
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="column colbuttons">
+                       <button type="submit" class="btn btn-default btn-primary saveInfos"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+   <input type="hidden" name="<?php echo $this->csrfTokenId; ?>" id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />
+</form>

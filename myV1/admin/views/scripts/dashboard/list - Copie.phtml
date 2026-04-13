@@ -1,0 +1,437 @@
+<?php
+   $me               = Sirah_Fabric::getUser();
+   $appConfigSession = new Zend_Session_Namespace("AppConfig");   
+   $allowedPanels    = 1;
+            
+   $basePath         = VIEW_BASE_PATH;
+   $linkRegistres    = $this->url(array("module"=>"admin","controller"=>"registres"       , "action"=> "list" ), "default");
+   $linkDemandes     = $this->url(array("module"=>"admin","controller"=>"demandes"        , "action"=> "list" ), "default");
+   $linkPhysique     = $this->url(array("module"=>"admin","controller"=>"registrephysique", "action"=> "list" ), "default");
+   $linkMoral        = $this->url(array("module"=>"admin","controller"=>"registremoral"   , "action"=> "list" ), "default");
+   $linkLocalites    = $this->url(array("module"=>"admin","controller"=>"localites"       , "action"=> "list"), "default");
+   $linkDomaines     = $this->url(array("module"=>"admin","controller"=>"domaines"        , "action"=> "list" ), "default");
+   $linkSuretes      = $this->url(array("module"=>"admin","controller"=>"registresuretes" , "action"=> "list" ), "default");
+   $linkModifications= $this->url(array("module"=>"admin","controller"=>"registremodifications", "action" => "list" ), "default");
+   $linkReservations = $this->url(array("module"=>"admin","controller"=>"reservations"    , "action"=> "list" ), "default");
+   $registres        = $this->registres;
+   $requetes         = $this->requetes;
+   $statyears        = $this->statyears;
+   $statlocalites    = $this->statlocalites;
+   $userstats        = $this->userstats;
+   $statsexes        = $this->statsexes;
+   $statypes         = $this->statypes;
+   $statnationalites = $this->statnationalites;
+   $nbreTotal        = $this->total;
+   $types            = array(0 => " ", 1 => "Personnes physiques", 2 => "Personnes morales", 3=> "Surétés", 4 => "Modifications");
+   $typesDocuments   = $this->typesdocuments;
+   $annees           = $this->annees;
+   $localites        = $this->localites;
+   
+   $nbreObjectif     = (isset($appConfigSession->project->objectif_nb_rccm ))? $appConfigSession->project->objectif_nb_rccm : 75000;
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+ 
+<div   class="row">
+   <?php if( $me->isAllowed("registres", "list")): ?>
+    <div class="col-md-3"> 
+        <div  class="panel-layout dashboardPanel">            
+            <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-suitcase font-blue-alt"> </i>  </div>
+                 <div class="panel-content bg-blue"> <h3> <a style="color:white;" href="<?php echo $linkRegistres; ?>"> Tous les registres  </a>  </h3> </div>
+            </div>
+        </div>      
+    </div>
+   <?php $allowedPanels++; endif; ?>
+   <?php if( $me->isAllowed("registrephysique", "list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-user"> </i>  </div>
+                 <div class="panel-content bg-black"> <h3> <a style="color:white;" href="<?php echo $linkPhysique; ?>"> Personnes Physiques </a> </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   
+   <?php if( $me->isAllowed("registremoral", "list") && ($allowedPanels <= 8)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-users font-blue"> </i>  </div>
+                 <div class="panel-content bg-blue-alt"> <h3> <a style="color:white;" href="<?php echo $linkMoral; ?>"> Personnes Morales </a>  </h3> </div>
+             </div>         
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   <?php if( $me->isAllowed("registremodifications", "list") && ($allowedPanels <= 8)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-pencil-square-o font-orange"> </i>  </div>
+                 <div class="panel-content bg-orange"> <h3> <a style="color:white;" href="<?php echo $linkModifications; ?>"> Modifications </a>  </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>
+   <?php if( $me->isAllowed("registresuretes","list") && ($allowedPanels <= 8)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-shield font-red"> </i>  </div>
+                 <div class="panel-content bg-red"> <h3> <a style="color:white;" href="<?php echo $linkSuretes; ?>"> Sûrétés </a>  </h3> </div>
+             </div>         
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>  
+   <?php if( $me->isAllowed("demandes", "list") && ($allowedPanels <= 8)): ?>
+    <div class="col-md-3"> 
+        <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-inbox font-purple"> </i>  </div>
+                 <div class="panel-content bg-purple"> <h3> <a style="color:white;" href="<?php echo $linkDemandes; ?>"> Demandes de vérifications </a>  </h3> </div>
+            </div>        
+        </div>      
+    </div>
+   <?php $allowedPanels++; endif; ?> 
+   <?php if( $me->isAllowed("reservations", "list")): ?>
+    <div class="col-md-3"> 
+        <div  class="panel-layout dashboardPanel">
+            <div class="panel-box col-xs-12">
+                <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-certificate font-azure"> </i>  </div>
+                <div class="panel-content bg-azure"> <h3> <a style="color:white;" href="<?php echo $linkReservations; ?>"> Réservations </a> </h3> </div>
+            </div>          
+        </div>      
+    </div>
+   <?php $allowedPanels++; endif; ?>   
+   <?php if( $me->isAllowed("localites", "list") && ($allowedPanels <= 8)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-linecons-location font-orange"> </i>  </div>
+                 <div class="panel-content bg-orange"> <h3> <a style="color:white;" href="<?php echo $linkLocalites; ?>"> Gestion des localités</a>  </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>   
+   <?php if( $me->isAllowed("domaines", "list") && ($allowedPanels <= 8)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-table font-yellow"> </i>  </div>
+                 <div class="panel-content bg-yellow"> <h3> <a style="color:white;" href="<?php echo $linkDomaines; ?>"> Secteurs d'activités  </a>  </h3> </div>
+             </div>
+          
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>    
+</div>
+<div  class="row">   
+    <div class="col-md-7">
+        <?php if(count($requetes) && $me->isAllowed("requetes", "list") ): ?>
+         <div class="content-box border-top border-blue-alt mrg25B ">
+            <h3 class="content-box-header"> NOUVELLES DEMANDES D'ACCES AUX RCCM</h3>           
+            <div class="content-box-wrapper">              
+               <table id="requetesListTable" class="table table-hover table-bordered ">
+                 <thead>
+                    <tr> 
+                        <th width="15%"> Dates           </th>                                                                               
+                        <th width="27%"> Dénomminations  </th> 
+                        <th width="30%"> Types documents </th> 
+                        <th width="28%"> Clients         </th> 
+                   </tr>
+                </thead>                
+                <tbody>
+                <?php 
+                       foreach( $requetes as $requete ) {
+  	                            $requestid   = intval($requete['requestid']);
+  	                            $date        = $requete["date"] ;
+  	                            $dateCreation= ( $date ) ? date("d/m/Y", $date ) : "";
+  	                            $libelle     = $requete["libelle"] ;
+  	                            $numero      = $requete["numero"] ;
+  	                            $client      = sprintf("%s %s", $requete["lastname"], $requete["firstname"] );
+  	                            $typedocument= (isset($typesDocuments[intval($requete["typedocument"])])) ? $typesDocuments[intval($requete["typedocument"])] : "" ;
+  	                            $linkInfos   = $this->url(array("requestid"=> $requestid,"controller"=>"requetes","action"=>"infos","module"=>"admin"), "default");
+  	                            $statut      = "En cours de traitement";
+  	                            $bgColor     = 'alert danger';
+  	                            if((intval( $requete["validated"] ) == 1 ) && intval( $requete["accepted"] )){
+  		                            $statut   = "Demande d'accès validée";
+  		                            $bgColor  = "alert success";
+  	                             }  elseif( !intval( $requete["validated"] ) && intval( $requete["accepted"])){
+  		                            $statut   = "Demande d'accès en cours de traitement";
+  		                            $bgColor  = "alert info";
+  	                             } elseif( ( intval( $requete["validated"] ) == 2 ) && intval( $requete["accepted"] )  ) {
+  		                            $statut   = "Demande d'accès refusée";
+  		                            $bgColor  = "alert danger";
+  	                             }
+  	                             $output .= "<tr id=\"requestRowId-".$requestid."\" class=\"".$bgColor."\"> ";
+  	                                     $output .= "<td > <a href=\"".$linkInfos."\"> ".$dateCreation." </a> </td>";
+  	                                     $output .= "<td > <a href=\"".$linkInfos."\"> ".$libelle     ." </a> </td>";
+  	                                     $output .= "<td > <a href=\"".$linkInfos."\"> ".$typedocument." </a> </td>";
+  	                                     $output .= "<td > <a href=\"".$linkInfos."\"> ".$client      ." </a> </td>"; 
+  	                             $output .= "</tr>";
+                                }
+                          echo $output;
+  
+        ?>
+		     </tbody></table>
+		   </div>    
+	    </div>
+	    <?php endif; ?> 
+	    <?php if( $me->isAllowed("registres","list") && ($me->isAdmin() || $me->isOPS())) : ?>
+		<div class="content-box border-top border-green mrg25B dashboardPanel">
+			    <h3 class="content-box-header"> Statistiques des RCCM INDEXES par OPS</h3>
+			    <div class="content-box-wrapper">
+					<table  class="table table-bordered table-hover">
+					    <thead>
+							<tr>
+								 <th width="45%"> OPS          </th>
+								 <th width="35%"> Localités    </th>                                          
+								 <th width="10%"> Nombre       </th>
+								 <th width="10%"> Cumul        </th>
+							</tr>         
+					    </thead>
+					  
+					    <tbody>
+						<?php
+							   $output        = "";
+							   $total         = 0;
+							   $totalUser     = 0;
+							   $userid        = 0;
+							   $typeRegistre  = 0;
+							   $precedentUser = null;
+							   $i             = 1;
+							   $badgeColors   = array("badge-success","badge-danger","badge-purple","badge-yellow","badge-azure","badge-blue","badge-warning","badge-info","badge-black","badge-azure","badge-blue");
+							   $badgeColorKey = 0;
+							   
+							   if( count(   $userstats )) {
+								   foreach( $userstats as  $userstat ) {
+											$opsName      = sprintf("%s %s", $userstat["lastname"], $userstat["firstname"] );				
+											if(($userid  !== $userstat["userid"]) && ($userid != 0)) {
+												$badgeColor   = (isset( $badgeColors[$badgeColorKey] ))? $badgeColors[$badgeColorKey] : "badge-success";
+												$totalUserVal = number_format( $totalUser, 0, ",", " ");            
+												$linkList     = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"list","creatorid"=> $userid),"default");
+												$output  .=" <tr class=\"font-blue font-bold\"> 
+															   <td style=\"text-align:left;\" colspan=\"2\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"> TOTAL  de ".$precedentUser."</a></td>
+															   <td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"><span class=\"font-size-14 bs-badge ".$badgeColor."\"> ".$totalUserVal."</span></a></td> 
+															   <td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".$total."</a></td>
+															 </tr>";         			    
+												$totalUser= 0;
+												$badgeColorKey++;
+											} elseif( $userid == $userstat["userid"] ) {
+												$opsName  =  "";
+											}
+											$localite     = $userstat["localite"];
+											$localiteid   = $userstat["localiteid"];
+											$nombre       = $userstat["nombre"] ;
+											$total       +=	$userstat["nombre"] ;	
+											$totalUser   +=	$userstat["nombre"] ;										
+																				
+											$linkList     = $this->url(array("module"=>"admin","controller"=>"registres", "action"=>"list","creatorid"=>$userstat['userid'],"localiteid"=>$localiteid),"default");
+											$output.="<tr style=\"background-color:".$rowBg."\">";
+												$output .="<td style=\"text-align:left;\"> <a title=\"Visualiser les RCCM de cette localité enregistrés par cet utilisateur\" href=\"".$linkList."\">".$i." - ".$opsName ." </a> </td>";
+												$output .="<td style=\"text-align:left;\"> <a title=\"Visualiser les RCCM de cette localité enregistrés par cet utilisateur\" href=\"".$linkList."\">".$localite." </a> </td>";                     	 	                             	 	            
+												$output .="<td style=\"text-align:right;\"><a title=\"Visualiser les RCCM de cette localité enregistrés par cet utilisateur\" href=\"".$linkList."\">".number_format($nombre, 0, " "," ")." </a> </td>";
+												$output .="<td style=\"text-align:right;\"><a title=\"Visualiser les RCCM de cette localité enregistrés par cet utilisateur\" href=\"".$linkList."\">".number_format($total , 0, " "," ")." </a> </td>";
+										 $output.="</tr>";  
+										 $userid         = $userstat["userid"];
+										 $typeRegistre   = $userstat["type"];
+										 $precedentUser  = sprintf("%s %s", $userstat["lastname"], $userstat["firstname"] );
+										 $i++;
+								   }
+										 $rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+										 $badgeColor     = $this->cycle(array("badge-danger","badge-success","badge-purple","badge-yellow","badge-azure","badge-blue","badge-warning","badge-info","badge-black"))->next();
+										 $linkList       = $this->url(array("module"=>"admin","controller"=> "registres","action"=>"list","creatorid"=> $userid),"default");
+										 $totalUserVal   = number_format( $totalUser, 0, ",", " ");
+										 $output        .=" <tr style=\"background-color:".$rowBg."\" class=\"font-blue font-bold\"> 
+															   <td style=\"text-align:left;\" colspan=\"2\">  <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"> TOTAL de ".$precedentUser."</a> </td>
+															   <td style=\"text-align:right;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"> <span class=\"font-size-14 bs-badge ".$badgeColor."\"> ".$totalUserVal."</span> </a> </td> 
+															   <td style=\"text-align:right;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".number_format($total, 0, " ", " ")." </a> </td> 
+															</tr>";
+															
+										$totalVal       = number_format( $total, 0 , ",", " ");
+										$rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+										$output        .=" <tr style=\"background-color:".$rowBg."\" class=\"text-danger font-bold\"> 
+															   <td style=\"text-align:left;\" colspan=\"3\">TOTAL  </td> 
+															   <td style=\"text-align:right;\">".$totalVal."</> </td> </tr>";					
+							   }
+							   
+							   echo $output;
+						 ?>
+				  </tbody>
+				</table>
+			 </div>
+		</div> 	
+		<?php endif; ?>
+		<?php if( $me->isAllowed("demandes","list")) : ?>
+		    <?php
+			    $nbreDemandesByAnnee    = $this->nbreDemandesByAnnee ;
+                $nbreDemandesByStatut   = $this->nbreDemandesByStatut;
+				$nbreDemandesByLocalite = $this->nbreDemandesByLocalite;
+			    $nbreDemandesByUser     = $this->nbreDemandesByUser;
+			?>
+		    
+			<div class="content-box border-top border-green mrg25B dashboardPanel">
+				 <h3 class="content-box-header"> Nombre de demandes par GREFFIER/CONSEILLER</h3>
+			   <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-greffiers.phtml", array("rows" => $nbreDemandesByUser)); ?> </div>
+			</div>
+		<?php endif; ?>
+    </div>
+     
+    <div class="col-md-5"> 
+	    <?php if( $me->isAllowed("registres","list") && $me->isAllowed("statistiques","list")) : ?>
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Statistiques des RCCM par localité </h3>
+		    <div class="content-box-wrapper">
+				<table  class="table table-bordered table-hover">
+					  <thead>
+							<tr>
+								 <th width="90%"> Localités </th>                                         
+								 <th width="10%"> Nombre    </th>
+							</tr>         
+					  </thead>         
+					  <tbody>
+						  <?php 
+								 $output      = "";
+								 $total       = 0;
+								 if( count(  $statlocalites )) {
+									 foreach($statlocalites as $statLocalite ) {
+											 $rowBg    = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+											 $linkList = $this->url(array("module" => "admin","controller"=>"registres","action"=> "list","localiteid"=> $statLocalite['localiteid']), "default");  								 
+											 $output.="<tr style=\"background-color:".$rowBg."\">";
+													$output.="<td> <a title=\"Accéder à tous les RCCM de cette localité\" href=\"".$linkList."\"> ".$statLocalite['localite']." </a> </td>";                   	 	                             	 	            
+													$output.="<td> <a title=\"Accéder à tous les RCCM de cette localité\" href=\"".$linkList."\"> ".number_format($statLocalite['nombre'], 0, ' ', ' ')  ." </a> </td>";
+											 $output.="</tr>";  
+											 $total += $statLocalite['nombre'];                    	 	
+									 } 
+									 $output.="<tr>";
+											$output.="<td> TOTAL :    </td>";
+											$output.="<td> ".number_format($total, 0, ' ', ' ')." </td>";
+									 $output.="</tr>";
+								 }  
+
+								 echo $output;
+						  ?>
+					  
+					  </tbody>         
+			    </table>
+			</div>
+		</div> 
+		<div class="content-box border-top border-blue mrg25B dashboardPanel">
+			<h3 class="content-box-header"> Statistiques des RCCM par type </h3>
+			<div class="content-box-wrapper">
+			  <table  class="table table-bordered table-hover">
+				<thead> <tr> <th width="80%"> Types de registres </th> <th width="20%"> Nombre </th> </tr></thead>
+				<tbody>
+				   <?php
+						  $outputType  = "";
+						  $totalType   = 0;
+						  
+						  if( count(   $statypes )) {
+							  foreach( $statypes as $statype ) {
+									   if(empty($statype['type']) || !isset($types[$statype['type']]))
+										  continue;
+									   $rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+									   $linkList      = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","type"=> $statype['type']),"default");
+									   $type          = $types[$statype['type']];
+									   $outputType.="<tr style=\"background-color:".$rowBg."\">";
+											$outputType.="<td> <a title=\"Accéder aux RCCM de ce type\" href=\"".$linkList."\"> ".$type." </a></td>";
+											$outputType.="<td> <a title=\"Accéder aux RCCM de ce type\" href=\"".$linkList."\"> ".number_format($statype['nombre'], 0, " ", " ")." </a> </td>";
+									   $outputType.="</tr>";
+									   $totalType += $statype['nombre'];
+							  }
+							  $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+							  $outputType.="<tr style=\"background-color:".$rowBg."\">";
+									$outputType.="<td> TOTAL :    </td>";
+									$outputType.="<td> ".number_format( $totalType, 0,' ', ' ')." </td>";
+							  $outputType.="</tr>";
+						  } else {
+									   $outputType.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+						  }
+						  echo $outputType;
+				   ?>
+				</tbody>
+			  </table>
+			</div>
+		</div>
+		<div class="content-box border-top border-red mrg25B dashboardPanel">
+		  <h3 class="content-box-header"> Statistiques des RCCM par année </h3>
+		   <div class="content-box-wrapper">
+				<table  class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							 <th width="80%"> Années      </th>
+							 <th width="20%"> Nombre     </th>
+						</tr>         
+					</thead>					  
+					<tbody>
+						  <?php 
+								 $output      = "";
+								 $total       = 0;
+								 if( count(   $statyears )) {
+									 foreach( $statyears as $statYear ) {
+											  if( empty( $statYear['annee'] ))
+												  continue;
+											 $rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+											 $linkList      = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","annee"=> $statYear['annee']),"default");
+											 $output.="<tr style=\"background-color:".$rowBg."\">";
+													$output.="<td> <a title=\"Accéder aux RCCM de cette année\" href=\"".$linkList."\">".$statYear['annee']." </a></td>";
+													$output.="<td> <a title=\"Accéder aux RCCM de cette année\" href=\"".$linkList."\">".number_format($statYear['nombre'], 0, " ", " " )." </a> </td>";
+											 $output.="</tr>";
+											 $total += $statYear['nombre'];
+									 }   
+									 $output.="<tr style=\"background-color:".$rowBg."\">";
+											$output.="<td> TOTAL :    </td>";
+											$output.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+									 $output.="</tr>";
+								 }  else {
+									 $output.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+								 }
+
+								 echo $output;
+						  ?>
+					  
+					</tbody>         
+			    </table>
+			</div>
+		</div>
+		<?php endif; ?>
+		<?php if( $me->isAllowed("demandes","list")) : ?>
+		<?php
+			$nbreDemandesByLocalite = $this->nbreDemandesByLocalite;
+			$nbreDemandesByUser     = $this->nbreDemandesByUser;
+		?>
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		  <h3 class="content-box-header"> Nombre de demandes par localité </h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-localites.phtml" , array("rows" => $nbreDemandesByLocalite)); ?></div>
+		</div> 		
+        <div class="content-box border-top border-red mrg25B dashboardPanel">
+			<h3 class="content-box-header"> Nombre de demandes par année </h3>
+			<div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-years.phtml", array("rows" => $nbreDemandesByAnnee)); ?> </div>
+		</div>		
+        <div class="content-box border-top border-blue mrg25B dashboardPanel">
+			<h3 class="content-box-header"> Nombre de demandes par statut </h3>
+			<div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-statuts.phtml" , array("rows" =>$nbreDemandesByStatut)); ?></div>
+		</div>		
+	    <?php endif; ?>
+    </div>                 
+</div>
+<?php if( $me->isAdmin()) : ?>
+<!--
+<div  class="row"> 
+   <div class="col-md-12"> 
+    <div class="content-box border-top border-blue mrg25B dashboardPanel">
+      <h3 class="content-box-header"> Statistiques globales des RCCMS Indexés par localité des 15 dernières années </h3>
+       <div class="content-box-wrapper"> <?php //echo $this->partial("dashboard/statglobal.phtml" , array("annees" => $annees, "localites" => $localites )); ?> </div>
+	</div>
+  </div>
+</div>-->
+<?php endif; ?>
+
+
+

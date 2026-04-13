@@ -1,0 +1,79 @@
+<?php 
+$me            = Sirah_Fabric::getUser();
+$demandes      = $this->demandes;
+
+$basePath      = VIEW_BASE_PATH;
+$jq            = $this->jQuery();
+
+$linkList      = $this->url(array("module"=>"admin","controller"=>"demandes" ,"action"=>"list"),"default",true);
+$linkDashboard = $this->url(array("module"=>"admin","controller"=>"dashboard","action"=>"list"),"default",true);
+
+$toolbar       = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolDashboard = $toolbar->tool("Aller sur le tableau de bord", "home");
+$toolList      = $toolbar->tool("Aller sur la liste des demandes", "list");
+
+$toolbar->add(   $toolDashboard,"dashboardButton");
+$toolbar->add(   $toolList     ,"listButton");
+$toolDashboard->onClick(sprintf("event.preventDefault(); document.location.href='%s';" ,$linkDashboard));
+$toolList->onClick(     sprintf("event.preventDefault(); document.location.href='%s';" ,$linkList));
+$this->toolsbar = $toolbar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="demandesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">	    
+		<table class="table table-hover table-striped sirah-ui-table scrollable fixedTabla demandesListTable" id="demandesListTable" style="width:100%">
+			<thead>
+				<th width="2%"> <input type="checkbox" name="checkAll" id="checkAll" class="checkAll checker" /> </th>	
+				<th width="10%"> Dates       </th>
+				<th width="12%"> Localités   </th>
+				<th width="14%"> Mandataires </th>
+                <th width="32%"> Objets      </th> 								 										
+				<th width="15%"> Promoteurs  </th>
+                <th width="15%"> Statuts     </th>				
+			</thead>
+			<?php
+				$output        = "";
+				if( count(   $demandes ) ) {
+					foreach( $demandes as $demande ) {
+						     $requestid        = $demande["requestid"];
+							 $demandeid        = $demande["demandeid"];
+							 $statutid         = (isset($demande["statutid"]) && intval($demande["statutid"]))?intval($demande["statutid"]) : 0;
+							 $demandeTypeId    = $demande["typeid"];
+							 $demandeLibelle   = $demande["libelle"];
+							 $demandeLocalite  = $demande["localite"];
+							 $demandeurName    = (isset($demande["demandeurName"]) && !empty($demande["demandeurName"]))?$demande["demandeurName"] : ((isset($demande["demandeur"]))?$demande["demandeur"] : "");
+                             $promoteurName    = (isset($demande["promoteurName"]) && !empty($demande["promoteurName"]))?$demande["promoteurName"] : ((isset($demande["promoteur"]))?$demande["promoteur"] : "");
+							 $demandeType      = $demande["type"];
+							 $demandeStatut    = $demande["statut"];
+							 $zendDate         = (intval($demande['date']))?new Zend_Date($demande['date'],Zend_Date::TIMESTAMP) : null;
+							 $dateDemande      = ( $zendDate )? $zendDate->toString("dd MMM yyyy") : null;
+                             if( intval($statutid) && (($statutid==3) || ($statutid==4) || ($statutid==5))) {
+								 continue;
+							 }
+							 $linkInfos        = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"request","demandeid"=>$demandeid,"requestid"=>$requestid), "default",true);
+							 $output          .= "<tr id=\"demandeRowId-".$demandeid."\">";
+								$output       .= "   <td width=\"2%\"> <input type=\"checkbox\" name=\"demandeids[]\" id=\"demandeids".$demandeid."\" class=\"demandeids checker\" /> </td>";
+								$output       .= "   <td width=\"8%\"><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$dateDemande." </a></td>";	
+								$output       .= "   <td width=\"13%\" class=\"email-body\"> <a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeLocalite."</a> </td>";
+								$output       .= "   <td width=\"14%\" class=\"email-body\"> <a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeurName."</a> </td>";											
+								$output       .= "   <td width=\"32%\" class=\"email-title\"><b><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeLibelle."</a> </b> </td>";
+								$output       .= "   <td width=\"14%\" class=\"email-body\"> <a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$promoteurName."</a> </td>";											
+								$output       .= "   <td width=\"17%\"><a href=\"".$linkInfos."\" title=\"Consulter les informations de cette demande\"> ".$demandeStatut."</a></td>";
+							 $output          .= "</tr>";
+					}
+				} else {
+							 $output .="<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"7\"> AUCUNE DEMANDE EN INSTANCE DE TRAITEMENT N'A ETE TROUVEE </td></tr>";
+				}
+				echo $output;
+			?>
+		</table>
+    </div>
+</div>
+
+<?php 
+	if( $this->isAjax ) {
+		echo $this->jQuery();
+		echo $this->headStyle();
+	}
+?>   

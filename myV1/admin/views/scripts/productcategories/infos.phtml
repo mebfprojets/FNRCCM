@@ -1,0 +1,96 @@
+<?php 
+   $categorie     = $this->categorie;
+   $documentcategorie = $this->documentcategorie;
+   $linkCreate    = $this->url(array("module"=>"admin","controller"=>"productcategories","action"=>"create"),"default",true) ;
+   $linkEdit      = $this->url(array("module"=>"admin","controller"=>"productcategories","action"=>"edit","id"=> $this->catid),"default",true) ;
+   $linkCancel    = $this->url(array("module"=>"admin","controller"=>"productcategories","action"=>"list"),"default",true) ;
+     
+   $buttonbar     = $this->Btnbar(array("id" => "MyBtnBar") , $this->jqueryHandler());  
+   $buttonCreate  = $buttonbar->button(" Nouvelle catégorie", "edit")->setPriority("primary");
+   $buttonEdit    = $buttonbar->button(" Mettre à jour les informations", "edit")->setPriority("primary");
+   $buttonCancel  = $buttonbar->button(" Revenir sur la liste", "chevron-left");
+   
+   $buttonbar->add( $buttonCancel, "cancelButton");
+   $buttonbar->add( $buttonCreate, "createButton");
+   $buttonbar->add( $buttonEdit  , "editButton");
+   
+   
+   $buttonCreate->onClick("event.preventDefault();document.location.href='".$linkCreate."';");
+   $buttonEdit->onClick(  "event.preventDefault();document.location.href='".$linkEdit  ."';");
+   $buttonCancel->onClick("event.preventDefault();document.location.href='".$linkCancel."';");
+   
+   $this->toolsbar = $buttonbar;
+   
+   $creationDate         = $updateDate = "00/00/0000";
+	$creator              = Sirah_Fabric::getUser($categorie->creatorid);
+	$updatedUser          = Sirah_Fabric::getUser($categorie->updateduserid);
+	if( $categorie->creationdate ) {
+		$zendCreationdate = new Zend_Date( $categorie->creationdate , Zend_Date::TIMESTAMP );
+		$creationDate     = $zendCreationdate->toString("dd MMM Y");
+	}
+	if( $categorie->updatedate ) {
+		$zendUpdatedate   = new Zend_Date( $categorie->updatedate , Zend_Date::TIMESTAMP );
+		$updateDate       = $zendUpdatedate->toString("dd MMM Y");
+	}
+?>
+  
+<div class="panel panel-default">
+    <ul class="list-group">
+	    <?php if( $documentcategorie ): ?>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b> Type de document:</b></div> 
+				<div class="col-md-9"><?php echo $documentcategorie->libelle; ?></div>
+			</div>
+		</li>  
+		<?php endif; ?>
+	    <li class="list-group-item">
+		    <div class="row"> 
+				<div class="col-md-3"> <label class="label" for="code"> <b> Code: </b> </label></div> 
+				<div class="col-md-9"> <?php echo $this->escape($categorie->code);  ?></div>
+		    </div>
+		</li>
+		<li class="list-group-item">
+		    <div class="row"> 
+				<div class="col-md-3"> <label class="label" for="libelle"> <b>  Désignation: </b> </label></div> 
+				<div class="col-md-9"> <?php echo $this->escape($categorie->libelle);  ?></div>
+		    </div>
+		</li>     
+        <li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b>Cout HT:</b></div> 
+				<div class="col-md-9"><?php echo (floatval($categorie->cout_ht))?sprintf("%s F CFA",number_format($categorie->cout_ht,0," "," ")) : $categorie->cout_ht; ?></div>
+			</div>
+		</li>
+        <li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b>Cout TTC:</b></div> 
+				<div class="col-md-9"><?php echo (floatval($categorie->cout_ttc))?sprintf("%s F CFA",number_format($categorie->cout_ttc,0," "," ")) : $categorie->cout_ht; ?></div>
+			</div>
+		</li>
+		<li class="list-group-item">
+		   <div class="row"> 
+				<div class="col-md-3"> <label class="label" for="description"> <b> Description :</b> </label></div> 
+				<div class="col-md-9"> <?php echo $this->escape($categorie->description);  ?> </div>
+		   </div>
+		</li> 
+        <?php if( $categorie->creatorid ): ?>
+			<li class="list-group-item">
+				<div class="row"> 
+				   <div class="col-md-3"> <b> Enregistré le:</b></div> 
+				   <div class="col-md-9"><?php printf("%s par %s %s", $creationDate , $creator->lastname, $creator->firstname ); ?></div>
+				</div>
+			</li>
+		<?php endif; ?>
+		<?php if( $categorie->updateduserid ): ?>
+		<li class="list-group-item">
+				<div class="row"> 
+				 <div class="col-md-3"> <b> Mis à jour le:</b> </div> 
+				 <div class="col-md-9"><?php printf("%s par %s %s", $updateDate, $updatedUser->lastname, $updatedUser->firstname ); ?></div>
+				</div>
+		</li>
+		<?php endif; ?>		
+    </ul>
+	 
+</div>
+       

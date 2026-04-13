@@ -1,0 +1,35 @@
+<?php 
+
+   $rowId     = $this->rowId;
+   $rows      = $this->rows;
+   $rowTitle  = $this->rowTitle;
+   $titleIcon = $this->rowTitleIcon;
+   $headerTool= $this->rowHeaderTool;
+   $rowContent= $this->rowContent;
+   
+   $output    = "<div class=\"row\" id=\"".$rowId."\"><div class=\"col-md-9\">
+                    <div class=\"panel panel-default\">";  
+   $output  .=  "<div class=\"panel-heading\"><h4 class=\"panel-title\"> <span class='".$titleIcon."'></span>".$rowTitle." ".$headerTool."</h4></div>  ";
+   
+   if(!empty($rowContent)) {
+   	  $output  .= " <div class=\"panel-body\">".$rowContent."</div>";
+   }                  
+   if(count($rows)) {
+   	 $output  .= "<ul class=\"list-group\">";
+   	 foreach($rows as $key => $value) {
+   	 	$output  .= "
+   	 	   <li class=\"list-group-item\">
+               <div class=\"row\"> 
+                 <div class=\"col-md-6\"> <b> ".$this->escape($key).":</b></div> 
+                 <div class=\"col-md-6\">".$this->escape($value)."</div>
+              </div>
+           </li> ";
+   		
+   	}
+   	$output  .="</ul>";
+   }   	
+   	$output    .= "</div></div></div>";
+   	
+   	echo $output;
+
+?>

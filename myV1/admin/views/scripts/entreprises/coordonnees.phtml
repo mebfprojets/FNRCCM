@@ -1,0 +1,43 @@
+             <?php 
+                   $row     = $this->row;
+                   $country = $row->findParentRow("Table_Countries");
+                   $city    = $row->findParentRow("Table_Countrycities");
+             ?>             
+             <ul class="list-group">
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Adresse :</b></div> 
+                             <div class="col-md-7"><?php echo ( $row ) ? $this->escape( $row->address ) : ""; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Adresse email :</b></div> 
+                             <div class="col-md-7"><?php echo ($row) ? $this->escape( $row->email ) : ""; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Telephone :</b></div> 
+                             <div class="col-md-7"><?php echo ($row) ? implode(", ", array($row->phone1, $row->phone2 ) ) : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Code Postal:</b></div> 
+                             <div class="col-md-7"><?php echo ($row) ? $this->escape( $row->zip ) : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Pays d'origine:</b></div> 
+                             <div class="col-md-7"><?php echo ( $country  ) ? $this->escape( $country->libelle ) : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Ville :</b></div> 
+                             <div class="col-md-7"><?php echo ( $city ) ? $this->escape( $city->libelle ) : ""; ?> </div>
+                           </div>
+                       </li>
+                  </ul>

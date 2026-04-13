@@ -1,0 +1,8 @@
+[27-Dec-2022 21:27:01 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/documentheque/formalites.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/documentheque/formalites.phtml on line 2
+[27-Dec-2022 21:27:04 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/documentheque/list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/documentheque/list.phtml on line 2

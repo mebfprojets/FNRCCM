@@ -1,0 +1,113 @@
+<?php 
+$activites       = $this->activites;
+$paginator       = $this->paginator;
+
+$basePath        = VIEW_BASE_PATH;
+$defaultImage    = $basePath."/images/blank.png";
+$jq              = $this->jQuery();
+$linkSearch      = $this->url(array("module" => "public", "controller" => "activites", "action" => "list"), "default");
+
+$jq->addOnload("	
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+		   var formSelector     = jQuery('#advanced-searchform');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if( jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+		var paginationData                = {};
+		paginationData.maxitems           = pageMaxitems;
+		paginationData.page               = pageNum;
+		
+        var maincontent	                  = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);		 
+	});");
+
+?>
+                             
+<?php
+      $modelActivite   = new Model_Activite();
+      $output          = " <div class=\"panel panel-default listActivites \">
+                             <ul class=\"list-group \"> ";
+            //On crée et affiche le tableau                
+             if(count(   $activites ) ) {
+             	foreach( $activites as $activite ) {             		
+             	         $activityid       = intval($activite['activityid']);
+             	         $libelle          = strip_tags( $activite["libelle"]) ;
+             	         $introduction     = strip_tags( $activite["introtext"] ) ;
+             	         
+             	         $beneficiaires    = $modelActivite->beneficiaires( $activityid );
+
+             	         $periode          = sprintf("%s - %s", date("d/m/Y", $activite["datedebut"] ), date("d/m/Y", $activite["datefin"] ) );
+             	         $photoGarde       = "";
+             	         
+             	         $urlLibelle       = Sirah_Functions_String::cleanUtf8( $libelle );
+             	         $linkInfos        = $this->url(array("controller"=> "activites", "action"=> "infos", "activityid"=> $activityid, "activitylib" =>$urlLibelle ), "publications");
+             	          
+             	         
+             	         if( empty( $libelle ))
+             	         	 continue;
+ 
+             	         $beneficiairesOutput = "Au bénéfice de ".implode(" / ", $beneficiaires );
+             	      if( !empty( $activite["photogarde"] ) ) {
+             	   	     $photoGardePath   =  $activite["photogarde"];
+             	   	     if( file_exists( $photoGardePath ) ) {
+             	   	  	     $photoGardePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photoGardePath );
+             	   	  	     $photoGarde         = str_replace( DS , "/", $photoGardePathname );
+             	   	  	     //$photoGarde         = str_replace( "original", "mini", $photoGarde );
+             	   	     }
+             	       }
+             	       if( !empty( $photoGarde ) ) { 
+             	       	    $output         .="<li class=\"list-group-item\" id=\"activityId-".$activityId."\" >";
+             	       	            $output .= " <div class=\"row\"> ";
+             	       	                       $output .= " <div class=\"col-md-2\"> <img src=\"".$photoGarde."\" width=\"100px\" title=\"Une photo de l'activité\" /> </div> ";
+             	       	                       $output .= " <div class=\"col-md-10\"> 
+             	       	                                            <h4 class=\"list-group-item-heading\"><u> <a title=\"Visualiser le contenu de l'activité\" href=\"".$linkInfos."\">  ".$libelle." </a> </h4>
+    	  	                                                        <p  class=\"list-group-item-text\"> ".$introduction." </p> 
+    	  	                                                        <p class=\"list-group-item-text\">  ".$introduction." </p> 
+             	       	                                            <p class=\"list-group-item-text\">  <span class=\"text-muted small\"> ".$beneficiairesOutput." </span> </p> 
+             	       	                                            <p class=\"list-group-item-text\">  <span class=\"text-muted small\"> Dans la période du ".$periode." </span> </p> 
+             	       	                                       </div> ";
+             	       	            $output .= " <div> ";
+             	       	    $output         .="</li>";
+             	       	    
+             	       } else {             	       	   
+             	       	    $output        .="<li class=\"list-group-item\" id=\"activityId-".$activityId."\" >";            	        
+             	       	    $output        .="   <h4 class=\"list-group-item-heading\"> <u> <a title=\"Visualiser le contenu de l'activité\" href=\"".$linkInfos."\">  ".$libelle." </a> </u> </h4>
+             	       	                         <p class=\"list-group-item-text\">  ".$introduction." </p> 
+             	       	                         <p class=\"list-group-item-text\">  <span class=\"text-muted small\"> ".$beneficiairesOutput." </span> </p> 
+             	       	                         <p class=\"list-group-item-text\">  <span class=\"text-muted small\"> Dans la période du ".$periode." </span> </p> 
+             	       	                     ";
+             	       	    $output        .="</li>";           	       	
+             	       }  
+             	}
+             }  else {
+             	       $output .=  " <li id=\"activityId-0\" class=\"list-group-item\"> <p class=\"text-muted\"> AUCUNE ACTIVITE NA ETE TROUVEE DANS LE SYSTEME </p> </li> ";
+             }   
+              $output  .= " </ul> </div> " ;           
+              echo $output;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+                   
+    ?>

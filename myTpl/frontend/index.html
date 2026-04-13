@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="../ico/favicon.png">
+
+    <title> Maquette CCIBF  </title>
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css"    />
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap-theme.min.css"  />
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap-modal.css"  />
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap-responsive.css"  />
+    <link rel="stylesheet" href="css/bootstrap/css/prettify.css"  />
+    <link rel="stylesheet" href="css/uxsfbtfg/jquery-ui-1.10.0.custom.css"  />
+    <link rel="stylesheet" href="css/template.css"    />
+	<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery-migrate.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.10.3.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap/bootstrap.min.js"></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
+  <body class="sr_page_body">
+  
+  <!-- L'entete fixe de la page -->
+  <div id="headNavigation" class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div id="sirah-page-head" class="container col-md-12" >  
+        <div id="logoCol" class="col-md-3" ><img align="center" src="images/logo.png" height="55px" /></div>
+        <!-- La colonne du module de recherche -->
+        <div id="centerCol" class="searchbox col-md-4"> <img align="center" src="images/projecthead.png" width="100%" /> </div>
+        <!-- Fin de la colonne du module de recherche -->
+        <div id="navCol" class="col-md-5 pull-right">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="#"> <i class="glyphicon glyphicon-home "></i> ACCUEIL</a></li>
+			<li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#">  PRESENTATION <b class="caret"></b> </a>
+			    <ul class="dropdown-menu">                   
+                      <li><a href="#"> Présentation du projet </a></li>
+                      <li><a href="#"> Présentation du CCI-BF  </a></li>                                                                                  
+              </ul>
+			</li>
+            <li class="dropdown">
+              <a data-toggle="dropdown" class="dropdown-toggle" href="#">  SERVICES <b class="caret"></b> </a>
+              <ul class="dropdown-menu">                   
+                  <li><a href="#"> Nomenclature des entreprises     </a></li>
+			      <li><a href="#"> Recherche de personnes morales   </a> </li>  
+				  <li><a href="#"> Recherche de personnes physiques </a> </li>  
+                  <li><a href="#"> Réserver nom commercial          </a> </li>                                                                                    
+              </ul>
+            </li> 
+            <li class="dropdown">
+                   <a data-toggle="dropdown" class="dropdown-toggle" href="#">  STATISTIQUES </a>
+				   <ul class="dropdown-menu">                   
+                       <li><a href="#"> Statistiques par domaine   </a></li>
+			           <li><a href="#"> Statistiques par localité  </a> </li>  
+				       <li><a href="#"> Statistiques par année     </a> </li>                                                                                    
+                   </ul>
+            </li> 			
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Fin de l'entete fixe de la page -->
+  <!--Le corps du site-->
+   <div id="sirah-page-body" class="wrap colmask wrapper three-columns container" >  
+     <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >
+                  
+          <!--Bloc central de la page du site-->
+            <div id="sirah-page-mainblock-wrapper" class="col1 simple">
+               <div id="viewBaseTitle" class="panel panel-default nomargins nopaddings"> 
+                  <div class="panel-heading greenpanel viewBaseTitle"> <h4>  Les registres de commerce</h4> </div>
+               </div>
+			   
+			   <div id="sirah-page-content" class="sirah-page-content page-content-no-scrollable">
+			      <div  id="maincontent" class="col-lg-12 layoutcontent maincontent nopaddings nomargins">
+				      <div class="row simplerow nomargins" id="advanced-searchform-wrapper" > 
+					     <form id="advanced-searchform" method="post" action="#" role="form" style="text-align:left;">
+						    <div style="margin-bottom:10px;" class="row simplerow-search-form-header"> <h3> <span class="glyphicon glyphicon-search"> </span> Rechercher des registres de commerce</h3>  </div>
+							<div class="row">
+							  <div class="column col-md-2"> <label for="numregistre"> N°du registre : </label>  </div>
+							  <div class="column col-md-4"> <input id="numregistre" maxlength="100" title="Numéro du registre" name="numregistre" placeholder="Numéro du régistre" type="text" /> </div>
+						      <div class="column col-md-2"> <label for="keywords"> Mots clés : </label>  </div>
+							  <div class="column col-md-4"> <input id="keywords" maxlength="100" title="Saisir des mots clés" name="keywords" placeholder="Saisir des mots clés" type="text" /> </div>
+						   </div>
+						   <div class="row">
+						        <div class="column col-md-2"> <label for="annee"> L'année: </label>  </div>
+								<div class="column col-md-4"> <input id="annee" maxlength="4" title="L'année de création" name="annee" placeholder="L'année" type="text" /> </div>
+								<div class="column col-md-2"> <label for="localite"> Localité: </label>  </div>
+								<div class="column col-md-4">  
+								    <select name="localite" id="localite">
+									   <option value="0" label="Selectionnez une localité" selected="selected">Selectionnez une localité</option>
+                                       <option value="1" label="Région du centre">  LOCALITE1   </option>
+                                       <option value="2" label="Région de l'est">   LOCALITE2   </option>  
+                                       <option value="3" label="Région de l'ouest"> LOCALITE3  </option>  
+                                       <option value="4" label="Région des Cascades">  LOCALITE4 </option>  									   
+                                   </select>
+								</div>
+						   </div>
+						   <div class="row">
+						        <div class="column col-md-2"> <label for="libelle"> Nom commercial: </label>  </div>
+								<div class="column col-md-4"> <input id="libelle" maxlength="100" title="Nom commercial de l'entreprise" name="nomcommercial" placeholder="Le nom commercial" type="text" /> </div>
+								<div class="column col-md-2"> <label for="localite"> Domaines: </label>  </div>
+								<div class="column col-md-4">  
+								    <select name="domaine" id="domaine">
+									   <option value="0" label="Selectionnez un domaine d'activité" selected="selected"> Selectionnez un domaine d'activité</option>
+                                       <option value="1" label="Agriculture, chasse"> DOMAINE1 </option>
+                                       <option value="2" label="Pêche, pisciculture, aquaculture"> DOMAINE 2 </option>  
+                                       <option value="3" label="Insdustries extractives">  DOMAINE 3 </option>  	
+                                       <option value="4" label="Industrie Manufacturière"> DOMAINE 4</option>  	
+                                       <option value="5" label="Construction"> DOMAINE 5 </option> 									   
+                                   </select>
+								</div>
+						   </div>
+						   <div class="row">
+						        <div class="column col-md-4"> 
+								   <div class="btn-buttonbar sirah-ui-buttonbar"> 
+                                      <div class="btn-group"> 
+									     <button type="submit" class="btn btn-primary search">
+										    <span class="glyphicon glyphicon-search"></span> Rechercher
+									     </button> 
+									   </div>                
+                                    </div>
+								</div>
+								<div class="column col-md-2"> &nbsp; </div>
+						   </div>
+						 </form>
+					  </div>
+					  <div id="listRegistre" class="container sr_bx noscrollable">
+					     <div class="page-header"> <h3> LISTE DES REGISTRES DE COMMERCE TROUVEE </h3> </div>
+						 <div id="layoutContent" class="layoutContent">
+						    <div  class="panel panel-default noscrollable listRegistres">
+							   <ul  class="list-group">
+							        <li class="list-group-item"> 
+									   <div class="row">
+									        <div class="col-md-2"> 
+											  <img data-src="holder.js/100%x140" alt="100%x140" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/PjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTcxIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE3MSAxODAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjwhLS0KU291cmNlIFVSTDogaG9sZGVyLmpzLzEwMCV4MTgwCkNyZWF0ZWQgd2l0aCBIb2xkZXIuanMgMi42LjAuCkxlYXJuIG1vcmUgYXQgaHR0cDovL2hvbGRlcmpzLmNvbQooYykgMjAxMi0yMDE1IEl2YW4gTWFsb3BpbnNreSAtIGh0dHA6Ly9pbXNreS5jbwotLT48ZGVmcz48c3R5bGUgdHlwZT0idGV4dC9jc3MiPjwhW0NEQVRBWyNob2xkZXJfMTU0MzM0NjZiY2IgdGV4dCB7IGZpbGw6I0FBQUFBQTtmb250LXdlaWdodDpib2xkO2ZvbnQtZmFtaWx5OkFyaWFsLCBIZWx2ZXRpY2EsIE9wZW4gU2Fucywgc2Fucy1zZXJpZiwgbW9ub3NwYWNlO2ZvbnQtc2l6ZToxMHB0IH0gXV0+PC9zdHlsZT48L2RlZnM+PGcgaWQ9ImhvbGRlcl8xNTQzMzQ2NmJjYiI+PHJlY3Qgd2lkdGg9IjE3MSIgaGVpZ2h0PSIxODAiIGZpbGw9IiNFRUVFRUUiLz48Zz48dGV4dCB4PSI2MSIgeT0iOTQuNSI+MTcxeDE4MDwvdGV4dD48L2c+PC9nPjwvc3ZnPg==" data-holder-rendered="true" style="height:140px; width: 100%; display: block;">
+											</div>
+											<div class="col-md-10"> 
+											  <h4 class="list-group-item-heading"> <u> <a href="#"> ENTREPRISE 1 : Registre de commerce 1 </a> </u> </h4>
+											  <p  class="list-group-item-text">
+											    Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit....
+											  </p>
+											  <p class="list-group-item-text">
+											     <button class="btn btn-xs btn-success"><span class="glyphicon glyphicon-paperclip"></span> Télécharger le document relatif</button>
+											  </p>
+											</div>
+									   </div>
+									</li>
+									
+									 <li class="list-group-item"> 
+									   <div class="row">
+									        <div class="col-md-2"> 
+											  <img data-src="holder.js/100%x140" alt="100%x140" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/PjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTcxIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE3MSAxODAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjwhLS0KU291cmNlIFVSTDogaG9sZGVyLmpzLzEwMCV4MTgwCkNyZWF0ZWQgd2l0aCBIb2xkZXIuanMgMi42LjAuCkxlYXJuIG1vcmUgYXQgaHR0cDovL2hvbGRlcmpzLmNvbQooYykgMjAxMi0yMDE1IEl2YW4gTWFsb3BpbnNreSAtIGh0dHA6Ly9pbXNreS5jbwotLT48ZGVmcz48c3R5bGUgdHlwZT0idGV4dC9jc3MiPjwhW0NEQVRBWyNob2xkZXJfMTU0MzM0NjZiY2IgdGV4dCB7IGZpbGw6I0FBQUFBQTtmb250LXdlaWdodDpib2xkO2ZvbnQtZmFtaWx5OkFyaWFsLCBIZWx2ZXRpY2EsIE9wZW4gU2Fucywgc2Fucy1zZXJpZiwgbW9ub3NwYWNlO2ZvbnQtc2l6ZToxMHB0IH0gXV0+PC9zdHlsZT48L2RlZnM+PGcgaWQ9ImhvbGRlcl8xNTQzMzQ2NmJjYiI+PHJlY3Qgd2lkdGg9IjE3MSIgaGVpZ2h0PSIxODAiIGZpbGw9IiNFRUVFRUUiLz48Zz48dGV4dCB4PSI2MSIgeT0iOTQuNSI+MTcxeDE4MDwvdGV4dD48L2c+PC9nPjwvc3ZnPg==" data-holder-rendered="true" style="height:140px; width: 100%; display: block;">
+											</div>
+											<div class="col-md-10"> 
+											  <h4 class="list-group-item-heading"> <u> <a href="#"> ENTREPRISE 2: Registre de commerce 2 </a> </u> </h4>
+											  <p  class="list-group-item-text">
+											    Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit....
+											  </p>
+											   <p class="list-group-item-text">
+											     <button class="btn btn-xs btn-success"><span class="glyphicon glyphicon-paperclip"></span> Télécharger le document relatif</button>
+											  </p>
+											</div>
+									   </div>
+									</li>
+									
+									 <li class="list-group-item"> 
+									   <div class="row">
+									        <div class="col-md-2"> 
+											  <img data-src="holder.js/100%x140" alt="100%x140" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/PjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTcxIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE3MSAxODAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjwhLS0KU291cmNlIFVSTDogaG9sZGVyLmpzLzEwMCV4MTgwCkNyZWF0ZWQgd2l0aCBIb2xkZXIuanMgMi42LjAuCkxlYXJuIG1vcmUgYXQgaHR0cDovL2hvbGRlcmpzLmNvbQooYykgMjAxMi0yMDE1IEl2YW4gTWFsb3BpbnNreSAtIGh0dHA6Ly9pbXNreS5jbwotLT48ZGVmcz48c3R5bGUgdHlwZT0idGV4dC9jc3MiPjwhW0NEQVRBWyNob2xkZXJfMTU0MzM0NjZiY2IgdGV4dCB7IGZpbGw6I0FBQUFBQTtmb250LXdlaWdodDpib2xkO2ZvbnQtZmFtaWx5OkFyaWFsLCBIZWx2ZXRpY2EsIE9wZW4gU2Fucywgc2Fucy1zZXJpZiwgbW9ub3NwYWNlO2ZvbnQtc2l6ZToxMHB0IH0gXV0+PC9zdHlsZT48L2RlZnM+PGcgaWQ9ImhvbGRlcl8xNTQzMzQ2NmJjYiI+PHJlY3Qgd2lkdGg9IjE3MSIgaGVpZ2h0PSIxODAiIGZpbGw9IiNFRUVFRUUiLz48Zz48dGV4dCB4PSI2MSIgeT0iOTQuNSI+MTcxeDE4MDwvdGV4dD48L2c+PC9nPjwvc3ZnPg==" data-holder-rendered="true" style="height:140px; width: 100%; display: block;">
+											</div>
+											<div class="col-md-10"> 
+											  <h4 class="list-group-item-heading"> <u> <a href="#"> ENTREPRISE 2 : Registre de commerce 2 </a> </u> </h4>
+											  <p  class="list-group-item-text">
+											    Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit
+												Un texte du résumé de présentation de l'entreprise.
+											    Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit....
+											  </p>
+											   <p class="list-group-item-text">
+											     <button class="btn btn-xs btn-success"><span class="glyphicon glyphicon-paperclip"></span> Télécharger le document relatif</button>
+											  </p>
+											</div>
+									   </div>
+									</li>
+							   </ul>
+							</div>
+						 </div>
+					 </div>
+			      </div>
+			   </div>
+            </div>
+         <!--Fin du bloc principal de la page du site-->  
+     
+        <!--Le bloc gauche du corps du site-->
+         <div id="sirah-page-leftblock-wrapper" class="col2" >
+              <div  class="panel panel-default">
+			     <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-search"></span> RECHERCHES </h4></div>
+                <ul class="list-group leftModMenu">
+                  <li class="list-group-item active"> <a href="#general"> <i class="glyphicon glyphicon-user"></i> <i class="glyphicon glyphicon-chevron-right"></i> Personne physique </a></li>
+				  <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-user"></i> <i class="glyphicon glyphicon-chevron-right"></i> Personne morale </a></li>
+                  <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-plus-sign"></i>  </i> <i class="glyphicon glyphicon-chevron-right"></i> Réserver nom commercial </a></li>                  
+               </ul>
+              </div>
+              <div  class="panel panel-default">
+			     <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-briefcase"></span> Création d'entreprises </h4></div>
+                <ul class="list-group leftModMenu">
+                  <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-book"></i> <i class="glyphicon glyphicon-chevron-right"></i> Guide de formalités </a></li>
+				  <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-list"></i> <i class="glyphicon glyphicon-chevron-right"></i> Liste des tribunaux </a></li>
+                  <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-download"></i>  </i> <i class="glyphicon glyphicon-chevron-right"></i> Télécharger formulaires </a></li>                  
+               </ul>
+              </div>
+
+              <div  class="panel panel-default">
+			     <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-globe"></span> Localités </h4></div>
+                 <ul class="list-group leftModMenu">
+                   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Région du centre </a></li>
+				   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Région de l'Est </a></li>
+				   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Région de l'Ouest </a></li>
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Région des cascades </a></li>
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Région du Nord </a></li>				   
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Région du Sud </a></li>	
+				  </ul>
+				  <div class="panel-footer"><div class="controls"><a class="general-data" href="#"> <i class="glyphicon glyphicon-open"></i> Voir toutes les localités</a></div></div>
+              </div>			  
+         </div>  
+        <!--Fin du bloc de gauche du site--> 
+     
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+              <div  class="panel panel-default">
+			     <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-flash"></span> Domaines d'activités</h4></div>
+                 <ul class="list-group rightModMenu">
+                   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Agriculture, chasse </a></li>
+				   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Peche, Pisciculture, aquaculture </a></li>
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Insdustries extractives </a></li>
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Insdustrie Manufacturière </a></li>				   
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Construction </a></li>	
+				  </ul>
+				  <div class="panel-footer"><div class="controls"><a class="general-data" href="#"> <i class="glyphicon glyphicon-open"></i> Voir tous les domaines</a></div></div>
+              </div>
+
+              <div  class="panel panel-default">
+			     <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-stats"></span> Statistiques </h4></div>
+                 <ul class="list-group rightModMenu">
+                   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Par domaine d'activités </a></li>
+				   <li class="list-group-item"> <a href="#general"> <i class="glyphicon glyphicon-chevron-right"></i> Par localité </a></li>
+                   <li class="list-group-item"> <a href="#experiences"> <i class="glyphicon glyphicon-chevron-right"></i> Par année </a></li>
+				  </ul>
+              </div>			  
+         </div>  
+        <!--Fin du bloc de droite du corps du site-->     
+        
+       </div>
+    </div>   
+  </div> 
+  <!--Fin corps du site-->        
+     
+  <!--Pied de page du site-->
+  <div id="sirah-page-footer" >
+    <div id="footerNavigation" class="container" >
+    <!--
+        <ul  class="nav nav-pills">
+           <li> <a href="#"> PRESENTATION    </a> </li>
+           <li> <a href="#"> SERVICES        </a> </li>
+           <li> <a href="#"> STATISTIQUES    </a> </li>
+           <li> <a href="#"> DOCUMENTATION   </a> </li>
+           <li> <a href="#"> PARTENAIRES     </a> </li>
+		   <li> <a href="#"> CONTACTS        </a> </li>
+        </ul>     -->    
+    </div>
+    <div class="container">
+         <p class="text-muted credit">©2016 Copyright CCIBF, Ouagadougou Burkina Faso </p>
+    </div>
+  </div>
+  <!--Fin pied de page du site-->    
+  </body>
+</html>

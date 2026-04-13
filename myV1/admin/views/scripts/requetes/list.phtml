@@ -1,0 +1,385 @@
+<?php 
+$requetes          = $this->requetes;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$localites         = $this->localites;
+$typesDocuments    = $this->typesdocuments;
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "list")  , "default");
+$linkProcess       = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "process")  , "default");
+$linkDelete        = $this->url(array("module" => "admin","controller" => "requetes" , "action"  => "delete"));
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."'; });
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});		
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector   = jQuery('#requetesListSearchForm') ;
+		var searchData     = {};
+		var pageNum        = parseInt(formSelector.find('#page').val());
+		pageNum++;
+		
+		searchData.page         = pageNum;
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());			 
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+		searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());
+		searchData.typedocument = parseInt(formSelector.find('#typedocument').val());			
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector        = jQuery('#requetesListSearchForm') ;
+		var searchData          = {};
+		var pageNum             = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page         = pageNum;
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());		 
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+		searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());	
+		searchData.typedocument = parseInt(formSelector.find('#typedocument').val());			
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#filterListFromLibelle').click(function( event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#requetesListSearchForm') ;
+		var searchData          = {};
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+		searchData.typedocument = parseInt(formSelector.find('#typedocument').val());
+		searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector        = jQuery('#requetesListSearchForm') ;
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData          = {};
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.typedocument = parseInt(formSelector.find('#typedocument').val());
+		searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+		
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+ 
+jQuery('.searchRequeteByType').click(function(    event ){
+		event.preventDefault();
+		var dropdownTypeId      = parseInt(jQuery(this).attr('id').replace('dropdownTypeId-',''));
+		var formSelector        = jQuery('#requetesListSearchForm') ;					
+		var searchData          = {};
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.typedocument = dropdownTypeId;
+		searchData.localiteid   = parseInt(formSelector.find('#localiteid').val());
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#requetesListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#requetesListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.searchRequeteByLocalite').click(function(    event ){
+		event.preventDefault();
+		var dropdownLocaliteId  = parseInt(jQuery(this).attr('id').replace('dropdownLocaliteId-',''));
+		var formSelector        = jQuery('#requetesListSearchForm') ;					
+		var searchData          = {};
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.localiteid   = dropdownLocaliteId;
+		searchData.typedocument = parseInt(formSelector.find('#typedocument').val());
+		searchData.numero       = jQuery.trim(jQuery('#requetesListSearchForm').find('#keywords').val());
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#requetesListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#requetesListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedRequetesId = function() {
+		var checkedItems  = jQuery('#requetesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds    = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var requestid   = parseInt(jQuery(this).attr('id').replace('requestids',''));
+             	checkedIds.push(requestid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#requetesListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#requetesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#requetesListTable'));
+		       if(checkedItems) {
+		           disableButtons(['processButton','deleteButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#requetesListTable'));
+		      enableButtons(['processButton','deleteButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['processButton','actionButton','exportButton','deleteButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['processButton','deleteButton']);
+		       }
+		  }
+		}
+   });
+		");
+$toolbar     = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolProcess = $toolbar->tool("Traiter cette demande" , "check-square-o");
+$toolDelete  = $toolbar->tool("Supprimer", "trash-o");
+
+$toolProcess->setAttributes(array("class" => "active glyph-icon icon-check-square-o"));
+
+$toolbar->add( $toolProcess, "processButton");
+$toolbar->add( $toolDelete , "deleteButton");
+
+$toolProcess->disable();
+$toolProcess->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#requetesListTable').find('input[type=\'checkbox\'][name=\'requestids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var requestid          = parseInt(checkedItem.attr('id').replace('requestids',''));
+		             document.location.href = '".$linkProcess."/requestid/'+requestid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedRequetes = getCheckedRequetesId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedRequetes )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les demandes selectionnées ?  </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'requestids[]': checkedRequetes},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedRequetes = getCheckedRequetesId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                setTimeout(function(){
+             		             		                              jQuery.each(checkedRequetes, function(key , requestid) {
+             		                                                          jQuery('#requeteRowId-'+requestid).remove();
+             		                                                    });
+             		                                                   jQuery('#dialogDelete').dialog2('close');
+             		                                                  },2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+
+
+<div    id="requetesListListWrapper"  class="row">
+  <form id="requetesListSearchForm"   method="post" role="form">
+    <div  class="col-sm-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">                           
+               <div class="float-left col-md-4 pad0A">
+                  <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo (isset($typeDocuments[$filters["typedocument"]])) ? $typeDocuments[$filters["typedocument"]] : "Selectionnez un type de documents"; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $typesDocuments ) ) {
+                               	   foreach( $typesDocuments as $typedocumentid => $typedocumentLibelle ) {
+                               	   	        $activeClass = ( $filters["typedocument"] == $typedocumentid ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"dropdownTypeId-".$typedocumentid."\" class=\"searchRequeteByType dropdownTypeId-".$typedocumentid."\" href=\"#\"> ".$typedocumentLibelle." </a></li>";
+                               	   }
+                               }
+                          ?>
+                     </ul>
+                  </div>
+               </div>              
+               <div class="float-right col-md-8 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters["numero"]; ?>" name="keywords" id="keywords" style="text-transform:uppercase" maxlength="13"  placeholder="Numéro de registre">
+                        <div class="input-group-btn">
+                            <button id="filterListFromLibelle" type="button" class="btn btn-default" tabindex="-1"><i class="glyph-icon icon-search"></i> Recherche</button>
+                            <button  type="button" class="btn alert-danger resetPage" tabindex="-1"><i class="glyph-icon icon-remove"></i> Effacer  </button>
+                        </div>
+                    </div>
+               </div>
+           </div>                                                                  
+           <div class="mail-toolbar clearfix"> 
+              <div class="float-right " style="text-align:right;"> <?php  echo $pagination->render(); ?> </div>
+           </div>
+           <table id="requetesListTable"  class="table table-hover table-bordered " style="text-align:center !important;">
+                <thead>
+                     <tr> 
+                          <th width="10%"> Dates                  </th> 
+                          <th width="10%"> Numéros                </th>   
+                          <th width="20%"> Clients                </th>                            
+                          <th width="20%"> Dénomminations         </th> 
+                          <th width="20%"> Types de documents     </th>  
+                          <th width="20%"> Statuts de traitement  </th> 
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $requetes ) ) {
+                              	  foreach( $requetes as $requete ) {
+                              	  	       $requestid   = intval($requete['requestid']);
+                                           $date        = $requete["date"] ;
+                                           $dateCreation= ( $date ) ? date("d/m/Y", $date ) : "";
+                                           $libelle     = $requete["libelle"] ;
+                                           $numero      = $requete["numero"] ;
+                                           $client      = sprintf("%s %s", $requete["lastname"], $requete["firstname"] );
+                                           $typedocument= (isset($typesDocuments[intval($requete["typedocument"])])) ?$typesDocuments[intval($requete["typedocument"])] : "" ;
+                                           $linkInfos   = $this->url(array("requestid"=> $requestid,"controller" => "requetes", "action" => "infos", "module" => "admin"), "default");  
+                                           $statut      = "En cours de traitement";
+                                           $bgColor     = 'alert  danger';
+                                           if((intval( $requete["validated"] ) == 1 ) && intval( $requete["accepted"] )){
+                         	                   $statut  = "Demande d'accès validée";
+                         	                   $bgColor = "alert alert-success";
+                                            }  elseif( !intval( $requete["validated"] ) && intval( $requete["accepted"])){
+                         	                   $statut  = "Demande d'accès en cours de traitement";
+                         	                   $bgColor = "alert info";                         	
+                                            } elseif( ( intval( $requete["validated"] ) == 2 ) && intval( $requete["accepted"] )  ) {
+                         	                   $statut  = "Demande d'accès refusée";
+                         	                   $bgColor = "alert danger";
+                                            }                     	  	      
+                                               $output .= "<tr class=\"".$bgColor."\" id=\"requestRowId-".$requestid."\"> ";
+                                                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$dateCreation." </a> </td>";
+                                                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$numero      ." </a> </td>"; 
+                                                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$client      ." </a> </td>";
+                                                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$libelle     ." </a> </td>";
+                                                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$typedocument." </a> </td>";
+                              	                       $output .= "<td> <a href=\"".$linkInfos."\"> ".$statut      ." </a> </td>";                             	
+                                               $output .= "</tr>";    
+                              	  }                              	
+                              }  else {
+                              	               $output .= "<tr id=\"requeteRowId-0\"> <td colspan=\"8\">  AUCUNE DEMANDE DACCES NA ETE RETROUVEE </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+       </div>    
+    </div>
+    <input type="hidden" name="typedocument"  id="typedocument"  value="<?php echo intval($filters["typedocument"]);  ?>" /> 
+    <input type="hidden" name="localiteid" id="localiteid" value="<?php echo intval($filters["localiteid"]); ?>" /> 
+    <input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum;        ?>"          /> 
+    <input type="hidden" name="maxitems"   id="maxitems"   value="<?php echo $this->pageSize;       ?>"          />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+   
+   
+    

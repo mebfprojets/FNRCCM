@@ -1,0 +1,72 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller" =>"registres", "action" => "cleanusersdata", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller" =>"registres", "action" => "list", "module" => "admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;	
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#correctionButton').click(function(e){e.preventDefault();var formSelector = jQuery('#checkingForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="checkingForm" class="form-horizontal mrg15T row" role="form">   	      
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> OPS* : </label>
+        <div   class="col-sm-6"><?php echo $this->formSelect("ops_username", $data["ops_username"], array("class"=>"form-control"),  $this->users ); ?> </div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Dossier à corriger* : </label>
+        <div   class="col-sm-6"> <input type="text" name="srcpath"  id="srcpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["srcpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Dossier CORRECTIONS* : </label>
+        <div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Dossier des documents corrigés" value="<?php echo $data["destpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Localité* : </label>
+        <div   class="col-sm-6"> <?php echo $this->formSelect("localite", $data["localite"], array("class"=>"form-control"), $localites); ?> </div> 		   
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Année* : </label>
+        <div   class="col-sm-6"> <?php echo $this->formSelect("annee", $data["annee"], array("class"=>"form-control"), $annees); ?> </div> 		   
+    </div>     
+     
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Corriger les dossiers","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"correctionButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

@@ -1,0 +1,299 @@
+<?php 
+$commandes    = $this->commandes;
+$filters      = $this->filters;
+$paginator    = $this->paginator;
+$basePath     = ROOT_PATH."/templates/sirah";
+$jq           = $this->jQuery();
+$parentform   = $this->parentform;
+$linkSearch   = $this->url(array("controller" => "datalist" , "action"  => "commandeslist", "parentform"  => $parentform ) , "default");
+$statuts      = array( 0  => "Initiée",
+		               1  => "Soldée , Livrée ",
+		               2  => "Non Soldée,Livrée",
+		               3  => "Soldée , non livrée",
+		               4  => "Soldée , partiellement livrée",
+		               5  => "Non soldée , partiellement livrée",
+		               6  => "Non soldée , non livrée");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var commandeid  = parseInt(jQuery(this).attr('href').replace('#commandeid-' , ''));
+	if( commandeid && parentformSelector ) {
+		  var reference               = jQuery('#reference-'+commandeid ).val();
+		  var parentCommandeIdInput   = parentformSelector.find('input[name=\'commandeid\']');
+		  var parentReferenceSelector = parentformSelector.find('input[name=\'numcommande\']');
+		
+		  if( parentCommandeIdInput   ) {
+		      parentCommandeIdInput.val( commandeid );
+		  }
+		  if( parentReferenceSelector ) {
+		      parentReferenceSelector.val( reference );
+		  }	 
+	  } else {
+		 return false;
+	  }
+		commandeSelect  = parentformSelector.find('#selectCommande');
+		if( commandeSelect )	{
+		    commandeSelect.trigger('select-item' , [commandeid] );
+		} 
+		jQuery('#filterListCommandes').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector           = jQuery('#advanced-commandesearchform');
+		var modalBox               = jQuery('.modal').first();
+		var modalBody              = modalBox.find('.modal-body');
+
+		var defaultData            = {};
+		defaultData.prestataireid  = formSelector.find('#prestataireid').val();
+		defaultData.produitid      = formSelector.find('#produitid').val();
+		defaultData.reference      = formSelector.find('#reference').val();
+		defaultData.date           = formSelector.find('#date').val();
+		defaultData.page           = 1;
+		defaultData.maxitems       = formSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-commandesearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-commandesearchform');
+		var modalBox            = jQuery('.modal').first();		
+		var modalBody           = modalBox.find('.modal-body:first');
+
+		var defaultData         = {};
+		defaultData.reference   = formSelector.find('#global-filter').val(); 
+		defaultData.page        = 1;
+		defaultData.maxitems    = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector     = jQuery('#advanced-commandesearchform');
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData           = {};
+		paginationData.maxitems      = pageMaxitems;
+		paginationData.page          = pageNum;
+		paginationData.produitid     = parseInt(jQuery('#produitid').val());
+		paginationData.prestataireid = parseInt(jQuery('#prestataireid').val());
+		paginationData.reference     = jQuery('#reference').val();
+		paginationData.date          = jQuery('#date').val();
+		
+		var modalBox                 = jQuery('.modal').first();
+		var modalBody                = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>            
+    <div class="row" >
+        <div class="col-md-6"><?php echo $buttonbar; ?></div>
+        <div class="col-md-6"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['reference']; ?>" id="global-filter" name="global-filter" 
+                            style="width:200px;color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Rechercher un numéro de dossier">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch" type="button"> <span class="glyphicon glyphicon-search icon-white"> </span > Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+            </form>
+        </div>
+      </div>                 
+      <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-commandesearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row">
+                            <div class="column col-md-2"> <label  for="reference"> Numéro :  </label> </div>
+                            <div class="column col-md-4">                                
+                                <input id="reference" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                       title="Numéro du commande" placeholder="Numéro du commande"  name="reference" value="<?php echo $filters['reference']; ?>">
+                            </div>            
+                           <div class="column col-md-2"> <label  for="prestataire"> Prestataire:  </label> </div>
+                           <div class="column col-md-4">
+                              <?php echo $this->formSelect("prestataireid" , $filters["prestataireid"] , array() , $this->prestataires ); ?>
+                          </div>   
+                        </div>
+                        <div class="row">
+                           <div class="column col-md-2"> <label  for="reference"> Date de la commande :  </label> </div>
+                           <div class="column col-md-4"> <?php echo $this->datePick("date" , $filters["date"]); ?></div>   
+                           
+                           <div class="column col-md-2"> <label  for="reference"> Délai de livraison :  </label> </div>
+                           <div class="column col-md-4"> <?php echo $this->datePick("datelivraison" , $filters["datelivraison"]); ?></div>                                      
+                        </div>
+                        <div class="row">
+                             <div class="column col-md-2"> <label  for="produitid"> Produit:  </label> </div>
+                             <div class="column col-md-4">
+                              <?php echo $this->formSelect("produitid" , $filters["produitid"] , array() , $this->produits ); ?>
+                             </div>
+                             <div class="column col-md-2"> <label  for="pays"> Limiter la liste à : </label> </div>
+                             <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000 , 
+                                		                                                                     "100000000" => "Tout")); ?>
+                            </div>
+                        </div>                                                 
+                         
+                        <div class="row">
+                          <div class="column  col-md-2">
+                            <button type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search icon-white"></span > Rechercher</button>  
+                          </div>                      
+                           <div class="column  span10"></div>     
+                      </div> 
+                        <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+         </form>
+     </div>
+   <?php
+            $model   = $this->model;
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "commandesListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("<input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" />" , array("width" => "1%"))
+                    ->add("Références"      , array("width" => "9%"))
+                    ->add("Prestataires"    , array("width" => "20%"))
+                    ->add("Produits"        , array("width" => "25%"))
+                    ->add("Valeurs"         , array("width" => "10%"))
+                    ->add("Dates"           , array("width" => "10%"))
+                    ->add("Délais livraison", array("width" => "15%"))
+                    ->add("Statuts"         , array("width" => "10%"));         
+             $table->setHeader($header);             
+             if(count( $commandes ) ){
+             	foreach( $commandes as $commande ) {             		
+             	   $commandeid    = intval($commande['id']);
+             	   $reference     = $commande["reference"] ;
+             	   $prestataire   = $commande["prestataire"];
+             	   $dateCommande  = $commande["dateCommande"];
+             	   $dateLivraison = $commande["dateLivraison"];
+             	   $valeur        = number_format( $commande["valeur"] , 0 , "," , " ");
+             	   $lignes        = $model->getLignes( $commandeid );
+             	   $statut        = ( isset( $statuts[$commande["statut"]] ) ) ? $statuts[$commande["statut"]] : "Invalide";
+             	   $listeProduit  = "";
+             	   if( count(   $lignes ) ) {
+             	   	   foreach( $lignes as $ligne ) {
+             	   	   	$listeProduit.= $ligne["quantite"]." ".$ligne["produit"] .", ";
+             	   	   }
+             	   } else {
+             	   	    $listeProduit.= "Aucun produit associé";
+             	   }            	   
+             	   $commandeRow   = $table->row(array("id"  => "commandeRowId-" . $commandeid ));
+             	   $commandeRow->add("<input type=\"checkbox\" name=\"commandeids[]\" id=\"commandeids" . $commandeid ."\" />" , array("id" => "checkboxCell-" . $commandeid ))
+             		           ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $reference    . "</a>" , array("id" => "numcommande-" . $commandeid ))
+             	               ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $prestataire  . "</a>" , array("id" => "prestataireId-"   . $commandeid ))
+             	               ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $listeProduit . "</a>" , array("id" => "produitId-"       . $commandeid ))
+             		           ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $valeur       . "</a>" , array("id" => "valeurId-"        . $commandeid ))
+             		           ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $dateCommande . "</a>" , array("id" => "dateId-"          . $commandeid ))
+             		           ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $dateLivraison. "</a>" , array("id" => "dateLivraisonId-" . $commandeid ))
+             	               ->add("<a href=\"#commandeid-".$commandeid."\" class=\"selectClick\" >" . $statut       . "</a>" );
+             	   $table->add($commandeRow);
+             	   
+             	   echo "<input type=\"hidden\" name=\"reference-".$commandeid."\" id=\"reference-".$commandeid."\" value=\"".$reference."\" />";
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             } 
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+ </div>

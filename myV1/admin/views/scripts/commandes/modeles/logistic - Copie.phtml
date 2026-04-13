@@ -1,0 +1,176 @@
+<?php
+$me             = Sirah_Fabric::getUser();
+$commande       = $this->commande;
+$lignes         = $this->lignes;
+$prestataire    = $this->fournisseur;
+$modelProduit   = $this->modelProduit;
+$produits       = $this->produits;
+$modalites      = $this->modalites;
+$modele         = (!empty($this->modele))?$this->modele : "default";
+
+$PDF            = new ProjectPdf_Default();
+$PDF->SetPrintHeader(true);
+$PDF->SetPrintFooter(true);
+$PDF->setTitle(   " Bon de commande de produits " );
+$PDF->setSubject( " Bon de commande de produits " );
+
+$margins         = $PDF->getMargins();
+$contenuWidth    = $PDF->getPageWidth()-$margins["left"] - $margins["right"];
+$PDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$PDF->AddPage();
+
+$PDF->Ln(10);
+
+$PDF->Cell(100 , 7 , "" , 0 , 0 , "R");
+$PDF->SetFont("helvetica" , "B",10);
+$PDF->Cell(40 , 7 ," " , 0 , 0 , "R");
+$PDF->SetFont("helvetica","",10);
+$PDF->Cell( $contenuWidth - 140 , 7 , "Ouagadougou , le ".date("d/m/Y", $commande->date) , 0 , 0 , "R");
+$PDF->Ln(15);
+
+$PDF->SetFont("helvetica","B",13);
+$PDF->SetFillColor(222 , 222 , 222);
+$PDF->setTextColor(0, 0 , 0 );
+
+$PDF->Cell($contenuWidth , 7 , "BON DE COMMANDE N° ".$commande->ref , "B" , 0 , "C" , 1);
+$PDF->Ln(15);
+
+$PDF->SetFont("helvetica" , "B" , 12);
+$PDF->Cell(80 , 7 , "" , 0 , 0 , "L" , 0 );
+$PDF->Cell( $contenuWidth - 90, 7 , "FOURNISSEUR/PRESTATAIRE" , 0 , 0 , "L" , 0 );
+$PDF->Ln(7);
+
+$PDF->Cell( 40 , 7 , "" , 0 , 0 , "L" , 0 );
+$PDF->Cell( 40 , 7 , "" , 0 , 0 , "L" , 0 );
+
+$PDF->SetFont("helvetica" , "B" , 10);
+$PDF->Cell( $contenuWidth - 90 , 7 , ( $prestataire ) ? stripslashes($prestataire->libelle) : "" , 0 , 0 , "L" , 0 );
+$PDF->Ln(7);
+
+$PDF->Cell( 40 , 7 , "" , 0 , 0 , "L" , 0 );
+$PDF->Cell( 40 , 7 , "" , 0 , 0 , "L" , 0 );
+
+$PDF->SetFont("helvetica" , "B" , 10 );
+$PDF->Cell( 20 , 7 , "Adresse:" , 0 , 0 , "L" , 0 );
+$PDF->SetFont("helvetica" , "" , 10);
+$PDF->Cell( $contenuWidth - 110 , 7 ,  ( $prestataire ) ? stripslashes($prestataire->adresse) : " " , 0 , 0 , "L" , 0 );
+$PDF->Ln(7);
+
+$PDF->Cell( 40 , 7 , " ", 0 , 0 , "L" , 0 );
+$PDF->Cell( 40 , 7 , "" , 0 , 0 , "L" , 0 );
+
+$PDF->SetFont( "helvetica" , "B" , 10);
+$PDF->Cell( 20 , 7 , "Téléphone:" , 0 , 0 , "L" , 0 );
+$PDF->SetFont("helvetica","",10);
+$PDF->Cell( $contenuWidth - 110 , 7 , ($prestataire) ? stripslashes($prestataire->tel) : "" , 0 , 0 , "L" , 0 );
+$PDF->Ln(7);
+
+$PDF->Cell( 40 , 5 , " ", 0 , 0 , "L" , 0 );
+$PDF->Cell( 40 , 5 , "" , 0 , 0 , "L" , 0 );
+
+$PDF->SetFont( "helvetica" , "B" , 10);
+$PDF->Cell( 20 , 5 , "Email:" , 0 , 0 , "L" , 0 );
+$PDF->SetFont("helvetica","",10);
+$PDF->Cell( $contenuWidth - 110 , 5 , ($prestataire) ? stripslashes($prestataire->email) : "" , 0 , 0 , "L" , 0 );
+$PDF->Ln(15);
+
+
+$PDF->SetFillColor( 51, 153, 255 );
+$PDF->SetTextColor( 255 , 255 , 255 );
+
+$PDF->SetFont("helvetica" , "B" , 10);
+
+$PDF->Cell( ($contenuWidth*50)/100 , 8 , "Désignations", 1 , 0 , "C" , true);
+$PDF->Cell( ($contenuWidth*10)/100 , 8 , "Quantité"    , 1 , 0 , "C" , true);
+$PDF->Cell( ($contenuWidth*10)/100 , 8 , "Prix Unit."  , 1 , 0 , "C" , true);
+$PDF->Cell( ($contenuWidth*15)/100 , 8 , "Montants HT" , 1 , 0 , "C",true);
+$PDF->Cell( ($contenuWidth*15)/100 , 8 , "Montants TTC", 1 , 0 , "C",true);
+$PDF->Ln();
+
+$PDF->SetTextColor(0,0,0);
+$PDF->SetFont("helvetica" , "" , 10);
+
+$tableHeight    = $PDF->getPageHeight()-275; 
+$valeurTotal    = $valeurSubTotal = 0;
+$valeurTotalTva = 0;
+$valeurTotalHt  = 0;
+$valeurTotalBic = 0; 
+if( count($lignes) ) {
+    $cellHeight             = $tableHeight/count( $lignes ); 
+    foreach($lignes  as $ligne ) {
+			$produit        = $ligne["libelle"];
+			$uniteMesure    = $ligne["uniteCode"];
+			$quantite       = sprintf("%s %s",number_format( $ligne["quantite"]  , 0 , "," , " "), $uniteMesure);
+			$prix_unit      = number_format( $ligne["prix_unit"] , 0 , "," , " ");
+			$valeurHT       = $ligne["valeur_ht"];
+			$valeurTTC      = $ligne["valeur"];
+			$valeurTotalHt += $ligne["valeur_ht"];
+			$valeurTotalTva+= $ligne["valeur_tva"];
+			$valeurTotalBic+= $ligne["valeur_bic"];
+			$valeurTotal   += $ligne["valeur_ht"] + $ligne["valeur_tva"] + $ligne["valeur_bic"];
+			
+			$PDF->Cell(($contenuWidth*50)/100 , $cellHeight , stripslashes( $produit ) , 1 , 0 , "C");
+			$PDF->Cell(($contenuWidth*10)/100 , $cellHeight , $quantite , 1 , 0 , "C");
+			$PDF->Cell(($contenuWidth*10)/100 , $cellHeight , $prix_unit, 1 , 0 ,"C");
+			$PDF->Cell(($contenuWidth*15)/100 , $cellHeight , number_format($valeurHT  , 0 , " " , " ") , 1 , 0 , "R");
+			$PDF->Cell(($contenuWidth*15)/100 , $cellHeight , number_format($valeurTTC , 0 , " " , " ") , 1 , 0 , "R");
+			$PDF->Ln();
+    }    
+    $PDF->Cell(($contenuWidth*70)/100 , 7 , "MONTANT HT : " , 1 , 0 , "C");
+    $PDF->Cell(($contenuWidth*30)/100 , 7 , number_format( $valeurTotalHt , 0 , " "," ") , 1 , 0 , "R");
+    $PDF->Ln();
+	  
+	if( APPLY_TVA && $commande->valeur_tva && VAL_TVA) {
+		  $PDF->Cell(($contenuWidth*70)/100 , 7 , "TVA (".VAL_TVA."%) : " , 1 , 0 , "C");
+		  $PDF->Cell(($contenuWidth*30)/100 , 7 , number_format( $valeurTotalTva , 0 , " "," ") , 1 , 0 , "R");
+		  $PDF->Ln();
+	}           
+    if( APPLY_BIC && VAL_BIC && $commande->valeur_bic ) {
+		  $PDF->Cell(($contenuWidth*70)/100 , 7 , "BIC (".VAL_BIC."%) : " , 1 , 0 , "C");
+		  $PDF->Cell(($contenuWidth*30)/100 , 7 , number_format( $valeurTotalBic , 0 , " "," ") , 1 , 0 , "R");
+		  $PDF->Ln();
+	}  
+    if( $commande->frais ) {
+		  $PDF->Cell(($contenuWidth*70)/100 , 7 , "FRAIS ADDITIONNELS : " , 1 , 0 , "C");
+		  $PDF->Cell(($contenuWidth*70)/100 , 7 , number_format( $commande->frais , 0 , " " , " ") , 1 , 0 , "R");
+		  $PDF->Ln();
+	}  	  	  	  
+	$total   =   $valeurTotal+$commande->frais;    
+         
+    $PDF->Cell(($contenuWidth*70)/100 , 7 , "MONTANT TTC : " , 1 , 0 , "C");
+    $PDF->Cell(($contenuWidth*30)/100 , 7 , number_format($total, 0 , " "," ") , 1 , 0 , "R");
+    $PDF->Ln();  
+} else {
+    $PDF->Cell($contenuWidth , 0 , " Aucune ligne de commande n'a été trouvée" , 1 , 0 , "C");
+}       
+    $PDF->Ln(7);
+	
+	if( $commande->montant_avance) {
+		$modaliteOutput = sprintf("<h5> <strong> <i> Est autorisé(e) à recevoir une avance de paiement d'une valeur : %s F CFA</i></strong> </h5>", number_format($commande->montant_avance,0, " ", " "));
+ 
+		$PDF->SetFont("helvetica", "" ,9);
+		$PDF->writeHTML($modaliteOutput, true , false , true , false , '' );
+		$PDF->Ln();
+	}
+     
+    if( intval( $commande->delaiLivraison) ){
+        $PDF->SetFont("helvetica" , "" , 9 );
+        $PDF->Cell( $contenuWidth , 7 , "NB: Le délai de livraison est convenu pour le ".date("d/m/Y" , $commande->delaiLivraison ) , 0 , 0 , "L");       
+    }
+       
+    $PDF->Ln(10);
+     
+    $PDF->Cell( $contenuWidth/2 , 7 , "DIRECTEUR DES ACHATS"  , 0 ,  0  , "L" );     
+    $PDF->Cell( $contenuWidth/2 , 7 , "ADMINISTRATEUR GENERAL", 0 ,  0  , "R" );
+     
+    if( $this->isAjax ) {
+		$commandeFilename = "bonDeCommande".sprintf("%06d" , $commande->commandeid ).".pdf";
+		$myDataPath       = $me->getDatapath();
+		$fileTmpPath      = $myDataPath . $commandeFilename;
+		echo $PDF->Output( $fileTmpPath , "F");
+		echo ZendX_JQuery::encodeJson(array("success" => "La création du bon de commande s'est effectuée avec succès","tmpDocument" => $fileTmpPath ));
+		exit;
+	} else {
+		$commandeFilename = "bonDeCommande".sprintf("%06d" , $commande->commandeid ).".pdf";
+		echo $PDF->Output( $commandeFilename , "D");
+	}

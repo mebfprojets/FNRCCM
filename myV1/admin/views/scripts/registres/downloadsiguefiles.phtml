@@ -1,0 +1,89 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller" =>"registres","action"=>"downloadsiguefiles","module"=>"admin"), "default" );
+$backList    = $this->url(array("controller" =>"registres","action"=>"list","module"=>"admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+$basePath    = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#registres').filestyle({buttonText:'Chercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('input[name=\'check_documents\']').bootstrapSwitch();
+jQuery('input[name=\'extract_components\']').bootstrapSwitch();
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#sigueImportForm');formSelector.submit();}); ";
+
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/js-core/raphael.js");
+?>
+<div    class="content-box">        
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="sigueImportForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	       
+     <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> COMPTE SIGUE </small></h3>
+	 <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Identifiant* : </label>
+           <div   class="col-sm-6"> <input type="text" name="sigueuser" id="sigueuser" class="form-control" placeholder="Le nom d'utilisateur du compte" value="<?php echo $data["sigueuser"]; ?>" /></div>        
+     </div>
+	 <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Mot de passe* : </label>
+           <div   class="col-sm-6"> <input type="password" name="siguepwd" id="siguepwd" value="<?php echo $data["siguepwd"]; ?>" /></div>        
+     </div>
+	 <div class="form-group"> 
+        <label class="col-sm-3 control-label"> URL* : </label>
+        <div   class="col-sm-6"> <input type="text" name="sigueuri" id="sigueuri" class="form-control" placeholder="L'URL d'accès aux documents" value="<?php echo $data["sigueuri"]; ?>" /></div>        
+     </div>
+	 <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 2 <small> Importer des RCCM depuis SIGUE </small></h3>
+	 <div class="form-group"> 
+        <label class="col-sm-3 control-label"> Chercher un document : </label>
+        <div   class="col-sm-9 col-md-9"> <input name="registres" type="file" id="registres" /> </div>
+     </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Dossier source* : </label>
+        <div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source des documents de rheaweb" value="<?php echo $data["srcpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Dossier destination* : </label>
+        <div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Dossier de destination" value="<?php echo $data["destpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier Existant* : </label>
+           <div   class="col-sm-6"> <input type="text" name="checkpath" id="checkpath" class="form-control" placeholder="Source des dossiers déjà retraités" value="<?php echo $data["checkpath"]; ?>" /></div>        
+    </div>
+</form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Importer les documents","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

@@ -1,0 +1,5 @@
+{
+    "require": {
+        "php-xpdf/php-xpdf": "~0.2.0"
+    }
+}

@@ -1,0 +1,161 @@
+<?php 
+$me          = $this->me;
+$promoteur   = $this->promoteur;
+$promoteurid = $this->promoteurid;
+$groupe      = $this->groupe;
+$documents   = $this->documents;
+$demandes    = $this->demandes;
+$identite    = $this->identite;
+$me          = Sirah_Fabric::getUser();
+
+$basePath    = VIEW_BASE_PATH;
+$jq          = $this->jQuery();
+
+$linkCancel  = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "list"  ), "default");
+$linkCreate  = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "create"), "default");
+$linkEdit    = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "edit"   , "promoteurid" => $promoteurid) , "default");
+$linkPhoto   = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "photo"  , "promoteurid" => $promoteurid), "default");
+$linkDelete  = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "delete" , "ids"      => $promoteurid), "default");
+$linkUpload  = $this->url(array("module"=>"admin","controller"=>"promoteurs", "action"=> "upload" , "promoteurid" => $promoteurid , "category" => 3), "default");
+
+$jq->addOnload("
+ jQuery('.uploadFile').click(function( event ) {
+        event.preventDefault();
+        var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+        dialogUploadFile.dialog2({title:'Enregistrer un document',content:'".$linkUpload."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText:'Chargement de la page, patientez...' });
+        dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+        dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+        dialogUploadFile.dialog2('open');          
+   });");
+$buttonBar    = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Nouveau promoteur"     , "plus");
+$buttonEdit   = $buttonBar->button("Mettre à jour"       , "edit");
+$buttonDelete = $buttonBar->button("Supprimer"           , "trash-o");
+$buttonCancel = $buttonBar->button("Revenir sur la liste", "chevron-left");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+$buttonBar->add( $buttonCreate , "createButton");
+$buttonBar->add( $buttonEdit   , "editButton");
+$buttonBar->add( $buttonDelete , "deleteButton");
+
+$buttonCancel->setAttributes(array("type" => "submit"));
+$buttonCreate->setAttributes(array("type" => "submit", "class"=> "btn btn-success"));
+$buttonEdit->setAttributes(  array("type" => "submit", "class"=> "btn btn-primary"));
+$buttonDelete->setAttributes(array("type" => "submit", "class"=> "btn alert-danger"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit  ));
+$buttonDelete->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkDelete));
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+
+$creationDate          = $updateDate = "00/00/0000";
+$creator               = Sirah_Fabric::getUser($promoteur->creatorid);
+$updatedUser           = Sirah_Fabric::getUser($promoteur->updateduserid);
+if( $promoteur->creationdate ) {
+	$zendCreationdate  = new Zend_Date( $promoteur->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate      = $zendCreationdate->toString("dd MMMM Y");
+}
+if( $promoteur->updatedate ) {
+	$zendUpdatedate    = new Zend_Date( $promoteur->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate        = $zendUpdatedate->toString("dd MMMM Y");
+}
+$this->toolsbar        = $buttonBar;
+?>
+
+<div  class="container" style="text-align:left;">
+    <div class="row">
+		<div class="col-md-6 col-sm-12">
+		    <div class="panel panel-default">
+				<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-user'></span> Les informations du promoteur </h4> </div>
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> N° d'identité :</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->numidentite; ?></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Nom & Prénom(s)  :</b></div> 
+							<div class="col-md-8"><?php printf("%s %s",$promoteur->lastname, $promoteur->firstname ); ?></div>
+						</div>
+					</li>				
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Profession:</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->profession; ?></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Sexe :</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->sexe; ?></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Adresse:</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->adresse; ?></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Téléphone:</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->telephone; ?></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <b> Email:</b></div> 
+							<div class="col-md-8"><?php echo $promoteur->email; ?></div>
+						</div>
+					</li>
+					<?php if( $promoteur->creatorid ): ?>
+					<li class="list-group-item">
+						  <div class="row"> 
+							  <div class="col-md-4"> <b> Créé le:</b></div> 
+							  <div class="col-md-8"><?php printf("%s par %s %s", $creationDate , $creator->lastname, $creator->firstname ); ?></div>
+						 </div>
+					</li>
+					<?php endif; ?>
+					<?php if( $promoteur->updateduserid ): ?>
+					   <li class="list-group-item">
+						 <div class="row"> 
+								   <div class="col-md-4"> <b> Mis à jour le:</b> </div> 
+								   <div class="col-md-8"><?php printf("%s par %s %s", $updateDate, $updatedUser->lastname, $updatedUser->firstname ); ?></div>
+						 </div>
+					   </li>
+				   <?php endif; ?> 
+				</ul>
+			</div>
+		</div>    
+	    <div class="col-md-6 col-sm-12">
+			<div class="panel-group" id="accordion">
+				<div class="panel panel-default">
+					<div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#promoteurHistory"><span class='glyph-icon icon-history'></span> Historique des demandes </a></h4> </div>
+					<div id="promoteurHistory" class="panel-collapse collapse in"> <?php echo $this->partial("promoteurs/demandes.phtml", array("promoteur"=> $promoteur, "promoteurid" => $promoteurid, "demandes"=>$demandes)); ?> </div>			
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#promoteurDocuments"><span class='glyph-icon icon-list-alt'></span> Historique des documents</a></h4> </div>
+					<div id="promoteurDocuments" class="panel-collapse collapse"> 
+						<?php echo $this->partial("promoteurs/documents.phtml",array("documents"=>$documents,"promoteur"=>$promoteur,"promoteurid" => $promoteurid)); ?>
+						<?php if($me->isAllowed("promoteurs","upload")): ?> 
+						<div class="panel-footer">
+							<div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle uploadFile"> Ajouter un document</button></div>
+						</div>
+						<?php endif; ?>
+					</div>			
+				</div>		  
+			</div> 
+	    </div> 
+  </div>  
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+ 

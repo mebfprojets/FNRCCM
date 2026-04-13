@@ -1,0 +1,419 @@
+<?php 
+$members           = $this->members;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$groupes           = $this->groupes;
+$familles          = array();
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch           = $this->url(array("controller" => "members" , "action"  => "list") , "default");
+$linkCreate           = $this->url(array("controller" => "members" , "action"  => "create") , "default");
+$linkEdit             = $this->url(array("controller" => "members" , "action"  => "edit") , "default");
+$linkDelete           = $this->url(array("controller" => "members" , "action"  => "delete"));
+$linkExport           = $this->url(array("controller" => "members" , "action"  => "export"));
+$linkSearchEntreprise = $this->url(array("controller" => "ajaxres" , "action" => "entrepriseslist","parentform" => "membersListSearchForm", 
+                                         "selectCmdKey" => "selectEntreprise","selectedKey" => "entrepriseid","selectedVal" => "entreprise"), "default");
+
+$jq->addOnload("
+jQuery('.searchEntreprise').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une entreprise',content:'".$linkSearchEntreprise."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		var nameText        = jQuery.trim(jQuery('#globalFormSearch').find('#name').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		if(SIRAH.util.isEmpty(firstname)) {
+		   searchData.code = lastname;
+		   searchData.lastname    = searchData.firstname = '';
+		} else {
+		   searchData.code = '';
+		   searchData.lastname    = lastname;
+		   searchData.firstname   = firstname;
+		}				 
+        var maincontent	     = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+
+jQuery('.searchMembers,#searchMembers').click(function(    event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#membersListSearchForm,.advancedSearchForm:first') ;					
+		var searchData          = {};
+		searchData.page         = parseInt(formSelector.find('#page').val());
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.code  = formSelector.find('#code').val();
+		searchData.lastname     = formSelector.find('#lastname').val();
+		searchData.firstname    = formSelector.find('#firstname').val();
+		searchData.passport      = formSelector.find('#passport').val();
+		searchData.code  = formSelector.find('#code').val();
+		searchData.telephone    = formSelector.find('#telephone').val();
+		searchData.email        = formSelector.find('#email').val();
+		searchData.groupid      = parseInt(formSelector.find('#groupid').val());
+		searchData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());	
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#membersListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData          = {};
+		paginationData.page         = pageNum;
+		paginationData.maxitems     = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.passport      = formSelector.find('#passport').val();
+		paginationData.code  = formSelector.find('#code').val();
+		paginationData.lastname     = formSelector.find('#lastname').val();
+		paginationData.firstname    = formSelector.find('#firstname').val();
+		paginationData.telephone    = formSelector.find('#telephone').val();
+		paginationData.email        = formSelector.find('#email').val();
+		paginationData.groupid      = parseInt(formSelector.find('#groupid').val());
+		paginationData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());
+		
+		var maincontent             = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+	var getCheckedMembersId = function() {
+		var checkedItems = jQuery('#membersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var memberid   = parseInt(jQuery(this).attr('id').replace('memberids',''));
+             	checkedIds.push(memberid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#membersListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#membersListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#membersListTable'));
+		       if(checkedItems) {
+		           disableButtons(['editButton','exportButton','deleteButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#membersListTable'));
+		      enableButtons(['editButton','exportButton','deleteButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['editButton','actionButton','exportButton','deleteButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['editButton','deleteButton','exportButton']);
+		       }
+		  }
+		}
+   });
+		");
+
+$toolbar     = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate  = $toolbar->tool("Nouveau member", "plus");
+$toolEdit    = $toolbar->tool("Modifier" , "edit");
+$toolDelete  = $toolbar->tool("Supprimer", "trash-o");
+$toolExport  = $toolbar->tool("Exporter" , "download");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#membersListTable').find('input[type=\'checkbox\'][name=\'memberids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var memberid     = parseInt(checkedItem.attr('id').replace('memberids',''));
+		             var membername   = jQuery('#name-'+memberid).text();
+		             var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		             dialogEdit.dialog2({
+		                                  title : 'Mettre à jour les informations du member '+membername,
+		                                  content : '".$linkEdit."/memberid/'+memberid,
+		                                  autoOpen: false,
+		                                  modalClass:'modal-wide',
+		                                  removeOnClose: true,
+		                                  closeOnEscape: false,
+		                                  closeOnOverlayClick: true,
+		                                  showCloseHandle:true,
+		                                  initialLoadText: 'Chargement...'
+                                       });
+		             dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Enregistrer',{primary : true,click :
+		                                function(){
+		                                             var editForm = jQuery(this).find('form').eq(0);
+		                                             SIRAH.request.post(editForm,'".$linkEdit."/memberid/'+memberid);
+                                        }});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-ban\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled     = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedMembers = getCheckedMembersId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedMembers )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les members selectionnés ? Ces members seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'memberids[]': checkedMembers},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedMembers = getCheckedMembersId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                setTimeout(function(){
+             		             		                              jQuery.each(checkedMembers, function(key , memberid){jQuery('#memberRowId-'+memberid).remove();});
+             		                                                  jQuery('#dialogDelete').dialog2('close');
+		                                                              jQuery('#dialogDelete').remove();
+             		                                                  },1500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<div id="membersListListWrapper"  class="row">
+  <div  class="panel panel-default listPanel">
+     <div  class="panel-heading bg-blue-alt">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		  <div class="input-group">
+		    <input value="<?php echo $filters['name']; ?>" id="name" name="name"  type="text" class="form-control" placeholder="Recherchez un member, saisir son nom, prénom ou code...">
+		    <span class="input-group-btn ">
+               <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		  </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+    </div>
+	<form id="membersListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+	  <ul class="list-group">
+		<li class="list-group-item">
+           <div  class="row">
+			   <label class="col-sm-2 control-label">  <b> Entreprise:</b> </label> 
+               <div class="col-sm-8">
+                   <div class="input-group">
+                      <input type="text" name="entreprise" id="entreprise" value="<?php echo $this->entreprise; ?>" class="form-control" placeholder="Selectionnez une entreprise"  />
+                      <div class="input-group-btn">
+                        <button id="selectEntreprise" class="btn btn-primary" tabindex="-1"><i class="glyph-icon icon-search selectEntreprise"> </i> Selectionner </button>
+                        <button id="removeEntreprise" class="btn btn-danger"  tabindex="-1"><i class="glyph-icon icon-remove removeEntreprise"> </i> Effacer </button>
+                      </div>
+                   </div>
+               </div>
+            </div>
+        </li>
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Code member:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['code']; ?>" type="text" name="code" id="code" class="form-control" placeholder="Saisir un code member" /></div>
+            <label class="col-sm-2 control-label">  <b> N° passport:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['passport'];?>" type="text" name="passport" id="passport" class="form-control" placeholder="Saisir un numéro passport" /></div>
+        </li>
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Nom de famille:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['lastname']; ?>" type="text" name="lastname"  id="lastname"  class="form-control" placeholder="Saisir un nom de famille" /></div>
+            <label class="col-sm-2 control-label">  <b> Prénom:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['firstname'];?>" type="text" name="firstname" id="firstname" class="form-control" placeholder="Saisir un prénom" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Téléphone:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['telephone']; ?>" type="text" name="telephone" id="telephone" class="form-control" placeholder="Saisir un numéro de téléphone" /></div>
+            <label class="col-sm-2 control-label">  <b> Adresse email:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['email'];?>" type="text" name="email" id="email" class="form-control" placeholder="Saisir une adresse email" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item"> 
+		<div class="row">
+			<label class="col-sm-2 control-label">  <b> Groupe:</b> </label> 
+			<div   class="col-sm-3"><?php echo $this->formSelect("groupeid", intval($filters["groupeid"]),array("class" => "form-control"), $groupes); ?> </div> 
+            <label class="col-sm-2 control-label">  <b> Famille :</b> </label> 
+			<div   class="col-sm-3"><?php echo $this->formSelect("familleid", intval($filters["familleid"]),array("class" => "form-control"), $familles); ?> </div>
+		</div> 			   
+	  </li>
+	</ul>
+	<div class="panel-footer"> 
+		<button id="searchMembers" class="btn btn-primary searchMembers advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+        <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+	</div>
+	<input type="hidden" name="page"     id="page"      value="<?php echo $this->pageNum;    ?>"           />
+	</form>
+	<table id="membersListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="1%" > <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+                          <th width="14%"> Codes          </th> 
+                          <th width="15%"> Familles       </th>   
+                          <th width="30%"> Noms & Prénoms </th>
+                          <th width="20%"> Telephone      </th>
+                          <th width="20%"> Adresses Emails</th>  
+                           
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $members ) ) {
+                              	  foreach( $members as $member ) {
+                              	  	       $memberid     = intval($member['memberid']);
+                              	  	       $code         = $member["code"] ;
+                              	  	       $name         = sprintf("%s %s", $member["lastname"], $member["firstname"]);
+                              	  	       $famille      = $member["famille"] ;
+                              	  	       $groupe       = $member["groupe"] ;
+                              	  	       $telephone    = sprintf("%s / %s", $member["tel1"], $member["tel2"]);
+                              	  	       $adresse      = $member["adress"] ;
+                              	  	       $email        = $member["email"] ;
+                              	  	       $adresseStr   = sprintf("<span> Adresse: %s </span>  <br/>
+                              	  	       		                    <span> Email: %s </span> <br/>
+                              	  	       		                    <span> Telephone : %s </span>
+                              	  	       		                   ",
+                              	  	       		                   $adresse, $email , $telephone);
+                              	  	       $linkInfos    = $this->url(array("controller" => "members", "action" => "infos", "memberid" => $memberid ), "default");
+                              	  	      
+                              	  	       $output .= "<tr   id=\"memberRowId-".$memberid."\"> ";
+                              	  	                $output .= "<td> <input type=\"checkbox\" name=\"memberids[]\" id=\"memberids".$memberid."\" class=\"memberids\" /> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$code      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$famille   ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$name      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$telephone ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$email     ." </a> </td>";                              	  	                
+                              	  	        $output .= "</tr>";
+                              	  }                              	
+                              }  else {
+                              	            $output .= "<tr  id=\"memberRowId-0\"> <td colspan=\"8\"> AUCUN CLIENT N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+       </tbody>           
+    </table>
+	 <?php echo $pagination->render(); ?>
+  </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

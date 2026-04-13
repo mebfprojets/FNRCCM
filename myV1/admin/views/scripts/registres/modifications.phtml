@@ -1,0 +1,68 @@
+<?php 
+   $modifications = $this->modifications;
+   $linkDelete    = $this->url(array("module"=>"admin","controller"=> "registremodifications","action" => "delete"), "default") ;   
+   $output        = "<ul class=\"list-group modificationsList\">";
+     if( count( $modifications ) ){
+     	$output .="<li id=\"modificationId-0\" class=\"list-group-item\">
+		             <div class=\"row\">
+					     <div class=\"col-md-1\"> *       </div>
+						 <div class=\"col-md-5\"> Types   </div>
+						 <div class=\"col-md-6\"> Numéros </div>                        						 
+                    </div> 
+				   </li>";
+		$i      = 0;
+     	foreach( $modifications as $modification ) {
+     		     $modificationid   = $modification["registreid"];
+     		     $modificationType = $modification["type"];
+				 $modificationNum  = $modification["numero"];
+                 $zendDate         = ( intval($modification["date"])) ? new Zend_Date($modification["date"], Zend_Date::TIMESTAMP) : null;
+                 $date             = ( $zendDate                    ) ?	 $zendDate->toString("dd/MM/Y") : null;			 
+     		     $linkView         = $this->url(array("module"=>"admin", "controller" => "registremodifications","action" => "infos","registreid" => $modificationid ));
+     		     
+     		     $output .="<li id=\"modificationId-".$i."\" class=\"list-group-item\">
+				             <div class=\"row\">
+     		                    <div class=\"col-md-1\"> <span title=\"Supprimer cette modification\" id=\"delModificationId-".$modificationid."\" class=\"glyph-icon icon-remove deleteModification\">&nbsp;</span></div>
+     		                    <div class=\"col-md-5\"> <a title=\"Voir les informations de cette modification\" class=\"dialogViewInfos\" href=\"".$linkView."\"> ".$modificationType." </a> </div>
+								<div class=\"col-md-6\"> <a title=\"Voir les informations de cette modification\" class=\"dialogViewInfos\" href=\"".$linkView."\"> ".$modificationNum ." </a> </div>								
+     		                 </div>
+                           </li> ";  
+                $i++;							
+     	}
+     } else {
+     	$output .= " <li id=\"nomodifications\" class=\"list-group-item\"> <div class=\"row \"> Aucune modification n'a été trouvée pour ce registre </div> </li>";     	
+     }  
+   $output     .= "</ul>";
+   echo  $output ;
+   
+   $jq      =  $this->jQuery();
+   $onLoad  = " 
+                jQuery('.deleteModification').css('cursor','pointer');
+				jQuery('.deleteModification').click(function( event ){
+                        event.preventDefault();					
+                        var itemId           = parseInt(jQuery(this).attr('id').replace('delModificationId-',''));
+                        var dialogDeleteModification = jQuery('<div> Etes-vous sur de supprimer cette modification ? </div>').attr('id','dialogDeleteModification');
+						dialogDeleteModification.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose: true,closeOnEscape: false, closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+                        dialogDeleteModification.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'registreids':itemId},type:'GET',
+             		                             success  : function(data) 
+             		                             {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteModification') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteModification'), data.success , 'success');
+             		                                       setTimeout(function(){
+             		             		                               jQuery('#delModificationId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteModification').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                             }
+             		                            });     		
+                                         }}); 
+                        dialogDeleteModification.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+                        dialogDeleteModification.dialog2('open'); 
+				});";
+	$jq->addOnLoad($onLoad);			
+?>
+             

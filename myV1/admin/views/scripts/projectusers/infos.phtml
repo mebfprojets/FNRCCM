@@ -1,0 +1,96 @@
+<?php 
+   $user           = $this->user;
+   $agences        = $this->agences;
+   $linkEdit       = $this->url(array("controller" => "projectusers", "action" => "edit" , "id" => $user->userid), "default" ) ;
+   $linkCancel     = $this->url(array("controller" => "projectusers", "action" => "list"), "default" ) ;
+     
+   $buttonbar      = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $buttonEdit     = $buttonbar->button(" Mettre à jour les informations", "edit")->setPriority("primary");
+   $buttonCancel   = $buttonbar->button(" Revenir sur la liste", "ban");
+   
+   $buttonbar->add( $buttonEdit   , "editButton");
+   $buttonbar->add( $buttonCancel , "cancelButton");
+   
+   $buttonEdit->onClick("  event.preventDefault(); document.location.href= '".$linkEdit."' ;");
+   $buttonCancel->onClick("event.preventDefault(); document.location.href= '".$linkCancel."' ;");
+   
+   $jq             = $this->jQuery();  
+    
+					
+$creationDate  = "00/00/0000";
+$updateDate    = "00/00/0000";
+if( $user->creationdate ) {
+       $zendCreationdate  = new Zend_Date( $user->creationdate, Zend_Date::TIMESTAMP );
+       $entrepriseCreationDate = $zendCreationdate->toString("d MMM yyyy à H:m");
+}
+if( $user->updatedate ) {
+       $zendUpdatedate    = new Zend_Date( $user->updatedate , Zend_Date::TIMESTAMP );
+       $updateDate        = $zendUpdatedate->toString("d MMM yyyy à H:m");
+}
+$this->toolsbar = $buttonbar ;					
+?>
+<div  class="container" style="text-align:left;">
+  <div class="row">
+   <div class="col-md-6">
+    <div class="panel panel-default">
+	<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-user'></span> Les informations du collaborateur </h4> </div>
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="name"> <b> Nom :</b> </label></div> 
+            <div class="col-md-8"><?php printf("%s %s", $user->lastname, $user->firstname);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="username"> <b> Identifiant :</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($user->username);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="address"> <b> Adresse : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($user->address);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">    
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="telephone"> <b> Téléphone : </b> </label></div> 
+            <div class="col-md-8"><?php  printf("Fixe: %s / Mobile : %s", $user->phone1, $user->phone2);  ?></div>
+       </div>
+    </li>
+    <li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail : </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($user->email);  ?></div>
+       </div>
+    </li> 
+    <li class="list-group-item">    
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="codepostal"> <b>  Code postal: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($user->zipaddress);  ?></div>
+       </div>
+    </li> 	
+   </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="panel panel-default">
+	   <div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-user'></span> Les boutiques gérées </h4></div>
+	    
+     </div>
+	 	 
+   </div>
+    
+  </div>  
+</div>	
+
+ 
+</div>
+
+
+    <?php 
+          if($this->isAjax) {
+          	 echo $this->jQuery();
+          }
+      ?>   

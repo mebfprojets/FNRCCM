@@ -1,0 +1,111 @@
+<?php 
+$front          = Zend_Controller_Front::getInstance();
+$data           = $this->data;
+$member         = $this->member;
+$commande       = $this->commande;
+$invoice        = $this->invoice;
+$commandeid     = $this->commandeid;
+$invoiceid      = $this->invoiceid;
+$apikey         = $this->apikey;
+$site_id        = $this->api_site_id;
+$notifyUrl      = $this->notify_url;
+$trans_id       = $this->trans_id;   
+$formSubmit     = $this->url(array("controller"=>"orders"   ,"action"=>"finalize","module"=>"public","transid"=>$trans_id),"default",true);
+$linkCancel     = $this->url(array("controller"=>"ordercart","action"=>"infos"   ,"module"=>"public"),"default",true);
+$paymentError   = $this->url(array("controller"=>"payments" ,"action"=>"refused" ,"module"=>"public","transid"=>$trans_id),"default",true);
+$onSuccessUrl   = VIEW_BASE_URI.$formSubmit;
+$onFailedUrl    = VIEW_BASE_URI.$paymentError;
+
+$apiLoginAgency = API_TOUCHPAY_AGENCY_CODE;
+$apiSecureCode  = API_TOUCHPAY_SECURE_CODE;
+$apiDomain      = API_TOUCHPAY_DOMAIN;
+$amount         = $data["montant"]; 
+$customer_id    = $member->memberid;
+$email          = (isset($data["email"])            && !empty($data["email"]           ))?addslashes($data["email"])            : sprintf("%s", addslashes($member->email));
+$phone_number   = (isset($data["phonenumber"])      && !empty($data["phonenumber"]     ))?addslashes($data["phonenumber"])      : sprintf("%s", addslashes($member->tel1));
+$countryCode    = (isset($data["countrycode"])      && !empty($data["countrycode"]     ))?addslashes($data["countrycode"])      : sprintf("%s", $member->country);
+$city           = (isset($data["city"])             && !empty($data["city"]            ))?addslashes($data["city"])             : sprintf("%s", addslashes($member->city));
+$zipCode        = (isset($data["zipcode"])          && !empty($data["zipcode"]         ))?addslashes($data["zipcode"])          : "00226";
+$address        = (isset($data["address"])          && !empty($data["address"]         ))?addslashes($data["address"])          : sprintf("%s"   , addslashes($member->address));
+$payeur         = (isset($data["payeur"])           && !empty($data["payeur"]          ))?addslashes($data["payeur"])           : sprintf("%s"   , addslashes($member->name));
+$payeurName     = (isset($data["payeur_lastname"])  && !empty($data["payeur_lastname"] ))?addslashes($data["payeur_lastname"])  : sprintf("%s %s", addslashes($member->lastname));
+$payeurSurname  = (isset($data["payeur_firstname"]) && !empty($data["payeur_firstname"]))?addslashes($data["payeur_firstname"]) : sprintf("%s %s", addslashes($member->firstname));
+
+$channels       = (isset($data["method"])           && !empty($data["method"]))?$data["method"] : "ALL";
+$libelle        = sprintf("Services de consultation des données du FNRCCM : %s",$data["libelle"]);
+$metadata       = sprintf("%s", $commande->ref);
+
+if( empty($city) ) {
+	$city       = "Ouagadougou";
+}
+if( empty($countryCode) ) {
+	$countryCode  = "BF";
+}
+if(!empty($zipCode)) {
+	$phone_number = str_ireplace($zipCode,"",$phone_number);
+}
+$phone_number   = str_ireplace("00226","",$phone_number);
+$phone_number   = str_ireplace("+226" ,"",$phone_number);
+$basePath       = VIEW_BASE_PATH;
+$headScript     = $this->headScript();
+$headScript->prependFile("https://api.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js","text/javascript");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.sdk {display:block;position:absolute;background-position:center;text-align:center;left:50%;top:50%;transform: translate(-50%, -50%);}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq = $this->jQuery();  
+$headScript->appendScript("
+",
+"text/javascript");
+$jq->addOnLoad("
+	function callTouchPay() {
+		sendPaymentInfos('".$trans_id."','".$apiLoginAgency."','".$apiSecureCode."',
+						 '".$apiDomain."','".$onSuccessUrl."','".$onFailedUrl."','".$amount."',
+						 '".$city."','".$email."','".$payeurSurname."','".$payeurName."','".$phone_number."'
+		
+		);
+	}
+    jQuery('#validateButton').click(function(event){event.preventDefault();callTouchPay();});
+	jQuery('#cancelButton').click(  function(event){event.preventDefault();document.location.href='".$linkCancel."';});
+");
+?>
+<div class="container form-container">
+    <div class="row">
+		<div class="col-xs-12 col-sm-8 col-md-8 center-margin">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="panel-body">
+					<div class="panel-desc"><h3><strong> Procéder de façon sécurisée au paiement </strong></h3></div> <hr>
+					<div class="sdk"></div>
+					<form class="ordersCreateForm" id="ordersCreateForm" method="post" action="<?php echo $formSubmit; ?>" autocomplete="off" role="form">
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Désignation:</label>
+							<input disabled="disabled" type="text" class="form-control" name="libelle" id="libelle" value="<?php echo $data['libelle'];?>"  placeholder="<?php echo $data['libelle'];?>" >
+						    <input type="hidden" name="designation" id="designation" value="<?php echo $data['libelle'];?>" />
+						</div>
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Total à payer:</label>
+							<input disabled="disabled"  type="text" class="form-control" name="montant" id="montant" value="<?php echo $data['montant'];?>" placeholder="Total à payer" >
+						    <input type="hidden" name="amount" id="amount" value="<?php echo $data['montant']; ?>" />
+						</div>
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Nom du Payeur:</label>
+							<input disabled="disabled" type="text" class="form-control" name="payeur" id="payeur" value="<?php echo $data['payeur'];?>"  placeholder="Nom et prénom du payeur" >
+						    <input type="hidden" name="cpm_custom"      id="cpm_custom"      value="<?php echo $data['payeur'];?>" />
+							<input type="hidden" name="clientFirstname" id="clientFirstname" value="<?php echo $payeurSurname;?>" />
+							<input type="hidden" name="clientLastname"  id="clientLastname"  value="<?php echo $payeurName; ?>">
+						</div>
+						    <input type="hidden" name="currency"        id="currency"        value="XOF">  
+                            <input type="hidden" name="trans_id"        id="trans_id"        value="<?php echo $this->trans_id;?>"> 
+                            <input type="hidden" name="order_number"    id="order_number"    value="<?php echo $this->trans_id; ?>">						
+					</form>
+				</div>
+				<div class="panel-footer">
+					<div class="btn-group"><button id="cancelButton"   class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"> </i>Retour</button></div> 
+					<div class="btn-group"><button id="validateButton" class="btn btn-success validateButton"> Confirmer et procéder au paiement <i class="glyph-icon icon-check-circle"></i> </button></div>	
+				</div>
+			</div>      
+		</div>   
+    </div>      
+</div>

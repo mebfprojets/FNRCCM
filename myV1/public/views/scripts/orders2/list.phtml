@@ -1,0 +1,151 @@
+<?php
+    $tplPath       = VIEW_BASE_PATH;
+    $commandes     = $this->commandes;
+    $filters       = $this->filters;
+    $paginator     = $this->paginator;
+    $linkSearch    = $this->url(array("controller"=>"orders","action"=>"list","module"=>"public"), "default",true);
+	$linkCancel    = $this->url(array("controller"=>"members","action"=>"dashboard","module"=>"public"),"default", true);
+
+    $statuts       = $this->statuts;
+    if( null != $paginator ) {
+  	  //On crée et affiche la pagination
+  	  $pagination  = $this->pagination(array(),"Elastic",$this->url(array("controller"=>"orders","action"=>"list","module"=>"public"),"default",true), array(), array("class" => "panel-footer paginationControl"));
+  	  
+    }
+    $jq         = $this->jQuery();
+    $onLoad     = "
+        jQuery('.sirahPaginationBtn').click(function(event){
+			event.preventDefault();
+			if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+			var formSelector        = jQuery('#globalFormSearch');
+			var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+			var pageMaxitems        = formSelector.find('#maxitems').val();
+			if( jQuery(this).is('.nextPage')) {
+				var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+				pageNum             = parseInt( currentBtnNum +1);
+			}
+			if( jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+			var paginationData      = {};
+			paginationData.maxitems = pageMaxitems;
+			paginationData.page     = pageNum;
+			paginationData.searchQ  = formSelector.find('#searchQ').val();
+			paginationData.statutid = parseInt(formSelector.find('#statutid').val());   
+			var maincontent	        = jQuery('#maincontent');
+			SIRAH.loading.on( maincontent , 'Chargement des données...' );
+			SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:paginationData,beforeSend:function(){},
+							   error  : function(data){maincontent.html(data).after(data);SIRAH.loading.off(false);},
+							   success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							   update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+			});
+			SIRAH.loading.off(false);
+		});
+        jQuery('.simpleSearch,#simpleSearch').click(function( event ){
+		    event.preventDefault();		            
+		    var formSelector    = jQuery('#globalFormSearch'); 
+		    var searchData      = {};
+		    searchData.searchQ  = formSelector.find('#searchQ').val();
+		    searchData.statutid = parseInt(formSelector.find('#statutid').val());
+		    var maincontent	    = jQuery('#maincontent');	
+		    SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		    SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+							  error  : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		    });
+		    SIRAH.loading.off(false);		                
+		});
+        jQuery('.resetSearchBtn,#resetSearchBtn').click(function( event ){ event.preventDefault(); document.location.href='".$linkSearch."'; });";
+   
+   $jq->addOnLoad( $onLoad );
+   
+   $buttonBar    = $buttonbar  = $this->buttonsbar(array()  , $this->jqueryHandler());
+   $buttonCreate = $buttonBar->button("Nouvelle réservation","plus");
+   $buttonCancel = $buttonBar->button("Revenir sur mon tableau de bord","chevron-left");
+   
+   $buttonBar->add($buttonCancel, "cancelButton");
+   $buttonBar->add($buttonCreate, "createButton");
+   
+   $buttonCreate->setAttributes(array("type"=>"submit", "class"=>"btn btn-danger"));
+   $buttonCancel->setAttributes(array("type"=>"submit"));
+   
+   $buttonCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCreate));
+   $buttonCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel));
+?>
+<div class="row buttons mrg20B mrg5L"><?php echo $buttonBar; ?></div>
+<div id="panelListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		    <form class="form-horizontal globalFormSearch" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		        <div class="input-group">
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("catid"   , intval($filters["catid"])   ,array("class" => "form-control catid"), $this->categories); ?></span>
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("statutid", intval($filters["statutid"]),array("class" => "form-control input-lg"), $this->statuts); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ" type="text" class="form-control input-lg" placeholder="Recherchez une commande, saisir des mots clés...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"   class="btn btn-lg btn-primary simpleSearch"    type="button"><span class="glyph-icon icon-search"></span> </button>
+					   <button id="resetSearchBtn" class="btn btn-lg btn-danger  resetSearchBtn"  type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>" /> 
+				<input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+			</form>
+		</div>
+        <table id="commandesListTable"  class="table table-hover table-bordered text-center">
+            <thead>
+				<tr>
+					<th width="5%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+					<th width='15%'> Numéros      </th>
+					<th width='15%'> Dates        </th>					 					 
+					<th width='20%'> Montants HT  </th>
+					<th width='20%'> Montants TTC </th>
+					<th width='20%'> Statuts      </th>
+				</tr>
+			</thead>                
+			<tbody>
+            <?php 
+				$output   = "";
+				if( count(   $commandes )) {
+					foreach( $commandes as $commande ) {
+							 $commandeid   = $commande["commandeid"];
+							 $reference    = $commande["ref"];
+							 $produits     = array();
+							 $valeurHT     = (floatval($commande["valeur_ht"] ))?number_format($commande["valeur_ht"] ,0,", "," ") : floatval($commande["valeur_ht"]);
+							 $valeurTTC    = (floatval($commande["valeur_ttc"]))?number_format($commande["valeur_ttc"],0,", "," ") : floatval($commande["valeur_ht"]);
+							 $dateCommande = (intval(  $commande["date"]      ))?date("d/m/Y", $commande["date"]): $commande["date_commande"];                     	  	       
+                             $bgClass      = "";
+							 $bgColor      = $this->cycle(array('#FFFFFF','#F0F0F0'))->next();
+							 $linkInfos    = $this->url(array("controller"=>"orders","action"=>"infos","id"=>$commandeid,"commandeid"=>$commandeid,"module"=>"public"), "default",true);
+							 $statutLib    = (isset($statuts[$commande["statutid"]]) && intval($commande["statutid"])) ? $statuts[$commande["statutid"]] : "";
+							 if( intval($commande["validated"]) == 1) {
+								 $bgClass  = "alert success validated";
+							 } else {
+								 $bgClass  = "alert danger unvalidated";
+							 } 								 
+							 $output      .= "<tr id=\"commandeId-".$commandeid."\" style=\"background-color:".$bgColor."\" class=\"commandeIds ".$bgColor."\">";
+								$output   .= "   <td class=\"".$bgColor."\"><input type=\"checkbox\" name=\"commandeids[]\" id=\"commandeids".$commandeid."\" class=\"commandeids\" /></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la commande\" href=\"".$linkInfos."\"> ".$reference   ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la commande\" href=\"".$linkInfos."\"> ".$dateCommande." </a></td>";									
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la commande\" href=\"".$linkInfos."\"> ".$valeurHT    ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la commande\" href=\"".$linkInfos."\"> ".$valeurTTC   ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la commande\" href=\"".$linkInfos."\"> ".$statutLib   ." </a></td>";
+							 $output      .= "</tr>";                      	  	       
+					  }
+				} else {
+							 $output      .= "<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"7\"> AUCUNE COMMANDE N'A ETE TROUVEE </td> </tr>";
+				}
+				echo $output;
+            ?>
+            </tbody>
+        </table>
+		<div class="panel-footer"><?php  echo $pagination->render(); ?></div>
+    </div>
+</div>
+ 
+
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

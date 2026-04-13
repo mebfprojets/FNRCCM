@@ -1,0 +1,65 @@
+<?php 
+   $configuration      = $this->configuration;   
+   $formSubmit         = $this->url(array("module" => "admin","controller"  => "system" , "action" => "params" ) , "default" ) ;
+     
+   $buttonbar          = $this->buttonbar(array() , $this->jqueryHandler());   
+   $buttonCreate       = $buttonbar->button(" Sauvegarder les changements ","floppy-save")->setPriority("primary");
+   $buttonCancel       = $buttonbar->button("Annuler","ban-circle");
+   
+   $buttonCreate->setAttributes(array("type"   => "submit"));
+   
+   $buttonbar->add($buttonCreate ,"createButton"); 
+   $buttonCreate->onClick("
+   	event.preventDefault();	
+   	var  formSelector= jQuery('#saveparams-form');
+    formSelector.submit();  ");
+   $jq     = $this->jQuery();
+?>
+ <form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="saveparams-form"   role="form"> 
+ <div class="col-md-12" style="text-align:left;">
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="periode_start"> <b>  Date de début des cours*:</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->datePick("inscription_periode_start" , $configuration->inscription->periode->start ); ?></div> 
+     </li>
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="periode_end"> <b>  Date de fin des cours*:</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->datePick("inscription_periode_end" , $configuration->inscription->periode->end ); ?></div> 
+     </li>
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="periodicite"> <b> Périodicité de paiements scolarité:</b> </label></div> 
+            <div class="col-md-8"> <input id="inscription_periodicite" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="La périodicité de paiement des frais de scolarité" placeholder="Le secteur d'activités"  name="inscription_periodicite" value="<?php echo $configuration->inscription->periodicite; ?>"> </div>
+       </div>
+     </li>
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="cout_unit"> <b> Cout unitaire des frais d'inscription * :</b> </label></div> 
+            <div class="col-md-3"> <input id="inscription_cout_unit" type="text" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Les frais unitaires de la scolarité" placeholder="Les frais unitaires de la scolarité"  name="inscription_cout_unit" value="<?php echo $configuration->inscription->cout->initial; ?>"> </div>
+            <div class="col-md-1"> F CFA </div> 
+       </div>
+     </li> 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="candidature_cout_total"> <b> Cout des frais de candidature * :</b> </label></div> 
+            <div class="col-md-3"> <input id="candidature_cout_total" type="text" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Les frais de pré-inscription" placeholder="Les frais de pré-inscription"  name="candidature_cout_total" value="<?php echo $configuration->candidature->cout->total; ?>"> </div>
+            <div class="col-md-1"> F CFA </div> 
+       </div>
+     </li>    
+  </ul>
+  </div> 
+    <?php 
+          if(!$this->isAjax) {
+          	  echo $buttonbar;
+          } else {
+          	echo $this->jQuery();
+          	echo $this->headStyle();
+          }
+      ?>
+  </form>  
+     

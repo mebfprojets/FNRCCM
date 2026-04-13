@@ -1,0 +1,84 @@
+<?php 
+   $carreers    = $this->carreers;  
+   $linkDelete  = $this->url(array("controller"  => "profile"  ,"action" => "removecarreer") , "default") ;
+   $modelCarreer= new Model_Profilecarreer();
+   $output      = "";
+   $output      = "<ul class=\"list-group carreerList\">";
+    if(count($carreers)) {
+    	  foreach($carreers as $carreer) {
+    	  	$carreerId    = intval($carreer["carreerid"]);
+    	  	$rowCarreer   = $modelCarreer->findRow($carreerId , "carreerid" , null ,false);
+    	  	$entreprise   = ($rowCarreer) ? $rowCarreer->findParentRow("Table_ProfileEntreprises") : null;
+    	  	$entrepriseLib= ($entreprise) ? $this->escape($entreprise->libelle) : null;
+    	  	$dateDebut    = "";
+    	  	$dateFin      = "";
+    	  	if(!empty($rowCarreer->date_debut)) {
+    	  		$zendDateDebut  = new Zend_Date($rowCarreer->date_debut ,Zend_Date::TIMESTAMP);
+    	  		$dateDebut      = $zendDateDebut->toString("d/M/Y");
+    	  	}
+    	  	if(!empty($rowCarreer->date_fin)) {
+    	  		$zendDateFin    = new Zend_Date($rowCarreer->date_fin ,Zend_Date::TIMESTAMP);
+    	  		$dateFin        = $zendDateFin->toString("d/M/Y");
+    	  	}
+    	  	$linkView= $this->url(array("controller"  => "profile" , "action" => "infoscarreer" , "id" => $carreerId) , "default");
+    	  	
+    	  	$output .= " <li id=\"carreerId-".$carreerId."\" class=\"list-group-item\">
+                              <div class=\"row\">
+                                 <div class=\"col-md-1\"><span href=\"#\" id=\"closeId-".$carreerId."\" class=\"glyphicon glyphicon-remove pull-left pull-top closeItemCarreer \"></span></div> 
+                                 <div class=\"col-md-6\"><a title=\"Les informations de l'expérience\" class='dialogViewInfos' href='".$linkView."'>". $dateDebut . " - " . $dateFin ."</a></div> 
+                                 <div class=\"col-md-5\">".$this->escape($entrepriseLib)."</div>
+                              </div>
+                          </li> ";
+    	  }    	
+    }
+
+    $output     .= "</ul>";
+    echo  $output ;
+    
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+       jQuery('.closeItemCarreer ').css('cursor','pointer');
+       jQuery('.closeItemCarreer').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette expérience ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Attention , confirmer cette action !!',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'ids' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#carreerId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#carreerId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });
+      
+    ";    
+    $jq->addOnLoad($onLoad);
+?>
+             

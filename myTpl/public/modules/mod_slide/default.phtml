@@ -1,0 +1,71 @@
+<?php 
+    $viewBasePath      = ROOT_PATH."/myTpl/public"; 
+    $photos            = $this->galerie_photos;    
+    $gallerie          = $this->gallerie;		
+	$slideTitlesStyles = array(	                            
+                                array("style"=>"top:170px;left:174px;font-weight: 300;height:40px;padding-right:10px;padding-left:10px;font-size:30px;line-height:37px;color:#ffffff;background:#f04705;border-radius:3px;white-space: nowrap;",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:1500;easingin:easeOutElastic;rotatexin:-90;transformoriginin:50% top 0;offsetxout:-200;durationout:1000;parallaxlevel:10;"),
+                                array("style"=>"top:320px;left:830px;font-weight:300;height:40px;padding-right:10px;padding-left:10px;font-size:30px;line-height:37px;color:#ffffff;background:#544f8c;border-radius:3px;white-space:nowrap;",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:1500;easingin:easeOutElastic;rotatexin:-90;transformoriginin:50% top 0;offsetxout:-400;durationout:1000;"),
+                                array("style"=>"top:150px;left:116px;font-weight: 300;height:40px;padding-right:10px;padding-left:10px;font-size:30px;line-height:37px;color:#ffffff;background:#82d10c;border-radius:3px;white-space: nowrap;",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:1500;easingin:easeOutElastic;rotatexin:-90;transformoriginin:50% top 0;offsetxout:-200;durationout:1000;")									  
+						 ) ;
+	$slideTextStyles   = array(							    
+                                array("style"=>"top:210px;left:183px;font-family:'Indie Flower';font-size:31px;color:#f04705;white-space: nowrap;",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:2000;easingin:easeOutElastic;rotatexin:90;transformoriginin:50% top 0;offsetxout:-400;parallaxlevel:8;"),
+                                array("style"=>"top:360px;left:836px;font-family:'Indie Flower';font-size:31px;color:#544f8c;white-space: nowrap;",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:2000;easingin:easeOutElastic;rotatexin:90;transformoriginin:50% top 0;offsetxout:-600;"),
+                                array("style"=>"top:190px;left:125px;font-family:'Indie Flower';font-size:31px;color:#6db509;white-space: nowrap",
+								      "data" =>"offsetxin:0;durationin:2000;delayin:2000;easingin:easeOutElastic;rotatexin:90;transformoriginin:50% top 0;offsetxout:-400;")									  
+						 ) ;					
+?>
+<?php if( count( $photos )) : ?> 
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+
+<div id="gallerySlideshow"  style="width:100%;height:500px;" class="medium-padding"> 
+    <?php         
+         $slideId                    = $layoutTitleKey = $layoutTextKey = 0;
+         $outputPhoto               .= "";
+         foreach( $photos as $photo ) {
+         	      $photoFilePath     = $photo["filepath"];
+         	      $imageSrc          = "";
+         	      $photoLibelle      = $photo["libelle"];
+			      $photoDescription  = $photo["description"];
+         	      $itemActive        = ( $slideId == 0 ) ? " active " : "";
+ 
+				  if(!empty( $photoFilePath ) ) {
+					  $photoFilePathName = str_replace(APPLICATION_PATH     , ROOT_PATH . DS ."myV1" , $photoFilePath );
+					  $photoFilePathName = str_replace(APPLICATION_TEMPLATES, ROOT_PATH . DS ."myTpl", $photoFilePathName);
+					  if( Sirah_Filesystem::exists( $photoFilePath ) ) {
+						  $imageSrc = str_replace( DS, "/", $photoFilePathName );
+					  } 
+				  }
+				  if( empty( $imageSrc ))
+					  continue;
+				  $outputPhoto .= "<div class=\"ls-slide\" data-ls=\"duration:4000;transition2d:1;timeshift:-1000;\">";
+							 $outputPhoto .= "<img class=\"ls-bg\" src=\"".$imageSrc."\" alt=\"".$photoLibelle."\" />";
+							 $outputPhoto .= "<p   class=\"ls-l\"  style=\"".$slideTitlesStyles[$layoutTitleKey]['style']."\" data-ls=\"".$slideTitlesStyles[$layoutTitleKey]['data']."\"> ".$photoLibelle    ." </p>";
+				             $outputPhoto .= "<p   class=\"ls-l\"  style=\"".$slideTextStyles[$layoutTextKey]['style']."\"    data-ls=\"".$slideTextStyles[$layoutTextKey]['data']."\">    ".$photoDescription." </p>";
+				  $outputPhoto .= "</div>";
+				  $slideId++;
+				  $layoutTitleKey++;
+				  $layoutTextKey++;
+				  if( $layoutTitleKey > count($slideTitlesStyles)) {$layoutTitleKey=0;}
+				  if( $layoutTextKey  > count($slideTextStyles  )) {$layoutTextKey =0;}
+         }         
+         echo $outputPhoto;    
+    ?>         
+</div>
+
+<?php
+    $jq  = $this->jQuery();	
+	$jq->addStylesheet(    $viewBasePath."/scripts/widgets/layerslider/layerslider.css" );
+	$jq->addJavascriptFile($viewBasePath."/scripts/js-core/greensock.js");
+	$jq->addJavascriptFile($viewBasePath."/scripts/widgets/layerslider/layerslider.js");
+	$jq->addJavascriptFile($viewBasePath."/scripts/widgets/layerslider/layerslider-transitions.js");
+	$jq->addonLoad("jQuery('#gallerySlideshow').layerSlider({responsive:!0,type:'fixedsize',fitScreenWidth:true,responsiveUnder:1280,skin:'fullwidth',hoverPrevNext:!1,skinsPath:'".$viewBasePath."/scripts/widgets/layerslider/skins/'})");	
+?>
+<?php endif; ?>
+

@@ -1,0 +1,237 @@
+<?php   
+    $invoice             = $facture   = $this->invoice;
+	$invoiceid           = $factureid = $this->invoiceid;
+    $commande            = $this->commande;
+    $commandeid          = $this->commandeid;
+	$member              = $this->member;
+    $lignes              = $this->products;
+	$products            = $this->products; 
+    $documents           = $this->documents;
+ 
+    $valeur              = ($commande->valeur_ht       )? number_format($commande->valeur_ht , 0, ", ", " ") : 0;
+	$valeurSubTotal      = ($commande->valeur_sub_total)? number_format($commande->valeur_sub_total, 0, ", ", " ") : 0;
+	$valeurHT            = ($commande->valeur_ht       )? number_format($commande->valeur_ht , 0, ", ", " ") : 0;
+	$valeurTTC           = ($commande->valeur_ttc      )? number_format($commande->valeur_ttc, 0, ", ", " ") : 0; 
+	
+    $statut              = $this->statut;
+    $me                  = Sirah_Fabric::getUser();
+    
+    $basePath            = VIEW_BASE_PATH;
+    $jq                  = $this->jQuery();
+    
+    $linkBack            = $linkCancel = $this->url(array("module"=>"admin","controller"=>"factures", "action"=> "list"),"default",true);
+    $linkGet             = $this->url(array("module"=>"admin","controller"=>"factures","action"=>"get"   , "invoiceid"=>$invoiceid),"default",true);
+    $linkDelete          = $this->url(array("module"=>"admin","controller"=>"factures","action"=>"delete", "invoiceid"=>$invoiceid),"default",true);
+    $linkEdit            = $this->url(array("module"=>"admin","controller"=>"factures","action"=>"edit"  , "invoiceid"=>$invoiceid),"default",true);
+
+    $linkUploadDocuments = $this->url(array("module"=>"admin","controller"=>"factures"     ,"action"=>"upload","invoiceid"=>$invoiceid, "category"=>7),"default",true);
+    $linkUserdocuments   = $this->url(array("module"=>"admin","controller"=>"userdocuments","action"=>"infos" ,"invoiceid"=>$invoiceid),"default",true); 
+    $linkAddPayment      = $this->url(array("module"=>"admin","controller"=>"paiements"    ,"action"=>"create","invoiceid"=>$invoiceid),"default",true);
+	$buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+	$buttonPayment       = $buttonBar->button("Nouveau paiement"    , "plus");
+	$buttonDownload      = $buttonBar->button("Générer"             , "download");
+    $buttonEdit          = $buttonBar->button("Modifier"            , "pencil");
+    $buttonDelete        = $buttonBar->button("Supprimer"           , "trash-o");
+    $buttonCancel        = $buttonBar->button("Revenir sur la liste", "chevron-left");
+        
+	$buttonBar->add( $buttonCancel, "cancelButton");
+	$buttonBar->add( $buttonDownload, "downloadButton");
+    $buttonBar->add( $buttonDelete  , "deleteButton");
+
+    $buttonEdit->setAttributes(   array("type"=>"submit", "class"=>"btn btn-primary"));
+	$buttonPayment->setAttributes(array("type"=>"submit", "class"=>"btn alert-infos"));
+    $buttonDelete->setAttributes( array("type"=>"submit", "class"=>"btn alert-danger"));
+    $buttonCancel->setAttributes( array("type"=>"submit"));
+    
+    $buttonDelete->onClick(sprintf("
+		event.preventDefault(); 
+		var dialogDeleteCategorie = jQuery('<div> Etes-vous sur de supprimer cette facture ? </div>').attr('id','dialogDeleteCategorie');
+        dialogDeleteCategorie.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteCategorie.dialog2('addButton','Oui', {primary: true ,click:function(){ document.location.href ='%s';}}); 
+        dialogDeleteCategorie.dialog2('addButton','Non', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteCategorie.dialog2('open');", $linkDelete));
+	$myDataPath       = $me->getDatapath();  
+    $invoiceFilename  = "Facture".sprintf("%06d", $invoiceid ).".pdf";
+    $docUrl           = $myDataPath.$invoiceFilename;
+	$buttonDownload->onClick("
+        event.preventDefault();
+	    SIRAH.request.get(jQuery('#maincontent'),'".$linkGet."',{
+						success:function( data ){
+							var mainContentSelector = jQuery('#maincontent');
+							jQuery('#patientez').fadeOut('slow');
+                            jQuery('#sirah-page-message').fadeOut('slow');
+							if( undefined !== data.error){
+                                SIRAH.error.raise(mainContentSelector,data.error,'error');
+                                return data;
+                            } else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+								SIRAH.loading.off(false);
+                                var invoiceDocUrl = '".urlencode($docUrl)."';
+								var dialogTitle   = encodeURIComponent('Facture numéro ".$facture->numero."');
+								var linkViewDoc   = '".$linkUserdocuments."?doc='+invoiceDocUrl+'&dialogTitle='+dialogTitle;
+ 
+								var documentDialog= jQuery('<div></div>').attr('id','documentDialog'); 
+			                    documentDialog.dialog2({title:'Création de la facture..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+                                documentDialog.dialog2('open');
+                            }	else if( undefined !== data.reload ) {
+                                var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+                                document.location.href  =  reloadurl ;
+                            } else {
+                                SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                                return data;
+                            }
+						}
+	 });");
+    $buttonCancel->onClick( sprintf("event.preventDefault();document.location.href='%s';", $linkCancel   ));
+    $buttonEdit->onClick(   sprintf("event.preventDefault();document.location.href='%s';", $linkEdit     ));
+	$buttonPayment->onClick(sprintf("event.preventDefault();document.location.href='%s';", $linkAddPayment));
+    
+    $creationDate = "00/00/0000";
+    $updateDate   = "00/00/0000";
+    $invoiceDate  = "00/00/0000";
+    $creator      = Sirah_Fabric::getUser($invoice->creatorid     );
+    $updatedUser  = Sirah_Fabric::getUser($invoice->updateduserid );
+    
+    if( $invoice->date ) {
+    	$zendInvoiceDate = new Zend_Date( $invoice->date, Zend_Date::TIMESTAMP );
+    	$invoiceDate     = ($zendInvoiceDate)?$zendInvoiceDate->toString("d MMM Y à H:m") : $invoiceDate;
+    }
+    if( $invoice->creationdate ) {
+    	$zendCreationDate = new Zend_Date( $invoice->creationdate, Zend_Date::TIMESTAMP );
+    	$creationDate     = ($zendCreationDate)?$zendCreationDate->toString("d MMM Y à H:m") : $creationDate ;
+    }
+    if( $invoice->updatedate ) {
+    	$zendUpdatedate   = new Zend_Date( $invoice->updatedate , Zend_Date::TIMESTAMP );
+    	$updateDate       = $zendUpdatedate->toString("d MMM Y à H:m");
+    }
+    
+$onLoad  = "  
+jQuery('.uploadFile').click(function( event ) {
+	event.preventDefault();
+	var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+    dialogUploadFile.dialog2({title:'Enregistrer un document',content : '".$linkUploadDocuments."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true, closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+    dialogUploadFile.dialog2('addButton','<span =\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+    dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+    dialogUploadFile.dialog2('open');          
+});";
+
+$jq->addOnLoad( $onLoad );
+$this->toolsbar = $buttonBar;
+$linkMember     = ($member  )?$this->url(array("module"=>"admin","controller"=>"members"  ,"action"=>"infos","id"=>$member->memberid,"memberid"=>$member->memberid),"default",true) : "#";
+$linkCommande   = ($commande)?$this->url(array("module"=>"admin","controller"=>"commandes","action"=>"infos","id"=>$member->memberid,"commandeid"=>$commandeid),"default",true)     : "#";
+?>
+
+<div id="commandeInfosWrapper" class="row"> 
+    <div  class="col-sm-12 col-md-6">
+        <div  class="content-box">
+            <h3  class="content-box-header bg-blue-alt"> <b> Les informations de la facture </b>  </h3>
+            <div class="divider"> </div>
+            <div class="content-box-wrapper ">
+				<div class="list-group pad4A">
+					<?php if($member): ?>
+					<a href="<?php echo $linkMember; ?>" title="Consulter les informations de ce client" class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Au compte de:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php printf("%s %s", $member->lastname, $member->firstname); ?></div>
+					   </div>
+					</a>
+					<?php endif; ?>
+					<?php if($commande): ?>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Commande N°:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php echo $commande->ref; ?></div>
+					   </div>
+					</a>
+					<?php endif; ?>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Reference:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php echo $invoice->numero; ?></div>
+					   </div>
+					</a>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Date :</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php echo $invoiceDate; ?></div>
+					    </div>
+					</a>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Montant HT:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php printf("%s F CFA",$valeurHT); ?></div>
+					    </div>
+					</a>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Montant TTC:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php printf("%s F CFA",$valeurTTC); ?></div>
+					    </div>
+					</a>
+					<?php if( $statut ): ?>
+					<a class="list-group-item">
+						<div class="row"> 
+						   <div class="col-md-4 col-sm-4"> <b> Statut:</b></div> 
+						   <div class="col-md-8 col-sm-8"><?php echo ( $statut ) ? $statut->libelle : ""; ?></div>
+					   </div>
+					 </a>
+					<?php endif; ?>
+					<?php if($creator->userid) : ?>
+					 <a class="list-group-item">
+						 <div class="row"> 
+						   <div class="col-md-12 "> Enregistrée le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+						</div>
+					  </a>
+					 <?php endif; ?>
+					 <?php if($updatedUser->userid) : ?>
+					  <a class="list-group-item">
+						 <div class="row"> 
+						   <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+						 </div>
+					 </a>
+					<?php endif; ?>            
+				</div>
+            </div>        
+            <?php if( !empty( $commande->observation )): ?>
+             <h3  class="content-box-header bg-orange"> <b> Observations </b>  </h3>
+              <div class="divider"> </div>
+              <div class="content-box-wrapper ">
+                <?php echo $commande->observation; ?>
+              </div>
+            <?php endif; ?>                         
+        </div>    
+    </div>    
+    <div class="col-md-6 col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Les produits et/ou services commandés </h4></div> 
+            <?php echo $this->partial("commandes/products.phtml", array("products"=>$products,"lignes"=>$lignes,"commandeid"=>$commandeid,"commande"=>$commande,"canRemove" => $canRemoveLignes )); ?>
+        </div>  
+        <?php if( $me->isAllowed("factures","upload")): ?>	
+			<div class="panel panel-default">
+				<?php
+					$documentsButtonBar = $this->Btnbar(array("id"=>"documentsButtonBar"), $this->jqueryHandler());
+					$buttonAddDocuments = $documentsButtonBar->button(" Ajouter","plus")->setPriority("primary");
+					  
+					$buttonAddDocuments->setAttributes(array("type"=>"submit","class"=>"btn btn-success","title"=>"Ajouter un nouveau document"));
+					
+					if( $me->isAllowed("factures", "upload"))
+						$documentsButtonBar->add($buttonAddDocuments, "addDocumentsButton");
+					
+					if( $buttonAddDocuments ) {
+						$buttonAddDocuments->onClick("
+							   event.preventDefault();
+							   var dialogUploadFile = jQuery('<div/>').attr('id','dialogUploadFile');             		 
+							   dialogUploadFile.dialog2({title:'Rattacher un document à cette facture',content:'".$linkUpload."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+							   dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+							   dialogUploadFile.dialog2('addButton','Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});        		            		
+							   dialogUploadFile.dialog2('open'); ");
+					}
+				?>
+				<div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les documents qui ont été rattachés" data-parent="#accordionRight" data-toggle="collapse" href="#documentsData"><span class="glyph-icon icon-paperclip"></span> Documents associés à la facture </a></h4></div>              
+				<div id="documentsData" class="panel-collapse collapse">
+					<?php echo $this->partial("factures/documents.phtml",array("facture"=>$facture,"factureid"=>$factureid,"documents"=>$documents,"jquery"=>&$jq)); ?>
+					<div class="panel-footer"><?php echo $documentsButtonBar; ?></div>
+				</div>		
+			</div>
+		<?php endif; ?>	  
+    </div>
+</div>

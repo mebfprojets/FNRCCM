@@ -1,0 +1,36 @@
+<?php
+  $tplPath              = VIEW_BASE_PATH;
+  
+  $localite             = $this->localite;
+  $physiques            = $this->physiques;
+  $morales              = $this->morales;
+  
+  $linkRegistrePhysique = $this->url(array("controller"=> "registres", "action" => "list","typeid" => 1,"typelib" => "physiques"), "registrelist");
+  $linkRegistreMorale   = $this->url(array("controller"=> "registres", "action" => "list","typeid" => 2,"typelib" => "morales"  ), "registrelist");
+
+?>
+  <ul  class="list-group">
+        <a class="list-group-item"> 
+            <div class="row"> 
+                <div class="col-md-2"> <label for="libelle"> Désignation : </label> </div>
+                <div class="col-md-9"> <?php echo $localite->libelle; ?> </div>
+            </div>         
+        </a>
+        <a class="list-group-item"> 
+          <div class="row"> 
+             <div class="col-md-2"> <label for="description"> Description: </label> </div>
+             <div class="col-md-9">  <?php echo $localite->description; ?>  </div>
+          </div>         
+        </a>
+        <a class="list-group-item" href="<?php echo $linkRegistrePhysique; ?>"> 
+         <div class="row"> 
+            <div class="col-md-10"><span class="glyphicon glyphicon-paperclip"></span>  Accéder aux registres de types `Personnes Physiques` (<?php echo count($physiques)." élements "; ?>) </div>
+          </div>
+        </a>
+        <a class="list-group-item" href="<?php echo $linkRegistreMorale; ?>"> 
+         <div class="row"> 
+            <div class="col-md-10"><span class="glyphicon glyphicon-paperclip"></span>  Accéder aux registres de types `Personnes Morales` (<?php echo count($morales)." élements "; ?>) </div>
+          </div>
+        </a>
+</ul>
+     

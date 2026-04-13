@@ -1,0 +1,1601 @@
+<?php
+
+class Admin_DemandesController extends Sirah_Controller_Default
+{
+
+	public function listAction()
+	{		
+	    if( $this->_request->isXmlHttpRequest()) {
+			$this->_helper->layout->disableLayout(true);
+			$this->view->isAjax  = true;
+		} else {
+			$this->_helper->layout->setLayout("default");
+		}			
+		$this->view->title       = "Gestion des demandes de vérification ou de réservation de disponibilité"  ;
+		
+		$me                      = Sirah_Fabric::getUser();
+		$model                   = $this->getModel("demande");
+        $modelType               = $this->getModel("demandetype");	
+        $modelStatut             = $this->getModel("demandestatut");
+        $modelLocalite           = $this->getModel("localite");		
+ 	
+		$demandes                = array();
+		$paginator               = null;
+		$stateStore              = new Zend_Session_Namespace("Statestore");
+		$resetSearch             = intval($this->_getParam("reset", 0));
+		
+		if(!isset( $stateStore->filters) || $resetSearch) {
+			$stateStore->filters = array("_demandes" => array()
+			                       );
+		}
+		if(!isset( $stateStore->filters["_demandes"]["maxitems"])) {
+			$stateStore->filters["_demandes"] = array("page"=>1,"maxitems"=> NB_ELEMENTS_PAGE,"libelle"=>null,"numero"=>null,"localiteid"=>0,"searchQ"=>null,
+													  "typeid"=>0,"statutid"=>0,"expired"=>4,"disponible"=>4,"date"=>null,"lastname"=>null,"firstname"=>null,"name"=>null,
+													  "demandeurname"=>null,"promoteurname"=>null,"demandeurid"=>0,"promoteurid"=>0,"nomcommercial"=>null,
+                                              );			
+		}
+		
+		//On crée les filtres qui seront utilisés sur les paramètres de recherche
+		$stringFilter             = new Zend_Filter();
+		$stringFilter->addFilter(   new Zend_Filter_StringTrim());
+		$stringFilter->addFilter(   new Zend_Filter_StripTags());
+		
+		//On crée un validateur de filtre
+		$strNotEmptyValidator     = new Zend_Validate_NotEmpty(array("integer","zero","string","float","empty_array","null"));
+				
+		$params                              = $this->_request->getParams();
+		$pageNum                             = (isset($params["page"]))    ? intval($params["page"])     : $stateStore->filters["_demandes"]["page"];
+		$pageSize                            = (isset($params["maxitems"]))? intval($params["maxitems"]) : $stateStore->filters["_demandes"]["maxitems"];		
+		$searchQ                             = (isset($params["searchq"] ))? $params["searchq"]          : null;
+		$filters                             = $stateStore->filters["_demandes"];
+        $params                              = array_merge(array("libelle"=>"","searchQ"=>$searchQ,"numero"=>null,"localiteid"=>0,"typeid"=>0,"statutid"=>0,"expired"=>4,"disponible"=>4,
+		                                                         "date"=>null,"name"=>null,"lastname"=>null,"firstname"=>null,"demandeurid"=>0,"promoteurid"=>0,"promoteurname"=>null,"demandeurname"=>null), $params);		
+		if(!empty(   $params )) {
+			foreach( $params as $filterKey => $filterValue){
+				     $filters[$filterKey]    = $stringFilter->filter($filterValue);
+			}
+		}	
+ 			
+		$myLocaliteId                        = $me->localiteid;
+		if($me->isOPS() || $me->isGREFFIERS()) {
+			$filters["creatorid"]            = $me->userid;
+			if(!intval($filters["localiteid"]) || intval($filters["localiteid"])==$myLocaliteId) {
+				$filters["localiteid"]       = $myLocaliteId;
+			}
+		}
+		if( isset($filters["name"] )) {
+			$nameToArray              = preg_split("/[\s]+/", $filters["name"]);
+			if( count($nameToArray) > 2) {
+				$filters["lastname"]  = $nameToArray[0] ;
+				unset($nameToArray[0]);
+				$filters["firstname"] = implode(" ", $nameToArray );
+				unset($filters["name"]);
+			} elseif( count($nameToArray)==2)	 {
+				$filters["lastname"]  = (isset($nameToArray[0]))? $nameToArray[0] : "" ;
+				$filters["firstname"] = (isset($nameToArray[1]))? $nameToArray[1] : "" ;
+				unset($filters["name"]);
+			} elseif( count($nameToArray)==1)	 {
+				$filters["name"]      = (isset($nameToArray[0]))? $nameToArray[0] : "" ;
+			}				
+		}
+		  
+		//print_r($params); die();
+		$stateStore->filters["_demandes"]    = $filters;
+		$demandes                            = $model->getList( $filters , $pageNum , $pageSize);
+		$paginator                           = $model->getListPaginator($filters);
+		
+		if( null !== $paginator) {
+			$paginator->setCurrentPageNumber( $pageNum  );
+			$paginator->setItemCountPerPage(  $pageSize );
+		}
+		$this->view->columns                 = array("left");
+		$this->view->demandes                = $demandes;
+		$this->view->filters                 = $filters;
+		$this->view->params                  = $params;
+		$this->view->paginator               = $paginator;
+		$this->view->pageNum                 = $pageNum;
+		$this->view->pageSize                = $pageSize;	
+		 
+		$this->view->statuts                 = $modelStatut->getSelectListe(  "Sélectionnez un statut",array("statutid","libelle"), array(),null,null,false );
+        $this->view->types                   = $modelType->getSelectListe(    "Sélectionnez un type de demandes",array("typeid","libelle"), array(),null,null,false );		
+		$this->view->localites               = $modelLocalite->getSelectListe("Sélectionnez une localité", array("localiteid", "libelle") , array() , null , null , false );
+	}
+	
+	
+	public function verifyAction()
+	{
+		$this->view->title                   = "Vérifier la disponibilité";
+		
+		$demandeid                           = $id = intval($this->_getParam("demandeid", $this->_getParam("id" ,$this->_getParam("demandeid", 0))));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}		
+		
+		$model                               = $this->getModel("demande");
+		$modelRegistre                       = $this->getModel("registre");
+		$modelEntreprise                     = $this->getModel("demandentreprise");
+		$modelSource                         = $this->getModel("demandeverificationsource");
+		$modelBlacklist                      = $this->getModel("demandeblacklist");
+		$modelEntrepriseForme                = $this->getModel("entrepriseforme");
+		$modelDomaine                        = $this->getModel("domaine");
+        $modelDemandeur                      = $this->getModel("demandeur");
+		$modelPromoteur                      = $this->getModel("promoteur");
+		$modelIdentite                       = $this->getModel("usageridentite");
+		$modelIdentiteType                   = $this->getModel("usageridentitetype");
+		$demande                             = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+		$sourcesList                        = $modelSource->getSelectListe("Selectionnez une source de vérifciation", array("code", "sourceid") , array() , null , null , false );
+		$verificationSource                 = $this->_getParam("source", "");
+		$verificationStateStore             = new Zend_Session_Namespace("Statestore");
+		if(!$this->_request->isXmlHttpRequest() ) {
+			unset($verificationStateStore->verificationstate);
+		}
+		$demandeVerifications               = $demande->verifications($demandeid);
+		$verificationList                   = array();
+		if(!isset($verificationStateStore->verificationstate[$demandeid])) {
+			$verificationStateStore->verificationstate[$demandeid] = array("completed"=>0,"successed"=>0,"failed"=>0,"sources"=>array(),"totalSources"=>0,"next"=>"");
+		    $sources                        = $modelSource->getList(array(), 0, 0, array("S.sourceid ASC"));
+			$totalSources                   = count($sources);
+			$i                              = 0;
+			if( count(   $sources )) {
+				foreach( $sources as $source ) {
+					     $sourceCode        = $source["code"];
+						 $j                 = $i+ 1;
+						 $nextId            = (isset($sources[$j]))?$sources[$j]["code"] : "";
+					     $verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode] = array("successed"=>0,"failed"=>1,"id"=>$source["sourceid"],"next"=>$nextId);
+				         $verificationStateStore->verificationSource[$source["sourceid"]]               = $source;
+						 $i++;
+				}
+			}			
+			$verificationStateStore->verificationTotalSources = $totalSources;			
+		}		
+		if(($verificationCompleted || $verificationStateStore->verificationstate[$demandeid]["completed"]) && ($verificationStateStore->verificationstate[$demandeid]["successed"] >= 100)) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				$successData                = $verificationStateStore->verificationstate[$demandeid];
+				$successData["success"]     = sprintf("La demande a été vérifiée et a produit une moyenne de succès de %d%% ", $verificationStateStore->verificationstate[$demandeid]["total"]);
+				echo ZendX_JQuery::encodeJson($successData);
+				exit;
+			}
+			$this->setRedirect(sprintf("La demande a été vérifiée et a produit une moyenne de succès de %d%% ", $verificationStateStore->verificationstate[$demandeid]["total"]), "success");
+			$this->redirect("admin/demandes/accept/demandeid/".$demandeid);
+		} elseif(($verificationCompleted || $verificationStateStore->verificationstate[$demandeid]["completed"]) && ($verificationStateStore->verificationstate[$demandeid]["successed"] < 100)) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+
+				echo ZendX_JQuery::encodeJson(array("error" => "La demande a été vérifiée et a indiqué que le nom commercial/dénomination sociale est indisponible"));
+				exit;
+			}
+			$this->setRedirect("La demande a été vérifiée et a indiqué que le nom commercial/dénomination sociale est indisponible", "error");
+			$this->redirect("admin/demandes/infos/demandeid/".$demandeid);
+		}
+        if(!isset($verificationStateStore->verificationstate[$demandeid]["next"]) || empty($verificationStateStore->verificationstate[$demandeid]["next"])) {
+			$nextId                         = (isset($verificationStateStore->verificationstate[$demandeid]["sources"][$verificationSource]["next"]))?$verificationStateStore->verificationstate[$demandeid]["sources"][$verificationSource]["next"] : 0;
+		    $next                           = (isset($verificationStateStore->verificationSource[$nextId]["code"]))?$verificationStateStore->verificationSource[$nextId]["code"] : "";
+		    $verificationStateStore->verificationstate[$demandeid]["next"] = $next;
+		} else {
+			$next                           = $verificationStateStore->verificationstate[$demandeid]["next"];
+		}	
+        if( empty($verificationSource) && !empty($next)) {
+			$verificationSource             = $next;
+		} else if( empty($verificationSource) && empty($next)) {
+			$verificationSource             = "erccm";
+		}
+		
+		$sourceRow                          = (!empty($verificationSource))?$modelSource->findRow($verificationSource,"code", null, false ) : null;
+		if(!$sourceRow ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Impossible d'effectuer le processus de vérification, la source indiquée semble invalide"));
+				exit;
+			}
+			$this->setRedirect("Impossible d'effectuer le processus de vérification, la source indiquée semble invalide", "error");
+			$this->redirect("admin/demandes/infos/id/".$demandeid);
+		}
+        $totalSourcesChecked                = $currentStep  = $verificationStateStore->verificationstate[$demandeid]["totalSources"]+1;	
+        $totalSuccessed                     = $verificationStateStore->verificationstate[$demandeid]["successed"];		
+		if( $this->_request->isPost() ) {
+			$postData                       = $this->_request->getPost();			
+			$completed                      = (isset($postData["completed"]))?intval($postData["completed"])     : 0;
+			$successed                      = (isset($postData["successed"]))?intval($postData["successed"])     : 0;
+			$sourceCode                     = (isset($postData["sourceid"] ))?strip_tags($postData["sourceid"])  : "";
+			$failed                         = 1;			
+			if(!empty($sourceCode)  &&  isset($verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode])) {
+				$sourceId                   = $verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["id"]; 
+				$verificationStateStore->verificationstate[$demandeid]["totalSources"]                          = $verificationStateStore->verificationstate[$demandeid]["totalSources"] + 1;
+				if( isset($verificationStateStore->verificationSource[$sourceId]) && $successed ) {
+					$verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["successed"] = $successed = $verificationStateStore->verificationSource[$sourceId]["poids"];
+				    $verificationStateStore->verificationstate[$demandeid]["successed"]                         = $verificationStateStore->verificationstate[$demandeid]["successed"] + $verificationStateStore->verificationSource[$sourceId]["poids"];
+				    $verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["failed"]    = $failed    = 0;					
+				} else {
+					$verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["failed"]    = $failed    = 1;
+					$verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["successed"] = $successed = 0;					
+				}
+				$verificationStateStore->verificationstate[$demandeid]["next"]                                  = $verificationStateStore->verificationstate[$demandeid]["sources"][$sourceCode]["next"];
+			    $sourceLibelle              = $verificationStateStore->verificationSource[$sourceId]["libelle"];
+				$totalSources               = $verificationStateStore->verificationTotalSources;
+				$verificationSource         = (!empty($verificationStateStore->verificationstate[$demandeid]["next"]))?$verificationStateStore->verificationstate[$demandeid]["next"] : 0;
+				if( $totalSourcesChecked   >= $totalSources ) {
+					$verificationStateStore->verificationstate[$demandeid]["completed"]= 1;
+				}
+				if( $this->_request->isXmlHttpRequest()) {
+					$this->_helper->viewRenderer->setNoRender(true);
+					$this->_helper->layout->disableLayout(true);
+					
+					if( $failed ) {
+						$jsonData           = array("error"  => sprintf("La vérification dans la base de données <b> `%s`</b> a indiqué que le nom commercial recherché est indisponible", $sourceLibelle));
+					} else {
+						$jsonData           = array("success"=> sprintf("La vérification dans la base de données <b> `%s`</b> a indiqué que le nom commercial recherché est disponible", $sourceLibelle));
+					}
+					$jsonData["next"]       = $verificationSource;
+					$jsonData["nextid"]     = (isset($sourcesList[$verificationSource]))?$sourcesList[$verificationSource] : 0;
+					$jsonData["successed"]  = (isset($verificationStateStore->verificationstate[$demandeid]["successed"]))?$verificationStateStore->verificationstate[$demandeid]["successed"] : $successed;
+					$jsonData["completed"]  = $verificationStateStore->verificationstate[$demandeid]["completed"];
+					
+					echo ZendX_JQuery::encodeJson($jsonData);
+				    exit;
+				}
+				if( $failed ) {
+					$this->setRedirect(sprintf("La vérification dans la base de données <b> `%s`</b> a indiqué que le nom commercial recherché est indisponible", $sourceLibelle), "error");
+				} else {
+					$this->setRedirect(sprintf("La vérification dans la base de données <b> `%s`</b> a indiqué que le nom commercial recherché est disponible", $sourceLibelle)  , "success");
+				}
+				$this->redirect("admin/demandes/verify/demandeid/".$demandeid);
+			} else {
+				$errorMessages[]            = "Veuillez renseigner les bons paramètres de validation";
+			}			
+		}		
+		$entrepriseid                       = $demande->entrepriseid;
+		$demandeEntreprise                  = ($entrepriseid)?$modelEntreprise->findRow($entrepriseid,"entrepriseid", null, false ) : null;
+		$similarites                        = array();
+		$totalResults                       = 10;
+		$query                              = ($demandeEntreprise)?$demandeEntreprise->nomcommercial : $demande->objet;
+		$renderingView                      = "verification";
+		$viewTitle                          = sprintf("Vérification de la disponibilité du nom commercial %s", $query);
+		$rejected                           = 0;
+		switch(strtolower($verificationSource)) {
+			case "erccm":
+			default:
+			    $registres                  = $modelRegistre->getList(array("searchQ"=>$query,"types" => array(1, 2)), 1, $totalResults);
+				if(!count($registres)) {
+					$registres              = $modelRegistre->getSimilarList($query,5,1, 10);
+				}
+				if( count(   $registres ) ) {
+					foreach( $registres as $registre ) {
+						     if( $registre["libelle"] == $query) {
+								 $rejected  = 1;
+							 }
+						     $similarites[] = sprintf("%s  : %s", $registre["numero"], $registre["libelle"]);
+					}
+				}
+				$renderingView              = "erccm-verification";
+				$viewTitle                  = sprintf("Vérification du nom commercial dans le Fichier National...", $query);
+			    break;
+			case "sigu":
+			    try {
+					$siguSearchClient       = new  Zend_Http_Client(VIEW_BASE_URI."/ajaxres/apisearch", array('keepalive' => true));
+					$siguSearchClient->setMethod(  Zend_Http_Client::GET);
+					$siguSearchClient->setParameterGet( "repository", "sigu");
+					$siguSearchClient->setParameterPost("repository", "sigu");
+					$siguSearchClient->setParameterGet( "searchq"   , $query);
+					$siguSearchClient->setParameterPost("searchq"   , $query);
+					$siguSearchClient->setParameterGet( "limit"     , $totalResults);
+					$siguSearchClient->setParameterPost("limit"     , $totalResults);
+					$siguSearchClient->setHeaders(array("Accept" => "application/json"));
+					
+					$siguSearchResponse     = $siguSearchClient->request();
+					if( $siguSearchResponse ) {
+						$registres          = json_decode($siguSearchResponse->getBody());
+						if( count(   $registres )) {
+							foreach( $registres as $NumeroRCCM => $registre ) {
+								     $similarites[] = sprintf("%s : %s", $registre["label"], $registre["value"]);
+									 if( $registre["value"] == $query ) {
+										 $rejected  = 1;
+									 }									 
+							}
+						}
+					}
+				} catch( Exception $e ) {
+					$errorMessages[]        = sprintf("Une erreur s'est produite dans la communication avec l'API SIGU : %s", $e->getMessage());
+				}
+                $renderingView              = "sigu-verification";	
+                $viewTitle                  = sprintf("Vérification du nom commercial dans la base de données du SIGU...", $query);				
+			    break;
+			case "reservation":
+			    $entreprises                = $modelEntreprise->getList(array("libelle"=>$query,"reserved"=>1), 1, $totalResults);
+				if( count(   $entreprises ) ) {
+					foreach( $entreprises as $entreprise ) {
+						     $similarites[] = (!empty($entreprise["sigle"]))?sprintf("%s %s (%s)", $entreprise["numrccm"], $entreprise["nomcommercial"], $entreprise["sigle"]) : sprintf("%s %s", $entreprise["numrccm"], $entreprise["nomcommercial"]);
+					         if( $entreprise["nomcommercial"] == $query || $entreprise["sigle"] == $query ) {
+								 $rejected  = 1;
+							 }
+					}
+				}
+				$renderingView              = "reservation-verification";
+				$viewTitle                  = sprintf("Vérification du nom commercial dans la liste des réservations...", $query);
+			    break;
+			case "blacklist":
+			    $blacklisted                = $modelBlacklist->getList(array("searchQ"=>$query), 1, $totalResults);
+				if( count(   $blacklisted)) {
+					foreach( $blacklisted as $item ) {
+						     $similarites[] = $item["libelle"];
+							 if( $item["libelle"] == $query ) {
+								 $rejected  = 1;
+								 echo $item["libelle"];die();
+							 }
+					}
+				}
+				//print_r($blacklisted); die();
+				$renderingView              = "blacklist-verification";
+				$viewTitle                  = sprintf("Vérification du nom commercial dans la liste des Mots non Autorisés", $query);
+			    break;
+			case "apiods":
+			
+			    $renderingView              = "apiods-verification";
+				$viewTitle                  = sprintf("Vérification du nom commercial dans la base de données des Impôts", $query);
+			    break;			
+		} 
+		$this->view->query                  = $query;
+        $this->view->similarites            = $similarites;
+        $this->view->totalresults           = $totalResults;
+        $this->view->currentStep            = $currentStep;
+		$this->view->sources                = $sourcesList;
+        $this->view->title                  = $this->view->viewTitle = $viewTitle;
+		$this->view->next                   = $next;
+		$this->view->source                 = $sourceRow;
+		$this->view->sourceid               = $sourceRow->sourceid;
+		$this->view->sourceCode             = $verificationSource;
+		$this->view->renderingView          = $renderingView;
+        $this->view->successedPercent       = $totalSuccessed;	
+        $this->view->demande                = $demande;
+        $this->view->demandeid              = $demandeid;
+		$this->view->rejected               = $rejected;
+        $this->view->entreprise             = $demandeEntreprise;
+        $this->view->domaineActivite        = ($demandeEntreprise->domaineid)? $modelDomaine->findRow($demandeEntreprise->domaineid,"domaineid", null, false) : null;
+		$this->view->formeJuridique         = ($demandeEntreprise->formid   )? $modelEntrepriseForme->findRow($demandeEntreprise->formid,"formid", null, false) : null;		
+		$this->view->demandeur              = ($demande->demandeurid        )? $modelDemandeur->findRow($demande->demandeurid,"demandeurid" , null, false ) : null;
+		$this->view->promoteur              = ($demande->promoteurid        )? $modelPromoteur->findRow($demande->promoteurid,"promoteurid" , null, false ) : null;
+		$this->view->statut                 = $demande->findParentRow("Table_Demandestatuts");
+		$this->view->localite               = $demande->findParentRow("Table_Localites");
+		if( $this->_request->isXmlHttpRequest()) {
+			$this->_helper->layout->disableLayout(true);			
+			$this->render($renderingView);
+		} else {
+			$this->view->title              = sprintf("Vérification de la disponibilité du nom commercial %s", $query);
+			$this->render("verification");
+		}		
+	}
+
+ 
+		
+	public function createAction()
+	{
+		$this->view->title               = "Créer une demande de vérification ou de réservation";
+		
+		$me                              = Sirah_Fabric::getUser();                 
+		
+		$model                           = $this->getModel("demande");
+        $modelType                       = $this->getModel("demandetype");	
+		$modelStatut                     = $this->getModel("demandestatut");	
+		$modelEntreprise                 = $this->getModel("demandentreprise");
+		$modelEntrepriseForme            = $this->getModel("entrepriseforme");
+		$modelDomaine                    = $this->getModel("domaine");
+        $modelDemandeur                  = $this->getModel("demandeur");
+		$modelPromoteur                  = $this->getModel("promoteur");
+		$modelIdentite                   = $this->getModel("usageridentite");
+		$modelIdentiteType               = $this->getModel("usageridentitetype"); 
+        $modelCountry                    = $this->getModel("country");
+		$modelLocalite                   = $this->getModel("localite");
+		
+		$defaultData                     = $model->getEmptyData();
+		$defaultData["numero"]           = $model->reference();
+		$defaultData["localiteid"]       = intval($this->_getParam("localiteid" , $me->localiteid));
+		$defaultData["demandeurid"]      = $demandeurid    = intval($this->_getParam("demandeurid", 0));
+		$defaultData["promoteurid"]      = $promoteurid    = intval($this->_getParam("promoteurid", 0));
+		$defaultData["entrepriseid"]     = $entrepriseid   = intval($this->_getParam("entrepriseid",0));
+		$defaultData["disponible"]       = 0;
+		$defaultData["expired"]          = 0;
+		$defaultData["date_year"]        = date("Y");
+		$defaultData["date_month"]       = date("m");
+		$defaultData["date_day"]         = date("d");
+		$errorMessages                   = array();
+		
+		$this->view->formes              = $formes         = $modelEntrepriseForme->getSelectListe("Selectionnez une forme juridique", array("formid", "libelle"), array("orders" => array("libelle ASC")), null , null , false );
+		$this->view->domaines            = $domaines       = $modelDomaine->getSelectListe(        "Secteur d'activité"              , array("domaineid" , "libelle") , array() , null , null , false );
+		$this->view->statuts             = $demandeStatuts = $modelStatut->getSelectListe(         "Sélectionnez un statut"          , array("statutid","libelle"), array(),null,null,false );
+        $this->view->types               = $demandeTypes   = $modelType->getSelectListe(           "Sélectionnez un type de demandes", array("typeid","libelle")  , array(),null,null,false );		
+		$this->view->localites           = $localites      = $modelLocalite->getSelectListe(       "Sélectionnez une localité"       , array("localiteid", "libelle") , array() , null , null , false );
+		$this->view->countries           = $countries      = $modelCountry->getSelectListe(        "Selectionnez un pays"            , array("code","libelle"), array("orders"=> array("libelle ASC")), null , null , false );       
+		$this->view->identiteTypes       = $identiteTypes  = $modelIdentiteType->getSelectListe(   "Selectionnez un type de pièce d'identité", array("typeid", "libelle") , array() , null , null , false );
+		
+		$demandeurRow                    = $entrepriseRow  = $promoteurRow  = null;
+		$demandeurRow                    = ( $demandeurid  )?$modelDemandeur->findRow( $demandeurid ,"demandeurid" , null, false ) : null;
+		$promoteurRow                    = ( $promoteurid  )?$modelPromoteur->findRow( $promoteurid ,"promoteurid" , null, false ) : null;
+		$entrepriseRow                   = ( $entrepriseid )?$modelEntreprise->findRow($entrepriseid,"entrepriseid", null, false ) : null;
+		$demandeurIdentityRow            = (isset($demandeurRow->identityid))?$modelIdentite->findRow($demandeurRow->identityid,"identityid", null, false ) : null;
+		
+		if( $this->_request->isPost() ) {
+			$postData                    = $this->_request->getPost();
+			
+			$modelTable                  = $model->getTable();
+			$dbAdapter                   = $modelTable->getAdapter();
+			$tableName                   = $modelTable->info("name");
+			$prefixName                  = $modelTable->info("namePrefix");
+			
+			$defaultData                 = $model->getEmptyData();
+			$formData                    = array_intersect_key($postData ,   $defaultData);
+			$insert_data                 = $demandeData = array_merge($defaultData, $formData);
+			$defaultIdentityData         = ($demandeurIdentityRow)?$demandeurIdentityRow->toArray() : $modelIdentite->getEmptyData();
+			$defaultDemandeurData        = ($demandeurRow        )?$demandeurRow->toArray()         : $modelDemandeur->getEmptyData();
+			$defaultPromoteurData        = ($promoteurRow        )?$promoteurRow->toArray()         : $modelPromoteur->getEmptyData();
+			$defaultEntrepriseData       = ($entrepriseRow       )?$entrepriseRow->toArray()        : $modelEntreprise->getEmptyData();
+			
+			$pieceIdentityData           = array_merge($defaultIdentityData  ,array_intersect_key($postData,$defaultIdentityData ));
+			$demandeurData               = array_merge($defaultDemandeurData ,array_intersect_key($postData,$defaultDemandeurData), $pieceIdentityData);
+			$promoteurData               = array_merge($defaultPromoteurData ,array_intersect_key($postData,$defaultPromoteurData));
+			$entrepriseData              = array_merge($defaultEntrepriseData,array_intersect_key($postData,$defaultEntrepriseData));
+ 			
+			//On crée les filtres qui seront utilisés sur les données du formulaire
+			$stringFilter                = new Zend_Filter();
+			$stringFilter->addFilter(      new Zend_Filter_StringTrim());
+			$stringFilter->addFilter(      new Zend_Filter_StripTags());
+				
+			//On crée les validateurs nécessaires
+			$strNotEmptyValidator        = new Zend_Validate_NotEmpty(array("integer","zero","string","float","null"));
+						
+			$insert_data["numero"]       = $model->reference();
+			$insert_data["demandeurid"]  = (isset( $postData["demandeurid"] ))?intval($postData["demandeurid"])  : $demandeurid;
+			$insert_data["promoteurid"]  = (isset( $postData["promoteurid"] ))?intval($postData["promoteurid"])  : $promoteurid;
+			$insert_data["entrepriseid"] = (isset( $postData["entrepriseid"]))?intval($postData["entrepriseid"]) : $entrepriseid;
+			$insert_data["localiteid"]   = (isset( $postData["localiteid"]  ))?intval($postData["localiteid"])   : 1;
+			$insert_data["registreid"]   = 0;
+			$insert_data["periodid"]     = 0;			
+			$insert_data["libelle"]      = "";			
+			$insert_data["objet"]        = "";
+			$insert_data["typeid"]       = (isset($postData["typeid"])   && isset($demandeTypes[$postData["typeid"]]    ))?intval($postData["typeid"])   : 1;
+			$insert_data["statutid"]     = (isset($postData["statutid"]) && isset($demandeStatuts[$postData["statutid"]]))?intval($postData["statutid"]) : 1;
+			
+            if(!intval($insert_data["typeid"]) || !isset($demandeTypes[$insert_data["typeid"]])) {
+				$errorMessages[]         = "Veuillez sélectionner un type de demande(vérification ou réservation)";
+			}
+            if(!intval($insert_data["statutid"]) || !isset($demandeStatuts[$insert_data["statutid"]])) {
+				$errorMessages[]         = "Le statut de la demande est invalide";
+			}	
+            if(!isset($domaines[$postData["domaineid"]]) || !intval($postData["domaineid"])) {
+				$errorMessages[]         = "Veuillez préciser le secteur d'activité de l'entreprise à créer";
+			}
+            if( !isset($formes[$postData["formid"]]) || !intval($postData["formid"])) {
+				$errorMessages[]         = "Veuillez préciser la forme juridique de l'entreprise à créer";
+			}			
+			if( $strNotEmptyValidator->isValid( $insert_data["date"]) && Zend_Date::isDate( $insert_data["date"],"YYYY-MM-dd")) {
+				$zendDate                = new Zend_Date( $insert_data["date"],"YYYY-MM-dd");
+				if( $zendDate ) {
+					$zendDate->set(date("h:i:s"),Zend_Date::TIMES);
+				}
+				$insert_data["date"]     = $zendDate->get( Zend_Date::TIMESTAMP);
+			} elseif($strNotEmptyValidator->isValid( $insert_data["date"]) && Zend_Date::isDate( $insert_data["date"],"dd/MM/YYYY")) {
+				$zendDate                = new Zend_Date( $insert_data["date"],"dd/MM/YYYY");
+				if( $zendDate ) {
+					$zendDate->set(date("h:i:s"),Zend_Date::TIMES);
+				}
+				$insert_data["date"]     = $zendDate->get( Zend_Date::TIMESTAMP);
+			} else {
+				$insert_data["date"]     = time();
+				$zendDate                = Zend_Date::now();;
+			}
+			if( isset($postData["date_day"]) && isset($postData["date_month"]) && isset($postData["date_year"])) {
+				$dateYear                = (isset($postData["date_year"] ))?$stringFilter->filter($postData["date_year"])  : "0000";
+			    $dateMonth               = (isset($postData["date_month"]))?$stringFilter->filter($postData["date_month"]) : "00";
+			    $dateDay                 = (isset($postData["date_day"]) && ($postData["date_day"] != "00" ))? $stringFilter->filter($postData["date_day"]) : "05";										
+			    $zendDate                = new Zend_Date(array("year"=> $dateYear,"month"=> $dateMonth,"day"=>$dateDay ));
+				if( $zendDate ) {
+					$zendDate->set(date('h:i:s'),Zend_Date::TIMES);
+				}
+				$insert_data["date"]            = (null!= $zendDate) ?$zendDate->get(Zend_Date::TIMESTAMP) : $insert_data["date"];
+			}
+			if( $insert_data["date"] > (time() +86400) || $insert_data["date"] <=0) {
+				$errorMessages[]                = "Veuillez indiquer une date valide";
+			}
+			if(!intval($insert_data["demandeurid"])) {				
+				$errorMessages[]                = "Veuillez sélectionner ou enregistrer le mandataire de cette demande";
+			} 
+			$promoteurData["name"]              = (isset( $postData["name"]      ))? $stringFilter->filter($postData["name"])       : $demandeurData["name"];
+            $promoteurData["lastname"]          = (isset( $postData["lastname"]  ) && !empty($postData["lastname"]  ))? $stringFilter->filter($postData["lastname"])   : $demandeurData["lastname"];			
+			$promoteurData["firstname"]         = (isset( $postData["firstname"] ) && !empty($postData["firstname"] ))? $stringFilter->filter($postData["firstname"])  : $demandeurData["firstname"];
+			$promoteurData["telephone"]         = (isset( $postData["telephone"] ) && !empty($postData["telephone"] ))? $stringFilter->filter($postData["telephone"])  : $demandeurData["telephone"];
+			$promoteurData["profession"]        = (isset( $postData["profession"]) && !empty($postData["profession"]))? $stringFilter->filter($postData["profession"]) : $demandeurData["profession"];
+			$promoteurData["adresse"]           = (isset( $postData["adresse"])    && !empty($postData["adresse"]   ))? $stringFilter->filter($postData["adresse"]) : $demandeurData["adresse"];
+			$promoteurData["identityid"]        = (isset( $postData["identityid"]))? $stringFilter->filter($postData["identityid"]) : 0;
+			if( $strNotEmptyValidator->isValid($promoteurData["telephone"])) {
+				$promoteurData["telephone"]     = $stringFilter->filter($promoteurData["telephone"]);
+			}
+			if( $strNotEmptyValidator->isValid($promoteurData["name"])) {
+				$fullNameArray                  = Sirah_Functions_String::split_name($promoteurData["name"]);
+				if( isset($fullNameArray[0])) {
+					$promoteurData["lastname"]  = $fullNameArray[0];
+				}
+				if( isset($fullNameArray[1])) {
+					$promoteurData["firstname"] = $fullNameArray[1];
+				}
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["firstname"])) {
+				$errorMessages[]                = "Veuillez saisir le(s) prénom(s) du promoteur";
+			} else {
+				$promoteurData["firstname"]     = $stringFilter->filter($promoteurData["firstname"]);
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["lastname"])) {
+				$errorMessages[]                = "Veuillez saisir le nom de famille du promoteur";
+			} else {
+				$promoteurData["lastname"]      = $stringFilter->filter($promoteurData["lastname"]);
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["sexe"]) || (($promoteurData["sexe"] != "M" )  && ($promoteurData["sexe"] != "F" ) ) ) {
+				$errorMessages[]                = "Veuillez sélectionner le sexe du promoteur , doit etre égal à M ou F";
+			} else {
+				$promoteurData["sexe"]          = $stringFilter->filter( $promoteurData["sexe"] );
+			}
+			$promoteurData["name"]              = sprintf("%s %s", $promoteurData["lastname"], $promoteurData["firstname"]);
+			if(($promoteurData["lastname"]==$demandeurData["lastname"] && $promoteurData["firstname"]== $demandeurData["firstname"]) || ($promoteurData["name"]==$demandeurData["name"])) {
+				$promoteurData["identityid"]    = $demandeurData["identityid"];
+			}	
+            if( isset($postData["identite_numero"]) && isset($postData["identitetype"]) && isset($identiteTypes[$postData["identitetype"]])) {
+				$promoteurIdentiteData["numero"]= $identiteNumero = $stringFilter->filter($postData["identite_numero"]);
+			    $promoteurIdentiteData["typeid"]= $identiteTypeId = intval($postData["identitetype"]);
+				$demandeurPromoteurIdentite     = $modelDemandeur->getList(array("identitetypeid"=>$identiteTypeId,"numero"=>$identiteNumero));
+			    if( isset($demandeurPromoteurIdentite[0]["identityid"])) {
+					$promoteurData["identityid"]= $demandeurPromoteurIdentite[0]["identityid"];
+				}
+			}			
+			$promoteurData["numidentite"]       = "";
+			$promoteurData["nationalite"]       = (isset($postData["country"]))? $stringFilter->filter($postData["country"]) : "BF";
+			$promoteurData["creatorid"]         = $me->userid;
+			$promoteurData["creationdate"]      = time();	
+			$promoteurData["updatedate"]        = $promoteurData["updateduserid"] = 0;			
+			if(!intval($promoteurData["identityid"])) {
+				$promoteurIdentiteData                            = array();
+				$promoteurIdentiteData["typeid"]                  = ( isset($postData["identitetype"]) && isset($identiteTypes[$postData["identitetype"]]))?intval($postData["identitetype"]) : 0;
+				$promoteurIdentiteData["numero"]                  = ( isset($postData["identite_numero"]))?$stringFilter->filter($postData["identite_numero"]) : "";
+				$promoteurIdentiteData["organisme_etablissement"] = ( isset($postData["organisme_etablissement"]))?$stringFilter->filter($postData["organisme_etablissement"]) : "";
+			    $promoteurIdentiteData["lieu_etablissement"]      = ( isset($postData["lieu_etablissement"]     ))?$stringFilter->filter($postData["lieu_etablissement"])      : "";
+			    $promoteurIdentiteData["date_etablissement"]      = ( isset($postData["date_etablissement"]     ))?$stringFilter->filter($postData["date_etablissement"])      : "";
+			    $promoteurIdentiteData["creationdate"]            = time();
+				$promoteurIdentiteData["creatorid"]               = $me->userid;
+				$promoteurIdentiteData["updatedate"]              = $promoteurIdentiteData["updateduserid"] = 0;
+				if( $strNotEmptyValidator->isValid($promoteurIdentiteData["date_etablissement"]) && Zend_Date::isDate($promoteurIdentiteData["date_etablissement"],"YYYY-MM-dd")) {
+					$zendDateEtablissement                        = new Zend_Date($promoteurIdentiteData["date_etablissement"],"YYYY-MM-dd");
+
+					$promoteurIdentiteData["date_etablissement"]  = ($zendDateEtablissement)?$zendDateEtablissement->toString("YYYY-MM-dd") : "";
+				} elseif($strNotEmptyValidator->isValid($promoteurIdentiteData["date_etablissement"]) && Zend_Date::isDate($promoteurIdentiteData["date_etablissement"],"dd/MM/YYYY")) {
+					$zendDate                                     = new Zend_Date( $insert_data["date"],"dd/MM/YYYY");
+					$promoteurIdentiteData["date_etablissement"]  = ($zendDateEtablissement)?$zendDateEtablissement->toString("YYYY-MM-dd") : "";
+				} else {
+					$promoteurIdentiteData["date_etablissement"]  = "";
+				}
+			    if( intval($promoteurIdentiteData["typeid"]) && !empty($promoteurIdentiteData["numero"]) && !empty($promoteurIdentiteData["lieu_etablissement"]) && !empty($promoteurIdentiteData["date_etablissement"])) {
+					$dbAdapter->delete(     $prefixName."reservation_demandeurs_identite", array("numero=?"=>$promoteurIdentiteData["numero"],"typeid=?"=>$promoteurIdentiteData["typeid"]));
+					if( $dbAdapter->insert( $prefixName."reservation_demandeurs_identite", $promoteurIdentiteData)) {
+						$promoteurData["identityid"]              = $dbAdapter->lastInsertId();
+						$NumIdentite                              = sprintf("%s n° %s du %s par %s", $identiteTypes[$postData["identite_typeid"]],$postData["identite_numero"], $postData["date_etablissement"],$postData["organisme_etablissement"], $postData["lieu_etablissement"]);
+					    $promoteurData["numidentite"]             = $NumIdentite;
+					}
+				}
+			}			
+			if( empty($errorMessages) ) {
+				if( intval($promoteurid)) {
+					if( isset($promoteurData["promoteurid"])) {
+						unset($promoteurData["promoteurid"]);
+					}
+					$dbAdapter->update($prefixName."reservation_promoteurs", $promoteurData, array("promoteurid=?"=>intval($promoteurid)));
+				} else {
+					if( $dbAdapter->insert($prefixName."reservation_promoteurs", $promoteurData)) {
+						$insert_data["promoteurid"] = $dbAdapter->lastInsertId();
+					} else {
+						$errorMessages[]            = "Veuillez saisir les informations du promoteur";
+					}
+				}				
+			}
+			$entrepriseRow                      = null;
+            $entrepriseData["demandeid"]        = 0;			
+            $entrepriseData["demandeurid"]      = $insert_data["demandeurid"];
+			$entrepriseData["promoteurid"]      = $insert_data["promoteurid"];
+			$entrepriseData["responsable"]      = $promoteurData["name"];
+			$entrepriseData["catid"]            = 0;
+			$entrepriseData["domaineid"]        = (isset($postData["domaineid"]) && isset($domaines[$postData["domaineid"]]))?$postData["domaineid"] : 0;
+			$entrepriseData["formid"]           = (isset($postData["formid"])    && isset($formes[$postData["formid"]]     ))?$postData["formid"]    : 0;
+			$entrepriseData["country"]          = (isset($postData["country"]  ))? $stringFilter->filter($postData["country"])  : "BF";
+			$entrepriseData["city"]             = (isset($postData["city"]     ))? $stringFilter->filter($postData["city"])     : "OUA";
+			$entrepriseData["address"]          = (isset($postData["address"]  ))? $stringFilter->filter($postData["address"])  : $promoteurData["adresse"];
+			$entrepriseData["activite"]         = (isset($postData["activite"] ))? $stringFilter->filter($postData["activite"]) : "";
+			$entrepriseData["numrccm"]          = (isset($postData["numrccm"]  ))? $stringFilter->filter($postData["numrccm"])  : "";
+			$entrepriseData["numcnss"]          = (isset($postData["numcnss"]  ))? $stringFilter->filter($postData["numcnss"])  : "";
+			$entrepriseData["numifu"]           = (isset($postData["numifu"]   ))? $stringFilter->filter($postData["numifu"])   : "";
+			$entrepriseData["telephone"]        = (isset($postData["telephone"]))? $stringFilter->filter($postData["telephone"]): "";
+			$entrepriseData["email"]            = (isset($postData["email"]    ))? $stringFilter->filter($postData["email"])    : "";
+			$entrepriseData["reserved"]         = 0;
+			$entrepriseData["blacklisted"]      = 0;
+			$entrepriseData["datecreation"]     =  $entrepriseData["datefermeture"] = "";
+			$entrepriseData["creationdate"]     =  time();
+			$entrepriseData["creatorid"]        =  $me->userid;
+			$entrepriseData["updateduserid"]    =  $entrepriseData["updatedate"]    = 0;
+			if( isset($postData["nomcommercial"]) && $strNotEmptyValidator->isValid($postData["nomcommercial"])) {
+				$entrepriseData["nomcommercial"]= $insert_data["objet"] = $stringFilter->filter($postData["nomcommercial"]);
+			} else {
+				$errorMessages[]                = "Veuillez saisir le nom commercial de l'entreprise à créer";
+			}
+			if( isset($postData["sigle"]) &&  $strNotEmptyValidator->isValid($postData["sigle"])) {
+				$entrepriseData["sigle"]        = $stringFilter->filter($postData["sigle"]);
+				$insert_data["objet"]           = $insert_data["objet"]."(".$entrepriseData["sigle"].")";
+			}
+            if(!isset($postData["denomination"]) || !$strNotEmptyValidator->isValid($postData["denomination"])) {
+				$entrepriseData["denomination"] = $entrepriseData["nomcommercial"];
+			}
+			if( empty( $errorMessages )) {
+				if( intval($entrepriseid)) {
+					if( isset($entrepriseData["entrepriseid"]) ) {
+						unset($entrepriseData["entrepriseid"]);
+					}
+					$dbAdapter->update($prefixName."reservation_demandes_entreprises", $entrepriseData, array("entrepriseid=?"=>intval($entrepriseid)));
+				} else {
+					if( $dbAdapter->insert($prefixName."reservation_demandes_entreprises", $entrepriseData)) {
+						$insert_data["entrepriseid"]= $dbAdapter->lastInsertId();
+						$entrepriseRow              = $modelEntreprise->findRow($insert_data["entrepriseid"],"entrepriseid", null, false );
+					} else {
+						$errorMessages[]            = "Veuillez saisir les informations de l'entreprise à créer";
+					}
+				}				
+			}
+			$insert_data["periodstart"]         = $insert_data["date"];			
+			$insert_data["periodend"]           = $insert_data["periodstart"] + (3*24*3600);			
+			$insert_data["observations"]        = (isset($postData["observations"]))? $stringFilter->filter($postData["observations"]) : "";
+			$insert_data["expired"]             = 0;
+			$insert_data["disponible"]          = 0;
+			$insert_data["creatorid"]           = $me->userid;
+			$insert_data["creationdate"]        = time();	
+			$insert_data["updatedate"]          = $insert_data["updateduserid"] = 0;	
+            				
+			if( empty($errorMessages)) {
+				$insert_data["libelle"]         = sprintf("%s de l'entreprise %s"  , $demandeTypes[$insert_data["typeid"]], $insert_data["objet"] );
+				$emptyData                      = $model->getEmptyData();
+				$clean_insert_data              = array_intersect_key( $insert_data, $emptyData);
+				if( $dbAdapter->insert($tableName, $clean_insert_data) ) {
+					$demandeid                  = $dbAdapter->lastInsertId();		
+ 					
+					if( $entrepriseRow ) {
+						$entrepriseRow->demandeid      = $demandeid;
+						$entrepriseRow->save();
+					}
+					$verification_data                 = array("verificationid"=>$demandeid,"demandeurid"=>$insert_data["demandeurid"],"reservationid"=>0,"disponible"=>0,"sources"=>"","taux_disponibilite"=>0);
+ 				    $verification_data["creatorid"]    = $me->userid;
+					$verification_data["creationdate"] = time();
+					$verification_data["updatedate"]   = $verification_data["updateduserid"] = 0;
+					$dbAdapter->delete(    $prefixName."reservation_demandes_verifications", array("verificationid=?"=>$demandeid));
+					if( $dbAdapter->insert($prefixName."reservation_demandes_verifications", $verification_data )) {
+						if( $this->_request->isXmlHttpRequest() ) {
+							$this->_helper->viewRenderer->setNoRender(true);
+							$this->_helper->layout->disableLayout(true);
+							echo ZendX_JQuery::encodeJson(array("success" => "La demande de vérification a été enregistrée avec succès"));
+							exit;
+						}
+						$this->setRedirect("La demande de vérification a été enregistrée avec succès", "success" );
+						$this->redirect("demandes/get/id/".$demandeid);
+					}										
+				}  else {
+					if( $this->_request->isXmlHttpRequest() ) {						
+						$this->_helper->viewRenderer->setNoRender(true);
+						$this->_helper->layout->disableLayout(true);
+						echo ZendX_JQuery::encodeJson(array("error" => "L'enregistrement de la demande a echoué"));
+						exit;
+					}
+					$this->setRedirect("L'enregistrement de la demande a echoué", "error");
+					$this->redirect("admin/demandes/list")	;
+				}
+			}			
+			if( count($errorMessages)) {
+				$defaultData  = array_merge( $defaultData, $demandeData, $demandeurData, $promoteurData , $postData );
+				if( $this->_request->isXmlHttpRequest()) {
+					$this->_helper->viewRenderer->setNoRender(true);
+					echo ZendX_JQuery::encodeJson(array("error" => "Des erreurs sont produites ".implode(" , " , $errorMessages )));
+					exit;
+				}
+				foreach( $errorMessages as $message ) {
+					     $this->_helper->Message->addMessage($message) ;
+				}
+			}
+		}
+		$this->view->data                = $defaultData;
+		$this->view->demandeurid         = $demandeurid;
+		$this->view->demandeurName       = ( $demandeurRow )?sprintf("%s %s", $demandeurRow->lastname, $demandeurRow->firstname ) : "";
+		$this->view->promoteurName       = ( $promoteurRow )?sprintf("%s %s", $promoteurRow->lastname, $promoteurRow->firstname ) : "";
+	}
+	
+	
+	public function editAction()
+	{		
+	    $this->view->title               = "Mettre à jour les informations d'une demande";
+		$demandeid                       = $demandeid = intval($this->_getParam("demandeid", $this->_getParam("id" ,$this->_getParam("demandeid", 0))));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}		
+		
+		$model                           = $this->getModel("demande");
+        $modelType                       = $this->getModel("demandetype");
+        $modelStatut                     = $this->getModel("demandestatut");		
+		$modelEntreprise                 = $this->getModel("demandentreprise");
+		$modelEntrepriseForme            = $this->getModel("entrepriseforme");
+		$modelDomaine                    = $this->getModel("domaine");
+        $modelDemandeur                  = $this->getModel("demandeur");
+		$modelPromoteur                  = $this->getModel("promoteur");
+		$modelIdentite                   = $this->getModel("usageridentite");
+		$modelIdentiteType               = $this->getModel("usageridentitetype"); 
+        $modelCountry                    = $this->getModel("country");
+		$modelLocalite                   = $this->getModel("localite");
+		
+		$demande                         = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+		
+		$defaultData                     = $demande->toArray();
+		$defaultData["date_year"]        = date("Y", $defaultData["date"]);
+		$defaultData["date_month"]       = date("m", $defaultData["date"]);
+		$defaultData["date_day"]         = date("d", $defaultData["date"]);
+		$errorMessages                   = array();
+		
+		$this->view->formes              = $formes         = $modelEntrepriseForme->getSelectListe("Selectionnez une forme juridique", array("formid", "libelle"), array("orders" => array("libelle ASC")), null , null , false );
+		$this->view->domaines            = $domaines       = $modelDomaine->getSelectListe(        "Secteur d'activité"              , array("domaineid" , "libelle") , array() , null , null , false );
+		$this->view->statuts             = $demandeStatuts = $modelStatut->getSelectListe(         "Sélectionnez un statut"          , array("statutid","libelle"), array(),null,null,false );
+        $this->view->types               = $demandeTypes   = $modelType->getSelectListe(           "Sélectionnez un type de demandes", array("typeid","libelle")  , array(),null,null,false );		
+		$this->view->localites           = $localites      = $modelLocalite->getSelectListe(       "Sélectionnez une localité"       , array("localiteid", "libelle") , array() , null , null , false );
+		$this->view->countries           = $countries      = $modelCountry->getSelectListe(        "Selectionnez un pays"            , array("code","libelle"), array("orders"=> array("libelle ASC")), null , null , false );       
+		$this->view->identiteTypes       = $identiteTypes  = $modelIdentiteType->getSelectListe(   "Selectionnez un type de pièce d'identité", array("typeid", "libelle") , array() , null , null , false );
+		
+		$demandeurid                     = intval($this->_getParam("demandeurid", $demande->demandeurid));
+		$promoteurid                     = intval($this->_getParam("demandeurid", $demande->promoteurid));
+		$entrepriseid                    = intval($this->_getParam("entrepriseid",$demande->entrepriseid));
+		
+		$demandeurRow                    = ( $demandeurid )?$modelDemandeur->findRow( $demandeurid, "demandeurid", null, false ) : null;
+		$entrepriseRow                   = ( $entrepriseid)?$modelEntreprise->findRow($entrepriseid,"entrepriseid", null, false ) : null;
+		$promoteurRow                    = ( $promoteurid )?$modelPromoteur->findRow( $promoteurid, "promoteurid", null, false ) : null;
+		
+		if( $this->_request->isPost() ) {
+			$postData                    = $this->_request->getPost();
+			
+			$modelTable                  = $model->getTable();
+			$dbAdapter                   = $modelTable->getAdapter();
+			$tableName                   = $modelTable->info("name");
+			$prefixName                  = $modelTable->info("namePrefix");
+			
+			$defaultData                 = $demande->toArray();
+			$formData                    = array_intersect_key($postData ,   $defaultData);
+			$update_data                 = $demandeData = array_merge($defaultData, $formData);
+			$defaultIdentityData         = $modelIdentite->getEmptyData();
+			$defaultDemandeurData        = ($demandeurRow )?$demandeurRow->toArray()  : $modelDemandeur->getEmptyData();
+			$defaultPromoteurData        = ($promoteurRow )?$promoteurRow->toArray()  : $modelPromoteur->getEmptyData();
+			$defaultEntrepriseData       = ($entrepriseRow)?$entrepriseRow->toArray() : $modelEntreprise->getEmptyData();
+			
+			$pieceIdentityData           = array_merge($defaultIdentityData  ,array_intersect_key($postData,$defaultIdentityData ));
+			$demandeurData               = array_merge($defaultDemandeurData ,array_intersect_key($postData,$defaultDemandeurData), $pieceIdentityData);
+			$promoteurData               = array_merge($defaultPromoteurData ,array_intersect_key($postData,$defaultPromoteurData));
+			$entrepriseData              = array_merge($defaultEntrepriseData,array_intersect_key($postData,$defaultEntrepriseData));
+ 			
+			//On crée les filtres qui seront utilisés sur les données du formulaire
+			$stringFilter                = new Zend_Filter();
+			$stringFilter->addFilter(      new Zend_Filter_StringTrim());
+			$stringFilter->addFilter(      new Zend_Filter_StripTags());
+				
+			//On crée les validateurs nécessaires
+			$strNotEmptyValidator        = new Zend_Validate_NotEmpty(array("integer","zero","string","float","null"));
+						
+			$update_data["numero"]       = $model->reference();
+			$update_data["demandeurid"]  = (isset($postData["demandeurid"] ))?intval($postData["demandeurid"])  : $demande->demandeid;
+			$update_data["promoteurid"]  = (isset($postData["promoteurid"] ))?intval($postData["promoteurid"])  : $demande->promoteurid;
+			$update_data["entrepriseid"] = (isset($postData["entrepriseid"]))?intval($postData["entrepriseid"]) : $demande->entrepriseid;
+			$update_data["localiteid"]   = (isset($postData["localiteid"]  ))?intval($postData["localiteid"])   : $demande->localiteid;
+			$update_data["registreid"]   = (isset($postData["registreid"]  ))?intval($postData["registreid"])   : $demande->registreid;
+			$update_data["periodid"]     = (isset($postData["periodid"]    ))?intval($postData["periodid"])     : $demande->periodid;		
+			$update_data["objet"]        = "";
+			$update_data["typeid"]       = (isset($postData["typeid"])   && isset($demandeTypes[$postData["typeid"]]    ))?intval($postData["typeid"])   : $demande->typeid;
+			$update_data["statutid"]     = (isset($postData["statutid"]) && isset($demandeStatuts[$postData["statutid"]]))?intval($postData["statutid"]) : $demande->statutid;
+			
+            if(!isset($demandeTypes[$update_data["typeid"]]) || !intval($update_data["typeid"])) {
+				$errorMessages[]         = "Veuillez sélectionner un type de demande";
+			}
+            if(!isset($demandeStatuts[$update_data["statutid"]]) || !intval($update_data["statutid"])) {
+				$errorMessages[]         = "Veuillez sélectionner un type de demande";
+			}			
+			if( $strNotEmptyValidator->isValid( $postData["date"]) && Zend_Date::isDate( $postData["date"],"YYYY-MM-dd")) {
+				$zendDate                = new Zend_Date( $postData["date"],"YYYY-MM-dd");
+				$update_data["date"]     = ($zendDate)?$zendDate->get( Zend_Date::TIMESTAMP) : $demande->date;
+			} elseif($strNotEmptyValidator->isValid( $update_data["date"]) && Zend_Date::isDate( $update_data["date"],"dd/MM/YYYY")) {
+				$zendDate                = new Zend_Date( $update_data["date"],"dd/MM/YYYY");
+				if( $zendDate ) {
+					$zendDate->set(date("h:i:s"),Zend_Date::TIMES);
+				}
+				$update_data["date"]     = ($zendDate)?$zendDate->get( Zend_Date::TIMESTAMP) : $demande->date;
+			} else {
+				$update_data["date"]     = time();
+				$zendDate                = Zend_Date::now();;
+			}
+			if( isset($postData["date_day"]) && isset($postData["date_month"]) && isset($postData["date_year"])) {
+				$dateYear                       = (isset($postData["date_year"] ))?$stringFilter->filter($postData["date_year"])  : "0000";
+			    $dateMonth                      = (isset($postData["date_month"]))?$stringFilter->filter($postData["date_month"]) : "00";
+			    $dateDay                        = (isset($postData["date_day"]) && ($postData["date_day"] != "00" ))? $stringFilter->filter($postData["date_day"]) : "05";										
+			    $zendDate                       = new Zend_Date(array("year"=> $dateYear,"month"=> $dateMonth,"day"=>$dateDay ));
+				if( $zendDate ) {
+					$zendDate->set(date('h:i:s'),Zend_Date::TIMES);
+				}
+				$update_data["date"]            = (null!= $zendDate) ?$zendDate->get(Zend_Date::TIMESTAMP) : $update_data["date"];
+			}
+			if( $update_data["date"] > (time() +86400) || $update_data["date"] <=0) {
+				$errorMessages[]                = "Veuillez indiquer une date valide";
+			}
+			if(!intval($update_data["demandeurid"])) {				
+				$errorMessages[]                = "Veuillez sélectionner ou enregistrer le mandataire";
+			} else {
+				$demandeurRow                   = ($update_data["demandeurid"])?$modelDemandeur->findRow($update_data["demandeurid"],"demandeurid", null, false ) : null;
+			}
+			$promoteurData["name"]              = (isset( $postData["name"]      ))? $stringFilter->filter($postData["name"])                                          : $promoteurData["name"];
+            $promoteurData["lastname"]          = (isset( $postData["lastname"]  ) && !empty($postData["lastname"]  ))? $stringFilter->filter($postData["lastname"])   : $promoteurData["lastname"];			
+			$promoteurData["firstname"]         = (isset( $postData["firstname"] ) && !empty($postData["firstname"] ))? $stringFilter->filter($postData["firstname"])  : $promoteurData["firstname"];
+			$promoteurData["telephone"]         = (isset( $postData["telephone"] ) && !empty($postData["telephone"] ))? $stringFilter->filter($postData["telephone"])  : $promoteurData["telephone"];
+			$promoteurData["profession"]        = (isset( $postData["profession"]) && !empty($postData["profession"]))? $stringFilter->filter($postData["profession"]) : $promoteurData["profession"];
+			$promoteurData["adresse"]           = (isset( $postData["adresse"])    && !empty($postData["adresse"]   ))? $stringFilter->filter($postData["adresse"])    : $promoteurData["adresse"];
+			$promoteurData["identityid"]        = (isset( $postData["identityid"]))? $stringFilter->filter($postData["identityid"]) : 0;
+			if( $strNotEmptyValidator->isValid($promoteurData["telephone"])) {
+				$promoteurData["telephone"]     = $stringFilter->filter($promoteurData["telephone"]);
+			}
+			if( $strNotEmptyValidator->isValid($promoteurData["name"])) {
+				$fullNameArray                  = Sirah_Functions_String::split_name($promoteurData["name"]);
+				if( isset($fullNameArray[0])) {
+					$promoteurData["lastname"]  = $fullNameArray[0];
+				}
+				if( isset($fullNameArray[1])) {
+					$promoteurData["firstname"] = $fullNameArray[1];
+				}
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["firstname"])) {
+				$errorMessages[]                = "Veuillez saisir le(s) prénom(s) du promoteur";
+			} else {
+				$promoteurData["firstname"]     = $stringFilter->filter($promoteurData["firstname"]);
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["lastname"])) {
+				$errorMessages[]                = "Veuillez saisir le nom de famille du promoteur";
+			} else {
+				$promoteurData["lastname"]      = $stringFilter->filter($promoteurData["lastname"]);
+			}
+			if(!$strNotEmptyValidator->isValid($promoteurData["sexe"]) || (($promoteurData["sexe"] != "M" )  && ($promoteurData["sexe"] != "F" ))) {
+				$errorMessages[]                = "Veuillez sélectionner le sexe du promoteur , doit etre égal à M ou F";
+			} else {
+				$promoteurData["sexe"]          = $stringFilter->filter( $promoteurData["sexe"] );
+			}
+			$promoteurData["name"]              = sprintf("%s %s", $promoteurData["lastname"], $promoteurData["firstname"]);
+			if(($promoteurData["lastname"]==$demandeurData["lastname"] && $promoteurData["firstname"]== $demandeurData["firstname"]) || ($promoteurData["name"]==$demandeurData["name"])) {
+				$promoteurData["identityid"]    = $demandeurData["identityid"];
+			}	
+            if( isset($postData["identite_numero"]) && isset($postData["identitetype"]) && isset($identiteTypes[$postData["identitetype"]])) {
+				$promoteurIdentiteData["numero"]= $identiteNumero = $stringFilter->filter($postData["identite_numero"]);
+			    $promoteurIdentiteData["typeid"]= $identiteTypeId = intval($postData["identitetype"]);
+				$demandeurPromoteurIdentite     = $modelDemandeur->getList(array("identitetypeid"=>$identiteTypeId,"numero"=>$identiteNumero));
+			    if( isset($demandeurPromoteurIdentite[0]["identityid"])) {
+					$promoteurData["identityid"]= $demandeurPromoteurIdentite[0]["identityid"];
+				}
+			}
+			$promoteurData["identityid"]        = (isset($postData["identityid"]))? intval($postData["identityid"])                 : intval($promoteurData["identityid"]);
+			$promoteurData["profession"]        = (isset($postData["profession"]))? $stringFilter->filter($postData["profession"])  : $promoteurData["profession"];
+			$promoteurData["adresse"]           = (isset($postData["adresse"]   ))? $stringFilter->filter($postData["adresse"])     : $promoteurData["adresse"];
+			$promoteurData["nationalite"]       = (isset($postData["country"]   ))? $stringFilter->filter($postData["country"])     : $promoteurData["nationalite"];
+			$promoteurData["updateduserid"]     = $me->userid;
+			$promoteurData["updatedate"]        = time();	
+			
+			if( empty($errorMessages) ) {
+				if(!intval($promoteurData["identityid"])) {
+					$promoteurIdentiteData                            = array();
+					$promoteurIdentiteData["typeid"]                  = ( isset($postData["identite_typeid"]) && isset($identiteTypes[$postData["identite_typeid"]]))?intval($postData["identite_typeid"]) : 0;
+					$promoteurIdentiteData["numero"]                  = ( isset($postData["identite_numero"]        ))?$stringFilter->filter($postData["identite_numero"]) : "";
+					$promoteurIdentiteData["organisme_etablissement"] = ( isset($postData["organisme_etablissement"]))?$stringFilter->filter($postData["organisme_etablissement"]) : "";
+					$promoteurIdentiteData["lieu_etablissement"]      = ( isset($postData["lieu_etablissement"]     ))?$stringFilter->filter($postData["lieu_etablissement"])      : "";
+					$promoteurIdentiteData["date_etablissement"]      = ( isset($postData["date_etablissement"]     ))?$stringFilter->filter($postData["date_etablissement"])      : "";
+					
+					if( $strNotEmptyValidator->isValid($promoteurIdentiteData["date_etablissement"]) && Zend_Date::isDate($promoteurIdentiteData["date_etablissement"],"YYYY-MM-dd")) {
+						$zendDateEtablissement                        = new Zend_Date($promoteurIdentiteData["date_etablissement"],"YYYY-MM-dd");
+
+						$promoteurIdentiteData["date_etablissement"]  = ($zendDateEtablissement)?$zendDateEtablissement->toString("YYYY-MM-dd") : "";
+					} elseif($strNotEmptyValidator->isValid($promoteurIdentiteData["date_etablissement"]) && Zend_Date::isDate($promoteurIdentiteData["date_etablissement"],"dd/MM/YYYY")) {
+						$zendDate                                     = new Zend_Date( $insert_data["date"],"dd/MM/YYYY");
+						$promoteurIdentiteData["date_etablissement"]  = ($zendDateEtablissement)?$zendDateEtablissement->toString("YYYY-MM-dd") : "";
+					} else {
+						$promoteurIdentiteData["date_etablissement"]  = "";
+					}
+					if( intval($promoteurIdentiteData["typeid"]) && !empty($promoteurIdentiteData["numero"]) && !empty($promoteurIdentiteData["lieu_etablissement"]) && !empty($promoteurIdentiteData["date_etablissement"])) {
+						$dbAdapter->delete(     $prefixName."reservation_demandeurs_identite", array("numero=?"=>$promoteurIdentiteData["numero"],"typeid=?"=>$promoteurIdentiteData["typeid"]));
+						if( $dbAdapter->insert( $prefixName."reservation_demandeurs_identite", $promoteurIdentiteData)) {
+							$promoteurData["identityid"]              = $dbAdapter->lastInsertId();
+							$NumIdentite                              = sprintf("%s n° %s du %s par %s", $identiteTypes[$postData["identite_typeid"]],$postData["identite_numero"], $postData["date_etablissement"],$postData["organisme_etablissement"], $postData["lieu_etablissement"]);
+							$promoteurData["numidentite"]             = $NumIdentite;
+						}
+					}
+				}
+				if($promoteurRow ) {
+					if( isset($promoteurData["promoteurid"])) {
+						unset($promoteurData["promoteurid"]);
+					}
+					$promoteurRow->setFromArray($promoteurData);
+					$promoteurRow->save();
+				} else {
+					if( $dbAdapter->insert($prefixName."reservation_promoteurs", $promoteurData)) {
+						$update_data["promoteurid"] = $dbAdapter->lastInsertId();
+					} else {
+						$errorMessages[]            = "Veuillez saisir les informations du promoteur";
+					}
+				}				
+			}
+			$entrepriseRow                      = null;
+            $entrepriseData["demandeid"]        = 0;			
+            $entrepriseData["demandeurid"]      = $update_data["demandeurid"];
+			$entrepriseData["promoteurid"]      = $update_data["promoteurid"];
+			$entrepriseData["responsable"]      = $promoteurData["name"];
+			$entrepriseData["catid"]            = 0;
+			$entrepriseData["domaineid"]        = (isset($postData["domaineid"]) && isset($domaines[$postData["domaineid"]]))?$postData["domaineid"] : $entrepriseData["domaineid"];
+			$entrepriseData["formid"]           = (isset($postData["formid"])    && isset($formes[$postData["formid"]]     ))?$postData["formid"]    : $entrepriseData["formid"];
+			$entrepriseData["country"]          = (isset($postData["country"]  ))? $stringFilter->filter($postData["country"])   : $entrepriseData["country"];
+			$entrepriseData["city"]             = (isset($postData["city"]     ))? $stringFilter->filter($postData["city"])      : $entrepriseData["city"];
+			$entrepriseData["address"]          = (isset($postData["address"]  ))? $stringFilter->filter($postData["address"])   : $promoteurData["adresse"];
+			$entrepriseData["activite"]         = (isset($postData["activite"] ))? $stringFilter->filter($postData["activite"])  : $entrepriseData["activite"];
+			$entrepriseData["numrccm"]          = (isset($postData["numrccm"]  ))? $stringFilter->filter($postData["numrccm"])   : $entrepriseData["numrccm"];
+			$entrepriseData["numcnss"]          = (isset($postData["numcnss"]  ))? $stringFilter->filter($postData["numcnss"])   : $entrepriseData["numcnss"];
+			$entrepriseData["numifu"]           = (isset($postData["numifu"]   ))? $stringFilter->filter($postData["numifu"])    : $entrepriseData["numifu"];
+			$entrepriseData["telephone"]        = (isset($postData["telephone"]))? $stringFilter->filter($postData["telephone"]) : $entrepriseData["telephone"];
+			$entrepriseData["email"]            = (isset($postData["email"]    ))? $stringFilter->filter($postData["email"])     : $entrepriseData["email"];
+			$entrepriseData["updateduserid"]    = $me->userid;
+			$entrepriseData["updatedate"]       = time();
+			if( isset($postData["nomcommercial"]) && $strNotEmptyValidator->isValid($postData["nomcommercial"])) {
+				$entrepriseData["nomcommercial"]= $update_data["objet"] = $stringFilter->filter($postData["nomcommercial"]);
+			} else {
+				$errorMessages[]                = "Veuillez saisir le nom commercial de l'entreprise";
+			}
+			if( isset($postData["sigle"]) &&  $strNotEmptyValidator->isValid($postData["sigle"])) {
+				$entrepriseData["sigle"]        = $stringFilter->filter($postData["sigle"]);
+				$update_data["objet"]           = $update_data["objet"]."(".$entrepriseData["sigle"].")";
+			}
+            if(!isset($postData["denomination"]) || !$strNotEmptyValidator->isValid($postData["denomination"])) {
+				$entrepriseData["denomination"] = $entrepriseData["nomcommercial"];
+			}
+			if( empty( $errorMessages )) {
+				if( $entrepriseRow ) {
+					if( isset($entrepriseData["entrepriseid"])) {
+						unset($entrepriseData["entrepriseid"]);
+					}
+					$entrepriseRow->setFromArray($entrepriseData);
+					$entrepriseRow->save();
+				} else {
+					if( $dbAdapter->insert($prefixName."reservation_demandes_entreprises", $entrepriseData)) {
+						$update_data["entrepriseid"] = $dbAdapter->lastInsertId();
+						$entrepriseRow               = $modelEntreprise->findRow($update_data["entrepriseid"],"entrepriseid", null, false );
+					} else {
+						$errorMessages[]             = "Veuillez saisir les informations de l'entreprise à créer";
+					}
+				}				
+			}
+			$update_data["periodstart"]         = $update_data["date"];			
+			$update_data["periodend"]           = $update_data["periodstart"] + (3*24*3600);			
+			$update_data["observations"]        = (isset($postData["observations"]))? $stringFilter->filter($postData["observations"]) : $demande->observations;
+			$update_data["updateduserid"]       = $me->userid;
+			$update_data["updatedate"]          = time();	
+            				
+			if( empty($errorMessages)) {
+				$update_data["libelle"]         = sprintf("%s de l'entreprise %s", $demandeStatuts[$update_data["statutid"]], $update_data["objet"] );
+				$emptyData                      = $model->getEmptyData();
+				$clean_update_data              = array_intersect_key( $update_data, $emptyData);
+				if( isset($clean_update_data["demandeid"])) {
+					unset($clean_update_data["demandeid"]);
+				}
+				if( $dbAdapter->update($tableName, $clean_update_data, array("demandeid=?"=>$demandeid)) ) { 					
+					if( $entrepriseRow ) {
+						$entrepriseRow->demandeid      = $demandeid;
+						$entrepriseRow->save();
+					}
+					$verification_data                 = array("verificationid"=>$demandeid,"demandeurid"=>$update_data["demandeurid"],"reservationid"=>0,"disponible"=>0,"sources"=>"","taux_disponibilite"=>0);
+ 				    $verification_data["creatorid"]    = $me->userid;
+					$verification_data["creationdate"] = time();
+					$verification_data["updatedate"]   = $verification_data["updateduserid"] = 0;
+					$dbAdapter->delete(    $prefixName."reservation_demandes_verifications", array("verificationid=?"=>$demandeid));
+					if( $dbAdapter->insert($prefixName."reservation_demandes_verifications", $verification_data )) {
+						if( $this->_request->isXmlHttpRequest() ) {
+							$this->_helper->viewRenderer->setNoRender(true);
+							$this->_helper->layout->disableLayout(true);
+							echo ZendX_JQuery::encodeJson(array("success" => "La demande de vérification a été enregistrée avec succès"));
+							exit;
+						}
+						$this->setRedirect("La demande de vérification a été enregistrée avec succès", "success" );
+						$this->redirect("demandes/infos/id/".$demandeid);
+					}										
+				}  else {
+					if( $this->_request->isXmlHttpRequest() ) {						
+						$this->_helper->viewRenderer->setNoRender(true);
+						$this->_helper->layout->disableLayout(true);
+						echo ZendX_JQuery::encodeJson(array("error" => "L'enregistrement de la demande a echoué"));
+						exit;
+					}
+					$this->setRedirect("L'enregistrement de la demande a echoué", "error");
+					$this->redirect("admin/demandes/list")	;
+				}
+			}			
+			if( count($errorMessages)) {
+				$defaultData  = array_merge( $defaultData, $demandeData, $demandeurData, $promoteurData, $entrepriseData , $postData );
+				if( $this->_request->isXmlHttpRequest()) {
+					$this->_helper->viewRenderer->setNoRender(true);
+					echo ZendX_JQuery::encodeJson(array("error" => "Des erreurs sont produites ".implode(" , " , $errorMessages )));
+					exit;
+				}
+				foreach( $errorMessages as $message ) {
+					     $this->_helper->Message->addMessage($message) ;
+				}
+			}
+		}
+		$this->view->data           = $defaultData;
+		$this->view->demandeid      = $demandeid;
+		$this->view->demandeurid    = $demandeurid;
+		$this->view->promoteurid    = $promoteurid;
+		$this->view->entrepriseid   = $entrepriseid;
+		$this->view->demandeurName  = ( $demandeurRow )?sprintf("%s %s", $demandeurRow->lastname, $demandeurRow->firstname ) : "";
+	}    	
+ 		
+		
+	public function infosAction()
+	{
+		$demandeid                 = intval($this->_getParam("demandeid", $this->_getParam("id" ,0)));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}				
+		$model                         = $this->getModel("demande");
+        $modelType                     = $this->getModel("demandetype");	
+		$modelEntreprise               = $this->getModel("demandentreprise");
+		$modelEntrepriseForme          = $this->getModel("entrepriseforme");
+		$modelDomaine                  = $this->getModel("domaine");
+        $modelDemandeur                = $this->getModel("demandeur");
+		$modelPromoteur                = $this->getModel("promoteur");
+		$modelIdentite                 = $this->getModel("usageridentite");
+		$modelIdentiteType             = $this->getModel("usageridentitetype"); 
+		
+		$demande                       = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+ 		
+		$demandeurid                   = $demande->demandeurid;
+		$entrepriseid                  = $demande->entrepriseid;
+		$promoteurid                   = $demande->promoteurid;		
+		$demandeurRow                  = $demande->demandeur();
+		$promoteurRow                  = $demande->promoteur();
+		$entrepriseRow                 = $demande->entreprise();
+		
+        $this->view->demande           = $demande;
+        $this->view->demandeid         = $demandeid;
+        $this->view->demandeurid       = $demandeurid;
+		$this->view->entrepriseid      = $entrepriseid;
+        $this->view->demandeurIdentite = ( $demandeurRow )?$modelDemandeur->identite($demandeurRow->identityid) : null;
+        $this->view->promoteurIdentite = ( $promoteurRow )?$modelPromoteur->identite($promoteurRow->identityid) : null;		
+        $this->view->demandeur         = $demandeurRow;	
+        $this->view->promoteur         = $promoteurRow;	
+        $this->view->entreprise        = $entrepriseRow;
+		$this->view->domaineActivite   = ($entrepriseRow)?$modelDomaine->findRow($entrepriseRow->domaineid,"domaineid", null, false) : null;
+		$this->view->formeJuridique    = ($entrepriseRow)?$modelEntrepriseForme->findRow($entrepriseRow->formid,"formid", null, false) : null;
+		$this->view->statut            = $demande->findParentRow("Table_Demandestatuts");
+		$this->view->localite          = $demande->findParentRow("Table_Localites");
+		$this->view->documents         = $demande->documents();
+		$typeOfDocument                = "default";
+		$demandeState                  = "default";
+		switch(intval($demande->statutid)) {
+			case 0:
+			case 1:
+			default: 
+			    $typeOfDocument        = "default";
+		        $demandeState          = "default";
+			break;
+			case 2:
+			    $typeOfDocument        = "disponibilite";
+		        $demandeState          = "verified";
+			break;
+			case 3:
+			    $typeOfDocument        = "indisponibilite";
+				$demandeState          = "indisponiblite";
+				break;
+			case 4:
+			    $typeOfDocument        = "indisponibilite";
+				$demandeState          = "reserved";
+				break;
+			case 5:
+			    $typeOfDocument        = "rejet";
+				$demandeState          = "rejected";
+				break;
+			case 6:
+			    $typeOfDocument        = "rejet";
+				$demandeState          = "canceled";
+				break;
+		}
+        $this->view->state             = $demandeState;
+		$this->view->documentype       = $typeOfDocument;
+        $this->view->title             = ( $demande )? sprintf("Les informations de la demande %s ", $demande->libelle)	: "Les informations d'une demande";	
+	} 	
+	
+	
+	public function reserveAction()
+	{
+		$me                            = Sirah_Fabric::getUser();
+		$demandeid                     = intval($this->_getParam("demandeid", $this->_getParam("id" ,0)));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}				
+		$model                         = $this->getModel("demande");
+        $modelType                     = $this->getModel("demandetype");	
+		$modelEntreprise               = $this->getModel("demandentreprise");
+        $modelTable                    = $model->getTable();
+		$dbAdapter                     = $modelTable->getAdapter();
+		$prefixName                    = $modelTable->info("namePrefix");
+		$tableName                     = $modelTable->info("name");
+		
+		$demande                       = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+		
+		$entrepriseRow                         = $demande->entreprise();
+		$reservationRow                        = $demande->reservation();
+		
+		if( isset( $reservationRow["reservationid"])) {
+			$reservationData                   = array();
+			$reservationData["demandeurid"]    = $reservationRow["demandeurid"];
+			$reservationData["entrepriseid"]   = $reservationRow["entrepriseid"];
+			$reservationData["code"]           = $reservationRow["code"];
+			$reservationData["nomcommercial"]  = $reservationRow["nomcommercial"];
+			$reservationData["denomination"]   = $reservationRow["denomination"];
+			$reservationData["sigle"]          = $reservationRow["sigle"];
+			$reservationData["updatedate"]     = time();
+			$reservationData["updateduserid"]  = $me->userid;
+			$dbAdapter->update( $prefixName."reservation_demandes_reservations", $reservationData, array("reservationid=?"=>$demandeid));
+		} else {
+			$reservationData                   = array("reservationid"=>$demandeid);
+			$reservationData["demandeurid"]    = $demande->demandeurid;
+			$reservationData["entrepriseid"]   = $demande->entrepriseid;
+			$reservationData["code"]           = $demande->reservationkey();
+			$reservationData["nomcommercial"]  = $entrepriseRow->nomcommercial;
+			$reservationData["sigle"]          = $entrepriseRow->sigle;
+			$reservationData["denomination"]   = $entrepriseRow->denomination;
+			$reservationData["expired"]        = 0;
+			$reservationData["expirationdate"] = ($demande->date)?($demande->date+*3*30*24*3600) : (time()+*3*30*24*3600);
+			$reservationData["creationdate"]   = ($demande->date)? $demande->date                :  time();
+			$reservationData["creatorid"]      = $me->userid;
+			$reservationData["updateduserid"]  = $reservationData["updatedate"] = 0;
+			$dbAdapter->insert( $prefixName."reservation_demandes_reservations", $reservationData);
+		}				
+		$dbAdapter->update($prefixName."reservation_demandes_entreprises", array("reserved"=>1), array("demandeid=?"=>$demandeid) );
+		$demande->statutid                     = 4;
+		$demande->updateduserid                = $me->userid;
+		
+		if( $this->_request->isXmlHttpRequest()) {
+			$this->_helper->viewRenderer->setNoRender(true);
+			$this->_helper->layout->disableLayout(true);
+			echo ZendX_JQuery::encodeJson(array("success" => sprintf("La réservation du nom commercial `%s` a été enregistrée avec succès", $demande->objet)));
+			exit;
+		}
+		$this->setRedirect(sprintf("La réservation du nom commercial `%s` a été enregistrée avec succès", $demande->objet), "success");
+		$this->redirect("admin/demandes/get/demandeid/".$demandeid."/type/reservation");
+ 
+	}
+	
+	
+	public function deleteAction()
+	{
+		$this->_helper->viewRenderer->setNoRender(true);
+		$this->_helper->layout->disableLayout(true);
+		
+		$me                  = Sirah_Fabric::getUser();
+		$model               = $this->getModel("demande");
+		$dbAdapter           = $model->getTable()->getAdapter();
+		$tablePrefix         = $model->getTable()->info("namePrefix");
+		$ids                 = $this->_getParam("demandeids", $this->_getParam("ids",array()));
+ 
+		$errorMessages       = array();
+		if( is_string($ids) ) {
+			$ids             = explode("," , $ids );
+		}
+		$ids                 = (array)$ids;
+		$deleteFilters       =  array();
+		if(!$me->isAllowed("demandes", "deleteall") && !$me->isAdmin()) {
+			$deleteFilters[] = "creatorid='".$me->userid."'";
+		}     		
+		if( count(   $ids)) {
+			foreach( $ids as $id) {
+					 $deleteFilters[] = "demandeid='".$id."'";
+ 					 
+					 if( $dbAdapter->delete($tablePrefix."reservation_demandes"              , $deleteFilters) ) {
+                         $dbAdapter->delete($tablePrefix."reservation_demandes_verifications", array("verificationid=?"=>$id));
+						 $dbAdapter->delete($tablePrefix."reservation_demandes_reservations" , array("reservationid=?" =>$id));
+					 } else {
+						$demandeRow          = $model->findRow($id,"demandeid", null, false);
+                        if( $demandeRow ) {
+							$errorMessages[] = sprintf("La demande de vérification/réservation de <b> %s </b> n'a pas pu être supprimée, certainement pour des droits d'accès", $demandeRow->objet);
+						}													
+					 }					 
+			}
+		} else {
+			                $errorMessages[] = " Les paramètres nécessaires à l'exécution de cette requete, sont invalides ";
+		}	
+		if( count($errorMessages)) {
+			if( $this->_request->isXmlHttpRequest()) {
+				echo ZendX_JQuery::encodeJson(array("error"  => implode("," , $errorMessages)));
+				exit;
+			}
+			foreach( $errorMessages as $errorMessage) {
+				     $this->_helper->Message->addMessage($errorMessage , "error");
+			}
+			$this->redirect("admin/demandes/list");
+		} else {
+			if( $this->_request->isXmlHttpRequest() ) {
+				echo ZendX_JQuery::encodeJson(array("success" => "Les demandes selectionnées ont été supprimées avec succès"));
+				exit;
+			}
+			$this->setRedirect("Les demandes selectionnées ont été supprimées avec succès", "success");
+			$this->redirect("admin/demandes/list");
+		}
+	}
+	
+	
+	public function getAction()
+	{
+		$me                           = Sirah_Fabric::getUser();
+		$demandeid                    = intval(    $this->_getParam("demandeid", $this->_getParam("id" ,0)));
+        $documentType                 = strip_tags($this->_getParam("type"     , "default"));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}				
+		
+		$model                            = $this->getModel("demande");
+        $modelType                        = $this->getModel("demandetype");	
+		$modelEntreprise                  = $this->getModel("demandentreprise");
+		$modelEntrepriseForme             = $this->getModel("entrepriseforme");
+		$modelDomaine                     = $this->getModel("domaine");
+        $modelDemandeur                   = $this->getModel("demandeur");
+		$modelPromoteur                   = $this->getModel("promoteur");
+		$modelIdentite                    = $this->getModel("usageridentite");
+		$modelIdentiteType                = $this->getModel("usageridentitetype");
+        $modelDocument                    = $this->getModel("document"); 		
+		
+		$demande                          = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+        $this->view->identiteTypes        = $identiteTypes  = $modelIdentiteType->getSelectListe(   "Selectionnez un type de pièce d'identité", array("typeid", "libelle") , array() , null , null , false );		
+		$demandeurid                      = $demande->demandeurid;
+		$entrepriseid                     = $demande->entrepriseid;
+		$promoteurid                      = $demande->promoteurid;		
+		$demandeurRow                     = ($demandeurid )?$modelDemandeur->findRow( $demandeurid ,"demandeurid" , null, false ) : null;
+		$entrepriseRow                    = ($entrepriseid)?$modelEntreprise->findRow($entrepriseid,"entrepriseid", null, false ) : null;
+		$promoteurRow                     = ($promoteurid )?$modelPromoteur->findRow( $promoteurid ,"promoteurid" , null, false ) : null;
+		
+		$contentData                      = array("demande"=>$demande,"demandeid"=>$demandeid,"demandeur"=>$demandeurRow,"promoteur"=>$promoteurRow,"entreprise"=>$entrepriseRow,"me"=>$me);
+        $contentData["demandeurIdentite"] = ($demandeurRow            )? $demandeurRow->identite() : null;
+		$contentData["promoteurIdentite"] = ($promoteurRow            )? $promoteurRow->identite() : null;
+		$contentData["domaine"]           = ($entrepriseRow->domaineid)? $modelDomaine->findRow($entrepriseRow->domaineid,"domaineid", null, false) : null;
+		$contentData["forme"]             = ($entrepriseRow->formid   )? $modelEntrepriseForme->findRow($entrepriseRow->formid,"formid", null, false) : null;
+		$contentData["statut"]            = $demande->findParentRow("Table_Demandestatuts");
+		$contentData["identitetypes"]     = $identiteTypes;
+		$documentTpl                      = "fiche";
+		$documentName                     = "DemandeVerification";
+		$documentTitle                    = "Demande de vérification de la disponibilité d'un nom commercial";
+		
+		switch( strtolower($documentType)) {
+			case "default":
+			default:
+			   $documentTpl            = "default";
+			   $documentName           = "DemandeVerification";
+			   $documentTitle          = sprintf("FICHE DE RECHERCHE DE DISPONIBILITE ET DE RESERVATION N° %s", $demande->numero);
+			   break;
+			case "disponibilite":
+			   $documentTpl            = "attestation.disponibilite";
+			   $documentName           = "AttestationDeDisponibilite";
+			   $documentTitle          = sprintf("Attestation de disponibilité du nom commercial %s", $demande->objet);
+			   break;
+			case "reservation":
+			   $documentTpl            = "attestation.reservation";
+			   $documentName           = "AttestationDeReservation";
+			   $documentTitle          = sprintf("Attestation de réservation du nom commercial %s", $demande->objet);
+			   break;
+			case "rejet":
+			   $documentTpl            = "attestation.rejet";
+			   $documentName           = "AttestationDeRejet";
+			   $documentTitle          = sprintf("Attestation de rejet du nom commercial %s", $demande->objet);
+			   break;			
+		}
+		$contenu                       = $this->view->partial("demandes/fiches/{$documentTpl}.phtml", $contentData);
+        $params                        = array("show_header"=>0,"font"=>12,"show_footer"=>0,"document_output"=>"print");
+		if( $this->_request->isPost() ) { 
+		    $this->_helper->layout->disableLayout(true);
+			$postData                  = $this->_request->getPost();
+            						
+			$modelTable                = $model->getTable();
+			$dbAdapter                 = $modelTable->getAdapter();
+			$prefixName                = $modelTable->info("namePrefix");
+			$demandesPathRoot          = APPLICATION_DATA_PATH . DS . "demandes";
+			
+			$stringFilter              = new Zend_Filter();
+			$stringFilter->addFilter(    new Zend_Filter_StringTrim());
+			$stringFilter->addFilter(    new Zend_Filter_StripTags());
+
+            $libelle                   = $documentTitle;
+			$contenu                   = (isset($postData["contenu"]        ))?$postData["contenu"]                                : $contenu;
+			$date                      = (isset($postData["date"]           ))?$stringFilter->filter($postData["date"])            : $demande->date;
+            $documentOutput            = (isset($postData["document_output"]))?$stringFilter->filter($postData["document_output"]) : "download";
+            $documentShowHeader        = (isset($postData["show_header"]    ))?intval($postData["show_header"])	                  : 1;	
+			$demandeFilename           = $demandesPathRoot.DS. sprintf("%s_Numero_%s.pdf", $documentName , preg_replace("/\s+/","_",$demande->numero));
+			
+			if( Zend_Date::isDate( $date, "dd/MM/YYYY")) {
+				$zendDate              = new Zend_Date($date,"dd/MM/YYYY" );
+				$date                  = $zendDate->get(Zend_Date::TIMESTAMP);
+			} else {
+				$date                  = $demande->date;
+			}
+			if( empty( $errorMessages )) {
+				if(!is_dir(  $demandesPathRoot ) ) {
+					@chmod( APPLICATION_DATA_PATH , 0777);
+					@mkdir( APPLICATION_DATA_PATH .DS."demandes");
+					@chmod( APPLICATION_DATA_PATH .DS."demandes", 0777);
+				 }				 
+                 $showHeader           =   $showFooter = ($documentShowHeader == 1)?true:false;	
+                 $pageHeaderMargin     = ( $showHeader )? 50 : 5;				 
+                 $demandePDF           = Sirah_Fabric::getPdf();
+                 $demandePDF->SetCreator("ERCCM");
+			     $demandePDF->SetTitle($documentTitle);
+			     $demandePDF->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+			     $demandePDF->SetMargins(5,$pageHeaderMargin ,5);
+                 $demandePDF->SetPrintHeader($showHeader);
+		         $demandePDF->SetPrintFooter($showHeader);				 
+			     $margins            = $demandePDF->getMargins();
+			     $contenuWidth       = $demandePDF->getPageWidth()-$margins["left"]-$margins["right"];
+				 $demandePDF->SetFont("helvetica", "" , 12);
+				 $demandePDF->AddPage();
+				 $demandePDF->writeHTML( $contenu, true , false , true , false , '' );
+				 $demandePDF->Output(    $demandeFilename, "F");
+				 
+				 if(!file_exists( $demandeFilename )) {
+					 $errorMessages[]  = sprintf("La fiche %s n'a pas pu être produite ", $documentName );
+				 } else {
+					$filename                      = $modelDocument->rename($documentTitle, $me->userid);
+					$documentData                  = array("userid"=>$me->userid,"category"=>15,"filename"=>$filename,"filepath"=>$demandeFilename ,"filextension"=>"pdf","filesize"=>filesize($attestationFilename),
+														   "resourceid"=>50,"resource"=>"demandes","filedescription"=>$demande->libelle,"filemetadata"=>sprintf("%s,%s,%d,demande", $demande->numero,$demande->objet,$demandeid));
+					$documentData["creatoruserid"] = $me->userid;
+					$documentData["creationdate"]  = time();
+					if( $dbAdapter->insert( $prefixName."system_users_documents", $documentData)) {
+						$documentid                = $dbAdapter->lastInsertId();
+						$document                  = $modelDocument->findRow($documentid, "documentid", null, false ); 
+						$demandeDocumentRow        = array("documentid"=>$documentid,"demandeid"=>$demandeid,"demandeurid"=>$demandeurid,"contenu"=>$contenu,"libelle"=>$documentTitle,
+						                                   "document_type"=>strtolower($documentType),"creationdate"=>time(),"creatorid"=>$me->userid,"updatedate"=>0,"updateduserid"=>0);
+						$dbAdapter->insert( $prefixName."reservation_demandes_documents", $demandeDocumentRow);						
+					}
+				 }
+				 if( empty( $errorMessages )) {
+					 if( $documentOutput == "download" ) {
+						 $this->_helper->viewRenderer->setNoRender(true);
+						 $this->_helper->layout->disableLayout(true);
+						 $demandePDF->Output(preg_replace("/\s+/","_",$documentName).".pdf", "D");
+						 exit;
+					 } elseif( $documentOutput == "iframe" ) {
+						 $filePath   = "http://".APPLICATION_HOST. BASE_PATH. "myV1/documents/privatedata/sirahbf2546155aoo/demandes/". sprintf("%s_Numero_%s.pdf", $documentName , preg_replace("/\s+/","_",$demande->numero));
+			             $pageOutput = "<div class=\"pdfFrameWrapper\"> 
+			                                <div style=\"display:block;width:100%;margin:0;padding:0;-ms-zoom:1;-moz-transform:scale(1);-moz-transform-origin:0 0;-o-transform:scale(1);-o-transform-origin:0 0;-webkit-transform:scale(1);-webkit-transform-origin: 0 0;\">
+							                   <object type=\"application/pdf\" width=\"100%\" height=\"100%\" data=\"".$filePath."#zoom=75\"> <embed width=\'800\' height=\"360\" src=\"".$filePath."?zoom=75\"> type=\"application/pdf\" /></object>
+							                </div>
+							            </div>";
+			             echo $pageOutput;
+                         exit;
+					 } elseif($documentOutput == "print") {
+						 $this->_helper->viewRenderer->setNoRender(true);
+						 $this->_helper->layout->disableLayout(true);
+						 
+						 /*$myDataPath          = $me->getDatapath();
+						 $inscriptionFilename = "ficheInscription".sprintf("%06d" , $inscriptionid).".pdf";	
+                         $fileTmpPath         = $myDataPath .$inscriptionFilename;
+						 if( file_exists($fileTmpPath) ) {
+							 @unlink($fileTmpPath);
+						 }
+						 $fichePDF->Output($fileTmpPath, "F");*/
+						 echo ZendX_JQuery::encodeJson(array("success"=>sprintf("La %s  a été produite avec succès",$documentTitle),"tmpDocument"=>$demandeFilename,"demandeid"=>$demandeid,"numero"=>$demande->numero));
+                         exit;
+				     } else {
+						 if( $this->_request->isXmlHttpRequest() ) {
+							 $this->_helper->viewRenderer->setNoRender(true);
+							 echo ZendX_JQuery::encodeJson(array("success"=> sprintf("La  %s  a été produite avec succès",$documentTitle) ));
+							 exit;
+						 }
+						 $this->setRedirect(sprintf("La %s  a été produite avec succès",$documentTitle),"success");
+						 $this->redirect("demandes/infos/demandeid/".$demandeid);
+					 }
+				 }
+			}
+			if( count( $errorMessage )) {
+				if( $this->_request->isXmlHttpRequest() ) {
+					 $this->_helper->viewRenderer->setNoRender(true);
+					 echo ZendX_JQuery::encodeJson(array("error" => implode("" , $errorMessages )));
+					 exit;
+				 }
+				 foreach( $errorMessages as $message) {
+					      $this->_helper->Message->addMessage( $message , "error" ) ;
+				 }
+			}		
+		}				
+		$this->view->demandeid         = $demandeid;
+		$this->view->demande           = $demande;
+		$this->view->data              = $contentData;
+		$this->view->contenu           = $contenu;
+        $this->view->contenu           = $contenu;
+        $this->view->params            = $params;		
+        $this->view->title             = sprintf("GENERER LA %s ", $documentTitle);
+        $this->render("fiche");		
+	}
+	
+	
+	
+	public function acceptAction()
+	{
+		$me                           = Sirah_Fabric::getUser();
+		$demandeid                    = intval(    $this->_getParam("demandeid", $this->_getParam("id" ,0)));
+        $documentType                 = strip_tags($this->_getParam("type"     , "default"));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}				
+		
+		$model                        = $this->getModel("demande");	
+		
+		$demande                      = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+		
+		$demande->statutid            = 2;
+		$demande->updateduserid       = $me->userid;
+		$demande->updatedate          = time();
+		$demande->save();
+		
+		$this->view->demande          = $demande;
+		$this->view->demandeid        = $demandeid;
+		$this->view->title            = "Valider la disponibilité du nom commercial ".$demande->objet;
+		$this->render("acceptation");
+	}
+	
+	public function rejectAction()
+	{
+		$me                           = Sirah_Fabric::getUser();
+		$demandeid                    = intval(    $this->_getParam("demandeid", $this->_getParam("id" ,0)));
+        $documentType                 = strip_tags($this->_getParam("type"     , "default"));		
+		if(!$demandeid) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}				
+		
+		$model                            = $this->getModel("demande");
+        $modelType                        = $this->getModel("demandetype");	
+		$modelEntreprise                  = $this->getModel("demandentreprise");
+		$modelEntrepriseForme             = $this->getModel("entrepriseforme");
+		$modelDomaine                     = $this->getModel("domaine");
+        $modelDemandeur                   = $this->getModel("demandeur");
+		$modelPromoteur                   = $this->getModel("promoteur");
+		$modelIdentite                    = $this->getModel("usageridentite");
+		$modelIdentiteType                = $this->getModel("usageridentitetype");
+        $modelDocument                    = $this->getModel("document"); 		
+		
+		$demande                          = $model->findRow( $demandeid, "demandeid", null, false );		
+		if(!$demande ) {
+			if( $this->_request->isXmlHttpRequest()) {
+				$this->_helper->viewRenderer->setNoRender(true);
+				$this->_helper->layout->disableLayout(true);
+				echo ZendX_JQuery::encodeJson(array("error" => "Les paramètres fournis pour l'exécution de cette requete sont invalides"));
+				exit;
+			}
+			$this->setRedirect("Les paramètres fournis pour l'exécution de cette requete sont invalides" , "error");
+			$this->redirect("admin/demandes/list");
+		}
+		$demande->statutid            = 3;
+		$demande->updateduserid       = $me->userid;
+		$demande->updatedate          = time();
+		$demande->save();
+		
+		$this->view->demande          = $demande;
+		$this->view->demandeid        = $demandeid;
+		$this->view->title            = "Valider la disponibilité du nom commercial ".$demande->objet;
+		$this->render("acceptation");
+	}
+}

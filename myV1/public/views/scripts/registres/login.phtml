@@ -1,0 +1,90 @@
+<?php 
+$front              = Zend_Controller_Front::getInstance();
+$defaultController  = $front->getDefaultControllerName();
+$defaultAction      = $front->getDefaultAction();
+$captcha            = $this->captcha;
+$messages           = $this->messages;
+$data               = $this->data;
+$formSubmit         = $this->url(array("controller"=>"shippers"  ,"action"=>"login", "module"=>"public"),"default");
+$registerLink       = $this->url(array("controller"=>"shippers"  ,"action"=>"account","module"=>"public"),"default");
+$forgotPasswordLink = $this->url(array("controller"=>"recoverpwd","action"=>"init"  ,"module"=>"public"),"default");
+$linkCancel         = $this->cancelUri;
+$basePath           = VIEW_BASE_PATH;
+$register           = $this->register;
+?>
+<?php $this->headStyle()->captureStart() ?>
+ 
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#guestDashboardTab a').click(function(e){e.preventDefault();jQuery(this).tab('show')});
+jQuery('body').keydown(function(e) {if (e.keyCode === 13 ) {jQuery('.btn-primary').trigger('click');}});
+jQuery('.cancelLogin').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';});
+jQuery('.register').click(function(   e){e.preventDefault();document.location.href='".$registerLink."';});  
+jQuery('.recoverPwd').click(function( e){e.preventDefault();document.location.href='".$forgotPasswordLink."';});
+jQuery('.checkCaptcha').click(function(e) { 
+      e.preventDefault(); 
+      var formSelector = jQuery('#loginAccountForm'); 
+      var  code    = jQuery('#captchainput').val();     
+      if(SIRAH.util.isEmpty(code)){
+         SIRAH.error.raise('loginAccountForm','Saisir une valeur valide');
+         return;
+      }
+      formSelector .submit();
+});
+jQuery('.connect').click(function(e) {
+      e.preventDefault();
+      var formSelector = jQuery('#loginAccountForm');     
+      var  username    = jQuery.trim(jQuery('#username').val());
+      var  credential  = jQuery.trim(jQuery('#password').val());      
+      if( SIRAH.util.isEmpty(username)){
+          jQuery('#username').addClass('input-error');
+          SIRAH.error.raise('loginAccountForm','Entrez un nom d\'utilisateur valide');
+          return;
+      }      
+      if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+         jQuery('#password').addClass('input-error');
+         SIRAH.error.raise('loginAccountForm','Entrez un mot de passe valide');
+         return;
+      }
+      formSelector .submit();     
+}); ";  
+$jq->addOnLoad($onLoad);
+?>
+<div class="col-xs-12 col-sm-4 col-md-4 center-margin">
+	<div class="panel panel-default panel-more-shadow">
+		<div class="panel-body">
+			<div class="panel-desc"> Connexion à mon compte expéditeur </div> <hr>
+				 <form id="loginAccountForm" method="post" action="<?php echo $formSubmit; ?>" role="form">
+					<?php if( ( null!= $captcha ) && $this->showcaptcha): ?>
+					<div class="form-group"> <?php echo $this->errormessage(); ?></div>
+					<div class="form-group"><div class="col-sm-12"> <img width="100%"  alt="Entrez le code qui apparait dans l'image" src="<?php  echo $captcha->getImgUrl(). $captcha->getId()  ?>.png" /><br/> </div> </div>
+					<div style="margin-bottom: 25px;width:100%;" class="input-group"><input type="text" name="captcha[input]" id="captchainput" class="form-control" autocomplete="off" placeholder="Entrez le code qui apparait dans l'image" ></div>
+					<input type="hidden" name="captcha[id]"  value="<?php echo $captcha->getId();  ?>"  /><br/>
+					<input type="hidden" name="captchatime"  id="captchatime" value="<?php echo time(); ?>"  /> 
+					<?php endif; ?>
+					<?php if( ( null== $captcha ) || ( false == $this->showcaptcha) ): ?>
+					<div class="form-group"> <?php echo $this->errormessage(); ?></div>
+					  <div style="margin-bottom:25px" class="input-group"><span class="input-group-addon"><i class="glyph-icon icon-user"></i></span><input name="username" type="email" class="form-control" id="username" placeholder="Votre adresse email" value="<?php echo $data["username"];  ?>" autocomplete="off" ></div>
+					  <div style="margin-bottom:25px" class="input-group"><span class="input-group-addon"><i class="glyph-icon icon-lock"></i></span><input type="password" class="form-control" id="password" placeholder="Votre mot de passe" name="password" autocomplete="off" ></div>
+					  
+					<?php endif; ?> 
+					<?php if( ( null!= $captcha ) && $this->showcaptcha): ?>
+					  <button type="submit" class="btn btn-primary btn-lg btn-block checkCaptcha"><i class="glyph-icon icon-check"></i> VERIFIER </button> 
+					 <?php else: ?>
+					<div class="form-group">
+					   <div class="col-md-6"><div class="checkbox m-bot15"><label><input id="rememberme" name="rememberme" type="checkbox" <?php echo (isset($data['rememberme'])) ? intval($data['rememberme']) : 1; ?>> Se souvenir de moi. </label></div></div>
+					   <div class="col-md-6"> <a class="recoverPwd pull-right" href="#" title="Réinitialiser mon mot de passe"> Mot de passe oublié ? </a></div> 
+					   <button type="submit" class="btn btn-primary btn-lg btn-block  connect">   <i class="glyph-icon icon-log-in"></i> CONNEXION </button>
+                       <button type="submit" class="btn btn-danger  btn-lg btn-block register"><i class="glyph-icon icon-user"></i> M'INSCRIRE  </button>					   
+					</div>
+					<?php endif; ?>                
+				   <input type="hidden" name="<?php echo $this->csrfTokenId; ?>"  id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />   
+				   <input type="hidden" name="continue"  id="continue"  value="<?php echo $this->escape( $this->doneUri ); ?>" />
+				 </form>
+		 </div>
+	</div>      
+</div>   

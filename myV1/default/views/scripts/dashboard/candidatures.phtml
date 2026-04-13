@@ -1,0 +1,63 @@
+<?php 
+      $basePath          = VIEW_BASE_PATH;
+      $avatarDefaultFile = $basePath."/images/login_avatar.png";
+      $candidatures      = $this->rows;
+      
+      $output  = "<table id=\"candidaturesListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\" >
+                    <thead> <tr> "  ;
+      $output .= "<th width=\"13%\"> Numéros </th>";
+      $output .= "<th width=\"29%\"> Etudiants </th>";
+      $output .= "<th width=\"12%\"> Formations </th>";
+      $output .= "<th width=\"10%\"> Traitées </th>";
+      $output .= "<th width=\"10%\"> Validées </th>";
+      $output .= "<th width=\"15%\"> Date création </th>";
+      $output .= "</tr></thead>";
+      if(count(  $candidatures ) ) {
+      	foreach( $candidatures as $candidature ) {
+      		$candidatureid    = intval($candidature['candidatureid']);
+      		$userid           = $candidature["userid"];
+      		$linkInfos        = $this->url(array("controller" => "candidatures" , "action" => "infos" , "candidatureid" => $candidatureid  ) , "default");
+      		$nom              = sprintf(" %s %s " , $candidature["lastname"] , $candidature["firstname"] );
+      		$numdossier       = $this->escape($candidature["numdossier"]) ;
+      		$cohorte          = $this->escape($candidature["cohorte"]);
+      		$dateCandidature  = (intval($candidature["datecandidature"])) ? date("d/m/Y H:i:s" , intval($candidature["datecandidature"])) : "00-00-0000";
+      		$avatarFile       = $avatarDefaultFile;
+      		$validated        = ( isset( $candidature["validated"] ) && ( $candidature["validated"] ) ) ? "Oui" : "Non";
+      		$processed        = ( isset( $candidature["processed"] ) && ( $candidature["processed"] ) ) ? "Oui" : "Non";
+      		$bgClass          = "";
+      		if( !empty( $candidature["avatar"] ) ) {
+      			$avatarPath    = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $candidature["avatar"];
+      			if( file_exists( $avatarPath ) ) {
+      				$avatarPathname = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."application"  , $avatarPath );
+      				$avatarFile     = str_replace( DS , "/" , $avatarPathname );
+      			}
+      		}
+      		if ( isset( $candidature["processed"] ) && !$candidature["processed"] )  {
+      			$bgClass= "alert danger";
+      		}
+      		if ( isset( $candidature["validated"] ) && ( $candidature["validated"] ) )  {
+      			$bgClass= "alert success";
+      		} elseif( isset( $candidature["validated"] ) && !$candidature["validated"] && isset( $candidature["processed"] ) && $candidature["processed"]  ) {
+      			$bgClass= "alert warning";
+      		}
+      		$avatarHtml  = "<div class='col-md-12'>
+      		                     <div class='col-md-4'> <img width=\"75px\" src=\"$avatarFile\" /> </div>
+      		                     <div id='name-".$userid."' class='col-md-8'> &nbsp; ".$nom." </div>
+      		                </div> ";
+      		$output .= "<tr class=\"".$bgClass."\" id=\"candidatureRowId-".$candidatureid."\">";
+      		            $output .= "<td> <a href=\"".$linkInfos."\"> ".$numdossier." </a> </td>";
+      		            $output .= "<td> <a href=\"".$linkInfos."\"> ".$avatarHtml." </a> </td>";
+      		            $output .= "<td id=\"cohorteId-".$candidatureid."\"> ".$cohorte." </td>";
+      		            $output .= "<td id=\"processed-".$candidatureid."\"> ".$processed." </td>";
+      		            $output .= "<td id=\"validated-".$candidatureid."\"> ".$validated." </td>";
+      		            $output .= "<td id=\"dateCandidatureId-".$candidatureid."\"> ".$dateCandidature." </td>";
+      		$output .= "</tr>";
+      	}
+      	}  else {
+      	$output .= "<tr>";
+      	           $output .= "<td colspan=\"8\"> Aucune candidature non traitée n'a été retrouvée dans le système. </td>";
+      	$output .= "</tr>";
+      	}
+      	$output .="</table>";
+      	// On affiche le tableau
+      	echo $output;

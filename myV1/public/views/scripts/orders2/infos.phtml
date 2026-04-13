@@ -1,0 +1,102 @@
+<?php   
+    $commande            = $this->commande;
+    $commandeid          = $this->commandeid;
+	$invoice             = $this->invoice;
+	$client              = $this->client;
+    $lignes              = $this->products;
+	$products            = $this->products;
+    $paiements           = $this->paiements;
+    $documents           = $this->documents;
+ 
+    $valeur              = ($commande->valeur_ht       )? number_format($commande->valeur_ht , 0, ", ", " ") : 0;
+	$valeurSubTotal      = ($commande->valeur_sub_total)? number_format($commande->valeur_sub_total, 0, ", ", " ") : 0;
+	$valeurHT            = ($commande->valeur_ht       )? number_format($commande->valeur_ht , 0, ", ", " ") : 0;
+	$valeurTTC           = ($commande->valeur_ttc      )? number_format($commande->valeur_ttc, 0, ", ", " ") : 0; 
+	
+    $statut              = $this->statut;
+    $me                  = Sirah_Fabric::getUser();
+    
+    $basePath            = VIEW_BASE_PATH;
+    $jq                  = $this->jQuery();
+    
+    $linkBack            = $linkCancel = $this->url(array("module"=>"public","controller"=>"orders","action"=>"list"),"default",true);
+    $linkCreate          = $this->url(array("module"=>"public","controller"=>"orders","action"=>"create"), "default",true);
+    $linkGet             = $this->url(array("module"=>"public","controller"=>"orders","action"=>"get","commandeid"=>$commandeid),"default",true);
+    $linkPayment         = $this->url(array("module"=>"public","controller"=>"payments","action"=>"create","commandeid"=>$commandeid),"default",true);     
+	$buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+ 
+	$buttonDownload      = $buttonBar->button("Bon de commande"     , "download");
+	$buttonInvoice       = $buttonBar->button("Facture"             , "file");
+    $buttonCancel        = $buttonBar->button("Revenir sur la liste", "chevron-left");
+        
+	$buttonBar->add( $buttonCancel, "cancelButton");
+
+    $buttonDownload->setAttributes(array("type"=>"submit", "class"=>"btn btn-primary"));
+    $buttonCancel->setAttributes(  array("type"=>"submit"));
+	if(!intval($commande->validated) || !count($paiements)) {
+		$buttonPayment   = $buttonBar->button("Procéder au paiement", "chevron-right");
+		$buttonPayment->setAttributes(array("type"=>"submit", "class"=>"btn btn-success"));
+		$buttonBar->add($buttonPayment, "paymentButton");
+		$buttonPayment->onClick("event.preventDefault();document.location.href='".$linkPayment."';");
+	} elseif(isset($invoice->invoiceid)) {
+		$invoiceid       = $invoice->invoiceid;
+		$linkInvoice     = $this->url(array("module"=>"public","controller"=>"invoices","action"=>"infos","invoiceid"=>$invoiceid,"commandeid"=>$commandeid),"default",true);
+    
+		$buttonInvoice->setAttributes(array("type"=>"submit", "class"=>"btn btn-primary"));
+		$buttonInvoice->onClick("event.preventDefault();document.location.href='".$linkInvoice."';");
+	}
+    $buttonCancel->onClick("event.preventDefault();document.location.href='".$linkBack."';");
+	$commandeDate        = "00/00/0000";
+    if( $commande->date ) {
+    	$zendCommandeDate= new Zend_Date( $commande->date, Zend_Date::TIMESTAMP );
+    	$commandeDate    = ($zendCommandeDate)?$zendCommandeDate->toString("d MMM Y à H:m") : $commandeDate;
+    }
+?>
+<div class="row buttons mrg20B mrg5L"><?php echo $buttonBar; ?></div>
+<div id="orderInfosWrapper" class="row"> 
+    <div  class="col-sm-12 col-md-5">
+        <div class="panel panel-primary">
+            <div class="panel-heading"> <h4 class="panel-title">  Les informations de la commande </h4>  </div>
+			<div class="list-group pad4A">
+				<a class="list-group-item">
+					<div class="row"> 
+					   <div class="col-md-4 col-sm-4"> <b> Commande N°:</b></div> 
+					   <div class="col-md-8 col-sm-8"><?php echo $commande->ref; ?></div>
+				    </div>
+				</a>
+				<a class="list-group-item">
+					<div class="row"> 
+					   <div class="col-md-4 col-sm-4"> <b> Date :</b></div> 
+					   <div class="col-md-8 col-sm-8"><?php echo $commandeDate; ?></div>
+					</div>
+				</a>
+				<a class="list-group-item">
+					<div class="row"> 
+					   <div class="col-md-4 col-sm-4"> <b> Montant HT:</b></div> 
+					   <div class="col-md-8 col-sm-8"><?php printf("%s F CFA",$valeurHT); ?></div>
+					</div>
+				</a>
+				<a class="list-group-item">
+					<div class="row"> 
+					   <div class="col-md-4 col-sm-4"> <b> Montant TTC:</b></div> 
+					   <div class="col-md-8 col-sm-8"><?php printf("%s F CFA",$valeurTTC); ?></div>
+					</div>
+				</a>
+				<?php if( $statut ): ?>
+				<a class="list-group-item">
+					<div class="row"> 
+					   <div class="col-md-4 col-sm-4"> <b> Statut:</b></div> 
+					   <div class="col-md-8 col-sm-8"><?php echo $statut->libelle; ?></div>
+				   </div>
+				 </a>
+				<?php endif; ?>
+			</div>                             
+        </div>    
+    </div>    
+    <div class="col-md-7 col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Les produits et/ou services commandés </h4></div> 
+            <?php echo $this->partial("orders/products.phtml", array("products"=>$products,"lignes"=>$lignes,"commandeid"=>$commandeid,"commande"=>$commande)); ?>
+        </div>         
+    </div>
+</div>

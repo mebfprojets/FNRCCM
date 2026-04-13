@@ -1,0 +1,323 @@
+<?php 
+$users            = $this->users;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$basePath         = ROOT_PATH."/templates/sirah";
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("module" => "admin","controller" => "datalist" , "action"  => "teacherslist" , "parentform"  => $parentform ) , "default");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function( event ) {
+	event.preventDefault();
+    var userid  = parseInt(jQuery(this).attr('href').replace('#userid-' , ''));
+	if( userid && parentformSelector ) {
+		  var userFirstname              = jQuery('#firstname-'+userid).val();
+		  var userLastname               = jQuery('#lastname-'+userid).val();
+		  var userEmail                  = jQuery('#email-'+userid).val();
+		  var userIdentifiant            = jQuery('#username-'+userid).val();
+		  var userPhone1                 = jQuery('#phone1-'+userid).val();
+		  var userPhone2                 = jQuery('#phone2-'+userid).val();
+		
+		  var parentUseridInput          = parentformSelector.find('input[name=\'userid\']');
+		  var parentFirstnameSelector    = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector     = parentformSelector.find('input[name=\'lastname\']');
+		  var parentEmailSelector        = parentformSelector.find('input[name=\'email\']');
+		  var parentIdentifiantSelector  = parentformSelector.find('input[name=\'username\']');
+		  var parentPhoneSelector1       = parentformSelector.find('input[name=\'phone1\']');
+		  var parentPhoneSelector2       = parentformSelector.find('input[name=\'phone2\']');
+		
+		  if( parentUseridInput   ) {
+		      parentUseridInput.val( userid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(userEmail);
+		  }
+		  if( parentIdentifiantSelector ) {
+		      parentIdentifiantSelector.val( userIdentifiant );
+		  }
+		 if(  parentPhoneSelector1 ) {
+		      parentPhoneSelector1.val( userPhone1 );
+		  }
+		  if( parentPhoneSelector2 ) {
+		      parentPhoneSelector2.val( userPhone2 );
+		  }
+	  }	
+		jQuery('#filterListTeachers').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector     = jQuery('#advanced-teachersearchform');
+		var modalBox         = jQuery('.modal').first();
+		var modalBody        = jQuery('.modal-body').first();
+		
+		var pageNum          = formSelector.find('#page').val();
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+		
+		var defaultData      = {};
+		defaultData.page     = 1;
+		defaultData.maxitems = pageMaxitems;
+		defaultData.cohortid = parseInt(formSelector.find('#cohortid').val());
+		defaultData.lastname = formSelector.find('#lastname').val();
+		defaultData.firstname= formSelector.find('#firstname').val();
+		defaultData.email    = formSelector.find('#email').val();
+		defaultData.username = formSelector.find('#username').val();
+		defaultData.sexe     = formSelector.find('#sexe').val();
+		SIRAH.loading.on(modalBody);
+		SIRAH.request.post('advanced-teachersearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      }		
+		                     });
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-teachersearchform');
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();
+
+		var pageNum             = advancedFormSelector.find('#page').val();
+		var pageMaxitems        = advancedFormSelector.find('#maxitems').val();
+		
+		var defaultData         = {};
+		defaultData.firstname   = formSelector.find('#global-filter').val();
+		defaultData.page        = 1;
+		defaultData.maxitems    = pageMaxitems;
+		SIRAH.loading.on(modalBox);
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      }		
+		                     });
+	SIRAH.loading.off(true);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		  }
+		var formSelector     = jQuery('#advanced-teachersearchform');
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData      = {};
+		paginationData.page     = pageNum;
+		paginationData.maxitems = pageMaxitems;
+		paginationData.cohortid = parseInt(jQuery('#cohortid').val());
+		paginationData.lastname = jQuery('#lastname').val();
+		paginationData.firstname= jQuery('#firstname').val();
+		paginationData.email    = jQuery('#email').val();
+		paginationData.username = jQuery('#username').val();
+		paginationData.sexe     = jQuery('#sexe').val();
+		
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();		
+		SIRAH.loading.on(modalBox);
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(true);
+		                      }		
+		                     });
+	  SIRAH.loading.off(true);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>            
+    <div class="row" >
+        <div class="col-md-12"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['firstname']; ?>" id="global-filter" name="global-filter" 
+                            style="width:100%;color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Filtrer la liste par des mots clés sur le prénom">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch" type="button">Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+            </form>
+            &nbsp; &nbsp; 
+        </div>
+      </div>                 
+      <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-teachersearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row"> 
+               <div class="column col-md-2"><label   for="firstname">Prénom : </label></div>                           
+               <div class="column col-md-4">
+                  <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Votre prénom" placeholder="Prénom"  name="firstname" value="<?php echo $filters['firstname']; ?>">
+               </div>
+               <div class="column col-md-2"><label   for="lastname"> Nom : </label></div>
+               <div class="column col-md-4">                              
+                  <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Numéro de téléphone" placeholder="Nom de famille" name="lastname" value="<?php echo $filters['lastname']; ?>">
+               </div>  
+            </div>  
+                                                                          
+            <div class="row"> 
+               <div class="column col-md-2"><label for="username"> Identifiant : </label></div>
+               <div class="column col-md-4">                               
+                   <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Utilisez l'identifiant pour filtrer" placeholder="Identifiant"  name="username" value="<?php echo $filters['username']; ?>">
+               </div>  
+               <div class="column col-md-2"> <label  for="email"> E-mail: </label> </div>
+               <div class="column col-md-4">
+                   <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Filtrez par l'email" placeholder="E-mail" name="email" value="<?php echo $filters['email']; ?>">
+               </div> 
+            </div>                    
+            <div class="row"  >
+                 <div class="column col-md-2"> <label   for="cohortid"> Formation :</label> </div>
+                 <div class="column col-md-4"> <?php echo $this->formSelect("cohortid" , $filters["cohortid"] , array() , $this->cohortes ); ?> </div>
+                 <div class="column col-md-2"> <label   for="sexe"> Sexe :</label> </div>  
+                 <div class="column col-md-4">
+                            <label class="radio-inline"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($filters["sexe"] == "M") echo "checked"; ?>>Homme </label>         
+                            <label class="radio-inline"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($filters["sexe"] == "F") echo "checked"; ?>>Femme </label>
+                 </div>
+             </div>
+             <div class="row" >
+                 <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                 <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                 </div> 
+                 <div class="column col-md-6"></div>
+             </div>                        
+             <div class="row">
+                  <div class="column  col-md-2">
+                       <button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search icon-white"></span > Filtrer </button>  
+                  </div>                      
+                  <div class="column  span10"></div>     
+             </div> 
+             <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+         </form>
+     </div>
+   <?php
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "usersListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("Matricules", array("width" => "20%"))
+                    ->add("Noms"      , array("width" => "45%"))                    
+                    ->add("Emails"    , array("width" => "20%"))
+                    ->add("Téléphones", array("width" => "15%"));             
+             $table->setHeader($header);             
+             if(count($users)){
+             	foreach($users as $user){
+             	   $userid         = intval($user['userid']);
+             	   $locked         = intval($user['locked']);
+             	   $activated      = intval($user['activated']);
+             	   $blocked        = intval($user['blocked']);
+             	   $phone1         = $this->escape($user["phone1"]);
+             	   $userRow        = $table->row(array("id"  => "userRowId-".$userid));
+             	   $userRow->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $user["username"] . "</a>" , array("id" => "userIdentifiant-".$userid))
+             	           ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . sprintf("%s %s" , $user["lastname"] , $user["firstname"]) . "</a>" , array("id" => "userName-".$userid))             		       
+             		       ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $user["email"]    . "</a>" , array("id" => "userEmail-".$userid))
+             		       ->add("<a href=\"#userid-".$userid."\" class=\"selectClick\" > " . $phone1           . "</a>" , array("id" => "phone-".$userid));            	   
+             	   $table->add($userRow);
+             	   echo "<input type='hidden'  name=\"userids[]\"             id=\"userids".$userid."\"  />" ;
+             	   echo "<input type='hidden'  name='lastname-".$userid."'    id='lastname-".$userid."'  value='".$this->escape($user["lastname"])."'  />" ;
+             	   echo "<input type='hidden'  name='firstname-".$userid."'   id='firstname-".$userid."' value='".$this->escape($user["firstname"])."'  />" ;
+             	   echo "<input type='hidden'  name='email-".$userid."'       id='email-".$userid."'     value='".$this->escape($user["email"])."'  />" ;
+             	   echo "<input type='hidden'  name='username-".$userid."'    id='username-".$userid."'  value='".$this->escape($user["username"])."'  />" ;
+             	   echo "<input type='hidden'  name='phone1-".$userid."'      id='phone1-".$userid."'    value='".$this->escape($user["phone1"])."'  />" ;
+             	   echo "<input type='hidden'  name='phone2-".$userid."'      id='phone2-".$userid."'    value='".$this->escape($user["phone2"])."'  />" ;
+             	   echo "<input type='hidden'  name='userid-".$userid."'      id='userid-".$userid."'    value='".$userid."'  />" ;
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add("Aucune ligne valide n'a été retrouvée dans la liste, réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             }    
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if($this->isAjax) {
+              	 echo $this->jQuery();
+              	 echo $this->headStyle();
+              }
+    ?>
+ </div>
+    
+   
+
+       

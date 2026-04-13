@@ -1,0 +1,53 @@
+<?php 
+   $commande    = $this->commande;
+   $commandeid  = $this->commandeid;
+   $lignes      = $this->lignes;
+   $canRemove   = $this->canRemove;
+   $output      = "";
+   $output     .= "<ul id=\"lignesListTable\" class=\"list-group lignesList\">";
+   $totalValeur = 0;
+    if( count(   $lignes )) {
+    	foreach( $lignes as $ligne ) {
+    	  	     $ligneid        = intval($ligne["produitid"]);
+    	  	     $produitLib     = $ligne["libelle"];
+    	  	     $prixUnit       = $ligne["prix_unit"];
+    	  	     $quantite       = $ligne["quantite"];
+				 $uniteMesure    = ucfirst($ligne["uniteCode"]);
+    	  	     $valeur         = $prixUnit * $quantite;    	  	       
+    	  	     $valeurFormat   = ($valeur  ) ? sprintf("%s F CFA", number_format( $valeur  , 0, ",", " ")) : 0;
+    	  	     $prixUnitFormat = ($prixUnit) ? sprintf("%s F / %s" , number_format( $prixUnit, 0, ",", " "), $uniteMesure) : 0;
+    	  	     $totalValeur   += $valeur;
+    	  	     $linkProduit    = $this->url(array("controller" => "produits", "action" => "infos", "produitid" => $ligneid ), "default");
+    	  	     if( $canRemove) {
+    	  	         $output.= " <li id=\"ligneId-".$ligneid."\" class=\"list-group-item\">
+                                    <div class=\"row\">                                
+                                       <div class=\"col-md-5\"> <a title=\"Voir les informations détaillées de ce produit\"href=\"".$linkProduit."\">".sprintf('%d %s de %s', $quantite, $uniteMesure, $produitLib)." </a></div>
+                                       <div class=\"col-md-3\" style=\"text-align:right;\"> ".$prixUnitFormat."</div>
+                                       <div class=\"col-md-4\" style=\"text-align:right;\"> ".$valeurFormat  ."</div>                                       
+                                    </div>
+                                </li> ";
+    	  	     } else {
+    	  	       	 $output.= " <li id=\"ligneId-".$ligneid."\" class=\"list-group-item\">
+    	  	       	              <div class=\"row\">
+    	  	       	                 <div class=\"col-md-5\"> <a title=\"Voir les informations détaillées de ce produit\"href=\"".$linkProduit."\">".sprintf('%d %s de %s', $quantite, $uniteMesure,$produitLib)." </a></div>
+    	  	       	                 <div class=\"col-md-3\" style=\"text-align:right;\"> ".$prixUnitFormat."</div>
+    	  	       	                 <div class=\"col-md-4\" style=\"text-align:right;\"> ".$valeurFormat  ."</div>
+    	  	       	              </div>
+    	  	       	             </li> ";
+    	  	     }
+    	}
+    	  $totalValeurFormat = ( $totalValeur ) ? sprintf("%s F CFA",number_format( $totalValeur, 0, ",", " ")) : 0;
+    	  $output   .= " <li id=\"ligneId-Total\" class=\"list-group-item\">
+    	                     <div class=\"row\">
+    	                        <div class=\"col-md-8\"> <p class=\"list-group-item-text\"> Valeur totale HT : </p> </div>
+    	                        <div class=\"col-md-4 pull-right\"> <p class=\"text-mute\" id=\"totalVal\" style=\"text-align:right;\"> ".$totalValeurFormat."</p> </div>
+    	                     </div>
+    	                 </li> ";
+    }  else {
+    	$output .= " <li class=\"list-group-item\" id=\"ligneId-0\"><p class=\"list-group-item-text\"> Aucune ligne de commande n'a été trouvée. </p></li>";
+    }
+    $output     .= "</ul>";
+    
+    echo  $output ;        
+?>
+             

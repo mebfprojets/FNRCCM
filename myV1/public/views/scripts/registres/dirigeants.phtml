@@ -1,0 +1,36 @@
+<?php 
+    $dirigeants  = $this->dirigeants;   
+    $output      = "<ul class=\"list-group dirigeantsList\">";
+    if( count( $dirigeants ) ){
+     	$output .=" <li id=\"dirigeantId-0\" class=\"list-group-item\">
+						<div class=\"row\">
+							 <div class=\"col-md-8\"> Noms & prénoms </div>					 
+							 <div class=\"col-md-4\"> Profession    </div>
+						</div> 
+				    </li>";
+		$i      = 0;
+     	foreach( $dirigeants as $dirigeant ) {
+     		     $dirigeantid  = $dirigeant["representantid"];
+     		     $nom          = sprintf("%s %s", $dirigeant["nom"] , $dirigeant["prenom"] );
+				 $zendBirthDate= new Zend_Date( $dirigeant["datenaissance"], Zend_Date::DATETIME );
+                 $birthDate    = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+				 $dateLieuNaiss= sprintf("%s à %s" , $birthDate, $dirigeant["lieunaissance"]);
+     		     $adresse      = sprintf("%s %s %s", $dirigeant["adresse"] , $dirigeant["telephone"], $dirigeant["email"] );
+				 $profession   = $dirigeant["profession"];
+     		     $linkInfos    = $this->url(array("controller"=>"dirigeants", "action" => "infos", "dirigeantid"=> $dirigeantid ),"default");
+     		     
+     		     $output      .="<li id=\"dirigeantId-".$i."\" class=\"list-group-item\">
+									<div class=\"row\">
+										<div class=\"col-md-8\"><a title=\"Visualiser les informations du dirigeant\" href=\"".$linkInfos."\">".$nom           ." </a> </div>
+										<div class=\"col-md-4\"><a title=\"Visualiser les informations du dirigeant\" href=\"".$linkInfos."\">".$profession    ." </a> </div>
+									</div>
+								 </li> ";  
+                $i++;							
+     	}
+    } else {
+     	$output.= " <li style=\"text-align:center;\" id=\"nodirigeants\" class=\"list-group-item\"> <div style=\"text-align:center;\" class=\"row \"> Aucun associé n'est rattaché à ce registre </div> </li>";     	
+    }  
+    $output    .= "</ul>";
+    echo  $output ;
+?>
+             

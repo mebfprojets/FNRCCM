@@ -1,0 +1,56 @@
+<?php 
+$representant      = $this->representant;
+$representantid    = $this->representantid;
+$countries         = $this->countries();
+$nationalite       = "";
+$jq                = $this->jQuery();
+$birthDate         = "";
+$birthAddress      = $representant->lieunaissance ;
+if( Zend_Date::isDate($representant->datenaissance,"YYYY-MM-dd HH:mm:ss")) {
+    $zendBirthDate = new Zend_Date( $representant->datenaissance,"YYYY-MM-dd HH:mm:ss");
+    $birthDate     = ($zendBirthDate)?$zendBirthDate->toString("dd MMMM YYYY") : "Pas renseigné";
+}
+if( isset($representant->country) ) {
+	$nationalite   = (isset( $countries[$representant->country] )) ? $countries[$representant->country] : "";
+}
+?>
+<ul  class="list-group">
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Nom & Prénom:</b></div> 
+			<div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s %s",$representant->nom, $representant->prenom ) : ""; ?></div>
+		</div>
+	</a>
+	<a class="list-group-item">
+	    <div class="row"> 
+			<div class="col-md-4"><b>Adresse :</b></div> 
+			<div class="col-md-8"><?php echo ( $representant ) ? $representant->adresse : ""; ?></div>
+	    </div>
+	</a>
+	 
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Profession:</b></div> 
+			<div class="col-md-8"> <?php echo $representant->profession; ?> </div>
+		</div>
+	</a>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Sexe:</b></div> 
+			<div class="col-md-8"> <?php echo ($representant->sexe == "M") ? "Homme": "Femme"; ?> </div>
+		</div>
+	</a>  
+	<!--
+    <a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Nationalité:</b></div> 
+			<div class="col-md-8"> <?php //echo $nationalite; ?> </div>
+		</div>
+	</a> -->	
+</ul>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

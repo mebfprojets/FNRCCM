@@ -1,0 +1,41 @@
+<?php 
+   $member      = $this->member;
+   $statuts     = array(-1 => "Selectionnez un statut")+array(1 => "Facture soldée",0 => "Facture non soldée",2 => "En cours de traitement",3 => "Transmise au member");
+   $factures    = $this->factures;
+   $me          = Sirah_Fabric::getUser();
+   $canRemove   = $me->isAllowed("vfactures", "delete");
+   $linkDelete  = $this->url(array("controller" => "vfactures", "action" => "delete"), "default") ;
+   $linkCreate  = $this->url(array("controller" => "vfactures", "action" => "create" , "memberid" => $member->memberid), "default") ;
+   $output      = " <table id=\"facturesList\" class=\"table table-striped facturesList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:40%\"> Dates    </th>
+                                     <th width=\"width:60%\"> Numéros  </th>
+                              </tr>
+                       </thead>";  
+   if( count(   $factures ) ) {
+   	   foreach( $factures as $facture ) {
+   	   	        $factureid    = $facture["factureid"];
+   	   	        $numero       = $facture["numero"];
+				$type         = ( $facture["type"] == 1 ) ? "Facture Member" : "Facture Assureur";
+   	   	        $dateFacture  = $facture["date_facture"];
+   	   	        $montant      = (APPLY_TVA) ? number_format($facture["montant_ttc"], 0 , ", "," ") : number_format($facture["montant_ht"],0,", "," ");
+   	   	        $rowBg        = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   	        $linkFacture  = $this->url(array("controller" => "vfactures", "action"=> "infos", "factureid" => $factureid ), "default");  	   	        
+   	   	        $output      .="  <tr id=\"factureId-".$factureid ."\" style=\"background-color:".$rowBg."\"> ";
+					  $output.="     <td> <a title=\"Accéder aux informations de cette facture\" href=\"".$linkFacture."\">".$dateFacture." </a> </td>";  	   	              
+					  $output.="     <td> <a title=\"Accéder aux informations de cette facture\" href=\"".$linkFacture."\">".$numero."  </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucune facture n'a été enregistrée au compte de ce member </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;        
+$jq      =  $this->jQuery();
+$onLoad  = "
+jQuery('.addInvoice').click(function( event ){event.preventDefault();document.location.href = '".$linkCreate."';});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

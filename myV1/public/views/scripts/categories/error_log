@@ -1,0 +1,20 @@
+[27-Dec-2022 21:26:38 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml on line 2
+[27-Dec-2022 21:26:38 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml on line 4
+[27-Dec-2022 21:26:42 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml on line 2
+[27-Dec-2022 21:26:42 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml on line 4
+[31-Jan-2023 02:48:42 Africa/Ouagadougou] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml on line 2
+[31-Jan-2023 02:48:42 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/categories/infos.phtml on line 4
+[02-Feb-2023 02:01:45 Africa/Ouagadougou] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml on line 2
+[02-Feb-2023 02:01:45 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/categories/list.phtml on line 4

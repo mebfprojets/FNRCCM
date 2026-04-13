@@ -1,0 +1,158 @@
+<?php
+$parents            = $this->parents; 
+$roles              = $this->roles;
+$token              = $this->token;
+$data               = $this->data;
+$priorities         = array("Selectionnez une priorité","Très Elevée" , "Elevée" , "Normale" , "Basse" , "La plus basse");
+
+$formSubmit         = $this->url(array("controller" =>"useroles" , "action" => "edit") , "default");
+$backList           = $this->url(array("controller" =>"useroles" , "action" => "list") , "default");
+$basePath           = VIEW_BASE_PATH;
+
+$jq                 = $this->jQuery();  
+$onLoad             = " 
+ 
+  jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+  jQuery('#saveButton').click(function(e){
+      e.preventDefault();
+      var rolename  = jQuery('#rolename').val();      
+      if( SIRAH.util.isEmpty(rolename)) {
+          SIRAH.error.raise('editrole-form' , 'Vous devrez entrer une désignation valide');
+        return;
+      } 
+      jQuery('#editrole-form').submit();
+   }); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editrole-form"   role="form">  
+ <div class="container col-md-12" style="text-align:left;">
+  <ul class="list-group">
+   <li class="list-group-item">
+     <div class="row">  
+          <div class="col-md-2"> <label class="label" for="rolename"> <b> Désignation*: </b> </label> </div>
+          <div class="col-md-10">
+               <input id="rolename" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="La désignation du rôle" placeholder="La désignation du rôle"  name="rolename" value="<?php echo $data['rolename']; ?>">
+          </div> 
+     
+     </div>
+  </li>
+  <li class="list-group-item">
+     <div class="row">  
+          <div class="col-md-2"> <label class="label" for="accesslevel"> <b> Priorité*: </b> </label> </div>
+          <div class="col-md-10"> <?php echo $this->formSelect("accesslevel", $data["accesslevel"], array("class" => "form-control") , $priorities); ?></div>      
+     </div>
+  </li>
+  <li class="list-group-item">
+     <div class="row">  
+          <div class="col-md-2"> <label class="label" for="description"> <b> Description*: </b> </label> </div>
+          <div class="col-md-10">
+              <textarea  class="form-control textarea-sm" id="description" rows="3" name="description">                
+                  <?php echo $data['description']; ?>
+              </textarea>
+          </div> 
+     
+     </div>
+  </li>  
+  <li class="list-group-item">
+      <div class="row">
+          <div class="col-md-10"> <label class="label" for="accesslevel"> <b> Hérite des roles suivants (<i> Veuillez selectionner les roles :</i>) :</b> </label> </div>
+          <div class="col-md-2"> &nbsp; </div>
+      </div>
+      <div class="row">
+        <?php 
+            $table  = $this->table(array("id" => "rolesListTable","class"  => array("table sirah-ui-table scrollable")));
+            $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+            $rowHeader  = $table->row();
+            $rowHeader->add("<input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" />")
+                      ->add("ID")
+                      ->add("Désignations")
+                      ->add("Hérite du/des role(s)")
+                      ->add("Priorités");
+            $table->setHeader($rowHeader);
+            
+            if(array_key_exists($this->roleid,$roles)) {
+            	unset($roles[$this->roleid]);
+            }
+            
+            $checkedRoles   = array_intersect_key( $roles, $parents);
+            $uncheckedRoles = array_diff_key( $roles , $parents);
+            
+          if(!empty($checkedRoles)) {
+         	 foreach($checkedRoles as $checkedRoleId => $checkedRoleName) {
+         		$checkedRoleRow  = $table->row(array("id" => "rowRole-".$checkedRoleId));
+         		$accessLevel     = Sirah_User_Acl_Table::getAccesslevel($checkedRoleId);
+         		$parents         = Sirah_User_Acl_Table::getRoleParents($checkedRoleId);
+         		
+         		$checkedRoleRow->add("<input value=\"".$checkedRoleId."\" type=\"checkbox\" name=\"parents[]\" id=\"roleids-".$checkedRoleId."\" class=\"checkbox\" checked=\"checked\" />" , array("id" => "checkboxCell-".$checkedRoleId));
+         		$checkedRoleRow->add("id#".$checkedRoleId);
+         		$checkedRoleRow->add($checkedRoleName);
+         		if(empty($parents )){
+         		   $checkedRoleRow->add("Aucun");
+         		} else {
+         			$checkedRoleRow->add(implode(", " , $parents));
+         		}  
+         		if(!empty($accessLevel) && isset($priorities[$accessLevel[0]])) {
+         			$checkedRoleRow->add($priorities[$accessLevel[0]]);
+         		}  else {
+         			$checkedRoleRow->add($priorities[5]);
+         		}    		
+         		$table->add($checkedRoleRow);         		
+         	}
+         }         
+         if(!empty($uncheckedRoles)) {
+         	foreach($uncheckedRoles as $checkedRoleId => $checkedRoleName) {
+         		$checkedRoleRow  = $table->row(array("id" => "rowRole-".$checkedRoleId));
+         		$accessLevel     = Sirah_User_Acl_Table::getAccesslevel($checkedRoleId);
+         		$parents         = Sirah_User_Acl_Table::getRoleParents($checkedRoleId);
+         		 
+         		$checkedRoleRow->add("<input value=\"".$checkedRoleId."\" type=\"checkbox\" name=\"parents[]\" id=\"roleids-".$checkedRoleId."\" class=\"checkbox\" />" , array("id" => "checkboxCell-".$checkedRoleId));
+         		$checkedRoleRow->add("id#".$checkedRoleId);
+         		$checkedRoleRow->add($checkedRoleName);
+         		if(empty($parents )){
+         			$checkedRoleRow->add("Aucun");
+         		} else {
+         			$checkedRoleRow->add(implode(", " , $parents));
+         		}
+         	    if(!empty($accessLevel) && isset($priorities[$accessLevel[0]])) {
+         			$checkedRoleRow->add($priorities[$accessLevel[0]]);
+         		}  else {
+         			$checkedRoleRow->add($priorities[5]);
+         		}    		
+         		$table->add($checkedRoleRow);
+         	}
+         }         
+                 echo $table;                     
+            ?>
+      
+      </div>
+   </li>    
+ </ul>
+ <?php     
+       $buttonsbar  = $this->Btnbar(array() , $this->jqueryHandler());
+       $buttonSave  = $buttonsbar->button("Sauvegarder","save")->setPriority("primary");
+       $buttonCancel= $buttonsbar->button("Annuler","ban");
+   
+       $buttonSave->setAttributes(  array("type" => "submit"));
+       $buttonCancel->setAttributes(array("type" => "submit"));
+   
+       $buttonsbar->add( $buttonSave  , "saveButton");
+       $buttonsbar->add( $buttonCancel, "cancelCreationButton");
+
+       if(!$this->isAjax) {
+   	       echo $buttonsbar;
+       } else {
+   	       echo $this->jQuery();
+       }
+     ?> 
+ 
+ </div>
+ 
+  <input id="roleid" name="roleid" type="hidden"  value="<?php echo $this->roleid; ?>" />
+</form>     
+
+ 
+  
+ 

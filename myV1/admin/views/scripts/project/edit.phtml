@@ -1,0 +1,135 @@
+<?php 
+$data        = $this->data;
+$params      = $this->params;
+$formSubmit  = $this->url(array("controller" =>"project", "action" => "edit", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller" =>"project", "action" => "list", "module" => "admin"), "default" );
+$basePath    = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  tinymce.init({selector:'textarea',language:'fr_FR',plugins: [
+    'advlist autolink image lists link image charmap print preview hr anchor pagebreak',
+    'searchreplace wordcount visualblocks visualchars code fullscreen',
+    'insertdatetime media nonbreaking save table contextmenu directionality',
+    'template paste textcolor colorpicker textpattern imagetools codesample toc help emoticons hr'
+  ],
+  toolbar1: 'formatselect | undo redo | bold italic underline strikethrough  forecolor backcolor | link | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
+  toolbar2: '| link unlink anchor | image media | forecolor backcolor  | print preview code ',
+  image_advtab: true
+  });
+  jQuery('.datepicker').bsdatepicker({orientation:'auto',format:'yyyy-mm-dd'});
+  jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+  jQuery('#editButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#editProjectForm');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      
+      if(  SIRAH.util.isEmpty( libelle )){
+           jQuery('#libelle').addClass('input-error');
+           jQuery('#libelle-validation-message').html('');
+           SIRAH.error.raise('libelle-validation-message','Entrez une désignation valide du projet');
+         return;
+      } else {
+           jQuery('#libelle').removeClass('input-error');
+           jQuery('#libelle-validation-message').html('');
+      }      
+      jQuery('#libelle').val( libelle );
+      formSelector.submit();
+   }); ";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+$jq->addStyleSheet(     $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+$jq->addJavascriptFile( $basePath ."/js/editors/tinymce2/tinymce.min.js");
+?>
+<form method="post" id="editProjectForm" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+ <div     class="content-box">
+    <h3  class="content-box-header bg-blue-alt"> <i class="glyph-icon icon-building-o"></i> <b> Mise à jour des informations projet </b> </h3>
+    <div class="mrg10T mrg5L pad20A row">
+	<div class="form-group"> 
+       <label class="col-sm-3 control-label"> Intitulé du projet: </label>
+       <div   class="col-sm-7"><input type="text" name="libelle" id="libelle" class="form-control" placeholder="Dénommination" value="<?php echo $data["libelle"]; ?>" /></div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label"> Code du projet: </label>
+       <div   class="col-sm-7"><input type="text" name="code" id="code" class="form-control" placeholder="Le code du projet" value="<?php echo $data["code"]; ?>" /></div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label"> Objectif nombre de RCCM: </label>
+       <div   class="col-sm-7"><input type="text" name="objectif_nb_rccm" id="objectif_nb_rccm" class="form-control" placeholder="Objectif nombre de clients" value="<?php echo $data["objectif_nb_rccm"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label">Objectif global: </label>
+       <div   class="col-sm-7"><input type="text" name="objectif_global" id="objectif_global" class="form-control" placeholder="Objectif global" value="<?php echo $data["objectif_global"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label">Objectif stratégique: </label>
+       <div   class="col-sm-7"><input type="text" name="objectif_strategique" id="objectif_strategique" class="form-control" placeholder="Objectif stratégique" value="<?php echo $data["objectif_strategique"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label"> Responsable: </label>
+       <div   class="col-sm-7"><input type="text" name="responsable" id="responsable" class="form-control" placeholder="Responsable" value="<?php echo $data["responsable"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label"> Période: </label>
+	   <div   class="col-sm-7">
+	      <div class="input-group">
+		      <span class="input-group-addon"><input type="text" name="startime_date" id="startime_date" class="form-control datepicker" value="<?php echo $data["startime_date"]; ?>" /></span>
+              <span class="input-group-addon"><input type="text" name="endtime_date"  id="endtime_date"  class="form-control datepicker" value="<?php echo $data["endtime_date"];  ?>" /></span>
+          </div>
+	   </div>       
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-3 control-label"> En exercice: </label>
+       <div   class="col-sm-7">           
+          <div class="checkbox-inline"><label><input name="current" type="checkbox" id="current" class="custom-checkbox" <?php echo (intval($data["current"]) == 1) ? 'checked' : ''; ?> value="1"> Oui </label></div>
+       </div>
+     </div>    
+     <div class="form-group"> 
+            <div class="col-md-3"> <label class="label" for="introduction"> <b> Introduction: </b> </label> </div> 
+            <div class="col-md-7"> 
+			       <textarea name="introduction" id="introduction" class="textarea-xs introduction"> <?php echo htmlentities( $data["introduction"] , ENT_QUOTES , "UTF-8" ); ?> </textarea>  
+           </div>
+     </div>                     
+    <div class="form-group"> 
+            <div class="col-md-3"> <label class="label" for="contexte"> <b> Contexte: </b> </label> </div> 
+            <div class="col-md-7"> 
+			       <textarea name="context" id="context" class="textarea-xs context"> <?php echo htmlentities( $data["context"] , ENT_QUOTES , "UTF-8" ); ?> </textarea>  
+           </div>
+    </div>   
+    <div class="form-group"> 
+            <div class="col-md-3"> <label class="label" for="presentation_structure"> <b> Présentation de la structure: </b> </label> </div> 
+            <div class="col-md-7"> 
+			       <textarea name="presentation_structure" id="presentation_structure" class="textarea-xs presentation_structure"> <?php echo htmlentities( $data["presentation_structure"] , ENT_QUOTES , "UTF-8" ); ?> </textarea>  
+           </div>
+    </div>
+	</div>
+
+<?php     
+   $buttonsbar   = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $toolCreate  = $buttonsbar->button("Mettre à jour les informations","save")->setPriority("primary");
+   $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add($toolCreate ,"editButton");
+   $buttonsbar->add($toolCancel ,"cancelCreationButton");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }  
+   ?>
+ </div>
+ 
+ <input type="hidden" name="projectid" id="projectid" value="<?php echo intval($data["projectid"]); ?>" />    
+</form>

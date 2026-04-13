@@ -1,0 +1,75 @@
+<?php 
+$parametres    = $this->parametres;
+$produit       = $this->produit;
+$stockInitial  = $this->stockInitial;
+$stockFinal    = $this->stockFinal;
+$valorisations = array("Selectionnez une méthode valorisation","Methode FIFO","Methode LIFO","Methode du CMUP","Methode PUMP");
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+
+ <div class="list-group pad4A">
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Produit stocké ?:</b></div> 
+         <div class="col-sm-8"><?php echo ($produit->stocked ) ? " Oui" : "Non"; ?></div>
+     </div>
+   </a> 
+<?php  if( $produit->stocked ): ?>
+<?php  if( $stockInitial ): ?>
+ <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock Initial:</b></div> 
+         <div class="col-sm-8"><?php echo $stockInitial->stock_qte; ?></div>
+     </div>
+   </a>
+<?php endif; ?>
+<a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock final:</b></div> 
+         <div class="col-sm-8"><?php echo ( $stockFinal ) ? $stockFinal : 0; ?></div>
+     </div>
+</a>
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock d'alerte:</b></div> 
+         <div class="col-sm-8"><?php echo $parametres->stock_qte_alerte; ?></div>
+     </div>
+   </a>
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock de sécurité:</b></div> 
+         <div class="col-sm-8"><?php echo $parametres->stock_qte_securite; ?></div>
+     </div>
+   </a>
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock minimal:</b></div> 
+         <div class="col-sm-8"><?php echo $parametres->stock_qte_minimal; ?></div>
+     </div>
+   </a> 
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock maximal:</b></div> 
+         <div class="col-sm-8"><?php echo $parametres->stock_qte_maximal; ?></div>
+     </div>
+   </a>
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Stock valorisé:</b></div> 
+         <div class="col-sm-8"><?php echo ( $parametres->stock_valorisation ) ?  "Oui" : "Non"; ?></div>
+     </div>
+   </a>
+   <?php if( $parametres->stock_valorisation && isset( $valorisations[$parametres->methode_valorisation]) ): ?> 
+   <a class="list-group-item">
+      <div class="row"> 
+         <div class="col-sm-4"> <b> Méthode valorisation:</b></div> 
+         <div class="col-sm-8"><?php echo $valorisations[$parametres->methode_valorisation]; ?></div>
+     </div>
+   </a> 
+   <?php endif; ?>           
+ <?php endif; ?>
+  
+</div>
+ 

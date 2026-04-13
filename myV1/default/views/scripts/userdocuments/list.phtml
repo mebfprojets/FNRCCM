@@ -1,0 +1,446 @@
+<?php 
+$documents         = $this->documents;
+$categories        = $this->categories;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$types             = array("png" => "IMAGE/PNG","xls" => "MICROSOFT OFFICE EXCEL", "ppt" => "MICROSOFT OFFICE POWERPOINT",
+                           "pdf" => "APPLICATION/PDF", "gif" => "IMAGE/GIF", "bmp"=> "IMAGE/BMP", "doc" => "MICROSOFT OFFICE WORD",
+                           "jpe" => "IMAGE/JPEG", "jpeg" => "IMAGE/JPEG", "jpg" => "IMAGE/JPEG");
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("controller" => "userdocuments" , "action"  => "list")  , "default");
+$linkCreate        = $this->url(array("controller" => "userdocuments" , "action"  => "create"), "default");
+$linkEdit          = $this->url(array("controller" => "userdocuments" , "action"  => "edit")  , "default");
+$linkDelete        = $this->url(array("controller" => "userdocuments" , "action"  => "delete"));
+$linkExport        = $this->url(array("controller" => "userdocuments" , "action"  => "export"));
+
+$jq->addOnload("
+jQuery('.deleteDocument').click(function( event ){
+		 event.preventDefault();
+		 var documentId   = parseInt(jQuery(this).attr('id').replace('deleteDocumentId-', ''));		
+		 var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer le document ? </div>').attr('id','dialogDelete');             		 
+             		       dialogDelete.dialog2({ title : 'Confirmer cette action',
+             		                              autoOpen: false,
+             		                              removeOnClose: true,
+             		                              closeOnEscape: false, 
+                                                  closeOnOverlayClick: true,
+             		                              showCloseHandle:true,
+             		                              initialLoadText: 'Chargement...' });        		
+             		      dialogDelete.dialog2('addButton','Oui',{primary : true , click : 
+             		                            function(){
+             		                                         jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'documentid':documentId },
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete'), data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) { 	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){
+             		             		                                                     jQuery('#documentRowId-'+documentId).remove();
+             		                                                                         jQuery('#dialogDelete').dialog2('close');
+             		                                                                        },1000);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open');
+  });
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."'; });
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});		
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#documentsListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		pageNum++;
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());			 
+		searchData.category = parseInt(formSelector.find('#category').val());
+		searchData.filename  = formSelector.find('#filename').val();
+		searchData.filetype = formSelector.find('#filetype').val();			
+        var maincontent	    = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector      = jQuery('#documentsListSearchForm') ;
+		var searchData        = {};
+		var pageNum           = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page       = pageNum;
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());		 
+		searchData.category   = parseInt(formSelector.find('#category').val());
+		searchData.filename   = formSelector.find('#filename').val();
+		searchData.filetype   = formSelector.find('#filetype').val();				
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#filterListFromFilename').click(function( event ){
+		event.preventDefault();
+		var formSelector      = jQuery('#documentsListSearchForm') ;
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.category   = parseInt(formSelector.find('#category').val());
+		searchData.filename   = formSelector.find('#filename').val();
+		searchData.filetype   = formSelector.find('#filetype').val();	
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector      = jQuery('#documentsListSearchForm') ;
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.category   = parseInt(formSelector.find('#category').val());
+		searchData.filename   = formSelector.find('#filename').val();
+		searchData.filetype   = formSelector.find('#filetype').val();	
+		
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+ 
+jQuery('.searchDocumentByCategorie').click(function(    event ){
+		event.preventDefault();
+		var dropdownCategory    = parseInt(jQuery(this).attr('id').replace('dropdownCategory-',''));
+		var formSelector        = jQuery('#documentsListSearchForm') ;					
+		var searchData          = {};
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.category     = dropdownCategory;
+		searchData.filename     = formSelector.find('#filename').val();
+		searchData.filetype     = formSelector.find('#filetype').val();	
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#documentsListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#documentsListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.searchDocumentByType').click(function(    event ){
+		event.preventDefault();
+		var dropdownTypeId    = jQuery(this).attr('id').replace('dropdownTypeId-','');
+		var formSelector      = jQuery('#documentsListSearchForm') ;					
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.category   = parseInt(formSelector.find('#category').val());
+		searchData.filename   = formSelector.find('#filename').val();
+		searchData.filetype   = dropdownTypeId ;	
+ 
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#documentsListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#documentsListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedDocumentId = function() {
+		var checkedItems = jQuery('#documentsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var documentid   = parseInt(jQuery(this).attr('id').replace('documentids',''));
+             	checkedIds.push( documentid );
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#documentsListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#documentsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#documentsListTable'));
+		       if( checkedItems) {
+		           disableButtons(['editButton','downloadButton','deleteButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#documentsListTable'));
+		      enableButtons(['editButton','downloadButton','deleteButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['editButton','downloadButton','deleteButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['editButton','deleteButton','downloadButton']);
+		      }		      
+		  }
+		}
+   });
+		");
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Enregistrer un nouveau document", "plus");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+$toolExport = $toolbar->tool("Télécharger" , "download");
+
+$toolCreate->setAttributes(array("class" => "active glyph-icon icon-plus"));
+
+$toolbar->add( $toolCreate, "createButton");
+//$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolDelete->disable();
+$toolDelete->onClick(" event.preventDefault();
+             		                  var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+             		                  var checkedDocuments = getCheckedDocumentId();  		        
+             		                  if(isDisabled || SIRAH.util.isEmpty(checkedDocuments)) {
+             		                      SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+             		                      return;
+             		                   } 
+             		       var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les documents selectionnés ? </div>').attr('id','dialogDelete');             		 
+             		       dialogDelete.dialog2({
+             		                              title : 'Confirmer cette action',
+             		                              autoOpen: false,
+             		                              removeOnClose: true,
+             		                              closeOnEscape: false, 
+                                                  closeOnOverlayClick: true,
+             		                              showCloseHandle:true,
+             		                              initialLoadText: 'Chargement...'            		                       
+             		                           });        		
+             		      dialogDelete.dialog2('addButton','Oui',{primary : true , click : 
+             		                            function(){
+             		                                         jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'documentids[]' : checkedDocuments},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedDocuments = getCheckedDocumentId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                setTimeout(function(){
+             		             		                              jQuery.each( checkedDocuments , function(key , documentid ) {
+             		                                                          jQuery('#documentRowId-'+documentid).remove();
+             		                                                    });
+             		                                                   jQuery('#dialogDelete').dialog2('close');
+             		                                                  },2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open');  ");  
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+ .form-row,.row {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;margin-right:-25px;margin-left: -25px;}
+ p{margin-bottom:10px !important;}
+ td .list-group-item {padding:10px 0px !important;}
+ td .row{margin-left:0 !important;margin-right:0 !important;}
+ .col-md-2,.col-sm-2,.col-sm-10,.col-md-10{padding-right:5px !important;padding-left:5px !important;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<div    id="documentsListListWrapper"  class="row">
+  <form id="documentsListSearchForm"   method="post" role="form">
+    <div  class="col-sm-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">                           
+               <div class="float-left col-md-3 pad0A">
+                  <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo (isset($categories[$filters["category"]])) ? $categories[$filters["category"]] : "Selectionnez une catégorie"; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $categories ) ) {
+                               	   foreach( $categories as $category => $categorieFilename ) {
+                               	   	        $activeClass = ( $filters["category"] == $category ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"dropdownCategory-".$category."\" class=\"searchDocumentByCategorie dropdownCategory-".$category."\" href=\"#\"> ".$categorieFilename." </a></li>";
+                               	   }
+                               }
+                          ?>
+                     </ul>
+                  </div>
+               </div>
+               <div class="float-left col-md-4 pad0A">
+                  <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo (isset($types[$filters["filetype"]])) ? $types[$filters["filetype"]] : "Selectionnez un type de documents"; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $types ) ) {
+                               	   foreach( $types as $filetype => $typeFilename ) {
+                               	   	        $activeClass = ( $filters["filetype"] == $filetype ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"dropdownTypeId-".$filetype."\" class=\"searchDocumentByType dropdownTypeId-".$filetype."\" href=\"#\"> ".$typeFilename." </a></li>";
+                               	   }
+                               }
+                          ?>
+                     </ul>
+                  </div>
+               </div>             
+               <div class="float-right col-md-5 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters["filename"]; ?>" name="filename" id="filename" placeholder="Désignation du document">
+                        <div class="input-group-btn">
+                            <button id="filterListFromFilename" type="button" class="btn btn-default" tabindex="-1"><i class="glyph-icon icon-search"></i> Recherche</button>
+                            <button  type="button" class="btn alert-danger resetPage" tabindex="-1"><i class="glyph-icon icon-remove"></i> Effacer  </button>
+                        </div>
+                    </div>
+               </div>
+           </div>                                                                  
+           <div class="mail-toolbar clearfix"> 
+              <div class="float-right " style="text-align:right;"> <?php  echo $pagination->render(); ?> </div>
+           </div>
+           <table id="documentsListTable"  class="table table-hover table-bordered text-center">
+                <?php
+				      $output  = "";
+					  $entete  = "";
+                      $entete .= "<thead><tr>"  ;
+                                  $output .= "<th width=\"1%\"> <input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" /> </th>";
+                                  $output .= "<th width=\"19%\"> Dossiers       </th>";
+                                  $output .= "<th width=\"30%\"> Titres         </th>";
+                                  $output .= "<th width=\"10%\"> Tailles        </th>";
+                                  $output .= "<th width=\"25%\"> Enregistré le  </th>";
+                                  $output .= "<th width=\"15%\"> Action         </th>";
+                      $entete .= "</tr></thead>";
+					  
+					  echo $entete;
+                ?>				
+                <tbody>
+                       <?php 
+                              
+							  $lastCategorie = null;  
+                              $modelDocument = new Model_Document();
+                              if( count(   $documents ) ) {
+                              	  foreach( $documents as $document ) {
+                              	           $documentid   = intval($document['documentid']);
+             	                           $linkInfos    = $this->url(array("controller" => "userdocuments", "action" => "infos" , "documentid" => $documentid  ), "default");
+             	                           $linkDelete   = $this->url(array("controller" => "userdocuments", "action" => "delete", "documentid" => $documentid  ), "default");
+             	                           $categorie    = ( $lastCategorie == $document["categorie"] ) ? "" : $document["categorie"];
+             	                           $filextension = strtolower($document["filextension"]);
+    	  	                               $filesize     = ( $document["filesize"] < 1024 ) ? $document["filesize"] * 1024 : $document["filesize"] ;
+    	  	                               $filename     = $document["filename"];
+    	  	                               $auteur       = sprintf("%s %s", $document["lastname"], $document["firstname"] );
+             	                           $libelle      = $modelDocument->filterIndex(   $filename, $document["userid"] );
+             	                           $icone        = $modelDocument->getFileIcon(   $filextension );
+             	                           $sizeKo       = Sirah_Functions::toByteString( $filesize );
+             	                           $dateCreation = date("d/m/Y", $document["creationdate"]);
+             	                           $enregistreVal= sprintf("Enregistré le %s  par %s", $dateCreation , $auteur );
+             	                           $documentClass= "";
+             	                           if( in_array( $filextension , array("png", "bmp", "gif", "jpg", "jpeg") )) {
+             	         	                   $documentClass= " class=\"dialogViewInfos\" ";
+             	                           }             	         
+             	                           if( empty( $libelle ) ) {
+             	         	                   $libelle = $filename;
+             	                           }             	                          
+
+             	                           $output .= "<tr id=\"documentRowId-".$documentid."\">";
+             	                                   $output .= "<td> <input type=\"checkbox\" name=\"documentids[]\" id=\"documentids".$documentid."\" class=\"documentids\" /> </td>";
+             	                                   $output .= "<td> <a href=\"".$linkInfos."\"> ".$categorie." </a> </td>";
+             	                                   $output .= "<td> <span class=\"".$icone."\"></span><a title=\"Visualiser le contenu du document \" ".$documentClass." href=\"".$linkInfos."\"> ".$libelle." </a> </td>";
+             	                                   $output .= "<td> <a title=\"Visualiser le contenu du document \" ".$documentClass." href=\"".$linkInfos."\">".$sizeKo." </a> </td>";
+             	                                   $output .= "<td id=\"dateDocumentId-".$documentid."\"> <a title=\"Visualiser le contenu du document \" ".$documentClass." href=\"".$linkInfos."\"> ".$enregistreVal." </a> </td>";
+             	                                   $output .= "<td style=\"text-align:center;\"> <span class=\"glyph-icon icon-trash-o\"></span> <a id=\"deleteDocumentId-".$documentid."\" class=\"deleteDocument\" title=\"Supprimer le document \" href=\"".$linkDelete."\"> Supprimer </a> </td>";
+             	                           $output .= "</tr>";
+             	   
+             	                           $lastCategorie = $document["categorie"];
+                              	  }                              	
+                              }  else {
+                              	           $output .= "<tr  id=\"documentRowId-0\"> <td colspan=\"8\"> AUCUN DOCUMENT N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+       </div>    
+    </div>
+    <input type="hidden" name="category"   id="category"   value="<?php echo intval($filters["category"]);  ?>" /> 
+    <input type="hidden" name="filetype"   id="filetype"   value="<?php echo $filters["filetype"];          ?>" /> 
+    <input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum;                ?>" /> 
+    <input type="hidden" name="maxitems"   id="maxitems"   value="<?php echo $this->pageSize;               ?>" />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

@@ -1,0 +1,82 @@
+<?php
+$rows             = $this->rows;
+$annees           = $this->annees;
+$localites        = $this->localites;
+$checkedLocalites = $this->checkedLocalites;
+$tableauDate      = date("d/m/Y");
+$zendDate         = new Zend_Date(array("year" => date("Y"), "month" => date("m"), "day" => date("d")));
+$opsUsername      = $this->opsUsername;
+$type             = $this->type;
+$categoryLibelle  = ( $type == "A" ) ? "PERSONNES PHYSIQUES" : "PERSONNES MORALES";
+if( $zendDate )  {
+	$tableauDate = $zendDate->toString("d MMM yyyy");
+}
+$output        = "";
+$output       .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf('STATISTIQUES DES DOCUMENTS %s TRAITES VALIDES  DE %s', $categoryLibelle, $opsUsername)." </b></td></tr>";
+$output       .=" </table>";
+$ColWidth      = (count($checkedLocalites)) ? (90 / (count($checkedLocalites))) : 0;
+$firstColWidth = 5;
+$lastColWidth  = 5;
+$totalColspan  = count($checkedLocalites)+2;	
+$output       .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $checkedLocalites )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Années </th>";
+				   foreach( $checkedLocalites as $localitecode) { 
+                             $localiteLibelle           = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							 if( null==$localiteLibelle){
+								 $errorMessages[]       = "Localité Invalide";
+								 continue;
+							 }				   
+      	  	                $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> ".$localitecode." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$lastColWidth."%\"> Total année       </th> ";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count(   $rows ) && count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> "; 
+                           $anneeTotal  = 0;
+                           $output     .=" <td style=\"text-align:center;\" width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $rowTotal  =(isset($rows[$localitecode][$annee]["files"])) ? count($rows[$localitecode][$annee]["files"]) : 0;
+										$colVal    = sprintf("%s ", formatNumber($rowTotal));
+      	  	               	   	        $output   .= "<td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td>";
+										
+										$anneeTotal+= $rowTotal;
+      	  	               	   }
+      	  	               }
+						   $colAnneeTotal = sprintf("%s",formatNumber($anneeTotal));
+                           $output       .=" <td style=\"text-align:center;\" width=\"".$lastColWidth."%\"> ".$colAnneeTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE VALIDE NA ETE TROUVE POUR CES CRITERES </td></tr> ";
+}
+$totalLocalite  = 0;
+if( count(   $checkedLocalites )) {
+	$output .="<tr><td style=\"text-align:left;\" width=\"".$firstColWidth."%\"> Total / Localités </td>";
+	foreach($checkedLocalites as $localitecode ) {
+		    $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+			if( null==$localiteLibelle) {
+				$errorMessages[]        = "Localité Invalide";
+				continue;
+			}
+            $totalRow       =(isset($rows[$localitecode]["files"])) ? count($rows[$localitecode]["files"]) : 0;
+            $totalLocalite += $totalRow ;
+            $colVal         = sprintf("%s",formatNumber($totalRow));			
+      	  	$output        .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td> "; 
+ 			
+    }
+	$output .="  <td style=\"text-align:center;\" width=\"".$lastColWidth."%\"> ".sprintf('%s',formatNumber($totalLocalite))." </td></tr>";
+} 
+$output     .= " </tbody></table>";
+
+echo $output ;

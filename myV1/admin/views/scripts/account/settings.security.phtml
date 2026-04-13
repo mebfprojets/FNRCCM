@@ -1,0 +1,125 @@
+<?php 
+  $user               = $this->user;
+  $params             = $this->params;
+  $lastConnectionDate = new Zend_Date($user->lastConnectedDate , Zend_Date::TIMESTAMP , "fr_FR");
+  $lastUpdatedDate    = new Zend_Date($user->lastUpdatedDate   , Zend_Date::TIMESTAMP , "fr_FR");
+  $registeredDate     = new Zend_Date($user->registeredDate    , Zend_Date::TIMESTAMP , "fr_FR");
+  $updatedUser        = Sirah_Fabric::getUser($user->creatoruserid);
+  $creationUser       = Sirah_Fabric::getUser($user->updateduserid);
+  $linkEditPwd        = $this->url(array("module" => "admin", "controller" => "recoverpwd", "action"  => "init") , "default");
+  $clients            = array(1  => "Mozilla Firefox",
+  		                      2  => "Google Chrome"  ,
+  		                      3  => "Opera",
+  		                      4  => "Internet Explorer",
+  		                      0  => "Tous les navigateurs");
+  $typeOfUsers        = array(10 => "Personne" , 
+  		                      1  => "Mon réseau d'amis", 
+  		                      2  => "Mon réseau d'entreprises" , 
+  		                      3  => "Mes collaborateurs",
+  		                      4  => "Uniquement les recruteurs",
+  		                      5  => "Uniquement ceux qui possèdent un compte",
+  		                      0  => "Tout le monde");
+  $profileAccessLevels= array(
+  		                      0  => "Uniquement mes infos personnelles",
+  		                      1  => "Mes infos et coordonnées",
+  		                      2  => "Mes infos, coordonnées et formations",
+  		                      3  => "Mes infos, coordonnées, formations et expériences",
+  		                      10 => "Toutes mes informations");
+$formSubmit           =  $this->url(array("module" => "admin", "controller" => "account" , "action"  => "settings") , "default");
+?>
+<form action="<?php echo $formSubmit; ?>" method="post"  id="saveSecurityParams-form" role="form" >
+   <ul class="list-group">     
+   <li class="list-group-item">
+      <div class="row"> 
+         <div class="col-md-8"> 
+              <label class="checkbox">
+                  <?php echo $this->formCheckbox("change_password_security" , $params["change_password_security"] , null ,array("1" , "0")); ?> Sécuriser le changement de mot de passe
+               </label>
+            </div>
+         <div class="col-md-4">&nbsp;</div>    
+      </div>
+   </li>
+   <li class="list-group-item">
+      <div class="row">
+         <div class="col-md-3"> <b> Adresse email de confirmation du changement de mot de passe: </b> </div>   
+         <div class="col-md-4">
+              <input id="change_password_email" type="text"  maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="" placeholder="Adresse email de confirmation du changement de mot de passe" name="change_password_email" value="<?php echo $params["change_password_email"]; ?>" /> 
+         </div> 
+         <div class="col-md-3"> &nbsp; </div>                       
+     </div>
+   </li>      
+   <li class="list-group-item">
+      <div class="row"> 
+         <div class="col-md-8"> 
+              <label class="checkbox">
+                  <?php echo $this->formCheckbox("remember_me" , $params["remember_me"] , null ,array("1" , "0")); ?> Garder toujours  ma session active
+               </label>
+            </div>
+         <div class="col-md-4">&nbsp;</div>    
+      </div>
+   </li>
+   <li class="list-group-item">
+      <div class="row"> 
+            <div class="col-md-8"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("connexionotification" , $params["connexionotification"] , null,array("1" , "0")); ?> Recevoir les notifications de connexion à mon compte
+               </label>
+            </div>
+            <div class="col-md-4">&nbsp;</div>    
+       </div>
+    </li>
+    <li class="list-group-item">
+      <div class="row"> 
+         <div class="col-md-8"> 
+            <label class="checkbox">
+                  <?php echo $this->formCheckbox("updatenotification" , $params["updatenotification"] , null,array("1","0")); ?> Recevoir les notifications sur les mises à jour de mon compte
+            </label>
+         </div>
+        <div class="col-md-4">&nbsp;</div>    
+     </div>
+   </li>   
+   <li class="list-group-item">
+      <div class="row">
+         <div class="col-md-2"> <label class="label" for="security_client"> <b> Mon navigateur preferé : </b></label> </div>   
+         <div class="col-md-4"> <?php echo $this->formSelect("security_client" , $params["security_client"] , array("class" => "form-control") , $clients); ?> </div> 
+         <div class="col-md-6"> 
+              <label class="checkbox">
+                  <?php echo $this->formCheckbox("security_client_check" , $params["security_client_check"] , null,array("1","0")); ?> Vérifier ce navigateur à chaque authentification
+              </label>
+        </div>           
+     </div>
+   </li>
+   <li class="list-group-item">
+      <div class="row">
+         <div class="col-md-2"> <label class="label" for="security_ipaddress"> <b> Mon adresse IP : </b></label> </div>   
+         <div class="col-md-4">
+              <input id="security_ipaddress" type="text"  maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="" placeholder="L'adresse IP de vérification de la sécurité" name="security_ipaddress" value="<?php echo $params["security_ipaddress"]; ?>" /> 
+         </div> 
+         <div class="col-md-6"> 
+              <label class="checkbox">
+                     <?php echo $this->formCheckbox("security_ipaddress_check" , $params["security_ipaddress_check"], null,array("1","0")); ?> Vérifier cette adresse IP à chaque authentification
+              </label>
+        </div>                       
+     </div>
+   </li> 
+   <li class="list-group-item">
+       <div class="row"> 
+           <div class="col-md-12"> 
+             <p class="text-muted"> Votre compte est créée le <?php echo $registeredDate;  ?> et a été mis à jour pour la dernière fois, le  <?php echo $lastUpdatedDate;?> </p>
+             <p class="text-muted"> La dernière connexion au compte remonte au <?php echo $lastConnectionDate;  ?> avec l'adresse IP <?php echo $user->lastIpAddress; ?> à travers un client de type <?php echo $user->lastHttpClient; ?> </p>
+          </div>
+      </div>
+   </li>     
+ </ul>
+ </form>       
+<?php 
+if($this->isAjax) {
+	echo $jq;
+} else {
+	echo "<div class='row col-md-12' >
+	         <button id=\"editSecurityParams\" type='submit' class=\"btn btn-success editSecurityParams\" > <i class=\"glyphicon glyphicon-floppy-disk\"></i> Appliquer les changements </button>
+	      </div>";
+}
+?>

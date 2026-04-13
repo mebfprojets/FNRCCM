@@ -1,0 +1,93 @@
+<?php
+function formatNumber( $number ){
+		  return preg_replace('/(\d{1,3})(?=(\d{3})+$)/', "$1.", floatval($number));
+}
+$rows             = $this->rows;
+$annees           = $this->annees;
+$localites        = $this->localites;
+$checkedLocalites = $this->checkedLocalites;
+$tableauDate      = date("d/m/Y");
+$zendDate         = new Zend_Date(array("year" => date("Y"), "month" => date("m"), "day" => date("d")));
+
+if( $zendDate )  {
+	$tableauDate = $zendDate->toString("d MMM yyyy");
+}
+$output        = "";
+$output       .="<table cellspacing=\"2\" cellpadding=\"2\" border=\"0\" width='100%' >";
+                $output.="<tr><td width=\"50%\"> </td>
+                              <td style=\"text-align:right;\" width=\"50%\"> Ouagadougou, le ".$tableauDate."<br/> </td>
+                          </tr>";
+				
+$output       .=" </table><br/>";
+$output       .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ETAT DES LIEUX DE LA BASE DE DONNEES DES RCCM </b></td></tr>";
+$output       .=" </table>";
+
+$ColWidth      = (count($annees)) ? (98 / (count($annees)+2)) : 0;
+$firstColWidth = $ColWidth;
+$totalColspan  = count($annees)+2;	
+$output       .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $annees )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Localités </th>";
+				   foreach( $annees as $annee) { 			   
+      	  	                $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> ".$annee." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> Total localité </th>";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count(   $rows ) && count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> ";                       
+                           $output     .=" <td style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+							   $localiteTotalFormulaires   = 0;
+						       $localiteTotalStatuts       = 0;
+						       $localiteTotalComplets      = 0;
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $totalFormulaires =(isset($rows[$annee][$localitecode]["totalFormulaires"])) ? $rows[$annee][$localitecode]["totalFormulaires"] : 0;
+										$totalStatuts     =(isset($rows[$annee][$localitecode]["totalStatuts"]    )) ? $rows[$annee][$localitecode]["totalStatuts"]     : 0;
+										$totalComplets    =(isset($rows[$annee][$localitecode]["totalComplets"]   )) ? $rows[$annee][$localitecode]["totalComplets"]    : 0;
+										$colVal        = sprintf("%s FR / %s PS / %s ST", formatNumber($totalFormulaires) , formatNumber($totalComplets), formatNumber($totalStatuts));
+      	  	               	   	        $output       .= "<td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td>";
+										
+										$localiteTotalFormulaires += $totalFormulaires;
+						                $localiteTotalStatuts     += $totalStatuts;
+						                $localiteTotalComplets    += $totalComplets;
+      	  	               	   }
+      	  	               }
+						   $colLocaliteTotal = sprintf("%s FR / %s PS / %s ST", formatNumber($localiteTotalFormulaires), formatNumber($localiteTotalComplets), formatNumber($localiteTotalStatuts));
+                           $output          .=" <td style=\"text-align:left;\" width=\"".$ColWidth."%\"> ".$colLocaliteTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE NA ETE TROUVE </td></tr> ";
+}
+
+$anneeTotalFormulaires   = 0;
+$anneeTotalStatuts       = 0;
+$anneeTotalComplets      = 0;
+if( count(   $annees )) {
+	$output .=" <td style=\"text-align:left;\" width=\"".$firstColWidth."%\"> Total / Années </td>";
+	foreach($annees as $annee ) {		    
+            $totalFormulaires       =(isset($rows[$annee]["totalFormulaires"])) ? $rows[$localitecode]["totalFormulaires"] : 0;
+			$totalStatuts           =(isset($rows[$annee]["totalStatuts"]    )) ? $rows[$localitecode]["totalStatuts"]     : 0;
+			$totalComplets          =(isset($rows[$annee]["totalComplets"]   )) ? $rows[$localitecode]["totalComplets"]    : 0;
+            $anneeTotalFormulaires += $totalFormulaires ;
+			$anneeTotalStatuts     += $totalStatuts;
+			$anneeTotalComplets    += $totalComplets;
+            $colVal        = sprintf("%s FR / %s PS / %s ST", formatNumber($totalFormulaires), formatNumber($totalComplets), formatNumber($totalStatuts));			
+      	  	$output       .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td> "; 
+ 			
+    }
+	$output .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".sprintf('%s FR / %s PS / %s ST',formatNumber($anneeTotalFormulaires),formatNumber($anneeTotalComplets),formatNumber($anneeTotalStatuts))." </td>";
+} 
+$output             .= "   </tbody></table>";
+
+echo $output; die();
+

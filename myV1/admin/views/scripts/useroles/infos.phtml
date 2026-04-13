@@ -1,0 +1,79 @@
+<?php 
+   $role               = $this->role;
+   $roles              = $this->roles;
+   $parents            = $this->parents;
+   $priorities         = array("Selectionnez une priorité" , "Très Elevée" , "Elevée" , "Normale" , "Basse" , "La plus basse");
+   
+   $linkEdit           = $this->url(array("module" => "admin","controller"  => "useroles" , "action" => "edit" , "id"  => $role["roleid"]) , "default" ) ;
+   $linkCancel         = $this->url(array("module" => "admin","controller"  => "useroles" , "action" => "list" ) , "default" ) ;
+   
+   $jq                 = $this->jQuery();
+   $jq->addOnLoad("jQuery('.edit').click(function(   event ){ event.preventDefault();document.location.href = '".$linkEdit."';});
+   		           jQuery('.cancel').click(function( event ){ event.preventDefault();document.location.href = '".$linkCancel."';});");
+?>
+  
+<div class="panel panel-default">
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>  Désignation : </b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->escape($role["rolename"]);  ?></div>
+       </div>
+    </li>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b>  Description du role : </b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->escape($role["description"]);  ?></div>
+       </div>
+    </li>         
+  </ul>
+ <div class="panel-heading"> <h4> Hérite des roles suivants :  </h4> </div>
+            <?php 
+            $table  = $this->table(array("id" => "rolesListTable","class"  => array("table sirah-ui-table scrollable")));
+            $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+            $rowHeader  = $table->row();
+            $rowHeader->add("ID")
+                      ->add("Désignations")
+                      ->add("Hérite du/des role(s)")
+                      ->add("Priorités");
+            $table->setHeader($rowHeader);
+            
+            if( array_key_exists($this->roleid , $roles)) {
+            	unset($roles[$this->roleid]);
+            }            
+            $checkedRoles   = array_intersect_key( $roles, $parents);
+            
+            if(!empty($checkedRoles)) {
+         	   foreach($checkedRoles as $checkedRoleId => $checkedRoleName) {
+         		$checkedRoleRow  = $table->row(array("id" => "rowRole-".$checkedRoleId));
+         		$accessLevel     = Sirah_User_Acl_Table::getAccesslevel($checkedRoleId);
+         		$parents         = Sirah_User_Acl_Table::getRoleParents($checkedRoleId);
+         		
+         		$checkedRoleRow->add("id#".$checkedRoleId);
+         		$checkedRoleRow->add($checkedRoleName);
+         		if(empty($parents )){
+         		   $checkedRoleRow->add("Aucun");
+         		} else {
+         			$checkedRoleRow->add(implode(", " , $parents));
+         		}  
+         		if(!empty($accessLevel) && isset($priorities[$accessLevel[0]])) {
+         			$checkedRoleRow->add($priorities[$accessLevel[0]]);
+         		}  else {
+         			$checkedRoleRow->add($priorities[5]);
+         		}    		
+         		$table->add($checkedRoleRow);         		
+         	}
+         }         
+         
+                 echo $table;                     
+            ?>
+      <div class="panel-footer">
+          <div class="controls"><button type="submit" class="btn btn-success glyph-icon icon-edit edit"> Modifier</button> </div>
+          <div class="controls"><button type="submit" class="btn glyph-icon icon-cancel cancel"> Revenir sur la liste</button> </div>
+      </div>           
+    </div>            
+    <?php 
+          if($this->isAjax) {
+          	 echo $this->jQuery();
+          }
+      ?>   

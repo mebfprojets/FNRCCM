@@ -1,0 +1,46 @@
+<?php 
+   $localite       = $this->localite;
+   
+   $linkEdit      = $this->url(array("module" => "admin","controller" => "localites", "action" => "edit" , "id" => $localite->localiteid) , "default" ) ;
+   $linkCancel    = $this->url(array("module" => "admin","controller" => "localites", "action" => "list"), "default" ) ;
+     
+   $buttonbar     = $this->Btnbar(array("id" => "MyBtnBar") , $this->jqueryHandler());  
+   $buttonEdit    = $buttonbar->button(" Mettre à jour les informations", "edit")->setPriority("primary");
+   $buttonCancel  = $buttonbar->button(" Revenir sur la liste", "ban");
+   
+   $buttonbar->add( $buttonEdit   , "editButton");
+   $buttonbar->add( $buttonCancel , "cancelButton");
+   
+   $buttonEdit->onClick("  event.preventDefault(); document.location.href= '".$linkEdit."' ;");
+   $buttonCancel->onClick("event.preventDefault(); document.location.href= '".$linkCancel."' ;");
+?>
+  
+ <div class="container pagecontainer col-md-12" style="text-align:left;">
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+          <div class="col-md-4"> <label class="label" for="libelle"> <b>  Désignation de la localité: </b> </label></div> 
+          <div class="col-md-8"> <?php echo $this->escape($localite->libelle);  ?></div>
+       </div>
+     </li>
+     <li class="list-group-item">
+       <div class="row"> 
+          <div class="col-md-4"> <label class="label" for="libelle"> <b>  Code de la localité: </b> </label></div> 
+          <div class="col-md-8"> <?php echo $this->escape($localite->code);  ?></div>
+       </div>
+     </li>              
+     <li class="list-group-item">
+       <div class="row"> 
+          <div class="col-md-4"> <label class="label" for="description"> <b> Description :</b> </label></div> 
+          <div class="col-md-8"> <?php echo $this->escape($localite->description);  ?> </div>
+       </div>
+   </li>     
+  </ul>
+  </div>
+    <?php 
+          if(!$this->isAjax) {
+          	 echo $buttonbar;
+          } else {
+          	 echo $this->jQuery();
+          }
+      ?>   

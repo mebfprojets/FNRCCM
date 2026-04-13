@@ -1,0 +1,122 @@
+<?php
+   $menuTable       = new Sirah_Model_Table_Menu();
+   $menuItemTable   = new Sirah_Model_Table_MenuItem();
+   $user            = Sirah_Fabric::getUser(); 
+   $acl             = Sirah_Fabric::getAcl("userAcl" , $user->userid , 0);
+   $cacheManager    = Sirah_Fabric::getCachemanager(); 
+   $cache           = null;
+   $navigationPages = array();
+   $menuRows        = array();
+   $layout          = Zend_Layout::getMvcInstance();
+   $view            = $layout->getView();
+   $baseUrl         = $this->baseUrl();
+   $tplPath         = ROOT_PATH."/templates/sirah";
+   
+   $output          = "";
+   	   $menuRows        = $menuTable->getRows("left");
+   	   $navigationPages = array();
+   	   $itemCursor      = 0;
+   	   if(count($menuRows )) {
+   	   	   foreach($menuRows as $menuRow) { 
+   	   	   	       $menuId            = $menuRow["menuid"];
+   	   	   	       $menuItems         = $menuItemTable->getRows($menuId);
+   	   	   	       $navigationPages[$menuId]["label"] = $menuRow["menuname"];
+   	   	   	       $navigationPages[$menuId]["pages"] = array();
+   	   	   	       if(!empty($menuItems)) {
+   	   	   	       	  foreach($menuItems as $menuItem) {
+   	   	   	       	  	$itemObjectId   = $menuItem["aclobjectid"];
+   	   	   	       	  	$itemId         = $menuItem["elementid"];
+   	   	   	       	  	$itemResourceId = Sirah_User_Acl_Table::getObjectResourceid($itemObjectId);
+   	   	   	       	  	$itemLink       = $menuItem["elementlink"];
+   	   	   	       	  	$itemLabel      = $menuItem["elementname"];
+   	   	   	       	  	$itemIcon       = $menuItem["elementicon"];
+   	   	   	       	  	$itemDescription= $menuItem["description"];
+   	   	   	       	  	
+   	   	   	       	  	if($itemObjectId && $itemResourceId && (null===$itemLink || empty($itemLink) || $itemLink=="#" )) {
+   	   	   	       	  		$resourceName  = Sirah_User_Acl_Table::getResourcename($itemResourceId);
+   	   	   	       	  		$objectName    = Sirah_User_Acl_Table::getObjectname($itemObjectId);
+   	   	   	       	  		if($acl->isAuthorized( $resourceName , $objectName )) {
+   	   	   	       	  			$navigationPages[$menuId]["pages"][] = array(
+   	   	   	       	  					                                       "label"       => $itemLabel ,
+   	   	   	       	  					                                       "action"      => $objectName,
+   	   	   	       	  					                                       "controller"  => $resourceName,
+   	   	   	       	  					                                       "title"       => $itemDescription,
+   	   	   	       	  					                                       "class"       => "leftMenuItem menuItem itemMenu-$menuId",
+   	   	   	       	  					                                       "id"          => "itemId-$itemId",
+   	   	   	       	  					                                       "uri"         => $view->url(array("controller"  => $resourceName , "action"  => $objectName) , "default"),
+   	   	   	       	  					                                       "icon"        => $itemIcon,
+   	   	   	       	  					                                       "order"       => $itemCursor);
+   	   	   	       	  		}  	   	   	       	  		
+   	   	   	       	  	} elseif(!empty($itemName) && null!==$itemLink && !empty($itemLink) && $itemLink!="#" ) {
+   	   	   	       	  		$navigationPages[$menuId]["pages"][] = array(
+   	   	   	       	  				                                      "label"  => $itemLabel,
+   	   	   	       	  				                                      "title"  => $itemDescription,
+   	   	   	       	  				                                      "class"  => "leftMenuItem itemMenu-$menuId",
+   	   	   	       	  				                                      "id"     => "itemId-$itemId",
+   	   	   	       	  				                                      "icon"   => $itemIcon ,
+   	   	   	       	  				                                      "uri"    => $itemLink ,
+   	   	   	       	  				                                      "order"  => $itemCursor );   	   	   	       	  		
+   	   	   	       	  	}   	   	   	       	  	
+   	   	   	       	 }
+   	   	   	       }
+   	   	   	       $itemCursor++;
+   	   	   }  	   	
+   	   }
+  $output = "";
+  if(count($navigationPages)) {
+   	 foreach($navigationPages as $menuId => $menuRow) {
+   	   	$menuPages   = $navigationPages[$menuId]["pages"];
+   	   	$menuLabel   = $menuRow["label"]; 
+   	   	if(count($menuPages)) {     	   	  	
+   	   	  	$output     .= "<div class='row navigation-wrapper' id='leftmenuRow-$menuId'> ";
+   	   	  	    $output .= "<h4 id='navigationTitle-$menuId' class='left-nav navigation-title'> <i class='glyphicon glyphicon-minus-sign glyphicon glyphicon-white navigationIconMinus'></i> ".$menuLabel." </h4>";
+   	   	  	    $output .= "<ul class='menu-navigation leftMenu '>";
+   	   	  	    foreach($menuPages as $elementPage){
+   	   	  	    	$output .= "<li>" ;
+   	   	  	    	                 $output .= "<a title='".$elementPage['title']."' class='".$elementPage['class']."' href='".$elementPage['uri']."'> ";
+   	   	  	    	                  if( !empty($elementPage['icon'] ) ) {
+   	   	  	    	                  	  $output .= "<i class=' glyphicon ".$elementPage['icon']."'></i> ";
+   	   	  	    	                  }
+   	   	  	    	                  $output.= $elementPage['label'];
+   	   	  	    	                 $output .= "</a>";
+   	   	  	    	$output .= "</li>" ;
+   	   	  	    }
+   	   	  	    $output .= "</ul>" ;
+   	   	  	$output  .= "</div>";
+   	   	}
+   	  }
+   }   	 
+   	   echo $output;
+   	   $jq  = $view->jQuery();
+   	   
+   	   $onLoad  = "
+   	         var toggleMenu = function(selector , navbox)
+             {
+                var icon  = selector.find('i.navigationIconMinus').eq(0);
+                if(icon.is('.glyphicon-minus-sign'))
+                {
+                   icon.removeClass('glyphicon-minus-sign');
+                   icon.addClass('glyphicon-plus-sign');
+                } else {
+                   icon.removeClass('glyphicon-plus-sign');
+                   icon.addClass('glyphicon-minus-sign');
+               }
+              navbox.toggle('slow');
+           };
+   	      jQuery('.navigationIconMinus , .navigation-title').css('cursor','pointer');
+   	      jQuery('.left-nav').each(function(){
+   	           var parentUl       = jQuery(this).parent('div.navigation-wrapper').find('ul').eq(0);
+   	           jQuery(this).bind('click' , function(event){
+   	               event.preventDefault();
+   	               toggleMenu( jQuery(this) , parentUl);
+   	           });
+   	           
+   	          
+   	      });
+   	   
+   	   ";
+   	   $jq->addOnLoad($onLoad);
+?>
+
+
+

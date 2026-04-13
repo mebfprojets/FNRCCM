@@ -1,0 +1,198 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" =>"myprofile" , "action" => "edit") , "default");
+$backList      = $this->url(array("controller" =>"myprofile" , "action" => "infos") , "default" );
+$formNames     = $this->formNames;
+$situations    = array("Célibataire"  => "Célibataire", 
+		               "Marié(e)"     => "Marié(e)", 
+		               "Divorcé(e)"   => "Divorcé(e)", 
+		               "Veuf(ve)"     => "Veuf(ve)");
+$basePath    = ROOT_PATH."/myTpl/default";
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.colbuttonsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"],input[type="number"],input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{height:45px;line-height:30px;font-size:1.3em;}
+div.colbuttons{width:60%;}.rowbuttons{text-align:left;}.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#".$formNames['birthday_day']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+jQuery('#".$formNames['birthday_month']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+jQuery('#".$formNames['birthday_year']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+jQuery('#".$formNames['language']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+jQuery('#".$formNames['socialstate']."').chosen({allow_single_deselect:true,no_results_text: 'Aucun élement ne correspond à '});
+jQuery('#".$formNames['lastname']."').bind('blur change',function(e){
+      e.preventDefault();
+      var lastname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(lastname)){
+        jQuery('".$formNames['lastname']."').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      } else {
+        jQuery('".$formNames['lastname']."').addClass('input-error');
+        return;
+      }
+  });  
+  jQuery('".$formNames['firstname']."').bind('blur change',function(e){
+      e.preventDefault();
+      var firstname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(firstname)){
+        jQuery('".$formNames['firstname']."').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      }  else {
+        jQuery('".$formNames['firstname']."').addClass('input-error');
+         return;
+      }
+  });
+     
+jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});
+jQuery('.create').click(function(e){
+      e.preventDefault();      
+      var  formSelector= jQuery('#editprofile-form');
+      var  firstname   = jQuery.trim(jQuery('".$formNames['firstname']."').val());
+      var  lastname    = jQuery.trim(jQuery('".$formNames['lastname']."').val());
+      
+      if(SIRAH.util.isEmpty(lastname)){
+         jQuery('".$formNames['lastname']."').addClass('input-error');
+         jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+      } else {
+         jQuery('".$formNames['lastname']."').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(firstname)){
+        jQuery('".$formNames['firstname']."').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+         return;
+      }  else {
+         jQuery('".$formNames['firstname']."').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }         
+      jQuery('".$formNames['lastname']."').val(lastname);
+      jQuery('".$formNames['firstname']."').val(firstname);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editprofile-form"   role="form">
+<div class="container">
+ <ul class="list-group">
+  <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['firstname']; ?>"> <b> Prénom: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['firstname']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Prénom" placeholder="Prénom"  name="<?php echo $formNames['firstname']; ?>" value="<?php echo $data['firstname']; ?>">
+         </div>
+     </div>
+  </li>
+  <li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['lastname']; ?>"> <b> Nom de famille : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['lastname']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Nom de famille" placeholder="Nom de famille" name="<?php echo $formNames['lastname']; ?>" value="<?php echo $data['lastname']; ?>">
+          </div> 
+          <p id="name-validation-message" class="validation-message"></p>    
+     </div>
+  </li>
+  <li class="list-group-item">     
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['birthday']; ?>"><b> Date de naissance : </b></label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect($formNames['birthday_day']  , $data["birthday_day"]  , array(),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-3"><?php echo $this->formSelect($formNames['birthday_month'], $data["birthday_month"], array(),array("00"=>"Mois")+$this->months()); ?></div>
+         <div class="col-md-3"><?php echo $this->formSelect($formNames['birthday_year'] , $data["birthday_year"] , array(),array("0000"=>"Année")+createYearsArray(1950, 2010));?></div>        
+    </div>
+ </li>
+ <li class="list-group-item">          
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['birthaddress']; ?>"> <b> Lieu de naissance : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="<?php echo $formNames['birthaddress']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Votre lieu de naissance" placeholder="Votre lieu de naissance" name="<?php echo $formNames['birthaddress']; ?>" value="<?php echo $data['birthaddress']; ?>">
+         </div>
+   </div>
+ </li>
+ <li class="list-group-item">                        
+   <div class="row">    
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['professionalstate']; ?>"> <b> Statut professionnel: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="<?php echo $formNames['professionalstate']; ?>" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Votre statut professionnel" placeholder="Votre statut professionnel" name="<?php echo $formNames['professionalstate']; ?>" value="<?php echo $data['professionalstate']; ?>">
+         </div>
+    </div>
+ </li>
+ <li class="list-group-item">         
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['socialstate']; ?>"><b> Situation matrimoniale: </b> </label> </div>
+         <div class="col-md-8">
+             <?php echo $this->formSelect( $formNames['socialstate'] , $data["socialstate"] , array() , $situations); ?>
+         </div>
+    </div>
+ </li>
+ <li class="list-group-item">      
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="<?php echo $formNames['language']; ?>"> <b> Langue principalement parlée: </b> </label> </div>
+         <div class="col-md-8">
+             <?php echo $this->formSelect( $formNames['language'] , $data["language"] , array() , $this->languages()); ?>
+         </div>
+    </div>
+</li>
+ <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="phone1"> <b> Sexe: </b> </label> </div>
+         <div class="col-md-4"> 
+          <label class="radio-inline">
+              <input type="radio" name="<?php echo $formNames['sexe']; ?>" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>>
+                Homme
+          </label>
+          
+          <label class="radio-inline">
+               <input type="radio" name="<?php echo $formNames['sexe']; ?>" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>>
+                  Femme
+         </label>
+         </div>
+         <div class="col-md-4">
+            &nbsp;
+         </div>    
+     </div>  
+   </li>
+  <li class="list-group-item">      
+     <div class="row">
+        <div class="col-md-4"><label class="label" for="sexe"><b> Présentation: </b></label></div>
+        <div class="col-md-8">
+          <textarea  name="<?php echo $formNames['presentation']; ?>" id="<?php echo $formNames['presentation']; ?>" class="textarea" cols="50" rows="5">
+               <?php echo $data["presentation"]; ?>
+          </textarea> 
+       </div>  
+    </div>
+ </li>
+</ul>   
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="column colbuttons">
+                       <button type="submit" class="btn btn-default btn-primary saveProfile"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+   <input type="hidden" name="<?php echo $this->csrfTokenId; ?>" id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>"    />
+</form>

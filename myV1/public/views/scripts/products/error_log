@@ -1,0 +1,8 @@
+[02-Feb-2023 02:02:17 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/products/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/products/infos.phtml on line 2
+[02-Feb-2023 02:02:28 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/products/list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/products/list.phtml on line 2

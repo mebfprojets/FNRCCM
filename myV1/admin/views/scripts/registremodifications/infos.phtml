@@ -1,0 +1,282 @@
+<?php 
+$data                = $this->data;
+$documents           = $this->documents;
+$situations          = array("Célibataire"=>"Célibataire","Marié(e)"=>"Marié(e)","Divorcé(e)"=>"Divorcé(e)","Veuf(ve)"=>"Veuf(ve)");
+$registreid          = $this->registreid;
+$registre            = $this->registre;
+$modification        = $this->modification;
+$representant        = $this->representant;
+$parent              = $this->parent;
+$domaine             = $this->domaine;
+$localite            = $this->localite;
+$annee               = date("Y", $registre->date);
+$localiteid          = $registre->localiteid;
+$me                  = Sirah_Fabric::getUser();
+
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"admin","controller"=>"registremodifications","action"=>"create","annee"=>$annee,"localiteid"=> $localiteid), "default");
+$linkCancel          = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"list","type"=>4) , "default");
+$linkEdit            = $this->url(array("module"=>"admin","controller"=>"registremodifications","action" => "edit"  , "registreid" => $registreid) , "default");
+$linkDelete          = $this->url(array("module"=>"admin","controller"=>"registremodifications","action" => "delete", "ids" => $registreid ), "default");
+$linkUploadDocuments = $this->url(array("module"=>"admin","controller"=>"registres","action"=> "upload","registreid"=> $registreid, "category" => 7),"default");
+$linkIndexation      = $this->url(array("module"=>"admin","controller"=>"registremodifications","action"=> "updatedocs", "registreid"=> $registreid, "category" => 7),"default");
+$jq->addOnload("
+jQuery('.uploadFile').click(function( event ) {
+        event.preventDefault();
+        var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+        dialogUploadFile.dialog2({title:'Rattacher un document à cette modification',content:'".$linkUploadDocuments."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+        dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+        dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+        dialogUploadFile.dialog2('open');          
+});");
+
+$buttonBar    = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Nouveau"   , "plus");
+$buttonEdit   = $buttonBar->button("Modifier"  , "edit");
+$buttonImport = $buttonBar->button("Re-Indexer", "refresh");
+$buttonDelete = $buttonBar->button("Supprimer" , "trash-o");
+$buttonCancel = $buttonBar->button("Retour"    , "arrow-left");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+$buttonBar->add( $buttonCreate , "createButton");
+if( $me->isAllowed("registremodifications", "edit"))
+    $buttonBar->add( $buttonEdit   , "editButton");
+if( $me->isAllowed("registremodifications", "updatedocs"))
+    $buttonBar->add( $buttonImport , "importButton");
+if( $me->isAllowed("registremodifications", "delete"))
+    $buttonBar->add( $buttonDelete , "deleteButton");
+
+$buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-primary"));
+$buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-warning"));
+$buttonImport->setAttributes(array("type" => "submit", "class" => "btn btn-info"));
+$buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+$buttonCancel->setAttributes(array("type" => "submit"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';", $linkCreate ));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';", $linkEdit   ));
+$buttonDelete->onClick( sprintf("
+        event.preventDefault();
+        var dialogDeleteRegistre = jQuery('<div> Etes-vous sur de supprimer cette modification ? </div>').attr('id','dialogDeleteRegistre');
+        dialogDeleteRegistre.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteRegistre.dialog2('addButton','Oui, supprimer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteRegistre.dialog2('addButton','Non, ne pas supprimer', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteRegistre.dialog2('open');" , $linkDelete));
+$buttonImport->onClick( sprintf("
+        event.preventDefault();
+        var dialogDeleteRegistre = jQuery('<div> Etes-vous sur d\'effectuer cette opération? Elle va remplacer les documents joints actuels par de nouveaux documents </div>').attr('id','dialogDeleteRegistre');
+        dialogDeleteRegistre.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteRegistre.dialog2('addButton','Oui, je veux l\'effectuer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteRegistre.dialog2('addButton','Non, je ne veux pas', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteRegistre.dialog2('open');" , $linkIndexation));		
+$buttonCancel->onClick( sprintf("event.preventDefault();document.location.href='%s';" , $linkCancel));
+
+$creationDate    = "00/00/0000";
+$updateDate      = "00/00/0000";
+$registreDate    = "00/00/0000";
+$birthDate       = "00/00/0000";
+$periodStart     = "00/00/0000";
+$periodEnd       = "00/00/0000";
+$creator         = Sirah_Fabric::getUser( $registre->creatorid     );
+$updatedUser     = Sirah_Fabric::getUser( $registre->updateduserid );
+$countries       = $this->countries();
+$nationalite     = "";
+
+if( $registre->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $registre->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMMM Y à H:m");
+}
+if( $registre->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $registre->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMMM Y à H:m");
+}
+if( $registre->date ) {
+    $zendRegistreDate    = new Zend_Date( $registre->date, Zend_Date::TIMESTAMP );
+    $registreDate        = $zendRegistreDate->toString("dd MMMM yyyy");
+}
+if( $representant->datenaissance ) {
+    $zendBirthDate       = new Zend_Date( $representant->datenaissance, Zend_Date::DATETIME );
+    $birthDate           = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+}
+if( $representant->country) {
+	$nationalite         = (isset( $countries[$representant->country] )) ? $countries[$representant->country] : "";
+}
+
+$this->toolsbar = $buttonBar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd() ?>
+
+<div  class="container" style="text-align:left;">
+  <div class="row">
+    <div  class="col-md-7">
+	   <div class="panel panel-default">
+	    <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Les informations de la modification </h4> </div>  
+	    <ul class="list-group">
+		<?php if( $parent): ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <label class="label" for="parentnum"> <b> N° RC:</b> </label></div> 
+                <div class="col-md-8">
+				 <?php 
+				    $parentRegistreid = $parent->registreid;
+				    $linkParent       = ($parent->type == 1) ? $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "infos","registreid"=> $parentRegistreid)) : $this->url(array("module"=>"admin","controller"=>"registremoral","action"=> "infos","registreid"=> $parentRegistreid));
+				    echo sprintf("<a title=\"Accéder aux informations du registre de commerce\" href=\"%s\"> %s : %s </a>", $linkParent, $parent->numero, $parent->libelle);  
+			      ?>
+				</div>
+            </div>
+          </li>
+		<?php endif; ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="numero"> <b>  N° d'inscription:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->numero);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="libelle"> <b>   Nom commercial:</b> </label></div> 
+                 <div class="col-md-8"><?php echo $this->escape($registre->libelle);  ?></div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="localite"> <b> Localité:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo ( $localite ) ? $localite->libelle : ""; ?> </div>
+            </div>
+          </li>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="domaine"> <b> Secteur d'activités:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo ( $domaine ) ? $domaine->libelle : ""; ?> </div>
+            </div>
+          </li>
+		  <?php if(!empty($registre->description)): ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="presentation"> <b> Activité actuelle:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($registre->description); ?> </div>
+            </div>
+          </li>
+		  <?php endif; ?>
+		  <?php if(!empty($modification->article_suppr)): ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="presentation"> <b> Activité supprimée:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($modification->article_suppr); ?> </div>
+            </div>
+          </li>
+		  <?php endif; ?>
+          <?php if(!empty($modification->article_ajout)): ?>
+		  <li class="list-group-item">
+            <div class="row"> 
+                 <div class="col-md-4"> <label class="label" for="presentation"> <b> Activité ajoutée:</b> </label></div> 
+                 <div class="col-md-8"> <?php echo $this->escape($modification->article_ajout); ?> </div>
+            </div>
+          </li>
+		  <?php endif; ?>
+		  <?php if($registre->date) : ?>
+           <li class="list-group-item">
+             <div class="row"> 
+                <div class="col-md-12 "> Inscrit à la date du <?php echo $registreDate; ?> </div> 
+             </div>
+           </li>
+          <?php endif; ?>
+          <?php if($creator->userid) : ?>
+           <li class="list-group-item">
+             <div class="row"> 
+                <div class="col-md-12 "> Enregistré le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+             </div>
+           </li>
+          <?php endif; ?>
+          <?php if($updatedUser->userid) : ?>
+            <li class="list-group-item">
+              <div class="row"> 
+                <div class="col-md-12 "> Mis à jour pour la dernière fois, le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+              </div>
+           </li>
+          <?php endif; ?> 		  
+		</ul>
+	   </div>
+	   <div class="panel panel-default">
+	     <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-user'></span> Le constituant </h4> </div>
+		 <ul class="list-group">
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> N° Passport:</b></div> 
+                <div class="col-md-8"><?php echo $representant->passport; ?></div>
+            </div>
+           </li>
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Nom & Prénom  :</b></div> 
+                <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s %s", $representant->nom, $representant->prenom ) : ""; ?></div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Sexe:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? (($representant->sexe == "M") ? "Homme": "Femme") : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Né(e) le:</b></div> 
+                <div class="col-md-8"><?php echo ( $representant ) ? sprintf("%s à %s", $birthDate , $representant->lieunaissance ) : ""; ?></div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Adresse:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->adresse : ""; ?> </div>
+            </div>
+           </li>
+           <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Nationalité:</b></div> 
+                <div class="col-md-8"> <?php echo $nationalite; ?> </div>
+            </div>
+           </li>		   
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Numéro de téléphone:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->telephone : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Adresse email:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->email : ""; ?> </div>
+            </div>
+           </li>
+		   <li class="list-group-item">
+            <div class="row"> 
+                <div class="col-md-4"> <b> Fonction/Profession:</b></div> 
+                <div class="col-md-8"> <?php echo ( $representant ) ? $representant->profession: ""; ?> </div>
+            </div>
+           </li>
+		 </ul>
+	   </div>
+	</div>	
+	<div  class="col-md-5">
+	    <div class="panel panel-default">
+           <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-list-alt'></span> Les documents indexés </h4></div> 
+          <?php echo $this->partial("registremodifications/documents.phtml" , array("documents" => $documents, "registre" => $registre )); ?>
+		  <?php if($me->isAllowed("registres","upload")): ?> 
+			<div class="panel-footer">
+                <div class="controls"><button type="submit" class="btn btn-primary glyph-icon icon-plus-circle uploadFile"> Ajouter un document</button></div>
+            </div>
+		  <?php endif; ?>
+        </div>
+	</div>
+  </div>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

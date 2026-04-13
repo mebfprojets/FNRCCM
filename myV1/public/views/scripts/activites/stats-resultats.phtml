@@ -1,0 +1,44 @@
+<?php $this->headStyle()->captureStart() ?>
+table th, table td{text-align:center !important;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<?php 
+   $rows          = $this->rows;
+   $regions       = $this->regions;
+   $indicateurs   = $this->indicateurs;
+   $modelActivite = new Model_Activite();
+
+   $table       = $this->table(array("id" => "resultatsListTable", "class" => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable"), "style" => "text-align:center;"));
+   $header      = $table->row();  
+   $header->add("Régions"    , array("width" => "40%"))
+          ->add("Indicateurs", array("width" => "35%"))
+          ->add("Valeurs"    , array("width" => "25%"));
+   
+   $table->setHeader( $header );
+   $i      = 0;
+    if(count(      $regions )) {
+    	  foreach( $regions as $regionid => $regionLibelle  ) {
+    	  	       if( count(   $indicateurs ) ) {
+    	  	       	   foreach( $indicateurs as $indicatid => $indicatLibelle ) {
+    	  	       	   	        $rowStat           = $table->row(array("id" => "rowStatId-" . $i ));
+    	  	       	   	        $infosStatistiques = $modelActivite->statindicateurs( $regionid , $indicatid );
+    	  	       	   	        $valeur            = 0;
+    	  	       	   	        if( count( $infosStatistiques )) {
+    	  	       	   	        	$valeur        = $infosStatistiques[0]["valeur"];
+    	  	       	   	        }  
+    	  	       	   	        $rowStat->add(" ".$regionLibelle )->add(" ".$indicatLibelle )->add(" ".$valeur );
+    	  	       	   	        $table->add( $rowStat  );
+    	  	       	   	        $i++;
+    	  	       	   }
+    	  	       }    	  	           	  	       
+    	  	       $i++;
+    	  }
+    }  else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add(" Aucune information statistique par indicateur n'a pu etre trouvée", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }
+    
+    echo  $table;
+        
+ ?>

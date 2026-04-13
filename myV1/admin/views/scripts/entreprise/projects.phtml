@@ -1,0 +1,107 @@
+<?php 
+   $entreprise  = $this->entreprise;
+   $projects    = $this->projects;
+   $linkDelete  = $this->url(array("controller" => "projects","action" => "delete", "entrepriseid" => $this->entrepriseid,"module"=>"admin"), "default") ;
+   $linkCreate  = $this->url(array("controller" => "projects","action" => "create", "entrepriseid" => $this->entrepriseid,"module"=>"admin"), "default") ;
+   $output      = " <table id=\"projectsList\" class=\"table table-striped table-responsive projectsList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:2%\"> *         </th>
+                                     <th width=\"width:50%\"> Périodes </th>
+                                     <th width=\"width:48%\"> Intitulés</th>
+                              </tr>
+                       </thead>";
+   
+   if( count(   $projects ) ) {
+   	   foreach( $projects as $project ) {
+   	   	        $projectid      = $project["projectid"]; 
+				$projectLib     = $project["libelle"];
+								   
+				$zendStartime   = ( $project["startime"]) ? new Zend_Date( $project["startime"] ,Zend_Date::TIMESTAMP ) :null;
+             	$valStartime    = ( $zendStartime ) ? $zendStartime->toString("dd MMMM yyyy") : "";
+								   
+				$zendEndtime    = ( $project["endtime"]) ? new Zend_Date( $project["endtime"] ,Zend_Date::TIMESTAMP ) :null;
+             	$valEndtime     = ( $zendEndtime ) ? $zendEndtime->toString("dd MMMM yyyy") : "";
+				$projectPeriode = sprintf("%s - %s", $valStartime, $valEndtime );
+								   								   
+				$linkInfos      = $this->url(array("controller" => "project", "action" => "infos", "projectid" => $projectid) , "default");
+				
+				$rowBg          = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   	        
+   	   	        $output      .="  <tr id=\"projectId-".$projectid ."\" style=\"background-color:".$rowBg."\"> ";
+   	   	              $output.="     <td> <span title=\"Supprimer ce projet\" href=\"#\" id=\"delProjectId-".$projectid."\" class=\"glyph-icon icon-remove pull-left delProject \"></span> </td>";
+   	   	              $output.="     <td> <a title=\"Voir les informations de ce projet\" href=\"".$linkInfos ."\"> ".$projectPeriode." </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir les informations de ce projet\" href=\"".$linkInfos ."\"> ".$projectLib    ."  </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucun projet n'a été enregistré pour votre entreprise </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "
+jQuery('.addProject').click(function( event ){
+       event.preventDefault();
+    var dialogNouveauProject = jQuery('<div></div>').attr('id','dialogNouveauProject');
+    dialogNouveauProject.dialog2({title:'Enregistrer une instance de project',content:'".$linkCreate."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});
+    dialogNouveauProject.dialog2('addButton','<span class=\'glyph-icon icon-save\'></span> Enregistrer',{primary : true,click : 
+             		               function(){
+             		                           var modalBody = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Création...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var projectForm = jQuery(this).find('form').eq(0);             		                          
+             		                           SIRAH.request.post( projectForm,'".$linkCreate."', { 
+             		                                              success : function( data ) {   
+             		                                                        SIRAH.loading.off(false);    		                                                                                      
+                            	                                         if( !SIRAH.util.isEmpty( data.error ) ) {
+                            	                                              insertBtn.btnLoading({on:false});
+                            		                                          SIRAH.error.raise( dialogNouveauProject, data.error , 'error');
+                            		                                          return data;
+                            	                                          } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                          SIRAH.error.raise( dialogNouveauProject , data.success , 'success');
+                            		                                          setTimeout(function(){jQuery('#sirah-page-message').remove();dialogNouveauProject.dialog2('close');},2000);
+                            	                                          } else {
+                            		                                          SIRAH.error.raise( dialogNouveauProject,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                          return data;
+                            	                                          }		
+             		                                              }
+             		                           });
+             		                     }
+             		                 });
+         dialogNouveauProject.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogNouveauProject.dialog2('open');     
+});
+jQuery('.delProject').css('cursor','pointer');
+jQuery('.delProject').click(function( event ){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('delProjectId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer ce project ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape: false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({ url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'projectid': itemId},
+             		                              type     : 'GET',
+             		                              success  : function(data) 
+             		                              {
+             		                                   if( data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){jQuery('#projectId-'+itemId).remove();jQuery('#dialogDeleteItem').dialog2('close');},2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open'); 
+});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

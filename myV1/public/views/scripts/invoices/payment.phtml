@@ -1,0 +1,100 @@
+<?php 
+$front          = Zend_Controller_Front::getInstance();
+$data           = $this->data;
+$member         = $this->member;
+$commande       = $this->commande;
+$invoice        = $this->invoice;
+$commandeid     = $this->commandeid;
+$invoiceid      = $this->invoiceid;
+$apikey         = $this->apikey;
+$site_id        = $this->api_site_id;
+$notifyUrl      = $this->notify_url;
+$trans_id       = $this->trans_id;   
+$formSubmit     = $this->url(array("controller"=>"orders","action"=>"finalize","module"=>"public"),"default",true);
+$linkCancel     = $this->url(array("controller"=>"registres","action"=>"search","module"=>"public"),"default",true);
+$paymentError   = $this->url(array("controller"=>"payments","action"=>"refused","module"=>"public","transid"=>$trans_id),"default",true);
+
+$amount         = $data["montant"]; 
+$customer_id    = $member->memberid;
+$email          = (isset($data["email"])            && !empty($data["email"]           ))?addslashes($data["email"])            : sprintf("%s", addslashes($member->email));
+$phone_number   = (isset($data["phonenumber"])      && !empty($data["phonenumber"]     ))?addslashes($data["phonenumber"])      : sprintf("%s", addslashes($member->tel1));
+$countryCode    = (isset($data["countrycode"])      && !empty($data["countrycode"]     ))?addslashes($data["countrycode"])      : sprintf("%s", $member->country);
+$city           = (isset($data["city"])             && !empty($data["city"]            ))?addslashes($data["city"])             : sprintf("%s", addslashes($member->city));
+$zipCode        = (isset($data["zipcode"])          && !empty($data["zipcode"]         ))?addslashes($data["zipcode"])          : "00226";
+$address        = (isset($data["address"])          && !empty($data["address"]         ))?addslashes($data["address"])          : sprintf("%s"   , addslashes($member->address));
+$payeur         = (isset($data["payeur"])           && !empty($data["payeur"]          ))?addslashes($data["payeur"])           : sprintf("%s"   , addslashes($member->name));
+$payeurName     = (isset($data["payeur_lastname"])  && !empty($data["payeur_lastname"] ))?addslashes($data["payeur_lastname"])  : sprintf("%s %s", addslashes($member->lastname));
+$payeurSurname  = (isset($data["payeur_firstname"]) && !empty($data["payeur_firstname"]))?addslashes($data["payeur_firstname"]) : sprintf("%s %s", addslashes($member->firstname));
+
+$channels       = (isset($data["method"])           && !empty($data["method"]))?$data["method"] : "ALL";
+$libelle        = sprintf("Achat de services de consultation des données du Fichier National:%s",$data["libelle"]);
+$metadata       = sprintf("%s", $commande->ref);
+
+$basePath       = VIEW_BASE_PATH;
+$headScript     = $this->headScript();
+$headScript->appendFile("https://cdn.cinetpay.com/seamless/main.js","text/javascript");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.sdk {display:block;position:absolute;background-position:center;text-align:center;left:50%;top:50%;transform: translate(-50%, -50%);}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq     = $this->jQuery();  
+$headScript->appendScript("
+    function checkout() {
+		CinetPay.setConfig({apikey:'".$apikey."',site_id:'".$site_id."',notify_url:'".$notifyUrl."',mode:'PRODUCTION'});
+		CinetPay.getCheckout({transaction_id:'".$trans_id."',amount:parseInt('".$amount."'),trans_id:'".$trans_id."',currency:'XOF',channels:'".$channels."',description:'".$libelle."',metadata:'".$metadata."',			
+			customer_id:'".$customer_id."',customer_name:'".$payeurName."',customer_surname:'".$payeurSurname."',customer_phone_number:'".$phone_number."',customer_country:'".$countryCode."',customer_state:'".$countryCode."',customer_zip_code:'".$zipCode."',customer_address:'".$address."',customer_city:'".$city."',
+		});
+		CinetPay.waitResponse(function(data) {
+			if( data.status == 'REFUSED') {
+				if( alert('Votre paiement a échoué')) {
+					document.location.href='".$paymentError."/type/refused';
+				}
+			} else if (data.status =='ACCEPTED') {
+				setTimeout(function(){document.location.href='".$formSubmit."';},500);
+			} else {
+				alert('Le paiement n\'a pas été enregistré pour les raisons : '+data);
+			}
+		});
+	}
+ 
+",
+"text/javascript");
+?>
+<div class="container form-container">
+    <div class="row">
+		<div class="col-xs-12 col-sm-8 col-md-8 center-margin">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="panel-body">
+					<div class="panel-desc"> Procéder au paiement de façon sécurisée </div> <hr>
+					<div class="sdk">
+					</div>
+					<form class="ordersCreateForm" id="ordersCreateForm" method="post" action="<?php echo $formSubmit; ?>" autocomplete="off" role="form">
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Désignation:</label>
+							<input disabled="disabled" type="text" class="form-control" name="libelle" id="libelle" value="Achat de services de consultation des données du Fichier National"  placeholder="Achat de services de consultation des données du Fichier National" >
+						    <input type="hidden" name="designation" id="designation" value="Achat de services de consultation des données du Fichier National" />
+						</div>
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Total à payer:</label>
+							<input disabled="disabled"  type="text" class="form-control" name="montant" id="montant" value="<?php echo $data['montant'];?>" placeholder="Total à payer" >
+						    <input type="hidden" name="amount" id="amount" value="<?php echo $data['montant']; ?>" />
+						</div>
+						<div class="form-group col-md-12"> 
+						    <label for="lastname">Nom du Payeur:</label>
+							<input disabled="disabled" type="text" class="form-control" name="payeur" id="payeur" value="<?php echo $data['payeur'];?>"  placeholder="Nom et prénom du payeur" >
+						    <input type="hidden" name="cpm_custom" id="cpm_custom" value="<?php echo $data['payeur'];?>" />
+						</div>
+						<input type="hidden" name="currency" id="currency" value="CFA">  
+                        <input type="hidden" name="trans_id" id="trans_id" value="<?php echo $this->trans_id;?>"> 				
+					</form>
+				</div>
+				<div class="panel-footer">
+					<div class="btn-group"><button id="cancelButton"   class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"> </i> Annuler </button></div> 
+					<div class="btn-group"><button onclick="checkout()" id="validateButton" class="btn btn-success validateButton"> Procéder au paiement <i class="glyph-icon icon-check-circle"></i> </button></div>	
+				</div>
+			</div>      
+		</div>   
+    </div>      
+</div>

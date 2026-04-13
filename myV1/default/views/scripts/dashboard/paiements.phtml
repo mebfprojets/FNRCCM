@@ -1,0 +1,36 @@
+<?php 
+   $paiements  = $this->paiements;
+ 
+    $output    = "";
+    $output    = "<ul style=\"text-align:center;\" class=\"list-group paiementsList\">";
+               if(count( $paiements ) ) {
+	$output   .= " <li id=\"paiementId-0\" class=\"list-group-item\">";
+	$output   .="
+	               <div class=\"row\">
+	                 <div class=\"col-md-4\"> Dates     </div>
+	                 <div class=\"col-md-5\"> Etudiants </div>
+	                 <div class=\"col-md-3\"> Montants  </div>
+	               </div> </li> ";
+	foreach( $paiements as $paiement ) {
+		     $paiementId  = intval( $paiement["id"] );
+		     $etudiant    = sprintf(" %s %s " , $this->escape($paiement["lastname"]) , $this->escape($paiement["firstname"]) );
+             $montant     = number_format( $paiement["montant"] , 0 , ",", " "); 
+             $date        = $paiement["datepaiement"];
+
+		     $linkContrat = $this->url( array("controller" => "schoolfees", "action" => "infos" , "id" => $paiementId ) , "default");
+
+		     $output     .= " <li id=\"paiementId-".$paiementId."\" class=\"list-group-item\">
+		                          <div class=\"row\">
+		                               <div class=\"col-md-4\"> ". $date     . " </div>
+		                               <div class=\"col-md-5\"> ". $etudiant . " </div>
+		                               <div class=\"col-md-3\"> ". $montant  . " </div>
+		                          </div>
+		                      </li> ";
+	}
+} else {
+	$output .= " <li id=\"paiementId-0\" class=\"list-group-item\"> Aucun paiement n'a été enregistré </li>";
+}
+
+$output        .= "</ul>";
+echo  $output ;
+             

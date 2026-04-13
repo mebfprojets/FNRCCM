@@ -1,0 +1,270 @@
+<?php 
+$me         = Sirah_Fabric::getUser();
+$domaines   = $this->domaines;
+$filters    = $this->filters;
+$paginator  = $this->paginator;
+
+$basePath   = VIEW_BASE_PATH;
+$jq         = $this->jQuery();
+
+$linkSearch = $this->url(array("module"=>"admin","controller"=>"domaines", "action"=> "list")  , "default");
+$linkCreate = $this->url(array("module"=>"admin","controller"=>"domaines", "action"=> "create"), "default");
+$linkEdit   = $this->url(array("module"=>"admin","controller"=>"domaines", "action"=> "edit"  ), "default");
+$linkDelete = $this->url(array("module"=>"admin","controller"=>"domaines", "action"=> "delete"), "default");
+ 
+$jq->addOnload("
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#domainesListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector = jQuery('#globalFormSearch') ;
+		var searchData   = {};			
+        var maincontent	 = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchDomaines,.searchDomaines').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#domainesListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+	
+		searchData.libelle  = jQuery.trim(formSelector.find('#libelle').val());
+		searchData.parentid = parseInt(formSelector.find('#parentid').val());
+		 
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on( maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#domainesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());	
+	
+		paginationData.libelle   = jQuery.trim(formSelector.find('#libelle').val());
+		paginationData.parentid  = parseInt(formSelector.find('#parentid').val());
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var maincontent          = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+	
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedDomaineId = function() {
+		var checkedDomaines = jQuery('#domainesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedDomaines) {
+		   checkedDomaines.each(function() {
+             	var domaineid   = parseInt(jQuery(this).attr('id').replace('domaineids',''));
+             	checkedIds.push(domaineid);
+           });
+		}
+		return checkedIds;
+};
+jQuery('#domainesListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#domainesListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#domainesListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#domainesListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedDomaines = jQuery('#domainesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedDomaines.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','updatealldocsButton','editButton']);
+	}
+});");
+
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouveau secteur d'activités", "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "edit");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+
+if($me->isAllowed("domaines","create")) $toolbar->add( $toolCreate, "createButton");
+if($me->isAllowed("domaines","edit"))   $toolbar->add( $toolEdit  , "editButton");
+if($me->isAllowed("domaines","delete")) $toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedDomaine  = jQuery('#domainesListTable').find('input[type=\'checkbox\'][name=\'domaineids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedDomaine) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var domaineid          = parseInt(checkedDomaine.attr('id').replace('domaineids',''));
+					 document.location.href = '".$linkEdit."/domaineid/'+domaineid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedDomaines  = getCheckedDomaineId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedDomaines )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les secteurs selectionnés ? </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                         function(){
+             		                                    jQuery.ajax({url:'".$linkDelete."',async:false,dataType :'json',data:{'domaineids[]': checkedDomaines},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+																	jQuery('#dialogDelete').html('');
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedDomaines = getCheckedDomaineId ();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){jQuery.each(checkedDomaines,function(key,domaineid){jQuery('#domaineRowId-'+domaineid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                        }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open');");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->pagination(array(),"Elastic", "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));    
+?>
+
+<div id="domainesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+		    <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+				<div class="input-group">
+				 <input value="<?php echo $filters['libelle'];?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez un secteur, saisir des mots clés...">
+				 <span class="input-group-btn ">
+				   <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>             
+				   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+				</span>
+			   </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		    </form>
+    	</div>
+		<table id="domainesListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                <tr>
+                    <th width="1%"> <input type="checkbox" name="checkAll" id="checkAll" class="checkAll" /> </th>	
+                    <th width="9%">  Codes        </th> 					
+                    <th width="50%"> Désignations </th> 
+					<th width="40%"> Parents      </th> 
+                </tr>
+            </thead>
+            <tbody>	
+			<?php 
+				  $output = "";
+				  if( count(   $domaines ) ) {
+					  foreach( $domaines as $domaine ) {
+							   $domaineid     = $domaine["domaineid"]; 
+							   $domaineLib    = $domaine["libelle"];
+							   $domaineCode   = $domaine["code"];
+							   $domaineParent = $domaine["parent"];		
+                               $profondeur    = $domaine["profondeur"]+1;							   
+							   $linkInfos     = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"infos", "domaineid" => $domaineid) , "default");								   
+								 
+							   $output .= "<tr data-tt-id=\"".$profondeur."\" id=\"domaineRowId-".$domaineid."\">";
+									   $output .= "<td> <input type=\"checkbox\" name=\"domaineids[]\" id=\"domaineids".$domaineid."\" class=\"domaineids\" /> </td>";
+									   $output .= "<td><a title=\"Voir les informations de ce secteur\" href=\"".$linkInfos."\">".$domaineCode  ."</a> </td>"; 
+									   $output .= "<td><a title=\"Voir les informations de ce secteur\" href=\"".$linkInfos."\">".$domaineLib   ."</a> </td>";   
+									   $output .= "<td><a title=\"Voir les informations de ce secteur\" href=\"".$linkInfos."\">".$domaineParent."</a> </td>";										   
+							   $output .= "</tr>";
+							   $output .= "<input type=\"hidden\" name=\"libelle-".$domaineid."\" id=\"libelle-".$domaineid."\" value=\"".$domaineLib."\" />";
+					  }
+				  } else {
+							   $output .= "<tr>";
+										$output .= "<td style=\"text-align:center !important;\" align=\"center\" colspan=\"4\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+							   $output .= "</tr>";
+				  }		  
+				  echo $output;
+					  
+			?>
+            </tbody>				
+		</table>
+              <?php echo $pagination->render(); ?>
+	</div>
+</div>  
+
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

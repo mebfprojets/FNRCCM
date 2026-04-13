@@ -1,0 +1,95 @@
+<?php 
+$data                    = $this->data;
+$article                 = $item = $this->article;
+$articleid               = $this->articleid;
+$galleryid               = $this->galleryid;
+$gallery                 = $this->gallery;
+$photos                  = $this->photos;
+
+
+$categorie               = $this->categorie;
+ 
+ 
+$me                      = Sirah_Fabric::getUser();
+$basePath                = VIEW_BASE_PATH;
+$jq                      = $this->jQuery();
+ 
+
+$creationDate            = "00/00/0000";
+$updateDate              = "00/00/0000";
+$articleDate             = "00/00/0000";
+$periodStartDate         = $periodEndDate = "00/00/0000";
+$creator                 = Sirah_Fabric::getUser($article->creatorid     );
+$updatedUser             = Sirah_Fabric::getUser($article->updateduserid );
+
+if( $article->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $article->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $article->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $article->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+$this->toolsbar          = $buttonBar;
+$basePath                = VIEW_BASE_PATH;
+ 
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+p{line-height:1.8em !important;text-align:justify !important}
+.item-card-text img{max-width:100%}
+.panel .panel-heading {padding-top: 14px;padding-bottom: 14px;}
+.panel-more-shadow{box-shadow:0 1px 6px rgb(31 31 31 / 12%), 0 1px 4px rgb(31 31 31 / 12%)}
+body{background-color:#f1f1f1 !important}
+.panel-body{padding:20px;}
+.panel-desc{font-size:28px !important;font-weight:bold}
+<?php $this->headStyle()->captureEnd() ?>
+<div class="container section-content">
+	<div id="contentItems" class="col-xs-12 col-sm-12 col-md-8 equal-height-panels items-content margin-center">
+	    <div class="panel panel-white panel-more-shadow">  		     
+			<ul class="list-group">			    	 
+                <div class="panel-body panel-body-lg">
+				    <?php if( $article->updatedate ) : ?>
+				    <div class="panel-desc">
+					    <small style="font-size:12px !important;" class="text-muted"><i><?php echo sprintf("Mis à jour pour la dernière fois le %s", $updateDate); ?></i></small>
+					</div>
+					<?php endif; ?>
+				    <?php if(!empty($article->photogarde)) : ?>
+					<?php
+					    $introtext         = $article->introtext;
+					    $imagePath         = APPLICATION_DATA_PATH.DS."articles".DS."photogarde".DS."mini".DS.$article->photogarde;
+						$imageFile         = null;
+						if((null !== $imagePath) && file_exists($imagePath)) {
+							$imagePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+							$imageFile     = str_replace( DS , "/" , $imagePathname);
+						}
+						//echo $imagePath; die();
+						if(!empty($imageFile)) {
+							$output = "<p align=\"center\" class=\"item-card-text\"><img align=\"center\" src=\"".$imageFile."\" /></p>";
+							//$output.= "<div class=\"flex-grow-1 col-md-8 ms-auto\"><p class=\"item-card-text\"> ".$introtext."</p></div>";
+						    echo $output;
+						}  
+					?>
+					<?php endif; ?>
+				    <?php echo $article->content; ?>
+                </div>				
+			</ul>
+	    </div> 
+		<?php if(count($photos)): ?>
+		   <?php echo $this->partial("articles/gallery.photos.phtml", array("article"=>$article,"articleid"=>$articleid,"gallery"=>$gallery,"galleryid"=>$galleryid,"photos"=>$photos)); ?>
+	    <?php endif; ?>
+	</div>	
+	<div class="col-xs-12 col-sm-4 col-md-4">
+	    <div class="panel panel-danger">
+	        <div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-credit-card"></span> Mon Panier </h4> </div>
+		    <?php echo $this->partial("orders/articles.phtml", array()); ?>
+		</div>
+	</div>      
+</div>
+
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

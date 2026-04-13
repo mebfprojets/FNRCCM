@@ -1,0 +1,119 @@
+<html lang="en">
+<?php 
+    //On initialise les variables nécessaires
+    $layout        = $this->layout();
+    $baseUrl       = $this->baseUrl();
+    $tplPath       = ROOT_PATH."/myTpl/default";
+    
+    $columns       = $this->columns;
+    $bodyClasses   = (!$this->bodyClasses) ? array() : $this->bodyClasses;
+    
+    if(in_array("left",$columns) && in_array("right",$columns) && empty($bodyClasses)){
+       $bodyClasses    = array();
+    } elseif(in_array("left",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-left";
+    } elseif(in_array("right",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-right";
+    } elseif(in_array("content",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-content";
+    }
+    $showLeftColumn    = in_array("left" , $columns);
+    $showRightColumn   = in_array("right", $columns);
+    $showResourcesMenu = $this->showResourcesMenu;
+?>
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8"/> 
+<?php echo $this->headMeta() ?>
+ <?php
+           echo $this->headLink() ;
+           echo $this->headStyle();            
+           echo "<script type=\"text/javascript\">
+                     window.SIRAH ||(window.SIRAH={}); 
+                     SIRAH.basePath = \"".$tplPath."/\";
+                 </script>";
+ ?>
+</head>
+<body <?php echo (!empty($bodyClasses)) ? " class='sr_page_body ".implode(' ',$bodyClasses)."' " : "sr_page_body"; ?>>
+  <!--Entete principale du site-->
+   <?php echo $this->render("pagehead.phtml")   ?>
+  <!--Fin entete principale du site-->
+     
+  <!--Le corps du site-->
+   <div id="sirah-page-body" class="colmask wrapper three-columns container" >  
+     <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >
+                  
+          <!--Bloc central de la page du site-->
+           <div id="sirah-page-mainblock-wrapper" class="col1">
+              <!--Le bloc des messages d'erreurs-->
+                   <?php echo $this->errormessage(); ?>
+              <!--Fin du bloc des messages d'erreurs--> 
+              <!--Le contenu principal la page du site-->
+                 <div id="sirah-page-mainblock"  class="container sr_bx" >                                                       
+                     <!--Le bloc du contenu de la page-->
+                      <div id="sirah-page-content" class="sirah-page-content" >
+                             <?php if(!empty($this->title)): ?>
+                                <div id="sirah-title" class="sirah-title" >
+                                    <div class="sirah-title-content"> <?php echo $this->title; ?> </div>
+                                </div> 
+                             <?php endif; ?>                                                        
+                            <!--Le contenu principal du site-->
+                            <div id="maincontent" class="container maincontent">
+                                <?php echo $layout->content ?>
+                            </div>
+                           <!--Fin du contenu principal du site-->
+                      </div>
+                      <!--Fin du bloc du contenu de la page-->                           
+                   </div>
+               <!--Fin du contenu principal de la page du site-->                                               
+         </div>
+         <!--Fin du bloc principal de la page du site-->
+         
+         <!--Le bloc gauche du corps du site-->
+          <div id="sirah-page-leftblock-wrapper" class="col2" >
+            <?php 
+                 if( $showLeftColumn ) {
+                    echo $this->render("leftmodules.phtml") ;
+                    if( $this->showProfileMenu ) {
+                    	$menuContent  = "
+                    	   <ul class=\"nav nav-list bs-docs-sidenav affix\">
+                               <li ><a href=\"#download-bootstrap\"><i class=\"icon-chevron-right\"></i> Download</a></li>
+                               <li ><a href=\"#parcours\"><i class=\"icon-chevron-right\"></i> Parcours </a></li>
+                               <li><a href=\"#language\"><i class=\"icon-chevron-right\"></i> Langue </a></li>
+                               <li ><a href=\"#html-template\"><i class=\"icon-chevron-right\"></i> HTML template</a></li>
+                               <li ><a href=\"#examples\"><i class=\"icon-chevron-right\"></i> Examples</a></li>
+                               <li><a href=\"#what-next\"><i class=\"icon-chevron-right\"></i> What next?</a></li>
+                        </ul>
+                    	";
+                    	echo $menuContent;
+                    }
+                 }  
+            ?>     
+          </div>  
+        <!--Fin du bloc de gauche du site--> 
+     
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+              <?php 
+                    if( $showRightColumn ) {
+                    		echo $this->render("rightmodules.phtml") ;                       
+                    }  
+             ?>     
+         </div>  
+         <!--Fin du bloc de droite du corps du site-->                
+       </div>
+    </div>   
+  </div> 
+  <!--Fin corps du site-->        
+     
+  <!--Pied de page du site-->
+   <?php echo $this->render("pagefooter.phtml")   ?>  
+  <!--Fin pied de page du site-->    
+ <?php
+           echo $this->headScript();
+           echo $this->jQuery();
+ ?>
+ <div id="loadingBox"></div>
+</body>
+</html>

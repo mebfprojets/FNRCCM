@@ -1,0 +1,184 @@
+<?php 
+$data                = $this->data;
+$demande             = $this->demande;
+$demandeid           = $demande->demandeid;
+$entrepriseid        = $this->entrepriseid;
+$entreprise          = $this->entreprise;
+$demandeurid         = $demande->demandeurid;
+$demandeur           = $this->demandeur;
+$promoteurid         = $demande->promoteurid;
+$promoteur           = $this->promoteur;
+ 
+$demandeType         = $this->type;
+$typeid              = $demande->typeid;
+$statutid            = $demande->statutid;
+$statut              = $this->statut;
+$state               = $this->state;
+$documentype         = $this->documentype;
+$identite            = $this->identite;
+$identiteType        = $this->identiteType;
+$demandeurIdentite   = $this->demandeurIdentite;
+$domaine             = $this->domaineActivite;
+$forme               = $this->formeJuridique;
+$documents           = $this->documents;
+
+$me                  = Sirah_Fabric::getUser();
+
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"create","typeid"=>$typeid), "default",true);
+$linkCancel          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"list") ,"default",true);
+$linkEdit            = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"edit"  ,"demandeid"=>$demandeid) , "default",true);
+$linkDelete          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"delete","ids"=>$demandeid), "default",true);
+
+$linkVerify          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify"  ,"demandeid"=>$demandeid),"default",true);
+$linkReserve         = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"reserve" ,"demandeid"=>$demandeid),"default",true);
+$linkReject          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"reject"  ,"demandeid"=>$demandeid),"default",true);
+$linkRetry           = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"retry"   ,"demandeid"=>$demandeid),"default",true);
+$linkGetDemande      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"get"     ,"demandeid"=>$demandeid ,"type"=>$documentype),"default",true);
+$linkValidate        = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"validate","demandeid"=>$demandeid),"default",true);
+$linkUpload          = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"upload"  ,"demandeid"=>$demandeid),"default",true);
+
+if( stripos($demande->numero,"Web")!==false || ($demande->web==1) ){
+	$modelRequest    = new Model_Demanderequest();
+	$request         = $modelRequest->demanderequest($demandeid,$me->userid);
+	if( isset($request->requestid) && intval($request->requestid)) {
+		$requestid   = $request->requestid;
+		$linkVerify  = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"request","requestid"=>$requestid,"demandeid"=>$demandeid),"default",true);
+	}
+}
+$jq->addOnload("");
+$buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate        = $buttonBar->button("Nouveau"  , "plus")->setPriority("primary");
+$buttonEdit          = $buttonBar->button("Modifier" , "edit");
+$buttonVerify        = $buttonBar->button("Vérifier" , "check");
+$buttonReserve       = $buttonBar->button("Réserver" , "check");
+$buttonReject        = $buttonBar->button("Rejeter"  , "times");
+$buttonRetry         = $buttonBar->button("Réessayer un autre", "pencil");
+$buttonDownload      = $buttonGetDemande = $buttonBar->button("Générer la fiche"  , "download");
+$buttonDelete        = $buttonBar->button("Supprimer", "trash-o");
+$buttonCancel        = $buttonBar->button("Retour"   , "arrow-left");
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+
+if( $me->isAllowed("demandes", "create") ) {
+	$buttonBar->add( $buttonCreate, "createButton");
+}
+if( $me->isAllowed("demandes", "edit")){
+    $buttonBar->add( $buttonEdit  , "editButton");
+	if( $state=="verified" || $state=="indisponiblite"  ) {
+		$buttonBar->add( $buttonRetry,"retryButton");
+		$buttonRetry->setAttributes( array("type"=>"submit","class"=>"btn btn-warning","title"=>"Réessayer avec un nouveau nom commercial"));
+	    $buttonRetry->onClick("event.preventDefault();document.location.href='".$linkRetry."';");
+	}	
+}
+if( $me->isAllowed("demandes", "get")) {
+	$buttonBar->add($buttonDownload, "getButton");
+}
+if( $me->isAllowed("demandes", "verify") && $state=="default") {
+	$buttonBar->add($buttonVerify  , "verifyButton");
+} elseif( $me->isAllowed("demandes", "reserve") && $state=="verified" ) {
+	$buttonBar->add($buttonReserve , "reserveButton");
+	$buttonBar->add($buttonReject  , "rejectButton");
+} elseif( $me->isAllowed("demandes", "reject") && $state=="indisponiblite" ) {
+	$buttonBar->add($buttonReject  , "rejectButton");
+}  		
+if( $me->isAllowed("demandes", "delete"))
+	$buttonBar->add( $buttonDelete , "deleteButton");
+$buttonCancel->setAttributes(  array("type"=>"submit","title"=>"Retourner sur la liste des demandes de vérifications"));	
+$buttonCreate->setAttributes(  array("type"=>"submit","title"=>"Créer une nouvelle demande de vérification et de réservation"));
+$buttonEdit->setAttributes(    array("type"=>"submit","class"=>"btn btn-warning","title"=>"Modifier les informations de cette demande"));
+$buttonDownload->setAttributes(array("type"=>"submit","class"=>"btn btn-info","title"=>"Générer et imprimer la fiche de cette demande"));
+$buttonDelete->setAttributes(  array("type"=>"submit","class"=>"btn alert-danger","title"=>"Supprimer la demande de la base de données"));
+if( $buttonVerify   ) {
+	$buttonVerify->onClick(  "event.preventDefault();document.location.href='".$linkVerify."';");
+}
+if( $buttonReserve   ) {
+	$buttonReserve->onClick( "event.preventDefault();document.location.href='".$linkReserve."';");
+}
+if( $buttonReject   ) {
+	$buttonReject->onClick( "event.preventDefault();document.location.href='".$linkReject."';");
+}
+$buttonCreate->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkCreate ));
+$buttonEdit->onClick(  sprintf("event.preventDefault();document.location.href='%s';",$linkEdit   ));
+$buttonDelete->onClick(sprintf("
+        event.preventDefault();
+        var dialogDeleteDemande = jQuery('<div> Etes-vous sur de supprimer cette demande ? </div>').attr('id','dialogDeleteDemande');
+        dialogDeleteDemande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnValidate:true,closeOnEscape:false,closeOnOverlayClick:true,showValidateHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteDemande.dialog2('addButton','Oui, supprimer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteDemande.dialog2('addButton','Non, ne pas supprimer', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteDemande.dialog2('open');" , $linkDelete));
+		
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+ 
+if( $buttonGetDemande ) {
+	$buttonGetDemande->onClick("event.preventDefault();document.location.href='".$linkGetDemande."';");
+}
+ 
+$this->toolsbar       = $buttonBar;
+?>
+
+<div class="row">
+	<div  class="col-sm-12 col-md-6">
+		<div class="panel panel-primary">
+			<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Les informations de la demande </h4> </div>  
+			<?php echo $this->partial("demandes/demande.phtml",array("localite"=>$localite,"statut"=>$statut,"identiteType"=>$identiteType,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+	    </div>
+	    <div class="panel panel-info">
+	        <div class="panel-heading"> <h4 class="panel-title"> Les informations du mandataire </h4> </div>
+		    <?php echo $this->partial("demandes/demandeur.phtml",array("demandeur"=>$demandeur,"demandeurid"=>$demandeurid,"identite"=>$demandeurIdentite,"identiteType"=>$identiteType,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+	    </div>
+	</div>	
+	<div  class="col-sm-12 col-md-6">
+	    <div id="accordionRight" class="panel-group">
+			<div class="panel panel-primary">
+				<div class="panel-heading"> <h4 class="panel-title"><a title="Les informations du promoteur" data-parent="#accordionRight" data-toggle="collapse" href="#promoteurData"><span class="glyph-icon icon-user"></span>Les informations du promoteur </a></h4></div>              
+				<div id="promoteurData" class="panel-collapse collapse in">
+					<?php echo $this->partial("demandes/promoteur.phtml",array("promoteur"=>$promoteur,"promoteurid"=>$promoteurid,"demande"=>$demande,"jquery"=>&$jq)); ?>
+				</div>	
+			</div>
+			<div class="panel panel-warning">
+			    <div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les informations sur les destinataires de la demande" data-parent="#accordionRight" data-toggle="collapse" href="#entrepriseData"><span class="glyph-icon icon-institution"></span> L'entreprise à créer </a></h4></div>  
+			    <div id="entrepriseData" class="panel-collapse collapse">
+				   <?php echo $this->partial("demandes/entreprise.phtml",array("domaine"=>$domaine,"forme"=>$forme,"entreprise"=>$entreprise,"entrepriseid"=>$entrepriseid,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+				</div>
+			</div>
+			<?php if( $me->isAllowed("demandes","upload")): ?>	
+			    <div class="panel panel-default">
+				    <?php
+					    $documentsButtonBar = $this->Btnbar(array("id"=>"documentsButtonBar"), $this->jqueryHandler());
+						$buttonAddDocuments = $documentsButtonBar->button(" Ajouter","plus")->setPriority("primary");
+						  
+						$buttonAddDocuments->setAttributes(array("type"=>"submit","class"=>"btn btn-success","title"=>"Ajouter un nouveau document"));
+						
+						if( $me->isAllowed("demandes", "upload"))
+	                        $documentsButtonBar->add($buttonAddDocuments, "addDocumentsButton");
+						
+						if( $buttonAddDocuments ) {
+							$buttonAddDocuments->onClick("
+								   event.preventDefault();
+								   var dialogUploadFile = jQuery('<div/>').attr('id','dialogUploadFile');             		 
+								   dialogUploadFile.dialog2({title:'Rattacher un document à ce dossier',content:'".$linkUpload."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+								   dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+								   dialogUploadFile.dialog2('addButton','Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});        		            		
+								   dialogUploadFile.dialog2('open'); ");
+						}
+					?>
+				    <div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les documents qui ont été rattachés" data-parent="#accordionRight" data-toggle="collapse" href="#documentsData"><span class="glyph-icon icon-paperclip"></span> Documents associés à la demande </a></h4></div>              
+				    <div id="documentsData" class="panel-collapse collapse">
+					    <?php echo $this->partial("demandes/documents.phtml",array("demande"=>$demande,"demandeid"=>$demandeid,"documents"=>$documents,"jquery"=>&$jq)); ?>
+				        <div class="panel-footer"><?php echo $documentsButtonBar; ?></div>
+					</div>		
+				</div>
+			<?php endif; ?>	 
+		</div>
+	</div>
+ </div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

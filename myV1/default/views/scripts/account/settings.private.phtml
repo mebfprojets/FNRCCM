@@ -1,0 +1,103 @@
+<?php 
+  $user               = $this->user;
+  $params             = $this->params;
+  $lastConnectionDate = new Zend_Date($user->lastConnectedDate , Zend_Date::TIMESTAMP , "fr_FR");
+  $lastUpdatedDate    = new Zend_Date($user->lastUpdatedDate   , Zend_Date::TIMESTAMP , "fr_FR");
+  $registeredDate     = new Zend_Date($user->registeredDate    , Zend_Date::TIMESTAMP , "fr_FR");
+  $updatedUser        = Sirah_Fabric::getUser($user->creatoruserid);
+  $creationUser       = Sirah_Fabric::getUser($user->updateduserid);
+  $clients            = array(1  => "Mozilla Firefox",
+  		                      2  => "Google Chrome"  ,
+  		                      3  => "Opera",
+  		                      4  => "Internet Explorer",
+  		                      0  => "Tous les navigateurs");
+  $typeOfUsers        = array(0  => "Personne" , 
+  		                      1  => "Tout le monde", 
+  		                      2  => "Mes collaborateurs" , 
+  		                      3  => "Les recruteurs et formateurs",
+  		                      4  => "Tous ceux qui possèdent un compte");
+  $profileAccessLevels= array(
+  		                      0  => "Uniquement mes infos personnelles",
+  		                      1  => "Mes infos et coordonnées",
+  		                      2  => "Mes infos, coordonnées et formations",
+  		                      3  => "Mes infos, coordonnées, formations et expériences",
+  		                      10 => "Toutes mes informations");
+  $formSubmit         =  $this->url(array("controller" => "account", "action"  => "settings") , "default");
+?>
+<form action="<?php echo $formSubmit; ?>" method="post"  id="saveConfidentialityParams-form" role="form" >
+ <ul class="list-group">
+       <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="profilevisibity"> <b> Qui peut voir les informations de mon profil ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("profilevisibility" , $params["profilevisibility"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>   
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="profileaccesslevel"> <b> Le niveau d'accès à mes informations: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("profileaccesslevel" , $params["profileaccesslevel"] , array() , $profileAccessLevels ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="contactvisibility"> <b> Qui peut accéder à mes contacts ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("contactvisibility" , $params["contactvisibility"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="contentvisibility"> <b> Qui peut accéder au contenu que je partage ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("contentvisibility" , $params["contentvisibility"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_name" , $params["findme_from_name"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon nom
+                 </label>
+              </div>
+             <div class="col-md-6">&nbsp;</div>    
+          </div>
+       </li>
+        <li class="list-group-item">
+          <div class="row"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_email" , $params["findme_from_email"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon adresse email
+                 </label>
+              </div>
+             <div class="col-md-6">&nbsp;</div>    
+          </div>
+       </li>
+       <li class="list-group-item">
+          <div class="row"> 
+             <div class="col-md-8"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("findme_from_phone" , $params["findme_from_phone"] , null ,array("1" , "0")); ?> Autoriser qu'on me retrouve via mon numéro de téléphone
+                 </label>
+              </div>
+             <div class="col-md-6">&nbsp;</div>    
+          </div>
+       </li>
+       <li class="list-group-item">
+          <div class="row"> 
+             <div class="col-md-6"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckbox("allow_robots_index" , $params["allow_robots_index"] , null ,array("1" , "0")); ?> Autoriser les moteurs de recherche à indexer mes informations
+                 </label>
+              </div>
+             <div class="col-md-6">&nbsp;</div>    
+          </div>
+      </li>             
+    </ul>
+  </form>
+ <?php 
+if($this->isAjax) {
+	echo $jq;
+} else {
+	echo "<div class='row col-md-12' >
+	         <button id=\"editConfidentialityParams\" type='submit' class=\"btn btn-success editConfidentialityParams\" > <i class=\"glyphicon glyphicon-floppy-disk\"></i> Appliquer les changements </button>
+	      </div>";
+}
+?>

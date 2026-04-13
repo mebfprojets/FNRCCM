@@ -1,0 +1,30 @@
+<?php
+    $me           = Sirah_Fabric::getUser();
+	$tplPath      = ROOT_PATH."/myTpl/public";
+	$layout       = Zend_Layout::getMvcInstance();
+	$view         = $layout->getView();	
+	$linkContact  = $view->url(array("controller"=>"project"  ,"action"=>"contacts","module"=>"public"),"default",true);
+    
+	$linkFAQ      = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>1,"code"=>"faq"),"articles",true);
+?>
+
+<div class="container">
+	<div class="row section-content">
+		<div class="col-md-7 col-sm-7 col-xs-12 wow bounceInLeft">
+			<h1 class="section-hero wow bounceInUp"> BESOIN D'AIDE ? </h1>				
+			<p  class="section-body"> 
+				Le service client et la satisfaction vont de pair au Fichier National RCCM. 
+				Notre équipe est prête à vous aider, du lundi au vendredi, à la Maison de l'entreprise - par téléphone, par courrier électronique ou à travers notre guide en ligne. Vous permettant de passer des commandes, de résoudre des questions techniques ou de vous diriger vers des ressources utiles!
+			</p>
+			<a href="#" class="btn btn-danger"   title="Vous souhaitez entrer en contacts avec notre équipe..."><i class="glyph-icon icon-phone"></i>TEL: (+226)70 41 96 02 / 76 00 74 05</a>
+			<a href="<?php echo $linkContact; ?>" class="btn btn-black"    title="Vous pouvez nous écrire en nous parlant de vos difficultés"> <i class="glyph-icon icon-envelope"></i> NOUS ECRIRE </a>
+			<a href="<?php echo $linkFAQ; ?>"     class="btn btn-primary"  title="Vous pouvez obtenir dans la Foire Aux Questions des ressources et/ou des informations pour vous guider"> <i class="glyph-icon icon-support"></i> FAQ </a>
+		</div>
+		<div class="col-md-5 col-sm-5 col-xs-12 wow bounceInRight"> <img class="pull-right support-img"  src="<?php echo $tplPath; ?>/images/AssistanceIcon.png" /></div>
+	</div>
+</div>
+
+<?php
+	 $jq  = $view->jQuery();
+	 $onLoad = " ";
+?>

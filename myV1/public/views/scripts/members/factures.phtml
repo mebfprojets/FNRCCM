@@ -1,0 +1,76 @@
+<?php 
+   $member      = $this->member;
+   $statuts     = array(-1 => "Selectionnez un statut")+array(1 => "Facture soldée",0 => "Facture non soldée",2 => "En cours de traitement",3 => "Transmise au member");
+   $factures    = $this->factures;
+   $me          = Sirah_Fabric::getUser();
+   $canRemove   = $me->isAllowed("vfactures", "delete");
+   $linkDelete  = $this->url(array("controller" => "vfactures", "action" => "delete"), "default") ;
+   $linkCreate  = $this->url(array("controller" => "vfactures", "action" => "create" , "memberid" => $member->memberid), "default") ;
+   $output      = " <table id=\"facturesList\" class=\"table table-striped table-responsive facturesList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:2%\"> *         </th>
+									 <th width=\"width:38%\"> Types    </th>
+                                     <th width=\"width:30%\"> Dates    </th>
+                                     <th width=\"width:30%\"> Numéros  </th>
+                              </tr>
+                       </thead>";
+   
+   if( count(   $factures ) ) {
+   	   foreach( $factures as $facture ) {
+   	   	        $factureid    = $facture["invoiceid"];
+   	   	        $numero       = $facture["numero"];
+   	   	        $dateFacture  = $facture["date_facture"];
+   	   	        $montant      = (APPLY_TVA) ? number_format($facture["montant_ttc"], 0 , ", "," ") : number_format($facture["montant_ht"],0,", "," ");
+   	   	        $rowBg        = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   	        $linkFacture  = $this->url(array("controller" => "factures","action"=> "infos", "factureid" => $factureid ), "default");  	   	        
+   	   	        $output      .="  <tr id=\"factureId-".$factureid ."\" style=\"background-color:".$rowBg."\"> ";
+   	   	           if($canRemove )     
+					  $output.="     <td> <span title=\"Supprimer cette facture\" href=\"#\" id=\"delFactureId-".$factureid."\" class=\"glyph-icon icon-remove pull-left delFacture \"></span> </td>";
+   	   	           else  
+					  $output.="     <td> </td>"; 
+				      $output.="     <td> <a title=\"Accéder aux informations de cette facture\" href=\"".$linkFacture."\">".$type  ."  </a> </td>";
+					  $output.="     <td> <a title=\"Accéder aux informations de cette facture\" href=\"".$linkFacture."\">".$dateFacture." </a> </td>";  	   	              
+					  $output.="     <td> <a title=\"Accéder aux informations de cette facture\" href=\"".$linkFacture."\">".$numero."  </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucune facture n'a été enregistrée pour ce member </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "
+jQuery('.addInvoice').click(function( event ){event.preventDefault();document.location.href = '".$linkCreate."';});
+jQuery('.delFacture').css('cursor','pointer');
+jQuery('.delFacture').click(function( event ){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('delFactureId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette facture ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape: false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({ url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'factureid': itemId},
+             		                              type     : 'GET',
+             		                              success  : function(data) 
+             		                              {
+             		                                   if( data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){jQuery('#factureId-'+itemId).remove();jQuery('#dialogDeleteItem').dialog2('close');},2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open'); 
+});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

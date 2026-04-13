@@ -1,0 +1,173 @@
+<?php
+$me                   = Sirah_Fabric::getUser(); 
+$photos               = $this->photos;
+$gallerie             = $this->gallerie;
+$filters              = $this->filters;
+$paginator            = $this->paginator;
+
+$blankPhoto           = VIEW_BASE_PATH ."/images/blank.png";
+$jq                   = $this->jQuery();
+
+$linkSearch           = $this->url(array("controller" => "photos", "action"  => "list")  , "default");
+$linkCreate           = $this->url(array("controller" => "photos", "action"  => "create"), "default");
+$linkEdit             = $this->url(array("controller" => "photos", "action"  => "edit")  , "default");
+$linkDelete           = $this->url(array("controller" => "photos", "action"  => "delete"), "default");
+
+$onLoad               ="  
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+		   var formSelector     = jQuery('#advanced-searchform');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum - 1);
+		   }
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);	});
+
+jQuery('.thumbnailImg').css('cursor', 'pointer');
+jQuery('.thumbnailImg').click(function( event ) { var itemLink = jQuery(this).attr('img-link');document.location.href = itemLink;});
+jQuery('.deletePhoto').css('cursor','pointer');
+jQuery('.deletePhoto').hover(function(){jQuery(this).css('color','#333');}, function(){jQuery(this).css('color','#dfe3e8');});
+jQuery('.deletePhoto').click(function( event ) {
+event.preventDefault();
+var itemId           = parseInt(jQuery(this).attr('id').replace('removeId-',''));
+var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette photo ? </div>').attr('id','dialogDeleteItem');
+dialogDeleteItem.dialog2({title:'Confirmer cette action !',autoOpen:false, removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                var modalBody = jQuery('.modal').find('.modal-body');
+             		                var insertBtn = jQuery('.modal-footer').find('.btn-primary').eq(0);
+             		                insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                jQuery.ajax({ url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'photoids' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+                                                           insertBtn.btnLoading({on:false});
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#photoid-'+itemId).remove();
+             		                                       setTimeout(function(){jQuery('#photoid-'+itemId).remove();insertBtn.btnLoading({on:false});jQuery('#dialogDeleteItem').dialog2('close');},1500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		   
+});";
+
+$jq->addOnload( $onLoad );
+
+?>
+<div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());             
+             $buttonCreate  = $buttonbar->button("Ajouter une photo"  , "plus")->setPriority("primary");            
+             
+             if( $me->isAllowed("photos", "create" ) ) {
+             	 $buttonbar->add( $buttonCreate ,"createButton");
+             	 $buttonCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate));
+             }
+                  
+
+              ?>
+<?php $this->headStyle()->captureStart() ?>
+#listOfPhotos{margin-top:10px !important;}
+p.buttons .btn{padding:3px 10px;margin-left:5px;}
+p.buttons .pull-top{top:5px !important;position:absolute; color:#dfe3e8;}
+p.buttons .pull-right{right:5px !important;position:absolute;}
+.thumbnail .caption {height:40px;min-height:40px;}
+.thumbnail{padding:5px;}
+.thumbnail img{margin-top:0;}
+<?php $this->headStyle()->captureEnd()   ?>           
+ <div class="row" > 
+     <div class="col-md-3"><?php echo $buttonbar; ?></div>                     
+     <div class="col-md-9"> 
+          <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                <div class="input-group pull-right">
+                     <input value="<?php echo $filters['libelle']; ?>" id="generalfilter" name="generalfilter"  type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                    <span class="input-group-btn "> <button class="btn btn-default default-search" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button></span>
+                </div>
+        </form> 
+     </div>                      
+</div>                                                   
+<?php           
+ $output  = "<div id=\"listOfPhotos\" class=\"container\"> 
+                           <div class=\"row\"> ";
+                               if( count(   $photos ) ) {
+                               	            $me  = Sirah_Fabric::getUser();
+                               	   foreach( $photos as $rowPhoto ) {
+                               	   	        $photoid            = intval( $rowPhoto["photoid"] );
+                               	   	        $photoLibelle       = $this->escape( $rowPhoto["libelle"] );
+                               	   	        $photo              = $rowPhoto["photo"];
+
+                               	   	        $canDelete          = ( $me->isAllowed("photos", "delete") );
+                               	   	        $linkEdit           = $this->url(array("controller"=> "photos", "action" => "edit"  , "id"  => $photoid), "default");
+                               	   	        $linkPhoto          = $this->url(array("controller"=> "photos", "action" => "infos" , "id"  => $photoid), "default");
+                               	   	        $linkDelete         = $this->url(array("controller"=> "photos", "action" => "delete", "ids" => $photoid), "default");
+                               	   	        $photoFile          = $blankPhoto;
+                               	   	        
+                               	   	        //print_r( $photo ); die();
+                               	   	        
+                               	   	        if( !empty( $photo ) ) {
+                               	   	        	$photoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photo );
+                               	   	        	if( Sirah_Filesystem::exists( $photo ) ) {
+                               	   	        		$photoFile  = str_replace( DS, "/", $photoPathname );
+                               	   	        		//$photoFile  = str_replace( "original", "mini", $photoFile );
+                               	   	        	}
+                               	   	        }
+                               	   	        $output  .=" <div id=\"photoid-".$photoid."\" class=\"col-xs-18 col-sm-6 col-md-4\"> ";
+                               	   	                 $output  .=" <div class=\"thumbnail\"> ";
+                               	   	                          $output  .=" <img class=\"thumbnailImg\" style=\"height:200px\" align=\"center\" src=\"".$photoFile."\" title=\"Voir la photo\" alt=\"Voir la photo\" />";
+                               	   	                          $output  .=" <div class=\"caption\"> ";
+                               	   	                                   $output  .="<h3> <a  href=\"#\"> ".$photoLibelle." </a> </h3>";                              	   	                                                           	   	                                   	                                	   	                                   
+                               	   	                                   $output  .=" <p class=\"buttons\">  ";                               	   	                                           
+                               	   	                                            if( $canDelete ) {
+                               	   	                                            	$output  .=" <i id=\"removeId-".$photoid."\" class=\"glyphicon glyphicon-remove pull-right pull-top deletePhoto\"> </i>";
+                               	   	                                            }
+                               	   	                                   $output  .=" </p>";
+                               	   	                          $output  .=" </div> ";
+                               	   	                 $output  .=" </div> ";
+                               	   	        $output  .=" </div> ";
+                               	   }                              	
+                               }  else {
+                               	$output  .="<div class=\"panel panel-default\"><div class=\"panel-body\"> Aucune photo n'a été retrouvée dans cette gallerie. </div> </div> ";
+                               }        
+              $output .= "</div> </div> ";
+              
+              echo $output;
+              
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headScript();             	  
+              	  echo $this->headStyle();
+              }                   
+    ?>
+ </div>

@@ -1,0 +1,48 @@
+<?php
+      $statsexes = $this->rows;
+	  $sexes     = array("M"=>"Hommes","F"=>"Femmes");
+?>
+<table id="statsSexe" class="table table-bordered table-hover">
+		    <thead> <tr> <th width="80%"> Sexes </th> <th width="20%"> Nombre </th> </tr></thead>
+			<tbody>
+			   <?php
+			          $outputSexe  = "";
+					  $totalSexe   = 0;
+					  $nbreHommes  = $nbreFemmes = 0;					  
+					  
+					  if( count(   $statsexes )) {
+						  foreach( $statsexes as $statsexe ) {
+							       $sexeValue    = strtoupper($statsexe['sexe']);
+								   $nombre       = 0;
+							       if(empty($sexeValue) || !isset($sexes[$sexeValue]))
+                     	 	      	  continue;
+								   
+								   if(($sexeValue=="M") || ($sexeValue=="MASCULIN") || ($sexeValue=="H") || ($sexeValue=="HOMMES") || ($sexeValue=="G")) {
+									   $nbreHommes = $statsexe['nombre']+$nbreHommes;
+									   $nombre     = $nbreHommes;
+									   $sexe       = "Hommes";
+								   } else {
+									   $nbreFemmes = $statsexe['nombre']+$nbreFemmes;
+									   $nombre     = $nbreFemmes;
+									   $sexe       = "Femmes";
+								   }
+                     	 	       $rowBg        = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                                   $linkList     = $this->url(array("module"=>"admin","controller"=>"registres","action"=> "list","sexe"=> $statsexe['sexe']),"default");
+								   $outputSexe  .="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".$sexe." </a></td>";
+                     	 	            $outputSexe.="<td> <a title=\"Accéder aux RCCM de ce sexe\" href=\"".$linkList."\"> ".number_format($nombre, 0, " ", " ")." </a> </td>";
+                     	 	       $outputSexe.="</tr>";
+                     	 	       $totalSexe += $nombre;
+						  }
+						  $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						  $outputSexe.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $outputSexe.="<td> TOTAL :    </td>";
+                     	        $outputSexe.="<td> ".number_format( $totalSexe, 0,' ', ' ')." </td>";
+                     	  $outputSexe.="</tr>";
+					  } else {
+						           $outputSexe.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+					  }
+					  echo $outputSexe;
+			   ?>
+			</tbody>
+</table>

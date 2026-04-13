@@ -1,0 +1,74 @@
+<?php
+    $tplPath           = ROOT_PATH."/myTpl/public";
+    $me                = Sirah_Fabric::getUser();
+	
+	$layout            = Zend_Layout::getMvcInstance();
+	$view              = $layout->getView();
+	
+	$linkPayments      = $view->url(array("module"=>"public","controller"=>"payments" ,"action"=>"howto") , "default",true);
+	$linkCartInfos     = $view->url(array("module"=>"public","controller"=>"ordercart","action"=>"infos") , "default",true); 
+	$linkCreateAccount = $view->url(array("module"=>"public","controller"=>"members"  ,"action"=>"register"),"default",true);
+	$linkReservation   = $view->url(array("module"=>"public","controller"=>"requetes" ,"action"=>"verify"),"default",true);
+	$linkSearch        = $view->url(array("module"=>"public","controller"=>"registres","action"=>"search","advanced"=>1),"default", true);
+	 
+?>
+<?php $view->headStyle()->captureStart() ?>
+.grid-layout{position:relative;z-index:3;}
+.grid-layout img{height:100px;}
+.grid-layout h3{color:#009aca !important;font-size:15px;font-weight:bold;font-family: 'Raleway',sans-serif !important;text-decoration:none !important}
+.grid-layout p{font-size:13px;    height:50px;}
+.grid-layout > .panel-body {padding: 0px;position:relative;z-index:3;border:1px solid #f5f5f5;}
+.grid-layout > .panel-footer {text-align:center;position:relative;z-index:3}
+.grid-layout:before {position:absolute;left:0;height:60%;bottom:0;width: 100%;content:"";background-color:#ffffff;z-index: 2;}
+.grid-layout:after{content:"";position:absolute;height:50%;width:96%;left:50%;bottom:2px;margin-left:-48%;-webkit-box-shadow:0 5px 7px #999999;box-shadow:0 5px 7px #999999;z-index:1;border-radius:10%;-webkit-transition: all 0.3s ease-in-out;-o-transition: all 0.3s ease-in-out;transition: all 0.3s ease-in-out;}
+<?php $view->headStyle()->captureEnd(); ?>
+<div id="appFeatures" class="app-features container">
+    <div class="section-title"> <h4 class="section-title-heading"> Services en ligne </h4></div>
+	<div class="row section-content">
+		<div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+			<div class="panel panel-default grid-layout wow fadeInLeft" data-wow-delay="0.1s" style="visibility: visible; -webkit-animation-delay: 0.1s; -moz-animation-delay: 0.1s; animation-delay: 0.1s;">
+				<div class="panel-body">
+					<a title="Créer votre compte" href="<?php echo $linkCreateAccount; ?>" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/guest_register.png" /> </a>
+				</div>
+				<div class="panel-footer">
+					<h3> <a class="grid-layout-link" href="<?php echo $linkCreateAccount; ?>" title="Créer votre compte"> Créer un compte </a></h3>
+					<p>  Créer votre compte en toute sécurité afin de bénéficier des services proposés sur cette plateforme.. </p>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+			<div class="panel panel-default grid-layout wow fadeInLeft" data-wow-delay="0.2s" style="visibility: visible; -webkit-animation-delay: 0.2s; -moz-animation-delay: 0.2s; animation-delay: 0.2s;">
+				<div class="panel-body">
+					<a href="<?php echo $linkSearch; ?>" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/filesearch.png" /> </a>
+				</div>
+				<div class="panel-footer">
+					<h3> <a href="<?php echo $linkSearch; ?>" title="Recherher des personnes physiques ou des personnes morales..."> Rechercher des entreprises </a></h3>
+					<p> Recherchez des Personnes Physiques ou Morales à travers vos mots clés et obtenez des informations certifiées... </p>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+			<div class="panel panel-default grid-layout wow fadeInLeft" data-wow-delay="0.3s" style="visibility: visible; -webkit-animation-delay: 0.3s; -moz-animation-delay: 0.3s; animation-delay: 0.3s;">
+				<div class="panel-body">
+					<a href="#" class="grid-layout-link"> <img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/delivery-verification.png" /> </a>
+				</div>
+				<div class="panel-footer">
+					<h3> <a href="<?php echo $linkReservation; ?>" title="Vérifier et réserver vos noms commerciaux"> Réserver un nom commercial</a></h3>
+					<p> Vérifier la disponibilité des noms commerciaux et procéder à la réservation en ligne en toute simplicité... </p>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-12 col-sm-3 col-md-3 equal-height-panels">
+			<div class="panel panel-default grid-layout wow fadeInLeft" data-wow-delay="0.4s" style="visibility: visible; -webkit-animation-delay: 0.1s; -moz-animation-delay: 0.4s; animation-delay: 0.4s;">
+				<div class="panel-body">
+					<a href="#" class="grid-layout-link"><img class="center-block" src="<?php echo $tplPath; ?>/assets/images/icons/securedpaiements.png" /> </a>
+				</div>
+				<div class="panel-footer">
+					<h3> <a href="<?php echo $linkPayments; ?>" title="Effectuez en toute sécurité vos paiements..."> Paiements sécurisés </a></h3>
+					<p> Vous avez le choix entre plusieurs moyens de paiements sécurisés pour souscrire à nos services... </p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+ 

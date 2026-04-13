@@ -1,0 +1,81 @@
+<?php
+   $me            = Sirah_Fabric::getUser(); 
+   $modelRegistre = new Model_Registre();  
+   $annees        = $this->annees;
+   $localites     = $this->localites;
+   $filters       = $this->filters;
+   $params        = $this->params;
+   $colspan       = count($annees) + 1;
+?>
+ <table border="1" class="table table-bordered table-hover" width="100%">
+          <thead>
+            <?php 
+			      $headOutput = "<tr>";
+				             $headOutput.= "<th style=\"text-align:center;\" width=\"12%\"> Localités </th>";
+				  $tableWidth = 88 / (count($annees)+1);
+				  //print_r(count($annees));die();
+                  if(count(    $annees))  {
+					  foreach( $annees as $k => $anneeRow ) {
+						       if(empty( $anneeRow["annee"] ))
+								   continue;
+						       $headOutput.= "<th style=\"text-align:center;\" width=\"".$tableWidth."%\"> ".$anneeRow['annee']."</th>";
+					  }
+				  }
+				             $headOutput.= "<th style=\"text-align:center;\" width=\"".$tableWidth."%\">  Total localité </th>";
+				   $headOutput.= "</tr>";
+				   
+				   echo $headOutput;
+            ?>			
+          </thead>         
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $nbreTotal   = 0;
+					 $totalAnnee  = array();
+					 if( count(   $localites ) && count($annees )) {
+						 foreach( $localites as $localiteid => $localiteLibelle ) {
+							      if(!intval($localiteid)) {
+									  continue;
+								  }
+							      $rowBg   = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+							      $output .= "<tr style=\"background-color:".$rowBg."\">";
+								           $linkListLocalite  = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","localiteid"=> $localiteid), "default");
+								           $output.="<td style=\"text-align:center;\" width=\"12%\"> <a title=\"Voir la liste des RCCM correspondants\" href=\"".$linkListLocalite."\"> ".$localiteLibelle." </a> </td>";
+										   $nbreLocalite  = 0;
+							      foreach( $annees as $k => $anneeRow  ) {
+									       if(empty( $anneeRow["annee"] ))
+								              continue;
+									       $annee             = $anneeRow["annee"];
+										   $linkList          = $this->url(array("module"=>"admin","controller"=> "registres","action"=> "list","localiteid"=> $localiteid, "annee" => $annee), "default");
+                                           $nbreLocaliteAnnee = $modelRegistre->getNbreLocaliteAnnee( $localiteid, $annee, 0, $filters);
+										   
+										   $nbreLocalite     += $nbreLocaliteAnnee;
+										   $nbreTotal        += $nbreLocaliteAnnee;
+										   $totalAnnee[$annee]= (isset($totalAnnee[$annee])) ? $totalAnnee[$annee] + $nbreLocaliteAnnee : $nbreLocaliteAnnee;
+										   $output           .= "<td width=\"".$tableWidth."%\" style=\"text-align:center;\"> <a title=\"Voir la liste des RCCM correspondants\" href=\"".$linkList."\"> ".number_format( $nbreLocaliteAnnee, 0, " "," ")."</a>  </td>";
+								  }
+								           $output           .= "<td width=\"".$tableWidth."%\" style=\"text-align:center;\"> <a title=\"Voir la liste des RCCM correspondants\" href=\"".$linkListLocalite."\">".number_format( $nbreLocalite, 0, " ", " " )." </a> </td>";
+								  $output .= "</tr>";
+						 }
+						 $rowBg   = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+						 $output .= "<tr style=\"background-color:".$rowBg."\">";
+						          $output.="<td style=\"text-align:center;\" width=\"12%\">  Total Années </td>";
+								  foreach( $annees as $k => $anneeRow  ) {
+									       if(empty( $anneeRow["annee"] ))
+								              continue;
+									       $annee           = $anneeRow["annee"];
+                                           $nbreTotalAnnee  = (isset($totalAnnee[$annee])) ? number_format($totalAnnee[$annee],0, " "," "): 0;
+										   $linkList        = $this->url(array("module"=> "admin","controller"=> "registres","action"=>"list","annee" => $annee), "default");
+										   $output         .= "<td  width=\"".$tableWidth."%\" style=\"text-align:center;\"> <a title=\"Voir la liste des RCCM correspondants\" href=\"".$linkList."\"> ". $nbreTotalAnnee ."</a> </td>";
+								  }
+								  $output.="<td width=\"".$tableWidth."%\" style=\"text-align:center;\"> ".number_format($nbreTotal,0, " "," ")." </td>";
+						 $output .= "</tr>";
+					 }  else {
+                         $output .= "<tr> <td colspan=\"".$colspan."\"> AUCUN RCCM NA ETE RETROUVE DANS LE SYSTEME </td></tr>";
+					 }
+                     
+                     echo $output;
+              ?>
+          
+          </tbody>         
+   </table>

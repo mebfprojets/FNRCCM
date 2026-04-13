@@ -1,0 +1,57 @@
+<?php 
+    $commandes     = $this->commandes;
+    $member        = $this->member;
+	$memberid      = $this->memberid;
+    $me            = Sirah_Fabric::getUser();
+    $output        = "  <table id=\"commandesList\" class=\"table table-stripped table-responsive commandesList\">
+                            <thead>
+                                <tr>
+                                    <th width=\"width:25%\"> Dates    </th>
+                                    <th width=\"width:25%\"> Numéros  </th> 
+                                    <th width=\"width:25%\"> Statuts  </th>									
+									<th width=\"width:25%\"> Montants </th>
+									
+                                </tr>
+                            </thead>";  
+    if( count(  $commandes ) ) {
+   	            $commandeTotal= 0;
+   	    foreach($commandes  as $commande ) {
+   	   	        $commandeid    = $commande["commandeid"];
+                $reference     = $commande["ref"];
+                $valeur        = number_format($commande["valeur"], 0 , ", "," ");
+                $date          = (isset($commande["date_commande"]))? $commande["date_commande"] : date("d/m/Y", $commande["date"]);                     	  	       
+                $statutLib     = (isset($commande["statut"]       ))? $commande["statut"]        : "";
+   	   	        $rowBg         = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+				$commandeTotal+= $commande["valeur"];
+   	   	        $linkInfos     = $this->url(array("module"=>"public","controller"=>"orders","action"=>"infos","commandeid"=>$commandeid,"id"=>$commandeid),"default",true);
+   	   	        if( isset($commande["date"]) && intval($commande["date"])) {
+					$zendDate  = new Zend_Date($commande["date"],Zend_Date::TIMESTAMP);
+					if( $zendDate ) {
+						$date  = $zendDate->toString("dd MMM Y");
+					}
+				}
+   	   	        $output       .="<tr id=\"commandeId-".$commandeid ."\" style=\"background-color:".$rowBg."\"> ";					
+					  $output .="   <td><a title=\"Consulter les informations de cette commande\" href=\"".$linkInfos."\">".$date     ."</a></td>";
+   	   	              $output .="   <td><a title=\"Consulter les informations de cette commande\" href=\"".$linkInfos."\">".$reference."</a></td>"; 
+                      $output .="   <td><a title=\"Consulter les informations de cette commande\" href=\"".$linkInfos."\">".$statutLib."</a></td>";  	   	              
+					  $output .="   <td style=\"text-align:right;\"><a title=\"Consulter les informations de cette commande\" href=\"".$linkInfos."\">".$valeur." F CFA </a></td>";
+					  
+   	   	        $output       .="</tr>";
+   	    }
+   	    $rowBg                = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	    $commandeTotalFormat  = number_format( $commandeTotal, 0 , ",", " " );
+   	    $output              .="<tr id=\"commandeId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                                <td style=\"text-align:right;\" colspan=\"3\"> TOTAL </td>
+									<td style=\"text-align:right;\"> ".$commandeTotalFormat." F CFA </td>
+   	                            </tr>";
+   } else {
+   	    $output              .=" <tr> <td style=\"text-align:center;\" colspan=\"4\"> Aucune commande n'a été trouvée. </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+ 
+?>
+             

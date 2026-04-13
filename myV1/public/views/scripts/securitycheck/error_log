@@ -1,0 +1,16 @@
+[28-Dec-2022 10:01:15 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/captcha.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/captcha.phtml on line 2
+[28-Dec-2022 10:01:17 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/checkauth.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/checkauth.phtml on line 2
+[31-Jan-2023 01:14:33 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/captcha.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/captcha.phtml on line 2
+[31-Jan-2023 01:14:33 Africa/Ouagadougou] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/checkauth.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/securitycheck/checkauth.phtml on line 2

@@ -1,0 +1,151 @@
+<?php
+    $tplPath       = VIEW_BASE_PATH;
+    $invoices      = $this->invoices;
+    $filters       = $this->filters;
+    $paginator     = $this->paginator;
+    $linkSearch    = $this->url(array("controller"=>"invoices","action"=>"list","module"=>"public"), "default",true);
+	$linkCancel    = $this->url(array("controller"=>"members","action"=>"dashboard","module"=>"public"),"default", true);
+
+    $statuts       = $this->statuts;
+    if( null != $paginator ) {
+  	  //On crée et affiche la pagination
+  	  $pagination  = $this->pagination(array(),"Elastic",$this->url(array("controller"=>"invoices","action"=>"list","module"=>"public"),"default",true), array(), array("class" => "panel-footer paginationControl"));
+  	  
+    }
+    $jq         = $this->jQuery();
+    $onLoad     = "
+        jQuery('.sirahPaginationBtn').click(function(event){
+			event.preventDefault();
+			if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+			var formSelector        = jQuery('#globalFormSearch');
+			var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+			var pageMaxitems        = formSelector.find('#maxitems').val();
+			if( jQuery(this).is('.nextPage')) {
+				var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+				pageNum             = parseInt( currentBtnNum +1);
+			}
+			if( jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+			var paginationData      = {};
+			paginationData.maxitems = pageMaxitems;
+			paginationData.page     = pageNum;
+			paginationData.searchQ  = formSelector.find('#searchQ').val();
+			paginationData.statutid = parseInt(formSelector.find('#statutid').val());   
+			var maincontent	        = jQuery('#maincontent');
+			SIRAH.loading.on( maincontent , 'Chargement des données...' );
+			SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:paginationData,beforeSend:function(){},
+							   error  : function(data){maincontent.html(data).after(data);SIRAH.loading.off(false);},
+							   success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							   update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+			});
+			SIRAH.loading.off(false);
+		});
+        jQuery('.simpleSearch,#simpleSearch').click(function( event ){
+		    event.preventDefault();		            
+		    var formSelector    = jQuery('#globalFormSearch'); 
+		    var searchData      = {};
+		    searchData.searchQ  = formSelector.find('#searchQ').val();
+		    searchData.statutid = parseInt(formSelector.find('#statutid').val());
+		    var maincontent	    = jQuery('#maincontent');	
+		    SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		    SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+							  error  : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  success: function(data){maincontent.html(data);SIRAH.loading.off(false);},
+							  update : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		    });
+		    SIRAH.loading.off(false);		                
+		});
+        jQuery('.resetSearchBtn,#resetSearchBtn').click(function( event ){ event.preventDefault(); document.location.href='".$linkSearch."'; });";
+   
+   $jq->addOnLoad( $onLoad );
+   
+   $buttonBar    = $buttonbar  = $this->buttonsbar(array()  , $this->jqueryHandler());
+   $buttonCancel = $buttonBar->button("Revenir sur mon tableau de bord","chevron-left");
+   
+   $buttonBar->add($buttonCancel, "cancelButton");
+   
+   $buttonCancel->setAttributes(array("type"=>"submit"));
+   
+   $buttonCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel));
+?>
+<div class="row buttons mrg20B mrg5L"><?php echo $buttonBar; ?></div>
+<div id="panelListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		    <form class="form-horizontal globalFormSearch" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		        <div class="input-group">
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("catid"   , intval($filters["catid"])   ,array("class" => "form-control catid"), $this->categories); ?></span>
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("statutid", intval($filters["statutid"]),array("class" => "form-control input-lg"), $this->statuts); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ" type="text" class="form-control input-lg" placeholder="Recherchez une invoice, saisir des mots clés...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"   class="btn btn-lg btn-primary simpleSearch"    type="button"><span class="glyph-icon icon-search"></span> </button>
+					   <button id="resetSearchBtn" class="btn btn-lg btn-danger  resetSearchBtn"  type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>" /> 
+				<input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+			</form>
+		</div>
+        <table id="invoicesListTable"  class="table table-hover table-binvoiceed text-center">
+            <thead>
+				<tr>
+					<th width='10%'> Références      </th>
+					<th width='10%'> Commandes       </th>
+					<th width='10%'> Dates           </th>	
+                    <th width='20%'> Modes Paiements </th>						
+					<th width='10%'> Montants HT     </th>
+					<th width='10%'> Montants TTC    </th>
+					<th width='20%'> Statuts         </th>
+				</tr>
+			</thead>                
+			<tbody>
+            <?php 
+				$output   = "";
+				if( count(   $invoices )) {
+					foreach( $invoices as $invoice ) {
+							 $invoiceid    = $invoice["invoiceid"];
+							 $reference    = $invoice["numero"];
+							 $commande     = $invoice["numcommande"];
+							 $produits     = array();
+							 $modePaiement = (isset($invoice["modepaiement"]) && $invoice["modepaiement"]=="2")? "Carte Visa" : "Mobile Money";
+							 $valeurHT     = (floatval($invoice["valeur_ht"] ))?number_format($invoice["valeur_ht"] ,0,", "," ") : floatval($invoice["valeur_ht"]);
+							 $valeurTTC    = (floatval($invoice["valeur_ttc"]))?number_format($invoice["valeur_ttc"],0,", "," ") : floatval($invoice["valeur_ttc"]);
+							 $dateInvoice  = (intval(  $invoice["date"]      ))?date("d/m/Y", $invoice["date"]) : $invoice["dateCommande"];                     	  	       
+                             $bgClass      = "";
+							 $bgColor      = $this->cycle(array('#FFFFFF','#F0F0F0'))->next();
+							 $linkInfos    = $this->url(array("controller"=>"invoices","action"=>"infos","id"=>$invoiceid,"invoiceid"=>$invoiceid,"module"=>"public"), "default",true);
+							 $statutLib    = (isset($statuts[$invoice["statutid"]]) && intval($invoice["statutid"])) ? $statuts[$invoice["statutid"]] : "";
+							 if( intval($invoice["validated"]) == 1) {
+								 $bgClass  = "alert success validated";
+							 } else {
+								 $bgClass  = "alert danger unvalidated";
+							 } 								 
+							 $output      .= "<tr id=\"invoiceId-".$invoiceid."\" style=\"background-color:".$bgColor."\" class=\"invoiceIds ".$bgColor."\">";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$reference   ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$commande    ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$dateInvoice ." </a></td>";									
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$modePaiement." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$valeurHT    ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$valeurTTC   ." </a></td>";
+								$output   .= "   <td class=\"".$bgColor."\"><a title=\"Accéder aux informations de la facture\" href=\"".$linkInfos."\"> ".$statutLib   ." </a></td>";
+							 $output      .= "</tr>";                      	  	       
+					  }
+				} else {
+							 $output      .= "<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"8\"> AUCUNE FACTURE N'A ETE TROUVEE </td> </tr>";
+				}
+				echo $output;
+            ?>
+            </tbody>
+        </table>
+		<div class="panel-footer"><?php  echo $pagination->render(); ?></div>
+    </div>
+</div>
+ 
+
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

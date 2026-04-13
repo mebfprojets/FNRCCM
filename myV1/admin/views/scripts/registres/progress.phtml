@@ -1,0 +1,88 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller" =>"registres", "action" => "progress", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller" =>"registrephysique", "action" => "list", "module" => "admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+$invalidHtml = $this->invalidHtml;	
+$missingHtml = $this->missingHtml;	
+$validHtml   = $this->validHtml;	
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<?php if(!empty($invalidHtml)): ?>
+ <div     class="content-box"> 
+      <h3 class="content-box-header content-box-header-alt bg-red">  Bilan des documents invalides </h3>
+	  <?php echo $invalidHtml; ?>
+ </div>  
+<?php endif; ?>
+<?php if(!empty($missingHtml)): ?>
+ <div     class="content-box"> 
+      <h3 class="content-box-header content-box-header-alt bg-red">  Bilan des documents manquants </h3>
+	  <?php echo $missingHtml; ?>
+ </div>  
+<?php endif; ?>
+<?php if(!empty($validHtml)): ?>
+ <div     class="content-box"> 
+      <h3 class="content-box-header content-box-header-alt bg-success">  Bilan des documents valides </h3>
+	  <?php echo $validHtml; ?>
+ </div>  
+<?php endif; ?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form  action="<?php echo $formSubmit; ?>" method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+     <!--
+	 <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Type de registre* : </label>
+           <div   class="col-sm-6"> <?php //echo $this->formSelect("category", $data["category"], array("class"=>"form-control"), array("A" => "Personnes Physiques", "B" => "Personnes Morales", "M" => "Modifications")); ?> </div> 		   
+     </div>   -->  
+     <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localités concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("localites",$data["localites"], array(), $localites,""); ?> </div>   
+     </div>       
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Plages d'années* : </label>
+           <div   class="col-sm-3"> <?php echo $this->formSelect("start_annee", $data["start_annee"], array("class"=>"form-control"), $annees); ?> </div> 
+           <div   class="col-sm-3"> <?php echo $this->formSelect("end_annee"  , $data["end_annee"]  , array("class"=>"form-control"), $annees); ?> </div> 		   
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source* : </label>
+           <div   class="col-sm-6"> <input type="text" name="rootpath" id="rootpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["rootpath"]; ?>" /></div>        
+    </div>      
+   </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Valider les dossiers","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

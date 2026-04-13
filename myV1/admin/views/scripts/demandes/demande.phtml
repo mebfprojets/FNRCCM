@@ -1,0 +1,113 @@
+<?php
+    $demande              = $this->demande;
+	$statut               = $this->statut;
+	$demandeType          = $this->demandeType;
+	$localite             = $this->localite;
+	$retries              = ($demande)?$demande->retries : 0;
+	
+	$creationDate         = "00/00/0000";
+	$updateDate           = "00/00/0000";
+	$demandeDate          = "00/00/0000";
+	 
+	$creator              = Sirah_Fabric::getUser( $demande->creatorid     );
+	$updatedUser          = Sirah_Fabric::getUser( $demande->updateduserid );
+
+	if( $demande->creationdate ) {
+		$zendCreationdate = new Zend_Date( $demande->creationdate , Zend_Date::TIMESTAMP );
+		$creationDate     = $zendCreationdate->toString("dd MMM yyyy à H:m");
+	}
+	if( $demande->updatedate ) {
+		$zendUpdatedate   = new Zend_Date($demande->updatedate , Zend_Date::TIMESTAMP );
+		$updateDate       = $zendUpdatedate->toString("dd MMM yyyy à H:m");
+	}
+	if( $demande->date ) {
+		$zendDemandeDate  = new Zend_Date($demande->date, Zend_Date::TIMESTAMP);
+		$demandeDate      = $zendDemandeDate->toString("dd MMMM yyyy");
+	}
+?>
+<ul class="list-group">
+    <?php if($demandeType): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-sm-3 col-md-3"><label class="label" for="demandetype"> <b> Type:</b> </label></div> 
+			 <div class="col-sm-9 col-md-9"><?php echo  $demandeType->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+	<?php if($statut): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-sm-3 col-md-3"><label class="label" for="statut"> <b> Statut:</b> </label></div> 
+			 <div class="col-sm-9 col-md-9"> <?php echo $statut->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+	<?php if($retries): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-sm-3 col-md-3"><label class="label" for="statut"><b>Tentative de réessais:</b> </label></div> 
+			 <div class="col-sm-9 col-md-9"><?php printf("Cette demande a été ressayée %d fois", $retries); ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><label class="label" for="numero"> <b> Référence:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->numero;  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"><label class="label" for="libelle"> <b>Intitulé:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $demande->libelle; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"> <label class="label" for="objet"> <b> Objet :</b> </label></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->objet;  ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"> <label class="label" for="keywords"><b>Mots clés:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"><?php echo $demande->keywords;  ?></div>
+		</div>
+	</li>
+	<?php if($localite): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			 <div class="col-sm-3 col-md-3"><label class="label" for="localite"><b>Juridiction:</b></label></div> 
+			 <div class="col-sm-9 col-md-9"><?php echo $localite->libelle; ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>				
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"> <label class="label" for="date"> <b>Date:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $demandeDate; ?> </div>
+		</div>
+	</li>				
+	<?php if($creator->userid) : ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-12"> Enregistré le <?php echo $creationDate; ?> par <?php printf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+		</div>
+	</li>
+	<?php endif; ?>
+	<?php if($updatedUser->userid) : ?>
+		<li class="list-group-item">
+		  <div class="row"> 
+			<div class="col-md-12"> Mis à jour pour la dernière fois, le <?php echo $updateDate; ?> par <?php printf("%s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+		  </div>
+		</li>
+	<?php endif; ?>
+	<?php if(!empty($demande->observations)): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-sm-3 col-md-3"> <label class="label" for="observations"> <b> Observations:</b> </label></div> 
+			<div class="col-sm-9 col-md-9"> <?php echo $this->escape($demande->observations); ?> </div>
+		</div>
+	</li>
+	<?php endif; ?>				
+</ul>

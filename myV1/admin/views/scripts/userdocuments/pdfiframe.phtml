@@ -1,0 +1,62 @@
+<?php
+$document             = $this->document;
+$filedata             = $this->filedata;
+$libelle              = $this->libelle;
+$nbPages              = $this->nbPages;
+$basePath             = VIEW_BASE_PATH;
+$supinaThemePath      = ROOT_PATH ."/myTpl/sirahpro/assets/";
+$jq                   = $this->jQuery();
+
+$filePath             = str_replace(APPLICATION_PATH,VIEW_BASE_URI."/myV1",$this->filepath); 
+$creator              = Sirah_Fabric::getUser($document->creatoruserid);
+$docTitle             = $libelle;
+$creationDate         = "00/00/0000";
+if( $document->creationdate ) {
+	$zendCreationdate = new Zend_Date( $document->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+$author               = sprintf("%s %s", $creator->lastname, $creator->firstname );
+/*try{
+   $pdf            = Zend_Pdf::load($this->filepath);
+   $pdfAuthor      = ( $pdf ) ? $pdf->properties["Author"]  : sprintf("%s %s", $creator->lastname, $creator->firstname );
+   $pdfCreator     = ( $pdf ) ? $pdf->properties["Creator"] : sprintf("%s %s", $creator->lastname, $creator->firstname );
+   $pdfCreationDate= ( $pdf ) ? $pdf->properties["CreationDate"] : $creationDate;
+} catch( Exception $e ) {
+}*/
+$jq  = $this->jQuery();
+$jq->addOnLoad("jQuery('html, body').animate({'scrollTop':'0px'}, 100);
+function base64ToBlob( base64, type = 'application/octet-stream' ) {
+	const binStr = atob( base64 );
+	const len = binStr.length;
+	const arr = new Uint8Array(len);
+	for (let i = 0; i < len; i++) {
+		arr[ i ] = binStr.charCodeAt( i );
+	}
+	return new Blob( [ arr ], { type: type } );
+}
+");
+  
+$filePath          = str_replace("\\","/"  , $filePath);
+$filePath          = str_replace("\\\\","/", $filePath);
+if( !empty($filedata)) {
+	$jq->addOnLoad("
+	    var blob    = base64ToBlob(\"".$filedata."\", 'application/pdf');
+		var fileUrl = URL.createObjectURL( blob );
+		jQuery('#pdfObject').attr('data', fileUrl);
+		jQuery('#pdfEmbed').attr('src'  , fileUrl);
+	");
+}
+
+?>
+
+<h1> <?php echo $this->dialogTitle; ?> </h1>
+<div class="pdfFrameWrapper"> 
+	<div style="display:block;width:100%;height:675px;margin:0;padding:0;-ms-zoom:1;-moz-transform:scale(1);-moz-transform-origin:0 0;-o-transform:scale(1);-o-transform-origin:0 0;-webkit-transform:scale(1);-webkit-transform-origin: 0 0;">
+	  <object id="pdfObject" type="application/pdf" width="100%" height="650px" data="<?php echo $filePath; ?>#zoom=80"><embed id="pdfEmbed" width="100%" height="650px" src="<?php echo $filePath; ?>?zoom=80" type="application/pdf" /></object>
+	</div>
+</div>
+ 
+
+<?php
+echo $this->jQuery();
+?>

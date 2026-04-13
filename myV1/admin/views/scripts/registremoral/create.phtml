@@ -1,0 +1,449 @@
+<?php 
+$data              = $this->data;
+$saveAndCreateLink = $this->url(array("module"=>"admin","controller"=>"registremoral", "action"=>"create","new_creation"=>1), "default" );
+$formSubmit        = $this->url(array("module"=>"admin","controller"=>"registremoral", "action"=>"create"), "default" );
+$backList          = $this->url(array("module"=>"admin","controller"=>"registres", "action"=>"list")  , "default" );
+$basePath          = VIEW_BASE_PATH;
+$domaines          = $this->domaines;
+$localites         = $this->localites;
+$situations        = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+$statuts           = array("Selectionnez un statut", 1 => "Créé", 2 => "Modifié", 3 => "Racheté", 4 => "Radié");
+$me                = Sirah_Fabric::getUser();
+$searchUrl         = $this->url(array("module"=>"admin","controller"=>"ajaxres", "action"=>"searchrc"), "default" );
+$checkLibUrl       = $this->url(array("module"=>"admin","controller"=>"ajaxres", "action"=>"checkrclib"), "default" );
+$checkNumeroUrl    = $this->url(array("module"=>"admin","controller"=>"ajaxres", "action"=>"checkrcnum","type"=>"moral"), "default" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#libelle').change(function(){	
+	var formSelector = jQuery('#createRegistreForm');
+	var numero       = formSelector.find('#numero').val();
+	var libelle      = jQuery(this).val();
+
+	if( SIRAH.util.isEmpty(libelle)) {
+	    SIRAH.dialog.alert('Veuillez saisir le nom commercial','Erreur de saisie');
+        return;
+    }
+    jQuery('#libRcSearching').html('Vérification du nom commercial...');
+	setTimeout(function(){
+	    SIRAH.request.get(formSelector,'".$checkLibUrl."', {data:{'libelle':libelle},beforeSend : function() {},	
+		  success : function( data ) {
+			jQuery('#libRcSearching').html('').removeClass('parsley-required');
+		    jQuery('#libelle').removeClass('danger').removeClass('parsley-error');
+			if( data.error !== undefined   ) {
+		        SIRAH.dialog.alert(data.error,'Erreur de saisie');
+				jQuery('#libRcSearching').html(data.error);
+                return data;
+			}
+			if( data.success !== undefined  ) {
+				jQuery('#libRcSearching').html('');
+				jQuery('#libelle2').val(libelle);
+				return data;
+			}
+		  }
+	 });
+	},800);
+});
+var updateFormByNum = function(numero){
+	var formSelector = jQuery('#createRegistreForm');
+	SIRAH.request.get(formSelector,'".$searchUrl."', {data:{'numero':numero},beforeSend : function(){},			   
+		    success : function( data ) {
+				if( data.success !== undefined ) {
+				   if((data.success !== undefined) && (data.libelle !== undefined ) ) {
+					   jQuery('#libelle').val(data.libelle);
+				   }
+				   if((data.success !== undefined) && (data.lastname !== undefined ) ) {
+					   jQuery('#nom').val(data.lastname);
+				   }
+				   if((data.success !== undefined) && (data.firstname !== undefined ) ) {
+					   jQuery('#prenom').val(data.firstname);
+				   }
+				   if((data.success !== undefined) && (data.description !== undefined ) ) {
+					   jQuery('#description').val(data.description);
+				   }
+				   if((data.success !== undefined) && (data.telephone !== undefined ) ) {
+					   jQuery('#telephone').val(data.telephone);
+				   }
+				   if((data.success !== undefined) && (data.adresse !== undefined ) ) {
+					   jQuery('#adresse').val(data.adresse);
+				   }
+				   if((data.success !== undefined) && (data.lieu_naissance !== undefined ) ) {
+					   jQuery('#lieunaissance').val(data.lieu_naissance);
+				   }
+				   if((data.success !== undefined) && (data.passport !== undefined ) ) {
+					   jQuery('#passport').val(data.passport);
+				   }
+				   if((data.success !== undefined) && (data.localiteid !== undefined ) ) {
+					   jQuery('#localiteid').val(data.localiteid);
+					   jQuery('#localiteid').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_enregistrement_day !== undefined ) ) {
+					   jQuery('#date_day').val(data.date_enregistrement_day);
+					   jQuery('#date_day').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_enregistrement_month !== undefined ) ) {
+					   jQuery('#date_month').val(data.date_enregistrement_month);
+					   jQuery('#date_month').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_enregistrement_year !== undefined ) ) {
+					   jQuery('#date_year').val(data.date_enregistrement_year);
+					   jQuery('#date_year').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_naissance_year !== undefined ) && parseInt(data.date_naissance_year)) {
+					   jQuery('#date_naissance_year').val(data.date_naissance_year);
+					   jQuery('#date_naissance_year').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_naissance_month !== undefined ) && parseInt(data.date_naissance_month)) {
+					   jQuery('#date_naissance_month').val(data.date_naissance_month);
+					   jQuery('#date_naissance_month').trigger('chosen:updated');
+				   }
+				   if((data.success !== undefined) && (data.date_naissance_day !== undefined ) && parseInt(data.date_naissance_day) ) {
+					   jQuery('#date_naissance_day').val(data.date_naissance_day);
+					   jQuery('#date_naissance_day').trigger('chosen:updated');
+				   }
+				}
+		    }
+    });
+};	
+jQuery('#numero').change(function(){
+    var numero       = jQuery(this).val();
+    var formSelector = jQuery('#createRegistreForm');
+	jQuery('#numRcSearching').html('Vérification du numéro RCCM...');
+	setTimeout(function(){	
+		SIRAH.request.get(formSelector,'".$checkNumeroUrl."', { data:{'numero':numero}, beforeSend : function(){},
+			success: function( data ) {
+				jQuery('#numRcSearching').html('').removeClass('parsley-required').removeClass('parsley-required');
+				jQuery('#numero').removeClass('danger').removeClass('parsley-error');
+				jQuery('#numero').removeClass('success').removeClass('parsley-success');
+				if( data.error !== undefined   ) {
+					jQuery('#validnumrc').val('0');
+					jQuery('#numRcSearching').html(data.error).addClass('parsley-required');
+					jQuery('#numero').addClass('danger').addClass('parsley-error');
+					jQuery('#numero').removeClass('success').removeClass('parsley-success');
+					SIRAH.dialog.alert(data.error,'Numéro RCCM Invalide');
+					return data;
+				}
+				if( data.success !== undefined ) {
+					jQuery('#numRcSearching').html('').removeClass('parsley-required');
+					jQuery('#numRcSearching').html('').addClass('parsley-success');
+					jQuery('#numero').removeClass('danger').removeClass('parsley-error');
+					jQuery('#numero').addClass('success').addClass('parsley-success');
+					jQuery('#validnumrc').val('1');
+					updateFormByNum(data.numero);
+				}
+			}
+		});		
+	}, 500);
+});
+jQuery('input:checkbox').bootstrapSwitch();
+jQuery('input:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state == true) && (this.name =='find_documents')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide'); 
+	} 
+	if((state == false) && (this.name =='find_documents')){
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	}
+});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input[name=\'find_documents\']').click(function( event ){
+	if( jQuery(this).is(':checked')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide');
+	} else {
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	} 
+});
+jQuery('#docmini').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#docoriginal').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#docstatut').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#saveButton').click(function(e){
+    e.preventDefault();      
+    var  formSelector = jQuery('#createRegistreForm');
+    var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+    var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+	var  isValidNumRC = parseInt(formSelector.find('#validnumrc').val());
+
+    if(!isValidNumRC) {
+		jQuery('#numRcSearching').html(data.error).addClass('parsley-required');
+		jQuery('#numero').addClass('danger').addClass('parsley-error');
+		SIRAH.dialog.alert('Veuillez saisir un numéro RCCM Valide','Erreur de saisie');
+        return;
+	}
+    if( SIRAH.util.isEmpty( libelle )){
+        SIRAH.error.raise('createRegistreForm','Entrez un nom commercial valide');
+        return;
+    } 
+    if( SIRAH.util.isEmpty( localiteid )){
+        SIRAH.error.raise('createRegistreForm','Veuillez selectionner une localité');
+        return;
+    }      
+    formSelector.submit();
+});
+jQuery('#saveAndCreateButton').click(function(e){
+    e.preventDefault();      
+    var formSelector = jQuery('#createRegistreForm');
+    var libelle      = jQuery.trim(formSelector.find('#libelle').val());
+    var localiteid   = parseInt(formSelector.find('#localiteid').val());
+	var isValidNumRC = parseInt(formSelector.find('#validnumrc').val());
+	  
+	if(!isValidNumRC) {
+		jQuery('#numRcSearching').html(data.error).addClass('parsley-required');
+		jQuery('#numero').addClass('danger').addClass('parsley-error');
+		SIRAH.dialog.alert('Veuillez saisir un numéro RCCM Valide','Erreur de saisie');
+        return;
+	}
+    if( SIRAH.util.isEmpty( libelle )){
+        SIRAH.error.raise('createRegistreForm','Entrez un nom commercial valide');
+        return;
+    }
+    if( SIRAH.util.isEmpty( localiteid )){
+        SIRAH.error.raise('createRegistreForm','Veuillez selectionner une localité');
+        return;
+    } 
+    formSelector.attr('action',\"".$saveAndCreateLink."\");	  
+    formSelector.submit();
+});";
+  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css");
+?>
+
+<div    class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Les informations du RCCM</small></h3>
+    <form method="post"  id="createRegistreForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">        
+	    <div class="form-group"> 
+            <label class="col-sm-12 col-md-3 control-label" title="Le numéro RC doit contenir au moins 12 caractères"> Numéro RCCM* : </label>
+            <div   class="col-sm-12 col-md-6"> <input style="text-transform:uppercase" maxlength="25" type="text" name="numero" id="numero" class="form-control" placeholder="Numéro RC du registre (Exemples:BFOUA2016B00001 ou BFOUA012022B1000001)" value="<?php echo $data["numero"]; ?>" /></div>        
+            <div   class="col-sm-12 col-md-3" id="numRcSearching"> </div>
+			<input type="hidden" name="validnumrc" id="validnumrc" value="1" />
+	    </div>       
+        <div class="form-group"> 
+			<label class="col-sm-12 col-md-3 control-label"> Nom commercial* : </label>
+			<div   class="col-sm-12 col-md-6"> <input type="text" name="libelle" id="libelle" class="form-control" placeholder="Nom commercial ou dénomination sociale" value="<?php echo $data["libelle"]; ?>" /></div>        
+			<div   class="col-sm-12 col-md-3" id="libRcSearching"> </div>
+	    </div>
+		<div class="form-group"> 
+           <label class="col-sm-12 col-md-3 control-label"> Numéro IFU* : </label>
+           <div   class="col-sm-12  col-md-9"> <input type="text" name="numifu" id="numifu" class="form-control" placeholder="Numéro IFU" value="<?php echo $data["numifu"]; ?>" /></div>        
+	    </div>
+		<div class="form-group"> 
+           <label class="col-sm-12 col-md-3 control-label"> Numéro CNSS: </label>
+           <div   class="col-sm-12  col-md-9"> <input type="text" name="numcnss" id="numcnss" class="form-control" placeholder="Numéro CNSS" value="<?php echo $data["numcnss"]; ?>" /></div>        
+	    </div>
+        <?php if(!$me->isGREFFIERS()): ?>
+        <div class="form-group"> 
+            <label class="col-sm-12 col-md-3 control-label"> Localité* : </label>
+            <div   class="col-sm-12 col-md-9"> <?php echo $this->formSelect("localiteid", intval( $data["localiteid"]  ), array("class"=>"form-control chosen"), $localites); ?> </div>   
+        </div>
+        <?php else: ?> 
+        <input type="hidden" name="localiteid"  id="localiteid" value="<?php echo intval($data['localiteid']); ?>" />
+        <?php endif; ?>          
+        <div class="form-group">    
+            <label class="col-sm-12 col-md-3 control-label"> Date du RCCM*: </label>
+            <div   class="col-sm-12 col-md-9">
+				<div class = "input-group">
+					<?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?> 
+					<span class="input-group-btn" style="width:0px;"></span>
+					<?php echo $this->formSelect('date_month', $data["date_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?>
+					<span class="input-group-btn" style="width:0px;"></span>
+					<?php echo $this->formSelect('date_year' , $data["date_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1960, intval(date("Y")) ) );?>             
+				</div>
+			</div>
+	    </div>
+	    <div class="form-group"> 
+            <label class="col-sm-12 col-md-3 control-label"> Secteur d'activité : </label>
+            <div   class="col-sm-12 col-md-9"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]), array("class" => "form-control chosen"), $domaines ); ?> </div>       
+        </div>
+	    <div class="form-group"> 
+            <label class="col-sm-12 col-md-3 control-label"> Décrire l'activité : </label>
+            <div   class="col-sm-12 col-md-9"> <input type="text" title="Décrire l'activité de la société en quelques mots (facultatif)" name="description" id="description" class="form-control" value="<?php echo $data["description"]; ?>" placeholder="Décrivez en quelques mots l'activité menée" /></div>       
+        </div>
+     	 
+        <!--<h3 style="display:none;" class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 3 <small> Renseignements relatifs à la Personne Morale</small></h3> -->
+        <div class="form-group"> 
+            <label class="col-sm-12 col-md-3 control-label"> Forme juridique* : </label>
+            <div   class="col-sm-12 col-md-9"><?php echo $this->formSelect("formid", $data["formid"], array("class" => "form-control chosen"), $this->formes); ?></div>        
+        </div>
+	    <div class="form-group"> 
+           <label class="col-sm-12 col-md-3 control-label"> Raison sociale: </label>
+           <div   class="col-sm-12 col-md-9"> <input title="Saisir la raison sociale de la société (facultatif)" type="text" name="libelle2" id="libelle2" class="form-control" placeholder="Raison sociale" value="<?php echo $data["libelle2"]; ?>" /></div>        
+        </div>	         
+	    <div class="form-group"> 
+			<label class="col-sm-12 col-md-3 control-label"> Capital social: </label>
+			<div   class="col-sm-12 col-md-9"> 
+				<div class = "input-group">
+				  <input type="text" name="capital" id="capital" class="form-control" placeholder="Capital" value="<?php echo $data["capital"]; ?>" title="Saisir le capital social de la société (facultatif)" /> 
+				  <span class="input-group-addon"> F CFA</span>
+				</div> 
+			</div>        
+		</div>
+        <div class="form-group"> 
+           <label class="col-sm-12 col-md-3 control-label"> Adresse du siège: </label>
+           <div   class="col-sm-12 col-md-9"> <input title="Saisir l'adresse du siège de la société" type="text" name="address" id="address" class="form-control" value="<?php echo $data["address"]; ?>" placeholder="Adresse" /></div>       
+        </div>	 
+        <div class="form-group"> 
+		   <label class="col-sm-12 col-md-3 control-label"> Téléphone: </label>
+		   <div   class="col-sm-4 col-md-4"><input title="Saisir le numéro de téléphone  de la société" type="text" name="phone1" id="phone1" class="form-control" placeholder="Téléphone fixe"   value="<?php echo $data["phone1"]; ?>" /> </div> 
+		   <div   class="col-sm-4 col-md-4"><input title="Saisir un deuxième numéro de téléphone de la société (facultatif)" type="text" name="phone2" id="phone2" class="form-control" placeholder="Téléphone mobile" value="<?php echo $data["phone2"]; ?>" /> </div>        
+		</div>	 	
+		<input type="hidden" name="email"                id="email"               value="" />
+		<input type="hidden" name="num_securite_social"  id="num_securite_social" value="" />
+		<input type="hidden" name="siteweb"              id="siteweb"             value="" />
+		<input type="hidden" name="zip"                  id="zip"                 value="" />
+		<input type="hidden" name="fax"                  id="fax"                 value="" />
+	            
+		<h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 4 <small> Les gérants et ou associés </small></h3>
+	    <div class="form-group"> 
+		    <label class="col-sm-12 col-md-1 control-label"> Gerant 1 : </label>
+		    <div   class="col-sm-12 col-md-4"> 
+				<div class = "input-group">
+				  <input type="text" name="dirigeants_nom1" id="dirigeants_nom1" class="form-control" placeholder="Nom" title="Saisir le nom du dirigeant"   /> 
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_prenom1" id="dirigeants_prenom1" class="form-control" placeholder="Prénom"  title="Saisir le prénom du dirigeant"  />
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_profession1" id="dirigeants_profession1" class="form-control" placeholder="Fonction" title="Saisir la profession ou la fonction du dirigeant"  />
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_lieunaissance1" id="dirigeants_lieunaissance1" class="form-control" placeholder="Lieu de naissance" title="Saisir le lieu de naissance du dirigeant"   />
+				</div> 
+		    </div>
+		    <div  class="col-sm-12 col-md-7"> 
+				<div class = "input-group">
+				   <span class="input-group-addon bg-primary"> Sexe</span>
+				   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe1" id="sexe-m1" value="M"> M  </span>         
+				   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe1" id="sexe-f1" value="F"> F  </span> 
+				   <span class="input-group-addon bg-primary"> Date nais.</span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				  <?php echo $this->formSelect("dirigeants_date_naissance_day1"  , null, array("class" => "form-control chosen"),array("00"=>"Jour")+createDatesArray());?>
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <?php echo $this->formSelect('dirigeants_date_naissance_month1', null, array("class" => "form-control chosen"),array(0 =>"Mois")+$this->months()); ?>
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <?php echo $this->formSelect('dirigeants_date_naissance_year1' , null, array("class" => "form-control chosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?>
+				</div> 
+		    </div>	   
+		</div>
+		<div class="form-group"> 
+		    <label class="col-sm-1 col-md-1 control-label"> Gerant 2 : </label>
+		    <div   class="col-sm-4 col-md-4"> 
+				<div class = "input-group">
+				  <input type="text" name="dirigeants_nom2" id="dirigeants_nom2" class="form-control" placeholder="Nom" title="Saisir le nom du dirigeant"   /> 
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_prenom2" id="dirigeants_prenom2" class="form-control" placeholder="Prénom"  title="Saisir le prénom du dirigeant" />
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_profession2" id="dirigeants_profession2" class="form-control" placeholder="Fonction" title="Saisir la profession ou la fonction du dirigeant"  />
+				  <span class="input-group-btn" style="width:0px;"></span>
+				  <input type="text" name="dirigeants_lieunaissance2" id="dirigeants_lieunaissance2" class="form-control" placeholder="Lieu de naissance" title="Saisir le lieu de naissance du dirigeant"  />
+				</div> 
+		    </div>
+			<div  class="col-sm-12 col-md-7"> 
+				<div  class="input-group">
+				   <span class="input-group-addon bg-primary"> Sexe</span>
+				   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe2" id="sexe-m2" value="M"> M  </span>         
+				   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe2" id="sexe-f2" value="F"> F  </span> 
+				   <span class="input-group-addon bg-primary"> Date nais.</span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <?php echo $this->formSelect("dirigeants_date_naissance_day2"  , null , array("class" => "form-control chosen"),array("00"=>"Jour")+createDatesArray());?>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <?php echo $this->formSelect('dirigeants_date_naissance_month2', null, array("class" => "form-control chosen"),array(0 =>"Mois")+$this->months()); ?>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <?php echo $this->formSelect('dirigeants_date_naissance_year2' , null, array("class" => "form-control chosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?>
+				</div> 
+		    </div>	   
+		</div>	
+
+		<div class="form-group"> 
+		   <label class="col-sm-1 col-md-1 control-label"> Gerant 3 : </label>
+		   <div   class="col-sm-4 col-md-4"> 
+			<div class = "input-group">
+			  <input type="text" name="dirigeants_nom3" id="dirigeants_nom3" class="form-control" placeholder="Nom" title="Saisir le nom du dirigeant"   /> 
+			  <span class="input-group-btn" style="width:0px;"></span>
+			  <input type="text" name="dirigeants_prenom3" id="dirigeants_prenom1" class="form-control" placeholder="Prénom" title="Saisir le prénom du dirigeant"  />
+			  <span class="input-group-btn" style="width:0px;"></span>
+			  <input type="text" name="dirigeants_profession3" id="dirigeants_profession3" class="form-control" placeholder="Fonction" title="Saisir la profession ou la fonction du dirigeant"   />
+			  <span class="input-group-btn" style="width:0px;"></span>
+			  <input type="text" name="dirigeants_lieunaissance3" id="dirigeants_lieunaissance3" class="form-control" placeholder="Lieu de naissance" title="Saisir le lieu de naissance du dirigeant"  />
+			 </div> 
+		   </div>
+			<div   class="col-sm-7"> 
+			<div class = "input-group">
+			   <span class="input-group-addon bg-primary"> Sexe</span>
+			   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe3" id="sexe-m3" value="M"> M  </span>         
+			   <span class="input-group-addon"> <input type="radio" name="dirigeants_sexe3" id="sexe-f3" value="F"> F  </span> 
+			   <span class="input-group-addon bg-primary"> Date nais.</span>
+			   <span class="input-group-btn" style="width:0px;"></span>
+			  <?php echo $this->formSelect("dirigeants_date_naissance_day3"  , null , array("class" => "form-control chosen"),array("00"=>"Jour")+createDatesArray());?>
+			  <span class="input-group-btn" style="width:0px;"></span>
+			  <?php echo $this->formSelect('dirigeants_date_naissance_month3', null, array("class" => "form-control chosen"),array(0 =>"Mois")+$this->months()); ?>
+			  <span class="input-group-btn" style="width:0px;"></span>
+			  <?php echo $this->formSelect('dirigeants_date_naissance_year3' , null, array("class" => "form-control chosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?>
+			 </div> 
+		   </div>	   
+		</div>	
+
+		<h3 style="display:none;" class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Selection des documents indexés </small></h3>
+		<div class="form-group"> 
+			<label class="col-sm-12 col-md-3 control-label"> Indexation automatique: </label>
+			<div   class="col-sm-12 col-md-9" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="find_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["find_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+		</div>
+		<div class="form-group"> 
+			<label class="col-sm-12 col-md-3 control-label"> Contrôle de la qualité: </label>
+			<div   class="col-sm-12 col-md-9" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+		</div>
+		<div id="findDocumentsOptions" class="form-group <?php echo (intval($data["find_documents"]) == 0) ? 'hide' :''; ?> "> 
+			<label class="col-sm-12 col-md-3 control-label"> Dossier source*: </label>
+			<div   class="col-sm-12 col-md-9"> <input type="text" name="find_documents_src" id="find_documents_src" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["find_documents_src"]; ?>" /></div> 
+		</div>
+		<div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?> "> 
+			<label class="col-sm-12 col-md-3 control-label"> Le formulaire * : </label>
+			<div   class="col-sm-12 col-md-9"> <input type="file" name="docmini" id="docmini"    /></div>        
+		</div>	
+		<div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?>"> 
+			<label class="col-sm-12 col-md-3 control-label"> Le fond de dossier* : </label>
+			<div   class="col-sm-12 col-md-9"> <input type="file" name="docoriginal"  id="docoriginal"    /></div>        
+		</div> 
+		<div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?>"> 
+			<label class="col-sm-12 col-md-3 control-label"> Le statut* : </label>
+			<div   class="col-sm-12 col-md-9"> <input type="file" name="docstatut"  id="docstatut"    /></div>        
+		</div>	 	
+    </form>
+ 
+<?php 
+    $buttonsbar        = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolSave          = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+	$toolSaveAndCreate = $buttonsbar->button("Enregistrer & Nouveau","plus")->setPriority("primary");
+    $toolCancel        = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolSave->setAttributes(  array("type"=>"submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type"=>"submit"));
+    
+	$buttonsbar->add($toolCancel        , "cancelCreationButton");
+    $buttonsbar->add($toolSave          , "saveButton");
+	$buttonsbar->add($toolSaveAndCreate , "saveAndCreateButton");
+        
+    if( !$this->isAjax )
+        echo $buttonsbar;
+?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

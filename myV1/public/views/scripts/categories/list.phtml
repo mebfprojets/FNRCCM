@@ -1,0 +1,24 @@
+<?php
+  $tplPath      = VIEW_BASE_PATH;
+  
+  $categories   = $this->categories;
+
+?>
+
+<?php if( count( $categories ) ): ?>
+        <?php 
+           $catOutput = "<ul class=\"list-group categoriesList\">";
+              foreach( $categories as $categorie ) {
+              	       $catid         = intval($categorie["catid"]);
+              	       $libelle       = $categorie["libelle"];
+              	       $urlLibelle    = Sirah_Functions_String::cleanUtf8( $libelle );
+              	 
+              	       $linkCategorie = $this->url(array("controller" => "categories", "action" => "infos", "catid" => $catid, "libelle" => $urlLibelle), "categories");
+              	       $catOutput    .= "<li id=\"catId-".$catid."\" class=\"list-group-item\"> <a title='Voir les activités menées dans cette catégorie' href='".$linkCategorie."'> ". $libelle ." </a></li> ";
+              } 
+           $catOutput.= "</ul>";
+           
+           echo $catOutput;
+        ?> 
+<?php endif; ?>
+

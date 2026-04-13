@@ -1,0 +1,273 @@
+<?php 
+$projects     = $this->projects;
+$filters      = $this->filters;
+$paginator    = $this->paginator;
+
+$basePath     = VIEW_BASE_PATH;
+$jq           = $this->jQuery();
+
+$linkSearch   = $this->url(array("controller" => "project", "action"=> "list"  , "module" => "admin"), "default");
+$linkCreate   = $this->url(array("controller" => "project", "action"=> "create", "module" => "admin"), "default");
+$linkEdit     = $this->url(array("controller" => "project", "action"=> "edit"  , "module" => "admin"), "default");
+$linkDelete   = $this->url(array("controller" => "project", "action"=> "delete", "module" => "admin"), "default");
+ 
+$jq->addOnload("
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#projectsListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#projectsListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());	
+	
+		paginationData.libelle   = jQuery.trim(formSelector.find('#libelle').val());
+		
+		var maincontent          = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+	
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedProjectsId = function() {
+		var checkedItems = jQuery('#projectsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var projectid   = parseInt(jQuery(this).attr('id').replace('projectids',''));
+             	checkedIds.push(projectid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#projectsListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#projectsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#projectsListTable'));
+		       if(checkedItems) {
+		           disableButtons(['exportButton','deleteButton','editButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#projectsListTable'));
+		      enableButtons(['exportButton','deleteButton','editButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['exportButton','deleteButton','editButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['deleteButton','exportButton','editButton']);
+		       }
+		  }
+		}
+   });
+");
+
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Enregistrer un nouveau projet", "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "edit");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#projectsListTable').find('input[type=\'checkbox\'][name=\'projectids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var projectid      = parseInt(checkedItem.attr('id').replace('projectids',''));
+					 document.location.href = '".$linkEdit."/projectid/'+projectid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedProjects = getCheckedProjectsId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedProjects )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les projets selectionnés ? </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'projectids[]': checkedProjects},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedProjects = getCheckedProjectsId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){jQuery.each(checkedProjects,function(key,projectid){jQuery('#projectRowId-'+projectid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));    
+
+?>
+
+<div id="projectsListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+		   <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez un projet, saisir des mots clés...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		   </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+    	</div>
+		<table id="projectsListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                <tr>
+                    <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /> </th>				                       						  
+                    <th width="74%"> Intitulés    </th> 
+					<th width="25%">  Périodes     </th> 
+                </tr>
+            </thead>
+            <tbody>	
+			   <?php 
+                      $output = "";
+					  if( count(   $projects ) ) {
+						  foreach( $projects as $project ) {
+							       $projectid      = $project["projectid"]; 
+							       $projectLib     = $project["libelle"];
+								   
+								   $zendStartime   = ( $project["startime"]) ? new Zend_Date( $project["startime"] ,Zend_Date::TIMESTAMP ) :null;
+             	                   $valStartime    = ( $zendStartime ) ? $zendStartime->toString("dd MMMM yyyy") : "";
+								   
+								   $zendEndtime    = ( $project["endtime"]) ? new Zend_Date( $project["endtime"] ,Zend_Date::TIMESTAMP ) :null;
+             	                   $valEndtime     = ( $zendEndtime ) ? $zendEndtime->toString("dd MMMM yyyy") : "";
+								   $projectPeriode = sprintf("%s - %s", $valStartime, $valEndtime );
+								   								   
+								   $linkInfos      = $this->url(array("controller" => "project", "action" => "infos", "projectid" => $projectid, "module" => "admin") , "default");
+								   
+								   
+									 
+								   $output .= "<tr id=\"projectRowId-".$projectid."\">";
+             	                            $output .= "<td style=\"text-align:center;\"> <input type=\"checkbox\" name=\"projectids[]\" id=\"projectids".$projectid."\" class=\"projectids\" /> </td>";
+             	                            $output .= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\"> ".$projectLib    ."</a></td>";
+                                            $output .= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\"> ".$projectPeriode."</a></td>";  											 
+             	                   $output .= "</tr>";
+								   $output .= "<input type=\"hidden\" name=\"libelle-".$projectid."\" id=\"libelle-".$projectid."\" value=\"".$projectLib."\" />";
+						  }
+					  } else {
+             	                    $output .= "<tr>";
+             	                            $output .= "<td style=\"text-align:center;\" colspan=\"4\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+             	                    $output .= "</tr>";
+                      }
+					  
+					  echo $output;
+					  
+			   ?>
+            </tbody>				
+		</table>
+              <?php echo $pagination->render(); ?>
+	</div>
+</div>  
+
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

@@ -1,0 +1,282 @@
+<?php 
+$registres        = $this->registres;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$localites        = $this->localites;
+$domaines         = $this->domaines;
+$types            = $this->types;
+
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("controller" => "ajaxres", "action" => "registreslist", "parentform"=> $parentform, "module" => "public" ) , "default");
+
+$jq->addOnload("
+var parentformSelector = jQuery('#".$parentform."');
+var defaultXHR         = null;
+jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var registreid  = parseInt(jQuery(this).attr('href').replace('#registreid-' , ''));
+		
+	if( registreid && parentformSelector ) {
+		  var libelle                  = jQuery('#libelle-'+registreid).val();
+		  var numero                   = jQuery('#numero-'+registreid).val();
+		  var type                     = jQuery('#type-'+registreid).val();
+		  var localite                 = jQuery('#localite-'+registreid).val();
+			
+		  var parentRegistreIdInput    = parentformSelector.find('input[name=\'registreid\']');
+		  var parentLibelleSelector    = parentformSelector.find('input[name=\'libelle\']');
+		  var parentNumeroSelector     = parentformSelector.find('input[name=\'numero\']');
+		
+		  if( parentRegistreIdInput   ) {
+		      parentRegistreIdInput.val( registreid );
+		  }
+		  if( parentLibelleSelector   ) {
+		      parentLibelleSelector.val(libelle);
+		  }
+		  if( parentNumeroSelector ) {
+		      parentNumeroSelector.val( numero );
+		  }		 
+	  } else {
+		 return false;
+	  }
+		selectRegistre  = parentformSelector.find('#selectRegistre');
+		if( selectRegistre )	{
+		    selectRegistre.trigger('select-item' , [registreid] );
+		} 
+		jQuery('#filterListRegistres').dialog2('close');
+   });
+jQuery('#close-advanced-searchform').click(function(){jQuery('#advanced-searchform-wrapper').hide();});
+jQuery('#show-advanced-searchform').click(function(){ jQuery('#advanced-searchform-wrapper').show();});
+jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector       = jQuery('#advanced-registresearchform');
+		var modalBox           = jQuery('.modal').first();
+		var modalBody          = modalBox.find('.modal-body');
+
+		var defaultData        = {};
+		defaultData.localiteid = parseInt(jQuery('#localiteid').val());
+		defaultData.type       = parseInt(jQuery('#type').val());
+		defaultData.annee      = parseInt(jQuery('#annee').val());
+		defaultData.numero     = formSelector.find('#numero').val();
+		defaultData.libelle    = formSelector.find('#libelle').val();
+		defaultData.page       = 1;
+		defaultData.maxitems   = formSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-registresearchform' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) { defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+		SIRAH.loading.off(false);
+});
+jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector         = jQuery('#globalformsearch');
+		var advancedFormSelector = jQuery('#advanced-registresearchform');
+		var modalBox             = jQuery('.modal').first();		
+		var modalBody            = modalBox.find('.modal-body:first');
+
+		var defaultData          = {};
+		defaultData.numero       = defaultData.globalfilter = formSelector.find('#globalfilter').val(); 
+		defaultData.page         = 1;
+		defaultData.maxitems     = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function(jqXHR) {defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	SIRAH.loading.off(false);
+});
+jQuery('#globalfilter').on('keypress', function(){
+		setTimeout(function() {		      
+		      var formSelector         = jQuery('#globalformsearch');
+		      var advancedFormSelector = jQuery('#advanced-registresearchform');
+		      var modalBox             = jQuery('.modal').first();		
+		      var modalBody            = modalBox.find('.tableRowsList:first');
+
+		      var defaultData          = {};
+		      defaultData.numero       = defaultData.globalfilter = formSelector.find('#globalfilter').val(); 
+		      defaultData.page         = 1;
+		      defaultData.maxitems     = 50;
+		      SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		      SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      async      : true,
+		                      beforeSend : function(jqXHR) {defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	           SIRAH.loading.off(false);
+		}, 2000);
+
+  });		
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#advanced-registresearchform');
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData        = {};
+		paginationData.maxitems   = pageMaxitems;
+		paginationData.page       = pageNum;
+		paginationData.localiteid = parseInt(jQuery('#localiteid').val());
+		paginationData.type       = parseInt(jQuery('#type').val());
+		paginationData.annee      = parseInt(jQuery('#annee').val());
+		paginationData.numero     = formSelector.find('#numero').val();
+		paginationData.libelle    = formSelector.find('#libelle').val();
+		
+		var modalBox              = jQuery('.modal').first();
+		var modalBody             = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType   : 'html' ,
+		                      data       : paginationData,
+		                      beforeSend : function(jqXHR){defaultXHR  = jqXHR;},
+		                      error      : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBody.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBody.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);		});
+ 
+		");
+ 
+
+?>
+<div class="row" >
+     <div class="col-md-12"> 
+         <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['numero']; ?>" id="globalfilter" name="globalfilter" class="form-control input-medium" maxlength="13"  
+                            style="color: #555555;display:inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px; 
+                                   vertical-align: middle; height:34px;text-transform:uppercase"  type="text"  placeholder="Recherchez un numéro de registre...">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch" type="button"> <span class="glyphicon glyphicon-search"> </span > Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+        </form>
+     </div>
+</div>  &nbsp; &nbsp;
+ <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-registresearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row">
+               <div class="column col-md-2"> <label  for="numero"> Numéro du registre </label> </div>
+               <div class="column col-md-4">                                
+                    <input id="numdossier" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" maxlength="13" style="text-transform:uppercase"
+                           title="Numéro du dossier" placeholder="Numéro du registre"  name="numero" value="<?php echo $filters['numero']; ?>">
+               </div>
+               <div class="column col-md-2"><label for="libelle"> Nom commercial: </label></div>
+               <div class="column col-md-4">                               
+                   <input id="libelle" type="text" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Le nom commercial rattaché au registre" placeholder="Nom commercial"  name="libelle" value="<?php echo $filters['libelle']; ?>">
+               </div>                         
+            </div>                                                                          
+            <div class="row"> 
+               <div class="column col-md-2"> <label   for="localiteid"> Localité :</label> </div>
+               <div class="column col-md-4"> <?php echo $this->formSelect("localiteid", intval($filters["localiteid"]), array() , $localites ); ?> </div>
+               
+               <div class="column col-md-2"> <label   for="type"> Type de registre :</label> </div>
+               <div class="column col-md-4"> <?php echo $this->formSelect("type", $filters["type"], array() , $types ); ?> </div>                            
+            </div>
+                                                   
+            <div class="row"  >                
+               <div class="column col-md-2"> <label  for="annee"> L'année: </label> </div>
+               <div class="column col-md-4">
+                   <input id="annee" name="annee" type="text" maxlength="4" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Saisissez l'année concernée" placeholder="Saisissez l'année" value="<?php echo $filters['annee']; ?>">
+               </div>
+              <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+              <div class="column col-md-4"><?php echo $this->formSelect("maxitems", $this->maxitems, array("style" => "width:100px !important;"),array("10"=>10, "25" => 25,"50" => 50,"100" => 100, "500" => 500, "1000" => 1000, "2000" => 2000,"5000" => 5000 ,"100000000" => "Tout")); ?></div>
+           </div>                       
+           <div class="row">
+              <div class="column col-md-2"><button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search"></span > Rechercher </button>  </div>                      
+              <div class="column  span10"></div>     
+           </div>
+             <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  /> 
+         </form>
+     </div>
+      <?php
+             //On crée et affiche le tableau
+             $output  = "
+             <div id=\"rowsList\" class=\"row tableRowsList\" style=\"padding:0;margin:0;\">
+               <table id=\"inscriptionsListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\" >
+                           <thead>"  ;
+                                  $output .= "<tr>";
+                                  $output .= "<th width=\"15%\"> Années               </th>";
+                                  $output .= "<th width=\"20%\"> Numéros de registres </th>";
+                                  $output .= "<th width=\"30%\"> Nom commercial       </th>";
+                                  $output .= "<th width=\"20%\"> Localités            </th>";
+                                  $output .= "<th width=\"15%\"> Types de registres   </th>";
+             $output .= "</tr></thead>";
+             
+             if( count(   $registres )) {
+             	 foreach( $registres as $registre ) {
+             	 	      $registreid  = intval($registre['registreid']);
+             	 	      $libelle     = $registre["libelle"] ;
+             	 	      $numero      = $registre["numero"] ;
+             	 	      $description = $registre["description"] ;
+             	 	      $domaine     = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+             	 	      $localite    = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+             	 	      $type        = (!empty( $registre["type"]))     ? $registre["type"] : "";
+             	 	      $annee       = $registre["annee"];
+             	 	      
+             	 	      $output.= "<tr id=\"registreRowId-".$registreid."\"> ";
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$annee    ." </a> </td>";
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$numero   ." </a> </td>";  
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$libelle  ." </a> </td>";
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$localite ." </a> </td>";
+             	 	      $output     .= "<td> <a href=\"#registreid-".$registreid."\" class=\"selectClick\"> ".$type     ." </a> </td>";
+             	 	      $output.= "</tr>";
+             	 	     
+             	 	      $output     .="<input type='hidden' name=\"registreids[]\"          id=\"registreids".$registreid."\" class=\"registreids\" />";
+             	 	      $output     .="<input type='hidden' name='libelle-".$registreid."'  id='libelle-".$registreid."'  value='".$libelle."'  />" ;
+             	 	      $output     .="<input type='hidden' name='numero-".$registreid."'   id='numero-".$registreid."'   value='".$numero."'   />" ;
+             	 	      $output     .="<input type='hidden' name='type-".$registreid."'     id='type-".$registreid."'     value='".$type."'     />" ;
+             	 	      $output     .="<input type='hidden' name='localite-".$registreid."' id='localite-".$registreid."' value='".$localite."' />" ;
+             	 	      
+             	 }
+             } else {
+             	  $output .= "<tr>";
+             	           $output .= "<td colspan=\"8\"> Aucun résultat valide n'a été retrouvé , réessayez avec d'autres critères de recherche </td>";
+             	  $output .= "</tr>";
+             }    
+              $output .="</table></div>";
+              // On affiche le tableau
+              echo $output;
+              
+              $pagination  = $this->pagination(array() , "Elastic" , "#");
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+     	          echo $this->jQuery();
+	              echo $this->headStyle();
+               }
+?>
+   
+   
+    

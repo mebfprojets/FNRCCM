@@ -1,0 +1,850 @@
+<?php 
+$registres          = $this->registres;
+$filters            = $this->filters;
+$params             = $this->params;
+$paginator          = $this->paginator;
+$localites          = $localitesList = $this->localites;
+$domaines           = $this->domaines;
+$users              = $this->users;
+$types              = $this->types;
+$statuts            = $this->statuts;
+$me                 = Sirah_Fabric::getUser();
+$findSimilar        = (isset($params["findsimilar"]))?intval($params["findsimilar"]) : 0;
+$searchQ            = (isset($params["searchq"]    ))?$params["searchq"] : $filters["searchQ"];
+
+$basePath           = VIEW_BASE_PATH;
+$jq                 = $this->jQuery();
+
+$linkSearch         = $this->url(array("module" => "admin","controller"=>"registres", "action"=> "list")  , "default");
+$linkCreatePhysique = $this->url(array("module" => "admin","controller"=>"registrephysique", "action"=> "create"), "default");
+$linkCreateMorale   = $this->url(array("module" => "admin","controller"=>"registremoral"   , "action"=> "create"), "default");
+$linkEdit           = $this->url(array("module" => "admin","controller"=>"registres","action"=>"edit")  , "default");
+$linkDelete         = $this->url(array("module" => "admin","controller"=>"registres","action"=>"delete"));
+$linkExport         = $this->url(array("module" => "admin","controller"=>"registres","action"=>"export"));
+$linkUserdocuments  = $this->url(array("module" => "admin","controller"=>"userdocuments","action"=>"infos"),"default");
+$linkExportCSV      = $this->url(array("module" => "admin","controller"=>"registres","action"=>"exportcsv"));
+$linkExportZIP      = $this->url(array("module" => "admin","controller"=>"registres","action"=>"exportzip"));
+$linkSearchQ        = $this->url(array("module" => "admin","controller"=>"ajaxres"  ,"action"=>"registres"));
+$linkSearchApi      = $this->url(array("module" => "admin","controller"=>"ajaxres"  ,"action"=>"apisearch"));
+$linkSearchSigu     = $this->url(array("module" => "admin","controller"=>"registres","action"=>"sigusearch"));
+$linkSearchApiOds   = $this->url(array("module" => "admin","controller"=>"registres","action"=>"apiodsearch"));
+$linkHistory        = $this->url(array("module" => "admin","controller"=>"registres","action"=>"history"));
+$myDataPath         = $me->getDatapath();  
+$docUrl             = $myDataPath . DS. "ARCHIVES" . DS ."ERCCM_ListDocuments.pdf";
+
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/typeahead.bundle.min.js");
+$jq->addStyleSheet(    $basePath."/css/typeahead.css");
+$jq->addJavascriptFile( VIEW_BASE_PATH ."/js/jquery.dynamic-select.min.js");
+
+$supinaThemePath    = ROOT_PATH ."/myTpl/rccm/assets-minified/";
+$jq->addStyleSheet(     $supinaThemePath ."widgets/multiselect/multiselect.css");
+$jq->addJavascriptFile( $supinaThemePath ."widgets/multiselect/multiselect.js");
+$jq->addJavascriptFile( $supinaThemePath .'widgets/multiselect/ajaxchosen.min.js');
+$jq->addOnload("
+var getSelectedLocalites = function(formSelector=null) {
+	if( null===formSelector ) {
+		formSelector = jQuery('#registresListSearchForm');
+	}
+	var selectedLocalites = [];
+	if( jQuery('#localiteids :selected').length > 0){			   
+	    jQuery('#localiteids :selected').each(function(i, selected) {
+				selectedLocalites[i] = jQuery(selected).val();
+		});
+	}
+return selectedLocalites;
+};
+jQuery('#localiteids').multiselect({
+	enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher une localité...',
+	includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner une localité...',
+	selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+	nSelectedText:' - Localités sélectionnés',maxHeight:350,buttonWidth:'100%',
+	checkboxName:function(option) {return 'localiteids[]';},
+	onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+});
+var getSelectedDomaines = function(formSelector=null) {
+	if( null===formSelector ) {
+		formSelector = jQuery('#registresListSearchForm');
+	}
+	var selectedDomaines = [];
+	if( jQuery('#domaineids :selected').length > 0){			   
+		jQuery('#domaineids :selected').each(function(i, selected) {
+				selectedDomaines[i] = jQuery(selected).val();
+		});
+	}
+	return selectedDomaines;
+};
+jQuery('#domaineids').multiselect({
+	enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher un secteur d\'activités...',
+	includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner au moins un secteur d\'activités...',
+	selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+	nSelectedText:' - Secteurs d\'activités sélectionnés',maxHeight:350,buttonWidth:'100%',
+	checkboxName:function(option) {return 'domaineids[]';},
+	onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+});
+var registresEngine = new Bloodhound({  datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:parseInt(".$this->pageSize."),										
+										remote:{ 
+											    url:'".$linkSearchQ."',
+												prepare : function(query,settings) {
+											        
+										        },
+												replace: function(url, uriEncodedQuery) {
+													var repository = jQuery('#globalFormSearch').find('#searchfrom').val().toUpperCase();
+													var maxitems   = parseInt(".$this->pageSize.");
+													var finalURI   = '".$linkSearchQ."';
+													switch(repository) {
+														case 'ERCCM':
+														case 'FNRCCM':
+														default:
+														    finalURI = url+'?searchq='+uriEncodedQuery+'&maxitems='+maxitems;
+														    break;
+														case 'APISIGU':
+														case 'SIGUE':
+														case 'SIGU':
+														    finalURI = '".$linkSearchApi."?searchq='+uriEncodedQuery+'&repository=sigu&maxitems='+maxitems;
+														    break;
+														case 'apiods':
+														case 'apidgi':
+														    finalURI = '".$linkSearchApi."?searchq='+uriEncodedQuery+'&repository=apiods&maxitems='+maxitems;
+														    break;
+													}
+													return finalURI;
+												}
+										  }
+						});
+registresEngine.initialize();
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});		
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('#advancedExportCsv').click(function(event){
+	event.preventDefault();
+	var formSelector               = jQuery('<form></form>').attr('id', 'exportListCSVForm').attr('method', 'post').attr('action', '".$linkExportCSV."');
+	var advancedFormSelector       = jQuery('.advancedSearchForm').eq(0) ;	
+	var searchData                 = {};	
+    var selectedDomaineIds         = getSelectedDomaines(formSelector);
+    searchData.domaineids          = selectedDomaineIds;
+    var selectedLocaliteIds        = getSelectedLocalites(formSelector);
+    searchData.localiteids         = selectedLocaliteIds;	
+	searchData.page                = parseInt(advancedFormSelector.find('#page').val());
+	searchData.maxitems            = parseInt(advancedFormSelector.find('#maxitems').val());
+	searchData.numero              = jQuery.trim(advancedFormSelector.find('#numero').val());
+	searchData.numifu              = jQuery.trim(advancedFormSelector.find('#numifu').val());
+	searchData.numcnss             = jQuery.trim(advancedFormSelector.find('#numcnss').val());
+	searchData.libelle             = jQuery.trim(advancedFormSelector.find('#libelle').val());
+	searchData.name                = jQuery.trim(advancedFormSelector.find('#name').val());		
+	searchData.passport            = jQuery.trim(advancedFormSelector.find('#passport').val());
+	searchData.phone               = jQuery.trim(advancedFormSelector.find('#phone').val());
+	searchData.keywords            = jQuery.trim(advancedFormSelector.find('#keywords').val());
+	searchData.creatorid           = parseInt(advancedFormSelector.find('#creatorid').val());
+	searchData.localiteid          = 0;
+	searchData.type                = parseInt(advancedFormSelector.find('#type').val());
+	searchData.annee               = parseInt(advancedFormSelector.find('#annee').val());
+	searchData.date_year           = parseInt(advancedFormSelector.find('#date_year').val());
+	searchData.date_month          = parseInt(advancedFormSelector.find('#date_month').val());
+	searchData.date_day            = parseInt(advancedFormSelector.find('#date_day').val());
+	searchData.periode_start_year  = parseInt(advancedFormSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(advancedFormSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(advancedFormSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(advancedFormSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(advancedFormSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(advancedFormSelector.find('#periode_end_day').val());	
+	
+	for( var key in searchData ) {
+		 var itemValue             = searchData[key];
+		 formSelector.append('<input type=\'hidden\' id=\''+key+'\' name=\''+key+'\' value=\''+itemValue+'\' />');
+	}	
+	jQuery(document.body).append(formSelector ); 
+	formSelector.submit();
+});
+jQuery('#advancedExportPdf').click(function(event){
+	event.preventDefault();
+	var formSelector               = jQuery('<form></form>').attr('id', 'exportListPDFForm').attr('method', 'post').attr('action', '".$linkExport."');
+	var advancedFormSelector       = jQuery('.advancedSearchForm').eq(0) ;	
+	var searchData                 = {};
+
+    var selectedDomaineIds         = getSelectedDomaines(formSelector);
+    searchData.domaineids          = selectedDomaineIds;	
+	var selectedLocaliteIds        = getSelectedLocalites(formSelector);
+    searchData.localiteids         = selectedLocaliteIds;
+	searchData.page                = parseInt(advancedFormSelector.find('#page').val());
+	searchData.maxitems            = parseInt(advancedFormSelector.find('#maxitems').val());
+	searchData.numero              = jQuery.trim(advancedFormSelector.find('#numero').val());
+	searchData.numifu              = jQuery.trim(advancedFormSelector.find('#numifu').val());
+	searchData.numcnss             = jQuery.trim(advancedFormSelector.find('#numcnss').val());
+	searchData.libelle             = jQuery.trim(advancedFormSelector.find('#libelle').val());
+	searchData.name                = jQuery.trim(advancedFormSelector.find('#name').val());		
+	searchData.passport            = jQuery.trim(advancedFormSelector.find('#passport').val());
+	searchData.phone               = jQuery.trim(advancedFormSelector.find('#phone').val());
+	searchData.keywords            = jQuery.trim(advancedFormSelector.find('#keywords').val());
+	searchData.creatorid           = parseInt(advancedFormSelector.find('#creatorid').val());
+	searchData.localiteid          = 0;
+	searchData.type                = parseInt(advancedFormSelector.find('#type').val());
+	searchData.annee               = parseInt(advancedFormSelector.find('#annee').val());
+	searchData.date_year           = parseInt(advancedFormSelector.find('#date_year').val());
+	searchData.date_month          = parseInt(advancedFormSelector.find('#date_month').val());
+	searchData.date_day            = parseInt(advancedFormSelector.find('#date_day').val());
+	searchData.periode_start_year  = parseInt(advancedFormSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(advancedFormSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(advancedFormSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(advancedFormSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(advancedFormSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(advancedFormSelector.find('#periode_end_day').val());	
+	
+	for( var key in searchData ) {
+		 var itemValue             = searchData[key];
+		 formSelector.append('<input type=\'hidden\' id=\''+key+'\' name=\''+key+'\' value=\''+itemValue+'\' />');
+	}	
+	jQuery(document.body).append(formSelector ); 
+	formSelector.submit();
+});
+jQuery('#searchRegistres').click(function(event){
+	event.preventDefault();
+	var formSelector               = jQuery('.advancedSearchForm').eq(0) ;
+	var searchData                 = {};	
+
+	var selectedDomaineIds         = getSelectedDomaines(formSelector);
+    searchData.domaineids          = selectedDomaineIds;	
+    var selectedLocaliteIds        = getSelectedLocalites(formSelector);
+    searchData.localiteids         = selectedLocaliteIds;	
+	searchData.page                = parseInt(formSelector.find('#page').val());
+	searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+	searchData.numero              = jQuery.trim(formSelector.find('#numero').val());
+	searchData.numifu              = jQuery.trim(formSelector.find('#numifu').val());
+	searchData.numcnss             = jQuery.trim(formSelector.find('#numcnss').val());
+	searchData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+	searchData.name                = jQuery.trim(formSelector.find('#name').val());		
+	searchData.passport            = jQuery.trim(formSelector.find('#passport').val());
+	searchData.phone               = jQuery.trim(formSelector.find('#phone').val());
+	searchData.keywords            = jQuery.trim(formSelector.find('#keywords').val());
+	searchData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+	searchData.localiteid          = 0;
+	searchData.type                = parseInt(formSelector.find('#type').val());
+	searchData.annee               = parseInt(formSelector.find('#annee').val());
+	searchData.date_year           = parseInt(formSelector.find('#date_year').val());
+	searchData.date_month          = parseInt(formSelector.find('#date_month').val());
+	searchData.date_day            = parseInt(formSelector.find('#date_day').val());
+	searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());		
+	var maincontent	               = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent , 'Chargement des données...' );
+	formSelector.attr('action', '".$linkSearch."');
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+	});
+});
+jQuery('#searchfrom').change(function(event){
+	event.preventDefault();
+	var repository = jQuery('#globalFormSearch').find('#searchfrom').val().toUpperCase();
+	var minLength  = 3;
+	switch(repository) {
+		case 'ERCCM':
+		case 'FNRCCM':
+		default:
+			minLength = 3;
+			break;
+		case 'APISIGU':
+		case 'SIGUE':
+		case 'SIGU':
+			minLength = 5;
+			break;
+		case 'apiods':
+		case 'apidgi':
+			minLength = 5;
+			break;
+	}
+	//jQuery('#searchQ').typeahead('setVal','yourValue');
+	jQuery('#searchQ').attr('data-min-length' ,minLength);
+});
+jQuery('#searchQ').typeahead({highlight:true,hint:true},{name:'searchQ',displayKey:'value',source:registresEngine.ttAdapter(),limit:Number.MAX_VALUE,
+                              templates:{
+								 header   : '<h3 class=\'searchresults-header\'> Vous recherchez peut être...: </h3>' ,
+								 notFound : '<h3 class=\'nofoundresults\'> AUCUN RCCM N\'A PU ETRE TROUVE </h3>'
+							  }
+});
+jQuery('#searchQ').bind('typeahead:selected',function(obj,datum,name){jQuery('#searchQ').val(datum.label);if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selecteditem'))){jQuery('#simpleSearch').trigger('click');}jQuery.data( jQuery('#globalFormSearch'),'selecteditem',datum.value);});
+jQuery('#searchQ').on('change', function( event ){
+	event.preventDefault();
+	var searchQValue = jQuery(this).val();
+	if( SIRAH.util.isEmpty(searchQValue)) {
+		jQuery('.resetPage').trigger('click');
+	}	
+});	
+jQuery('#simpleSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector    = jQuery('#globalFormSearch') ;
+	var searchData      = {};
+	var pageNum         = parseInt(formSelector.find('#page').val());
+	
+	searchData.page     = pageNum;
+	searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+	 
+	searchData.searchQ  = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+	searchData.type     = parseInt(   jQuery('#globalFormSearch').find('#type').val());
+	var maincontent     = jQuery('#maincontent');		
+	SIRAH.loading.on(jQuery('#registresListWrapper'), 'Patientez...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() {},
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();}		
+					  });						
+});
+jQuery('#siguSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector    = jQuery('#globalFormSearch') ;
+	var searchData      = {};
+	var pageNum         = parseInt(formSelector.find('#page').val());
+	
+	searchData.page     = pageNum;
+	searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+	 
+	searchData.searchQ  = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+	searchData.type     = parseInt(jQuery('#globalFormSearch').find('#type').val());
+	var maincontent     = jQuery('#maincontent');		
+	SIRAH.loading.on(jQuery('#registresListWrapper'), 'Patientez...' );
+	SIRAH.request.post(formSelector, '".$linkSearchSigu."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() {},
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();}		
+					  });						
+});
+jQuery('#dgiSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	alert('Cette fonctionnalité n\'est pas encore disponible');				
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+	event.preventDefault();
+	if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		 return false;
+	}
+	var simpleSearchSelector= jQuery('#globalFormSearch');
+	var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+	var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+	var pageMaxitems        = formSelector.find('#maxitems').val();
+	var searchQ             = simpleSearchSelector.find('#searchQ').val();
+	var searchQType         = parseInt(simpleSearchSelector.find('#type').val());
+	if(jQuery(this).is('.nextPage')) {
+		  var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		  pageNum           = parseInt( currentBtnNum +1);
+	}
+	if( jQuery(this).is('.prevPage')) {
+		var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum              = parseInt( currentBtnNum - 1);
+	}
+	var paginationData                     = {};
+	var selectedDomaineIds                 = getSelectedDomaines(formSelector);
+    paginationData.domaineids              = selectedDomaineIds;	
+    var selectedLocaliteIds                = getSelectedLocalites(formSelector);
+    paginationData.localiteids             = selectedLocaliteIds;
+	paginationData.page                    = pageNum;
+	paginationData.maxitems                = parseInt(formSelector.find('#maxitems').val());
+	if(!SIRAH.util.isEmpty(searchQ)) {
+		paginationData.searchQ             = searchQ;
+		paginationData.searchQType         = searchQType;
+	} else {
+		paginationData.numero              = jQuery.trim(formSelector.find('#numero').val());
+		paginationData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+		paginationData.name                = jQuery.trim(formSelector.find('#name').val());		
+		paginationData.passport            = jQuery.trim(formSelector.find('#passport').val());
+		paginationData.phone               = jQuery.trim(formSelector.find('#phone').val());
+		paginationData.keywords            = jQuery.trim(formSelector.find('#keywords').val());
+		paginationData.numifu              = jQuery.trim(formSelector.find('#numifu').val());
+		paginationData.numcnss             = jQuery.trim(formSelector.find('#numcnss').val());
+		paginationData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+		paginationData.localiteid          = 0;
+		paginationData.type                = parseInt(formSelector.find('#type').val());
+		paginationData.annee               = parseInt(formSelector.find('#annee').val());
+		paginationData.date_year           = parseInt(formSelector.find('#date_year').val());
+		paginationData.date_month          = parseInt(formSelector.find('#date_month').val());
+		paginationData.date_day            = parseInt(formSelector.find('#date_day').val());
+		paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+		paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+		paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+		paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+		paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+		paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+	}		       			
+	var maincontent                        = jQuery('#maincontent');			
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : paginationData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();}		
+					  });		
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedRegistresId = function() {
+		var checkedItems  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds    = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var registreid   = parseInt(jQuery(this).attr('id').replace('registreids',''));
+             	checkedIds.push(registreid);
+           });
+		}
+		return checkedIds;
+};
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','editButton']);
+	}
+});
+jQuery('.viewRC').click(function(event) {
+	   event.preventDefault();
+	   var registreid   = parseInt(jQuery(this).attr('id').replace('rccmId-',''));
+	   var formSelector = jQuery('#registresListSearchForm');
+	   SIRAH.request.post(jQuery('#registresListSearchForm'),'".$linkExport."',{
+							data:{'registreids[]':registreid},
+							success:function( data ){
+									var mainContentSelector = jQuery('#maincontent');
+									jQuery('#patientez').fadeOut('slow');
+									jQuery('#sirah-page-message').fadeOut('slow');
+									if( undefined !== data.error){
+										SIRAH.error.raise(mainContentSelector,data.error,'error');
+										return data;
+									} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+										SIRAH.loading.off(false);
+										var listOfRccmUri      = '".urlencode($docUrl)."';
+										var documentRCNUM      = jQuery('#numero-'+registreid).val();
+										var dialogTitle        = encodeURIComponent('Fond de dossier du RC '+documentRCNUM);
+										var linkViewDoc        = '".$linkUserdocuments."?doc='+listOfRccmUri+'&dialogTitle='+dialogTitle;
+		 
+										var documentDialog     = jQuery('<div></div>').attr('id','documentDialog'); 
+										documentDialog.dialog2({title:'Ouverture du document...',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+										documentDialog.dialog2('open');
+									}	else if( undefined !== data.reload ) {
+										var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+										document.location.href =  reloadurl ;
+									} else {
+										SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+										return data;
+									}
+							 }
+		});
+});");
+$toolbar            = $this->supinaToolsbar(array(), $this->jqueryHandler());
+$toolCreatePhysique = $toolbar->tool("Nouvelle Personne Physique", "plus");
+$toolCreateMorale   = $toolbar->tool("Nouvelle Personne Morale", "plus");
+$toolEdit           = $toolbar->tool("Modifier" , "edit");
+$toolDelete         = $toolbar->tool("Supprimer", "trash-o");
+$toolExport         = $toolbar->tool("Exporter" , "download");
+$toolHistory        = $toolbar->tool("Historique", "list");
+
+if( $me->isAllowed("registrephysique","create")) {
+	$toolbar->add( $toolCreatePhysique, "createPhysiqueButton");
+	$toolCreatePhysique->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreatePhysique ));
+}
+if( $me->isAllowed("registremoral","create")) {
+	$toolbar->add( $toolCreateMorale  , "createMoraleButton");
+	$toolCreateMorale->onClick(  sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreateMorale   ));
+}
+$toolbar->add( $toolExport        , "exportButton");
+//$toolbar->add( $toolHistory   ,"historyButton");
+//$toolHistory->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkHistory));
+if( $me->isAllowed("registres","edit")) {
+	$toolbar->add( $toolEdit          , "editButton");
+	//$toolEdit->disable();
+    $toolEdit->onClick("event.preventDefault();
+						var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						var checkedItem  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name=\'registreids[]\']:checked').eq(0);
+						if( isDisabled || !checkedItem) {
+							SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							return;
+						}
+						var registreid         = parseInt(checkedItem.attr('id').replace('registreids',''));
+						document.location.href = '".$linkEdit."/registreid/'+registreid;");
+}
+if( $me->isAllowed("registres","delete") && $me->isAdmin()) {
+	$toolbar->add( $toolDelete        , "deleteButton");
+	//$toolDelete->disable();
+    $toolDelete->onClick(" 
+						   var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						   var checkedRegistres = getCheckedRegistresId();
+						   if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+							   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							   return;
+						   }
+						   var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les registres selectionnés ? Ces registres seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+						   dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+						   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+												function(){
+															jQuery.ajax({url:'".$linkDelete."',async:false,dataType :'json',
+																		data: {'registreids[]': checkedRegistres},type: 'GET' ,
+																		success  : function(data) {
+																		if(data.error !== undefined) {
+																		   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																		   return;
+																		} else if(data.success !== undefined) {
+																		   var checkedRegistres = getCheckedRegistresId();  	            		
+																		  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																		setTimeout(function(){
+																		  jQuery.each(checkedRegistres, function(key , registreid) {jQuery('#registreRowId-'+registreid).remove();});
+																		   jQuery('#dialogDelete').dialog2('close');
+																		  },2500);
+																	   }
+																	 }
+																   });     		
+												}}); 
+							dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+							dialogDelete.dialog2('open'); ");
+}
+$toolExport->dropdown(array("exportPDFButton"=>"<span class=\"glyph-icon icon-file-pdf-o\">&nbsp</span>     Exporter en PDF",
+						    "exportCSVButton"=>"<span class=\"glyph-icon icon-file-excel-o\">&nbsp</span>   Exporter en EXCEL",
+							"exportZIPButton"=>"<span class=\"glyph-icon icon-file-archive-o\">&nbsp</span> Générer une archive"), $this->jqueryHandler());
+$buttonExportPDF = $toolExport->getDropdownItem("exportPDFButton");
+if( $buttonExportPDF ) {
+	$buttonExportPDF->onClick(sprintf("
+	                                event.preventDefault(); 
+									var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+									var checkedRegistres = getCheckedRegistresId();
+									if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+										SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										return;
+									}
+									var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+										  click:function(event){
+												jQuery(this).dialog2('close');
+												var formSelector = jQuery('#registresListSearchForm');
+												SIRAH.request.post(jQuery('#registresListSearchForm'),'%s',{
+																	data:{'registreids[]':checkedRegistres},
+																	 success:function( data ){
+																			var mainContentSelector = jQuery('#maincontent');
+																			jQuery('#patientez').fadeOut('slow');
+																			jQuery('#sirah-page-message').fadeOut('slow');
+																			if( undefined !== data.error){
+																				SIRAH.error.raise(mainContentSelector,data.error,'error');
+																				return data;
+																			} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+																				SIRAH.loading.off(false);
+																				var listOfRccmUri      = '%s';
+																				var dialogTitle        = encodeURIComponent('Liste des registres');
+																				var linkViewDoc        = '%s?doc='+listOfRccmUri+'&dialogTitle='+dialogTitle;
+												 
+																				var documentDialog     = jQuery('<div></div>').attr('id','documentDialog'); 
+																				documentDialog.dialog2({title:'Ouverture du document..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+																				documentDialog.dialog2('open');
+																			}	else if( undefined !== data.reload ) {
+																				var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+																				document.location.href  =  reloadurl ;
+																			} else {
+																				SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+																				return data;
+																			}
+																	 }
+												});
+										  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExport,urlencode($docUrl), $linkUserdocuments));
+}
+    $buttonExportCSV = $toolExport->getDropdownItem("exportCSVButton");
+if( $buttonExportCSV ) {
+	$buttonExportCSV->onClick(sprintf("event.preventDefault(); 
+									   var checkedRegistres = getCheckedRegistresId();	        
+									   if( SIRAH.util.isEmpty(checkedRegistres)) {
+										   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										   return;
+									   }
+									   var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									   dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									   dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																  click:function(event){
+																		jQuery(this).dialog2('close');
+																		var formSelector = jQuery('<form> </form>').attr('id', 'exportListCSVForm').attr('method', 'post').attr('action', '%s');
+																		jQuery.each(checkedRegistres, function(index,inputValue){
+																					var checkedInput  = jQuery('<input />').attr('type','hidden').attr('name','registreids[]').attr('value', inputValue);
+																					formSelector.append(checkedInput);
+																		}); 
+																		jQuery(document.body).append(formSelector); 
+																		formSelector.submit();	
+																  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExportCSV));
+}
+
+    $buttonExportZIP = $toolExport->getDropdownItem("exportZIPButton");
+if( $buttonExportZIP ) {
+	$buttonExportZIP->onClick(sprintf("event.preventDefault(); 
+									   var checkedRegistres = getCheckedRegistresId();  		        
+									    if( SIRAH.util.isEmpty(checkedRegistres)) {
+										    SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										    return;
+									    }
+									    var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									    dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									    dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																  click:function(event){
+																		jQuery(this).dialog2('close');
+																		var formSelector = jQuery('<form> </form>').attr('id', 'exportListZIPForm').attr('method', 'post').attr('action', '%s');
+																		jQuery.each(checkedRegistres, function(index,inputValue){
+																					var checkedInput  = jQuery('<input />').attr('type','hidden').attr('name','registreids[]').attr('value', inputValue);
+																					formSelector.append(checkedInput);
+																		}); 
+																		jQuery(document.body).append(formSelector); 
+																		formSelector.submit();	
+																  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExportZIP));
+}
+$this->toolsbar  = $toolbar;
+$pagination      = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.selectBtn{width:auto !important}
+.siguSearch{background-color:#2b0570 !important}
+.searchFromBtn,#searchfrom{background-color:#ffcf10 !important;color:#242729 !important}
+ .form-row,.row {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;margin-right:-25px;margin-left: -25px;}
+ p{margin-bottom:10px !important;}
+ td .list-group-item {padding:10px 0px !important;}
+ td .row{margin-left:0 !important;margin-right:0 !important;}
+ .col-md-2,.col-sm-2,.col-sm-10,.col-md-10{padding-right:5px !important;padding-left:5px !important;}
+ .similarLink{color:green;text-decoration:underline}
+<?php $this->headStyle()->captureEnd() ;?>
+
+<div  id="registresListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		    <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+				<div class="input-group">	
+				    <span class="input-group-btn searchFromBtn"> <?php echo $this->formSelect("searchfrom",$filters["searchfrom"],array("style"=> "width:200px !important;","class"=> "form-control input-lg"), array("default"=>"Recherche Générale","erccm" =>"Recherche ERCCM","apisigu"=>"Recherche SIGU","apiods"=>"Recherche DGI","reservation"=>"Rechercher Réservations")); ?></span>
+					<span class="input-group-btn searchTypeBtn"> <?php echo $this->formSelect("type"      ,intval($filters["type"]),array("style"=> "width:100px !important;","class" => "form-control input-lg"), $types); ?></span>			
+					<input data-min-length="3" value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ" type="text" class="typeahead input-lg form-control" placeholder="Recherchez un registre, saisir le numéro RC, le nom du promoteur ou le nom commercial...">			  
+					<span class="input-group-btn ">			   
+					   <button id="simpleSearch"      class="btn btn-lg btn-primary simpleSearch"      type="button" title="Filtrer la liste à partir des mots clés que vous avez saisis"><span class="glyph-icon icon-search"></span> ERCCM </button>
+					   <button id="siguSearch"        class="btn btn-lg btn-warning siguSearch"        type="button" title="Effectuer la recherche dans la base de données de l'ERP"><span class="glyph-icon icon-search"></span> ERP/SIGU </button>
+					   <button id="apiodsSearch"      class="btn btn-lg btn-blue    apiodsSearch"      type="button" title="Effectuer la recherche dans la base de données des Impôts"><span class="glyph-icon icon-search"></span> DGI </button>
+					   <button id="advancedSearchBtn" class="btn btn-lg btn-default advancedSearchBtn" type="button" title="Cliquez pour faire des recherches à partir de nombreux critères"> <span class="glyph-icon icon-chevron-down"></span> Avancée</button>
+					   <button id="resetSearch"       class="btn btn-lg btn-danger  resetSearch"       type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+			    </div>
+				<input type="hidden" name="page"      id="page"     value="<?php echo $this->pageNum; ?>" /> 
+				<input type="hidden" name="maxitems"  id="maxitems" value="<?php echo $this->pageSize;?>" />			 
+		    </form>
+    	</div>			
+		<form id="registresListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		    <ul class="list-group">
+		        <li class="list-group-item"> 
+				    <div class="form-group"> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Secteur d'activités:</b> </label> 
+					   <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("domaineids[]", $this->checkedDomaines, array("multiple" => "multiple", "style" => "height:100px !important;","class"=>"form-control"),$this->domaines);?>  </div>  
+				       
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Numéro RCCM:</b> </label> 
+					   <div   class="col-md-5 col-sm-5"><input type="text" name="numero"  id="numero"  value="<?php echo $filters['numero']; ?>"  class="form-control" placeholder="Saisir un numéro RCCM" /></div>
+					</div> 			   
+				</li>
+				<li class="list-group-item"> 
+				    <div class="form-group"> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Numéro IFU:</b> </label> 
+					   <div   class="col-md-3 col-sm-3"><input type="text" name="numifu"  id="numifu"   value="<?php echo $filters['numifu']; ?>"  class="form-control" placeholder="Saisir un numéro IFU" /></div>
+				       <label class="col-sm-2 col-md-2 control-label">  <b> Numéro CNSS:</b> </label> 
+					   <div   class="col-md-5 col-sm-5"><input type="text" name="numcnss" id="numcnss"  value="<?php echo $filters['numcnss'];?>"  class="form-control" placeholder="Saisir un numéro CNSS" /></div>
+					</div> 			   
+				</li>
+		        <li class="list-group-item">
+					<div class="form-group"> 						
+						<label class="col-sm-2 col-md-2 control-label">  <b> Nom Commercial:</b> </label> 
+						<div   class="col-md-3 col-sm-3"><input type="text" name="libelle" id="libelle" value="<?php echo $filters['libelle']; ?>" class="form-control" placeholder="Saisir un nom commercial" /></div>
+					    <label class="col-sm-2 col-md-2 control-label">  <b> Promoteur :</b> </label> 
+						<div   class="col-md-5 col-sm-5"><input type="text" name="name" id="name" value="<?php echo $params['name']; ?>" class="form-control" placeholder="Saisir le nom et/ou prénom du promoteur"      /></div>
+					</div>
+                </li>	
+                <li class="list-group-item"> 
+				    <div class="form-group"> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> CNIB/Passport:</b> </label> 
+					   <div   class="col-md-3 col-sm-3"><input type="text" name="passport"  id="passport"  value="<?php echo $filters['passport'];?>"  class="form-control" placeholder="Saisir un numéro Passport ou CNIB" /></div>
+				       <label class="col-sm-2 col-md-2 control-label">  <b> Téléphone:</b> </label> 
+					   <div   class="col-md-5 col-sm-5"><input type="text" name="telephone" id="telephone" value="<?php echo $filters['telephone'];?>" class="form-control" placeholder="Saisir un numéro de téléphone"     /></div>
+					</div> 			   
+				</li>				
+				<li class="list-group-item"> 
+				    <div class="form-group"> 
+					    <label class="col-sm-2 col-md-2 control-label"><b>Juridictions:</b> </label> 
+						<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("localiteids[]", $this->checkedLocalites, array("multiple" => "multiple", "style" => "height:100px !important;","class"=>"form-control"),$localitesList);?>  </div> 
+					   
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Année de création:</b> </label>
+					   <div   class="col-md-5 col-sm-5"><?php echo $this->formSelect("annee",intval($filters["annee"]), array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+				    </div> 			   
+				</li>			
+				<li class="list-group-item"> 
+					<div class="form-group"> 
+					  <label class="col-sm-2 col-md-2 control-label">  <b> Date création: </b> </label> 
+					  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("date_day"  ,intval($filters["date_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+					  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("date_month",intval($filters["date_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+					  <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("date_year" ,intval($filters["date_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+				   </div>
+				</li>
+				<li class="list-group-item">
+					<div class="form-group"> 
+						<label class="col-sm-2 col-md-2 control-label">  <b> Période initiale:</b> </label> 
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_start_day"  ,intval($filters["periode_start_day"])  , array("class"=> "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_start_month",intval($filters["periode_start_month"]), array("class"=> "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periode_start_year" ,intval($filters["periode_start_year"]) , array("class"=> "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div class="form-group"> 
+						<label class="col-sm-2 col-md-2 control-label">  <b> Période finale:</b> </label> 
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_end_day"  ,intval($filters["periode_end_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_end_month",intval($filters["periode_end_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periode_end_year" ,intval($filters["periode_end_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div class="form-group"> 
+						<?php if( $me->isAdmin()): ?>
+						  <label class="col-sm-2 col-md-2 control-label">  <b> Opérateur de saisie:</b> </label>
+						  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("creatorid", $filters["creatorid"] , array("class" => "form-control chosen"), $users);?></div>
+						<?php endif; ?>
+						
+						<label class="col-sm-2 col-md-2 control-label">  <b> Resultats par page:</b> </label> 
+						<div   class="col-md-5 col-sm-5"> <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control chosen"),array( "10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=>5000,"10000"=>10000,"15000"=>15000,"50000"=>50000,"55000"=>55000,"100000"=>100000,"100000000"=>"Tout")); ?> </div>
+					</div>
+				 </li>			  			  
+		   </ul>
+		   <div class="panel-footer"> 
+		      <button class="btn btn-primary  searchRegistre advancedSearch" id="searchRegistres" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+			  <button class="btn btn-warning  exportCSV"    id="advancedExportCsv" type="button"><span class="glyph-icon icon-file-excel-o"></span> Exporter en CSV </button>
+			  <button class="btn btn-blue-alt exportPDF"    id="advancedExportPdf" type="button"><span class="glyph-icon icon-file-pdf-o"></span> Exporter en PDF </button>
+              <button class="btn btn-danger   resetSearch"  id="resetSearch"  type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		   </div>
+		   <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+		   <input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+		</form>
+		<table id="registresListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable registresListTable text-left" style="text-align:left;">
+			<thead>
+				<tr> 
+					<th width="2%"><input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>   
+					<th width="15%">  N° RCCM        </th> 
+					<th width="10%" > N° IFU         </th> 
+                    <th width="27%">  NOM COMMERCIAL </th> 	
+                    <th width="28%">  PROMOTEURS     </th>					
+					<th width="6%" >  ANNEES         </th>  					 					 						  
+					<th width="10%" > LOCALITES      </th> 
+					<th width="2%" >  *              </th>						  
+				</tr>
+			</thead>                
+			<tbody>
+            <?php 
+				$output   = "";
+				if( count(   $registres ) ) {
+					foreach( $registres as $registre ) {
+							 $registreid    = intval($registre['registreid']);
+							 $libelle       = $registre["libelle"] ;
+							 $NumeroRCCM    = $registre["numero"] ;
+							 $NumeroIFU     = ($registre["numifu"] !=0)?$registre["numifu"]   : "";
+							 $NumeroCNSS    = ($registre["numcnss"]!=0)?$registre["numcnss"]  : "";
+							 $description   = $registre["description"] ;
+							 $promoteur     = sprintf("%s %s", $registre["nom"], $registre["prenom"]);
+							 $domaine       = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+							 $localite      = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+							 $annee         = $registre["annee"]; 
+							 $linkInfos     = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"infos","id"=>$registreid), "default");
+							 $linkDownload  = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"export","registreids"=>$registreid), "default");
+							 if( $registre["type"] == 1 ) {
+								 $linkInfos = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"infos","id"=>$registreid), "default");
+							 } elseif( $registre["type"] == 2) {
+								 $linkInfos = $this->url(array("module"=>"admin","controller"=>"registremoral"   ,"action"=>"infos","id"=>$registreid), "default");
+							 } elseif( $registre["type"] == 3) {
+								 $linkInfos = $this->url(array("module"=>"admin","controller"=>"registresuretes" ,"action"=>"infos","id"=>$registreid), "default");
+							 } elseif( $registre["type"] == 4) {
+								 $linkInfos = $this->url(array("module"=>"admin","controller"=>"registremodifications","action"=> "infos","id"=> $registreid), "default");
+							 }                         	  	      
+							 $rowBg         = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+							 $output       .= "<tr style=\"background-color:".$rowBg."\" id=\"registreRowId-".$registreid."\"> ";
+									$output.= "<td> <input type=\"checkbox\" name=\"registreids[]\" id=\"registreids".$registreid."\" class=\"registreids\" /> </td>";
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$NumeroRCCM ." </a> </td>";
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$NumeroIFU  ." </a> </td>";
+									//$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$NumeroCNSS ." </a> </td>";								                            	  	                
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$libelle    ." </a> </td>"; 
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$promoteur  ." </a> </td>"; 
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$annee      ." </a> </td>"; 
+									$output.= "<td> <a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$localite   ." </a> </td>";
+									$output.= "<td> <a title=\"Ouvrir le fond de dossier de ce RCCM\"    href=\"".$linkDownload."\" class=\"viewRC\" id=\"rccmId-".$registreid."\"> <i class=\"glyph-icon icon-eye\"> </i> &nbsp; </a> </td>";
+							 $output       .= "</tr>";
+							 $output       .="<input type=\"hidden\" name=\"libelle-".$registreid."\" id=\"libelle-".$registreid."\" value=\"".$libelle."\" />";
+							 $output       .="<input type=\"hidden\" name=\"numero-".$registreid."\"  id=\"numero-".$registreid."\"  value=\"".$NumeroRCCM."\"  />";
+					  }                              	
+				  }  else {
+						if(!$findSimilar && !empty($searchQ)) {
+							$linkSearchSimilar= $this->url(array("module"=>"admin","controller"=>"registres","action"=>"list","findsimilar"=>1,"searchq"=>urlencode($searchQ),"maxitems"=>100), "default");
+							$output .= "<tr id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE DE COMMERCE N'A ETE RETROUVE. <a class=\"similarLink\" href=\"".$linkSearchSimilar."\" title=\"Recherchez des informations similaires\"> VOUS POUVEZ TROUVER DES NOMS COMMERCIAUX SIMILAIRES SUR CE LIEN </a> </td> </tr>";
+						} else {
+							$output .= "<tr id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE DE COMMERCE N'A ETE RETROUVE . </td> </tr>";
+						}                              	           
+				  }                              
+				  echo $output;                      
+               ?>                            
+            </tbody>           
+           </table>
+		<?php echo $pagination->render(); ?>
+	 </div>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

@@ -1,0 +1,204 @@
+<?php 
+$data             = $this->data;
+$cities           = $this->cities;
+$formSubmit       = $this->url(array("module" => "admin","controller" =>"entreprises", "action" => "create") , "default" );
+$backList         = $this->url(array("module" => "admin","controller" =>"entreprises", "action" => "list")   , "default" );
+$linkSearchCities = $this->url(array("module" => "admin","controller" =>"ajaxres", "action" => "cities")     , "default" );
+$formNames        = $this->formNames;
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:100%;margin:auto;}
+div.colbuttons{width:60%;}
+.only-left div.three-columns .col1{width:800px !important; padding:0 !important;}
+div#sirah-page-mainblock-wrapper,#sirah-page-content,#maincontent{margin:0 !important; padding:0 !important;}
+.rowbuttons{text-align:left;}
+.radio{color: #333333;font-size: 18px;font-weight: normal;padding:20px;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();
+$jq->addJavascriptFile( VIEW_BASE_PATH ."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile( VIEW_BASE_PATH ."/js/typeahead/dist/typeahead.bundle.min.js");
+$jq->addStyleSheet(     VIEW_BASE_PATH ."/css/typeahead.css");
+$jq->addJavascriptFile( VIEW_BASE_PATH .'/js/chosen/ajaxchosen.min.js');
+$onLoad = "";
+$onLoad.= " var cities =".ZendX_JQuery::encodeJson( $cities ).";";
+$onLoad.= "
+jQuery('.cancel').click(function( event ) {event.preventDefault(); document.location.href = '".$backList."';});
+jQuery('#".$formNames['libelle']."').bind('blur change',function(e){
+      e.preventDefault();
+      var libelle = jQuery.trim(jQuery(this).val());
+      if ( !SIRAH.util.isEmpty( libelle ) ) {
+        jQuery('".$formNames['libelle']."').removeClass('input-error');
+        jQuery('#libelle-validation-message').html('');
+      } else {
+        jQuery('".$formNames['libelle']."').addClass('input-error');
+        return;
+      }
+ });
+ jQuery('.saveEntreprise').click(function( e ) {
+      e.preventDefault();      
+      var  formSelector = jQuery('#createntreprise-form');
+      var  libelle      = jQuery.trim(jQuery('#".$formNames['libelle']."').val());     
+      if( SIRAH.util.isEmpty( libelle ) ) {
+         jQuery('#".$formNames['libelle']."').addClass('input-error');
+         jQuery('#libelle-validation-message').html('');
+         SIRAH.error.raise('libelle-validation-message','Entrez un dénomination valide de l\'entreprise');
+         return;
+      } else {
+         jQuery('#".$formNames['libelle']."').removeClass('input-error');
+         jQuery('#libelle-validation-message').html('');
+      }
+      jQuery('#".$formNames['libelle']."').val( libelle );
+      formSelector.submit();
+});
+var citiesEngine = new Bloodhound({datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                   local: cities,remote:{url: '".$linkSearchCities."?q=%QUERY'}});
+citiesEngine.initialize();
+jQuery('#".$formNames['ville']."').typeahead({highlight:true,minLength:2},{name:'".$formNames['ville']."',displayKey:'value',source:citiesEngine.ttAdapter(),limit:10});
+jQuery('#".$formNames['ville']."').bind('typeahead:selected',function(obj,datum,name){jQuery('#".$formNames['city']."').val(datum.label);jQuery.data( jQuery('#createntreprise-form'),'selectedcity',datum.value);});
+jQuery('#".$formNames['ville']."').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedcity'))){jQuery('#".$formNames['city']."').val(0);}});
+jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});";
+$jq->addOnLoad($onLoad);
+
+$data["datecreation_day"]   = ( isset($data["datecreation_day"]   ) ) ? $data["datecreation_day"]   : "00";
+$data["datecreation_month"] = ( isset($data["datecreation_month"] ) ) ? $data["datecreation_month"] : "00";
+$data["datecreation_year"]  = ( isset($data["datecreation_year"]  ) ) ? $data["datecreation_year"]  : "0000"; 
+$listOfNbreEmployees        = array(10 => "10", 100 => "100", 200 => "200", 300 => "300", 400 => "400", 500 => "500", 800 => "800" , 1000 => "1000"); 
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" enctype="multipart/form-data" id="createntreprise-form"   role="form">
+<div class="container">
+<ul class="list-group">
+    <li class="list-group-item">  
+       <div class="row">              
+            <div class="col-md-4"> <label class="label" for="logo"> <b> Le logo: </b> </label> </div>
+            <div class="col-md-8"> <input type="file" name="logo" id="logo"  /> </div>  
+       </div> 
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" > <b> Dénommination : </b> </label> </div>
+         <div class="col-md-8"> <input id="<?php echo $formNames['libelle']; ?>" name="<?php echo $formNames['libelle']; ?>" type="text" class="input" placeholder="La dénommination de l'entreprise" 
+                                       title="La dénommination de l'entreprise"  value="<?php echo $data['libelle']; ?>" > </div>
+          <p id="libelle-validation-message" class="validation-message"></p> 
+     </div>
+   </li>
+   <li class="list-group-item">                 
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="datecreation"> <b> Créee le :</b>  </label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect( $formNames['datecreation_day']  , $data["datecreation_day"]  , array(),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-3"><?php echo $this->formSelect( $formNames['datecreation_month'], $data["datecreation_month"], array(),array(0 =>"Mois")+$this->months()); ?></div>
+         <div class="col-md-3"><?php echo $this->formSelect( $formNames['datecreation_year'] , $data["datecreation_year"] , array(),array(0 =>"Année")+createYearsArray( ( intval(date("Y")) - 40 ), intval(date("Y")) ) );?></div>     
+    </div>
+  </li>
+  <li class="list-group-item">        
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="capital"> <b> Capital: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="<?php echo $formNames['capital']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le capital de l'entreprise" placeholder="Le capital de l'entreprise" name="<?php echo $formNames['capital']; ?>" value="<?php echo $this->escape($data['capital']); ?>">
+          </div> 
+     </div>
+  </li>
+  <li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="nbemployes"> <b> Le nombre d'employés varie de : </b> </label> </div>
+         <div class="col-md-3">   <?php echo $this->formSelect( $formNames["nbemployes_min"], intval($data["nbemployes_min"]), array(), array(0=> "Minimal")+$listOfNbreEmployees ); ?></div> 
+         <div class="col-md-5">   <?php echo $this->formSelect( $formNames["nbemployes_max"], intval($data["nbemployes_max"]), array(), array(0=> "Maximal")+$listOfNbreEmployees ); ?></div> 
+     </div>
+   </li>
+   <li class="list-group-item">     
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="groupid"> <b> Classé dans le groupe: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect($formNames["groupid"], intval($data["groupid"]), array(), $this->entreprisegroups ); ?></div> 
+     </div>
+   </li>
+   <li class="list-group-item">        
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="adress"> <b> Adresse: </b> </label> </div>
+         <div class="col-md-4">
+               <input id="<?php echo $formNames['address']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="L'adresse de l'entreprise" placeholder="L'adresse de l'entreprise" name="<?php echo $formNames['address']; ?>" value="<?php echo $this->escape($data['address']); ?>">
+          </div>
+          <div class="col-md-4">
+               <input id="<?php echo $formNames['zip']; ?>" type="text" class="input" maxlength="60" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le code postal de l'entreprise" placeholder="Le code postal de l'entreprise" name="<?php echo $formNames['zip']; ?>" value="<?php echo $this->escape($data['zip']); ?>">
+          </div> 
+     </div>
+  </li>
+  <li class="list-group-item">        
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="phone1"> <b> Numéro de téléphone: </b> </label> </div>
+         <div class="col-md-4">
+               <input id="<?php echo $formNames['phone1']; ?>" type="text" class="input" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le numéro de téléphone principal" placeholder="Le numéro de téléphone principal" name="<?php echo $formNames['phone1']; ?>" value="<?php echo $this->escape($data['phone1']); ?>">
+          </div>
+          <div class="col-md-4">
+               <input id="<?php echo $formNames['phone2']; ?>" type="text" class="input" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le numéro de téléphone secondaire" placeholder="Le numéro de téléphone secondaire" name="<?php echo $formNames['phone2']; ?>" value="<?php echo $this->escape($data['phone2']); ?>">
+          </div>         
+     </div>
+  </li>
+  <li class="list-group-item">        
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="email"> <b> Adresse email : </b> </label> </div>
+         <div class="col-md-4">
+               <input id="<?php echo $formNames['email']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Adresse email de l'entreprise" placeholder="Adresse email de l'entreprise" name="<?php echo $formNames['email']; ?>" value="<?php echo $this->escape($data['email']); ?>">
+          </div>
+          <div class="col-md-4">
+               <input id="<?php echo $formNames['email']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Site web de l'entreprise" placeholder="Site web de l'entreprise" name="<?php echo $formNames['siteweb']; ?>" value="<?php echo $this->escape($data['siteweb']); ?>">
+          </div>  
+     </div>
+  </li>
+  <li class="list-group-item">        
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="responsable"> <b> Le responsable: </b> </label> </div>
+         <div class="col-md-4">
+               <input id="<?php echo $formNames['responsable']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Le nom du responsable de l'entreprise" placeholder="Le nom du responsable de l'entreprise" name="<?php echo $formNames['responsable']; ?>" value="<?php echo $this->escape($data['responsable']); ?>">
+         </div>
+         <div class="col-md-4">
+               <input id="<?php echo $formNames['responsable_email']; ?>" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="L'adresse email du responsable de l'entreprise" placeholder="L'adresse email du responsable de l'entreprise" name="<?php echo $formNames['responsable_email']; ?>" />
+         </div> 
+     </div>
+  </li>
+  <li class="list-group-item">     
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="country"> <b> Pays: </b> </label> </div>
+         <div class="col-md-4"> <?php echo $this->formSelect( $formNames["country"] , $this->escape($data["country"]) , array() , $this->countries()); ?></div>
+         <div class="col-md-4"> <input id="<?php echo $formNames['ville']; ?>" type="text"  name="<?php echo $formNames['ville']; ?>"  title="La ville siège de l'entreprise"
+                                       class="input typeahead" placeholder="La ville siège de l'entreprise" > 
+         </div>
+     </div>
+   </li> 
+  <li class="list-group-item">     
+    <div class="row">
+               <div class="col-md-4"> <label class="label" for="presentation"> <b> Présentation de  l'entreprise: </b> </label> </div>
+               <div class="col-md-8">
+                   <textarea  name="<?php echo $formNames['presentation']; ?>" id="<?php echo $formNames['presentation']; ?>" class="textarea" rows="5" cols="50">
+                       <?php echo $data["presentation"]; ?>
+                   </textarea> 
+               </div>  
+     </div> 
+  </li>
+</ul>  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+        <div class="col-md-4">
+             <button type="submit" class="btn btn-default btn-primary saveEntreprise"> <i class="glyphicon glyphicon-floppy-disk "> </i> Enregistrer </button>  
+             <button type="submit" class="btn btn-default cancel"> <i class="glyphicon glyphicon-ban-circle"> </i> Annuler</button>         
+        </div>
+        <div class="col-md-8"></div>  
+     </div>     
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+<input type="hidden" name="<?php echo $this->csrfTokenId; ?>"   id="<?php echo $this->csrfTokenId; ?>"    value="<?php echo $this->csrfTokenValue; ?>" />
+<input type="hidden" name="<?php echo $formNames['city']; ?>"   id="<?php echo $formNames['city']; ?>"    value="<?php echo $data["city"]; ?>"         />
+<input type="hidden" name="<?php echo $formNames['phone2']; ?>" id="<?php echo $formNames['phone2']; ?>"  value="<?php echo $data["phone2"]; ?>"         />
+</form>

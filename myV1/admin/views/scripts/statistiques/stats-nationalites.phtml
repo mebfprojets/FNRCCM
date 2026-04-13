@@ -1,0 +1,35 @@
+<?php
+      $statnationalites = $this->rows;
+	  $nationalites     = $this->countries();
+?>
+<table id="statsNationalite" class="table table-bordered table-hover">
+		    <thead> <tr> <th width="80%"> Nationalités </th> <th width="20%"> Nombre </th> </tr></thead>
+			<tbody>
+			   <?php
+			          $outputNationalite  = "";
+					  $totalNationalite   = 0;					  
+					  if( count(   $statnationalites )) {
+						  foreach( $statnationalites as $statnationalite ) {
+							       if(empty($statnationalite['nationalite']) || !isset($nationalites[$statnationalite['nationalite']]))
+                     	 	      	  continue;
+                     	 	       $rowBg         = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                                   $linkList      = $this->url(array("module"=>"admin","controller"=> "registres","action"=>"list","country"=> $statnationalite['nationalite']),"default");
+                     	 	       $nationalite   = $nationalites[$statnationalite['nationalite']];
+								   $outputNationalite.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $outputNationalite.="<td> <a title=\"Accéder aux RCCM de cette nationalité\" href=\"".$linkList."\"> ".$nationalite." </a></td>";
+                     	 	            $outputNationalite.="<td> <a title=\"Accéder aux RCCM de cette nationalité\" href=\"".$linkList."\"> ".number_format($statnationalite['nombre'], 0, " ", " ")." </a> </td>";
+                     	 	       $outputNationalite.="</tr>";
+                     	 	       $totalNationalite += $statnationalite['nombre'];
+						  }
+						  $rowBg      = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						  $outputNationalite.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $outputNationalite.="<td> TOTAL :    </td>";
+                     	        $outputNationalite.="<td> ".number_format( $totalNationalite, 0,' ', ' ')." </td>";
+                     	  $outputNationalite.="</tr>";
+					  } else {
+						           $outputNationalite.="<tr><td colspan=\"3\"> AUCUN RCCM N'A ETE TROUVE DANS LA BASE DE DONNEES </td> </tr>";
+					  }
+					  echo $outputNationalite;
+			   ?>
+			</tbody>
+</table>

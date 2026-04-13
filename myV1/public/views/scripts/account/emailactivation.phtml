@@ -1,0 +1,45 @@
+<?php 
+$front              = Zend_Controller_Front::getInstance();
+$defaultController  = $front->getDefaultControllerName();
+$defaultAction      = $front->getDefaultAction();
+$token              = $this->token;
+$formSubmit         = $this->url(array("controller"=>"account","action"=>"activate","module"=>"public"),"default",true);
+$linkCancel         = $this->url(array("controller"=>"account","action"=>"login","module"=>"public" ),"default",true);
+$basePath           = VIEW_BASE_PATH;
+?>
+<?php
+$jq                 = $this->jQuery();  
+$onLoad             = " 
+jQuery('.cancelLogin').click(function(e){e.preventDefault();document.location.href = '".$linkCancel."';});
+jQuery('.validate').click(function(e){e.preventDefault();var  token = jQuery('#token').val();      
+	if( SIRAH.util.isEmpty(token)){
+		SIRAH.error.raise('activationForm','Entrez un code valide');
+		return;
+	}      
+	jQuery('#activationForm').submit();      
+}); ";
+
+$jq->addOnLoad($onLoad);
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-more-shadow {box-shadow: 0 0 15px rgba(0, 0, 0, 0.1), 0 3px 5px rgba(0, 0, 0, 0.2);}
+.panel-default {border-color: #dddddd;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div class="container-fluid form-container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="panel-body">
+				    <div class="panel-desc"> <?php echo $this->title; ?> </div> <hr>
+					<form id="activationForm" method="post" action="<?php echo $formSubmit; ?>" role="form" class="form-horizontal">                      
+					   <div style="margin-bottom: 25px;width:100%;" class="input-group"><input value="<?php echo $token;?>" type="text" type="text" id="token" name="token"  placeholder="Entrez le code d'activation de votre compte" class="form-control" autocomplete="off"></div>
+					   <button type="submit" class="btn btn-primary btn-lg btn-block validate"> <i class="glyphicon glyphicon-log-in"></i> VALIDER</button>
+					   <button type="submit" class="btn btn-default btn-lg btn-block cancelLogin bg-red"> ANNULER </button>    
+						  <input id="formtoken" type="hidden" name="<?php echo $formtoken ; ?>" value="formtoken" />  
+						  <input id="myPwdResetToken" type="hidden" name="myPwdResetToken"  value="<?php echo $myPwdResetToken ; ?>" />  
+					</form>
+				</div>
+			</div>      
+        </div>   
+    </div>
+</div>

@@ -1,0 +1,341 @@
+<?php 
+$entreprises     = $this->entreprises;
+$filters         = $this->filters;
+$paginator       = $this->paginator;
+
+$basePath        = VIEW_BASE_PATH;
+$logoDefaultFile = $basePath."/images/default_company_logo.png";
+$jq              = $this->jQuery();
+
+$linkSearch      = $this->url(array("module"=>"admin","controller" => "demandentreprises", "action"=> "list")  , "default");
+$linkCreate      = $this->url(array("module"=>"admin","controller" => "demandentreprises", "action"=> "create"), "default");
+$linkEdit        = $this->url(array("module"=>"admin","controller" => "demandentreprises", "action"=> "edit"  ), "default");
+$linkDelete      = $this->url(array("module"=>"admin","controller" => "demandentreprises", "action"=> "delete"), "default");
+ 
+$jq->addOnload("
+jQuery('.entrepriseCard').css('cursor','pointer');
+jQuery('.entrepriseCard').click(function( event ){event.preventDefault();document.location.href= jQuery(this).attr('rel');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#entreprisesListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var searchQ         = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+		 
+		searchData.libelle  = searchData.generalfilter = searchData.searchQ = searchQ;
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchEntreprises,.searchEntreprises').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#entreprisesListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		searchData.domaineid= parseInt(formSelector.find('#domaineid').val());
+		searchData.formid   = parseInt(formSelector.find('#formid').val());
+	
+		searchData.libelle  = jQuery.trim(formSelector.find('#libelle').val());
+		searchData.email    = jQuery.trim(formSelector.find('#email').val());
+		searchData.telephone= jQuery.trim(formSelector.find('#telephone').val());
+		searchData.address  = jQuery.trim(formSelector.find('#address').val());
+		 
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on( maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#entreprisesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.domaineid = parseInt(formSelector.find('#domaineid').val());
+		paginationData.formid    = parseInt(formSelector.find('#formid').val());
+	
+		paginationData.libelle   = jQuery.trim(formSelector.find('#libelle').val());
+		paginationData.email     = jQuery.trim(formSelector.find('#email').val());
+		paginationData.phone     = jQuery.trim(formSelector.find('#phone').val());
+		paginationData.address   = jQuery.trim(formSelector.find('#address').val());
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var maincontent          = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+	
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedEntreprisesId = function() {
+		var checkedItems = jQuery('#entreprisesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var entrepriseid   = parseInt(jQuery(this).attr('id').replace('entrepriseids',''));
+             	checkedIds.push(entrepriseid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#entreprisesListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#entreprisesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#entreprisesListTable'));
+		       if(checkedItems) {
+		           disableButtons(['exportButton','deleteButton','editButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#entreprisesListTable'));
+		      enableButtons(['exportButton','deleteButton','editButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['exportButton','deleteButton','editButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['deleteButton','exportButton','editButton']);
+		       }
+		  }
+		}
+   });");
+
+$toolbar      = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate   = $toolbar->tool("Nouvelle entreprise", "plus");
+$toolEdit     = $toolbar->tool("Modifier" , "edit");
+$toolDelete   = $toolbar->tool("Supprimer", "trash-o");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#entreprisesListTable').find('input[type=\'checkbox\'][name=\'entrepriseids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var entrepriseid         = parseInt(checkedItem.attr('id').replace('entrepriseids',''));
+					 document.location.href   = '".$linkEdit."/entrepriseid/'+entrepriseid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		            var isDisabled         = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedEntreprises = getcheckedEntreprisesId();
+				    if( isDisabled || SIRAH.util.isEmpty( checkedEntreprises )) {
+					   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+					   return;
+				    }
+				    var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les entreprises selectionnées ? </div>').attr('id','dialogDelete');             		 
+				    dialogDelete.dialog2({title :'Attention , confirmer cette action !',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+				    dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+										 function(){
+             		                                jQuery.ajax({url:'".$linkDelete."',async: false,dataType :'json',data:{'entrepriseids[]': checkedEntreprises},type: 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedEntreprises = getcheckedEntreprisesId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){jQuery.each(checkedEntreprises,function(key,entrepriseid){jQuery('#entrepriseRowId-'+entrepriseid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                    }}); 
+             		dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		dialogDelete.dialog2('open');");
+
+$this->toolsbar = $toolbar;
+
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));    
+
+?>
+
+<div id="entreprisesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+		   <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ"  type="text" class="form-control" placeholder="Recherchez une entreprise, saisir des mots clés...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-defaultadvancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+               <button id="resetSearch"       class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		   </div>
+		     <input type="hidden" name="domaineid" id="domaineid" value="<?php echo intval($filters["domaineid"]); ?>" /> 
+			 <input type="hidden" name="formid"    id="formid"    value="<?php echo intval($filters["formid"]);    ?>" /> 
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+    	</div>
+        <form id="entreprisesListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >		
+          <ul class="list-group">
+            <li class="list-group-item"> 
+				<div class="row">
+					<label class="col-sm-2 col-md-2 control-label">  <b>Nom commercial:</b> </label> 
+					<div   class="col-sm-9"><input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Saisir des mots clés..."> </div> 
+				</div> 			   
+			</li>
+            <li class="list-group-item"> 
+			    <div class="row">
+			        <label class="col-sm-2  control-label">  <b> Adresse:</b> </label> 
+				    <div   class="col-sm-10 col-md-10"><input value="<?php echo $filters['address']; ?>" id="address" name="address"  type="text" class="form-control" placeholder="L'adresse de l'entreprise..."> </div> 
+                </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			    <div class="row">
+			        <label class="col-sm-2 col-md-2 control-label"> <b> Adresse email:</b> </label> 
+				    <div   class="col-sm-10 col-md-10"><input value="<?php echo $filters['email']; ?>" id="email" name="email" type="text" class="form-control" placeholder="L'adresse email de l'entreprise..."> </div> 
+                </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			    <div class="row">
+			        <label class="col-sm-2 col-md-2 control-label"><b> Numéro de téléphone:</b> </label> 
+				   <div   class="col-sm-10 col-md-10"><input value="<?php echo $filters['phone']; ?>" id="phone" name="phone" type="text" class="form-control" placeholder="Le numéro de téléphone de l'entreprise..."> </div> 
+                </div> 			   
+			</li>			
+			<li class="list-group-item"> 
+			   <div class="row">
+			        <label class="col-sm-2 col-md-2 control-label"><b> Secteur d'activités :</b> </label> 
+				    <div   class="col-sm-3"> <?php echo $this->formSelect("domaineid", intval($filters["domaineid"]), array("class" => "form-control"), $this->domaines); ?>  </div> 
+				    <label class="col-sm-3 control-label">  <b> Forme Juridique:</b> </label> 
+				    <div   class="col-md-3"> <?php echo $this->formSelect("formid"   , intval($filters["formid"])   , array("class" => "form-control"), $this->formes); ?>  </div> 
+               </div> 			   
+			</li>
+		</ul>		 		
+		<div class="panel-footer"> 
+		    <button id="searchEntreprises" class="btn btn-primary searchEntreprise advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+             <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		</form>
+		<table id="entreprisesListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                <tr>
+                    <th width="3%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /> </th>				
+                    <th width="17%"> Sigles           </th>                          						  
+                    <th width="50%"> Noms commerciaux </th> 
+                    <th width="30%"> Dénominations    </th>
+                </tr>
+            </thead>
+            <tbody>	
+			   <?php 
+                      $output = "";
+					  if( count(   $entreprises ) ) {
+						  foreach( $entreprises as $entreprise ) {
+							       $entrepriseid      = $entreprise["entrepriseid"]; 
+							       $NomCommercial     = $entreprise["nomcommercial"];
+								   $Denomination      = $entreprise["denomination"];
+								   $Sigle             = $entreprise["sigle"];
+								   $entrepriseAdresse = $entreprise["address"];
+								   $entrepriseEmail   = $entreprise["email"];
+								   $entrepriseDomaine = $entreprise["domaine"];
+								   $entreprisePhone   = $entreprise["telephone"];
+
+								   $linkInfos         = $this->url(array("module"=>"admin","controller"=>"entreprises","action"=>"infos", "entrepriseid" => $entrepriseid) , "default");								   
+ 
+									 
+									$output .= "<tr id=\"entrepriseRowId-".$entrepriseid."\">";
+             	                             $output .= "<td style=\"text-align:center;\"> <input type=\"checkbox\" name=\"entrepriseids[]\" id=\"entrepriseids".$entrepriseid."\" class=\"entrepriseids\" /> </td>";
+             	                             $output .= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\"> ".$Sigle         ." </a> </td>";
+             	                             $output .= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\"> ".$NomCommercial ." </a> </td>";             	            
+             	                             $output .= "<td style=\"text-align:center;\"> <a href=\"".$linkInfos."\"> ".$Denomination  ." </a> </td>";
+             	                    $output .= "</tr>";
+						  }
+					  } else {
+             	                    $output .= "<tr>";
+             	                            $output .= "<td style=\"text-align:center;\" colspan=\"4\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+             	                    $output .= "</tr>";
+                      }
+					  
+					  echo $output;
+					  
+			   ?>
+            </tbody>				
+		</table>
+              <?php echo $pagination->render(); ?>
+	</div>
+</div>  
+
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

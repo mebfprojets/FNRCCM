@@ -1,0 +1,127 @@
+<?php 
+$front              = Zend_Controller_Front::getInstance();
+$defaultController  = $front->getDefaultControllerName();
+$defaultAction      = $front->getDefaultAction();
+$captcha            = $this->captcha;
+$messages           = $this->messages;
+$data               = $this->data;
+$formSubmit         = $this->url(array("controller" => "account"   , "action" => "login") , "default");
+$forgotPasswordLink = $this->url(array("controller" => "recoverpwd", "action" => "init")  , "default");
+$registerLink       = $this->url(array("controller" => "account"   , "action" => "create"), "default");
+$linkCancel         = $this->url(array("controller" => $defaultController, "action" => $defaultAction ), "default");
+$basePath           = VIEW_BASE_PATH;
+$register           = $this->register;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+ body{overflow:hidden;}
+ .jqstooltip { position: absolute;left: 0px;top: 0px;visibility: hidden;background: rgb(0, 0, 0) transparent;background-color: rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$this->headScript()->appendFile(    $basePath . "/assets-minified/widgets/wow/wow.js");
+$this->headScript()->appendFile(    $basePath . "/assets-minified/widgets/parsley/parsley.js");
+$this->headScript()->appendScript("wow = new WOW({animateClass:'animated',offset: 100});wow.init();", 'text/javascript');
+
+$jq     = $this->jQuery();  
+$onLoad = "   
+  jQuery('.cancelLogin').click(function(e){e.preventDefault();document.location.href = '".$linkCancel."';});
+  jQuery('.register').click(function(   e){e.preventDefault();document.location.href = '".$registerLink."';});  
+  jQuery('.recoverPwd').click(function( e){e.preventDefault();document.location.href = '".$forgotPasswordLink."';});
+  jQuery('.connect').click(function(e) {
+      e.preventDefault();
+      jQuery('#sirah-page-message').fadeOut('fast');
+      jQuery('#patientez').fadeOut('fast');      
+      var  username    = jQuery.trim(jQuery('#username').val());
+      var  credential  = jQuery.trim(jQuery('#password').val());      
+      if( SIRAH.util.isEmpty(username)){
+          jQuery('#username').addClass('input-error');
+          SIRAH.error.raise('useraccount-loginform','Entrez un nom d\'utilisateur valide');
+          return;
+      }      
+      if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+         jQuery('#password').addClass('input-error');
+         SIRAH.error.raise('useraccount-loginform','Entrez un mot de passe valide');
+         return;
+      }
+      SIRAH.request.post(jQuery('#useraccount-loginform'),null,
+      {
+        success    : function(data)
+        {
+            var formSelector  = jQuery('#useraccount-loginform');
+            var url           = formSelector.attr('action');
+            jQuery('#patientez').fadeOut('slow');
+            jQuery('#sirah-page-message').fadeOut('slow');
+            if(undefined !== data.token){
+               var tokenSelector  = jQuery('#logintoken');
+               tokenSelector.attr('name', data.token);
+            }
+            if(undefined !== data.error){
+               SIRAH.error.raise(formSelector,data.error,'error');
+               return data;
+            } else if(undefined !== data.success){
+               SIRAH.error.raise(formSelector,data.success,'success');
+               return data;
+            }	else if( undefined !== data.reload ) {
+                var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+                document.location.href  =  reloadurl ;
+            } else {
+               document.location.href = '".$formSubmit."';
+               SIRAH.error.raise(formSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+               return data;
+            }		                	 
+		}       
+      });
+      
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+<form id="useraccount-loginform" method="post" action="<?php echo $formSubmit; ?>" class="col-md-4 center-margin" data-parsley-validate="">
+  <div class="panel-layout wow bounceInDow animated" style="visibility:visible;animation-name:bounceInDown">
+    <div id="login-form" class="content-box bg-default">
+        <div class="meta-box meta-box-offset">
+             <img src="<?php echo $basePath."/images/login_avatar.png";  ?>" align="center" class="meta-image img-thumbnail img-circle" />
+             <h3  class="meta-heading    font-size-16"> <?php echo $this->title; ?> </h3>
+             <h3  class="meta-subheading font-size-13 font-gray"> <?php echo $this->subtitle; ?> </h3>
+        </div>
+      
+    <?php if( ( null!= $captcha ) && $this->showcaptcha): ?>
+       <div class="content-box-wrapper pad20A">
+         <div class="form-group"> <?php echo $this->errormessage(); ?></div>
+         <div class="form-group"><div class="col-sm-12"> <img width="100%"  alt="Entrez le code qui apparait dans l'image" src="<?php  echo $captcha->getImgUrl(). $captcha->getId()  ?>.png" /><br/> </div> </div>
+         <div class="form-group"><div class="input-group input-group-lg"><input type="text" name="captcha[input]" id="captchainput" class="form-control" autocomplete="off" placeholder="Entrez le code qui apparait dans l'image" ></div></div>
+         
+         <div class="form-group"><button type="submit" class="btn btn-block btn-primary"> VERIFIER </button></div>
+          <input type="hidden" name="captcha[id]"  value="<?php echo $captcha->getId();  ?>"  /><br/>
+          <input type="hidden" name="captchatime"  id="captchatime" value="<?php echo time(); ?>"  /> 
+       </div>
+    <?php endif; ?>
+    
+    <?php if( ( null== $captcha ) || ( false == $this->showcaptcha) ): ?>
+        <div class="content-box-wrapper pad20A">
+         <div class="form-group"> <?php echo $this->errormessage(); ?></div>
+         <div class="form-group"><div class="input-group input-group-lg"><span class="input-group-addon addon-inside bg-white font-primary"><i class="glyph-icon icon-envelope-o"></i></span><input name="username" type="email" class="form-control" id="username" placeholder="Votre Identifiant" value="<?php echo $data["username"];  ?>" autocomplete="off" ></div></div>
+         <div class="form-group"><div class="input-group input-group-lg"><span class="input-group-addon addon-inside bg-white font-primary"><i class="glyph-icon icon-unlock-alt"></i></span><input type="password" class="form-control" id="password" placeholder="Votre mot de passe" name="password" autocomplete="off" ></div></div>
+         <div class="form-group"><button type="submit" class="btn btn-block btn-primary connect"> CONNEXION </button></div>
+         <div class="form-group"><button type="submit" class="btn btn-block cancelLogin"><i class="glyph-icon icon-home"></i> REVENIR SUR LA PAGE D'ACCUEIL </button></div>
+         <div class="row">
+           <div class="checkbox-primary col-md-6" style="height: 20px;">
+               <label>
+                 <div class="checker" id="uniform-loginCheckbox1"><span>
+                      <input type="checkbox" id="rememberme" name="rememberme" class="custom-checkbox">
+                      <i class="glyph-icon icon-check"></i></span>
+                 </div> Rester connecté
+               </label>
+           </div>
+           <div class="text-right col-md-6">
+                <a href="<?php echo $forgotPasswordLink; ?>" class="recoverPwd" title="Recupérer votre mot de passe"> Mot de passe oublié?</a>
+           </div>
+          </div>
+        </div>
+     <?php endif; ?>
+    </div>
+  </div>
+  <input type="hidden" name="<?php echo $this->csrfTokenId; ?>"  id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />   
+  <input type="hidden" name="continue"  id="continue"  value="<?php echo $this->escape( $this->doneUri ); ?>" />
+</form>

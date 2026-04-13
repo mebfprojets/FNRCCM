@@ -1,0 +1,30 @@
+<?php
+ 
+$chantier            = $this->chantier;
+$logoFile            = $logoFileSrc  = null;
+$appConfigSession    = new Zend_Session_Namespace("AppConfig");
+$entreprise          = (isset( $appConfigSession->entreprise )) ? $appConfigSession->entreprise : null;
+$logoImgTag          = "";
+if(!$entreprise ) {
+	$modelEntreprise = new Model_Entreprise();
+	$entreprise      = $modelEntreprise->findRow(ENTREPRISEID, "entrepriseid", null, false );
+}
+
+if(!empty($chantier->logo) && file_exists($chantier->logo)) {
+	$logoPathname    = str_replace( APPLICATION_PATH,VIEW_BASE_URI.DS."myV1",$chantier->logo);	
+    $logoFileSrc     = str_replace( APPLICATION_PATH,VIEW_BASE_URI.DS."myV1",$chantier->logo);	
+	
+} elseif(!empty($entreprise->logo) && file_exists($entreprise->logo)) {
+	$logoPathname    = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" ,$entreprise->logo);
+    $logoFileSrc     = Sirah_Filesystem::truepath(str_replace( DS , "/" , $logoPathname));
+}
+
+if( $logoFileSrc) {
+	$logoImgTag      = "<img align=\"center\" src=\"".$logoFileSrc."\"  />";
+}
+$output.= " <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">
+                <tr>
+                    <td valign=\"top\" align=\"center\" width=\"100%\"> <p style=\"vertical-align:top;text-align:center;font-size:16pt;color:red;\">".$logoImgTag." </p> </td>
+                </tr>
+            </table>"; 
+echo $output;

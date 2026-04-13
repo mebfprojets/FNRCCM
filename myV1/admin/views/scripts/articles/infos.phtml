@@ -1,0 +1,218 @@
+<?php 
+$data                = $this->data;
+$articleid           = $this->articleid;
+$galleryid           = $this->galleryid;
+$gallery             = $this->gallery;
+$article             = $article = $this->article;
+
+$categorie           = $this->categorie;
+$catid               = $article->catid;
+ 
+$documents           = $this->documents;
+$gallery             = $this->gallery;
+$photos              = $this->photos;
+$videos              = $this->videos;
+$videoSources        = $this->videoSources;
+ 
+$me                  = Sirah_Fabric::getUser();
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"create"), "default");
+$linkCancel          = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"list") ,"default");
+$linkEdit            = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"edit"  ,"articleid"=>$articleid) , "default");
+$linkDelete          = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"delete","ids" => $articleid ), "default");
+$linkUpload          = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"upload","articleid"=> $articleid),"default");
+$linkUploadPhoto     = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"addphotos","articleid"=> $articleid,"galleryid"=>$galleryid),"default");
+$linkDeletePhotos    = $this->url(array("module"=>"admin","controller"=>"galleries","action"=>"delphotos","articleid"=> $articleid,"galleryid"=>$galleryid),"default");
+$linkAddVideo        = $this->url(array("module"=>"admin","controller"=>"articles" ,"action"=>"addvideo" ,"articleid"=> $articleid,"galleryid"=>$galleryid),"default");
+
+$jq->addOnload("");
+$buttonBar           = $this->Btnbar(array("class"=>"button-pane"), $this->jqueryHandler());
+$buttonCreate        = $buttonBar->button("Nouvel article", "plus");
+$buttonEdit          = $buttonBar->button("Modifier" , "edit");
+$buttonDelete        = $buttonBar->button("Supprimer", "trash-o");
+$buttonCancel        = $buttonBar->button("Retour"   , "chevron-left");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+$buttonBar->add( $buttonCreate , "createButton");
+if( $me->isAllowed("articles", "edit"))
+    $buttonBar->add( $buttonEdit   , "editButton");
+if( $me->isAllowed("articles", "delete"))
+    $buttonBar->add( $buttonDelete , "deleteButton");
+
+$buttonCreate->setAttributes(array("type"=>"submit","class"=>"btn btn-primary"));
+$buttonEdit->setAttributes(  array("type"=>"submit","class"=>"btn btn-warning"));
+$buttonDelete->setAttributes(array("type"=>"submit","class"=>"btn alert-danger"));
+$buttonCancel->setAttributes(array("type"=>"submit"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit ));
+$buttonDelete->onClick( sprintf("
+        event.preventDefault();
+        var dialogDeleteArticle = jQuery('<div> Etes-vous sûr de supprimer cet article ? </div>').attr('id','dialogDeleteArticle');
+        dialogDeleteArticle.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteArticle.dialog2('addButton','Oui, supprimer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteArticle.dialog2('addButton','Non, ne pas supprimer', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteArticle.dialog2('open');" , $linkDelete));
+		
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+
+$creationDate            = "00/00/0000";
+$updateDate              = "00/00/0000";
+$articleDate            = "00/00/0000";
+$periodStartDate         = $periodEndDate = "00/00/0000";
+$creator                 = Sirah_Fabric::getUser($article->creatorid     );
+$updatedUser             = Sirah_Fabric::getUser($article->updateduserid );
+
+if( $article->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $article->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $article->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $article->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+$this->toolsbar          = $buttonBar;
+$basePath                = VIEW_BASE_PATH;
+ 
+$jq->addStyleSheet(     $basePath . "/js/fancybox/jquery.fancybox.css?v=2.1.5");
+$jq->addJavascriptFile( $basePath . "/js/fancybox/jquery.fancybox.pack.js?v=2.1.5.js");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd() ?>
+<div class="row">
+	<div  class="col-md-12 col-sm-12">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-info"></span><?php echo $article->title;  ?></h4> </div>  
+			<ul class="list-group">			    
+				<?php if($categorie): ?>
+				<li class="list-group-item">
+					<div class="row"> 
+						<div class="col-sm-3 col-md-3"> <label class="label" for="categorie"> <b> Catégorie:</b> </label></div> 
+						<div class="col-sm-9 col-md-9"> <?php echo ( $categorie )? $categorie->title : ""; ?> </div>
+					</div>
+				</li>
+				<?php endif; ?>
+				<li class="list-group-item">
+					<div class="row"> 
+						 <div class="col-sm-3 col-md-3"> <label class="label" for="keywords"> <b>Mots clés:</b> </label></div> 
+						 <div class="col-sm-9 col-md-9"><?php echo $article->keywords;  ?></div>
+					</div>
+				</li> 
+ 				
+				<?php if($creator->userid) : ?>
+				    <li class="list-group-item">
+					    <div class="row"> 
+						    <div class="col-md-12 "> Enregistré le <?php echo $creationDate; ?> par <?php printf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+					    </div>
+				    </li>
+				<?php endif; ?>
+				<?php if($updatedUser->userid) : ?>
+					<li class="list-group-item">
+					  <div class="row"> 
+						<div class="col-md-12 "> Mis à jour pour la dernière fois, le <?php echo $updateDate; ?> par <?php printf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+					  </div>
+				    </li>
+				<?php endif; ?>
+                <div class="panel-body panel-body-lg">
+				    <?php if(!empty($article->photogarde)) : ?>
+					<?php
+					    $introtext         = $article->introtext;
+					    $imagePath         = APPLICATION_DATA_PATH.DS."articles".DS."photogarde".DS."mini".DS.$article->photogarde;
+						$imageFile         = null;
+						if((null !== $imagePath) && file_exists($imagePath)) {
+							$imagePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+							$imageFile     = str_replace( DS , "/" , $imagePathname);
+						}
+						//echo $imagePath; die();
+						if(!empty($imageFile)) {
+							$output = "<div class=\"flex-shrink-0 col-md-4\"> <img  width=\"100%\" src=\"".$imageFile."\" /></div>";
+							$output.= "<div class=\"flex-grow-1 col-md-8 ms-auto\"><p class=\"item-card-text\"> ".$introtext."</p></div>";
+						    echo $output;
+						} else {
+							echo "<p class=\"item-card-text\"> ".$introtext." </p>";
+						}
+					?>
+					<?php else: ?>
+					     <div class="panel-desc"><?php echo  $article->introtext; ?> </div>
+					<?php endif; ?>
+				    <p><?php echo  $article->content; ?></p>	
+                </div>				
+			</ul>
+	    </div> 
+	</div>	
+	<div  class="col-md-12 col-sm-12 ">
+	    <div id="accordionRight" class="panel-group">
+            <div class="panel panel-plain">
+				<?php
+					$videosButtonBar = $this->Btnbar(array("id"=>"videosButtonBar"), $this->jqueryHandler());
+					$buttonAddVideos = $videosButtonBar->button(" Nouvelle vidéo","plus")->setPriority("primary");					  
+					$buttonAddVideos->setAttributes(array("type"=>"submit","class"=>"btn btn-success","title"=>"Ajouter une nouvelle vidéo"));
+					
+					if( $me->isAllowed("articles", "addvideo"))
+						$videosButtonBar->add($buttonAddVideos, "addVideosButton");
+					
+					if( $buttonAddVideos ) {
+						$buttonAddVideos->onClick(sprintf("event.preventDefault();document.location.href=\"%s\"", $linkAddVideo));
+					}
+				?>
+				<div class="panel-heading"><h4 class="panel-title"><a title="Visualiser les vidéos qui ont été rattachées" data-parent="#accordionRight" data-toggle="collapse" href="#videosData"><span class="glyph-icon icon-video-camera"></span> Vidéos </a></h4></div>              
+				<div id="videosData" class="panel-collapse collapse">
+					<?php echo $this->partial("articles/videos.phtml",array("article"=>$article,"articleid"=>$articleid,"galleryid"=>$galleryid,"videoSources"=>$videoSources,"videos"=>$videos,"jquery"=>&$jq)); ?>
+					<div class="panel-footer"><?php echo $videosButtonBar; ?></div>
+				</div>		
+		    </div>					
+			<div class="panel panel-plain">
+				<?php
+					$documentsButtonBar = $this->Btnbar(array("id"=>"documentsButtonBar"), $this->jqueryHandler());
+					$buttonAddDocuments = $documentsButtonBar->button(" Ajouter","plus")->setPriority("primary");
+					  
+					$buttonAddDocuments->setAttributes(array("type"=>"submit","class"=>"btn btn-success","title"=>"Ajouter un nouveau document"));
+					
+					if( $me->isAllowed("articles", "upload"))
+						$documentsButtonBar->add($buttonAddDocuments, "addDocumentsButton");
+					
+					if( $buttonAddDocuments ) {
+						$buttonAddDocuments->onClick("
+							event.preventDefault();
+							var dialogUploadFile = jQuery('<div/>').attr('id','dialogUploadFile');             		 
+							dialogUploadFile.dialog2({title:'Rattacher un document à cet article',content:'".$linkUpload."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+							dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Charger',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+							dialogUploadFile.dialog2('addButton','Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});        		            		
+							dialogUploadFile.dialog2('open'); ");
+					}
+				?>
+				<div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les documents qui ont été rattachés" data-parent="#accordionRight" data-toggle="collapse" href="#piecesData"><span class="glyph-icon icon-paperclip"></span> Pièces jointes </a></h4></div>              
+				<div id="piecesData" class="panel-collapse collapse">
+					<?php echo $this->partial("articles/documents.phtml",array("article"=>$article,"articleid"=>$articleid,"documents"=>$documents,"jquery"=>&$jq)); ?>
+					<div class="panel-footer"><?php echo $documentsButtonBar; ?></div>
+				</div>		
+		    </div>			
+		</div>
+	</div>
+</div>
+<div class="row">
+    <div class="col-md-12" >
+        <div class="panel panel-default">
+            <div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-picture-o"></span> Les photos prises tout au long de l'article </h4></div>  
+			<?php echo $this->partial("articles/photos.phtml", array("article"=>$article,"articleid"=>$articleid,"galleryid"=>$galleryid,"photos"=>$photos ) ); ?>
+			<div class="panel-footer">
+				 <div class="controls">
+					<button id="uploadPhoto" type="submit" class="btn btn-primary glyph-icon icon-plus  uploadPhoto"> Ajouter des photos </button> 
+					<button id="delPhotos"   type="submit" class="btn btn-default glyph-icon icon-trash delPhoto"> Supprimer </button> 
+				 </div>
+			</div> 			
+        </div>  
+    </div>     
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

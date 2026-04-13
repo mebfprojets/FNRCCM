@@ -1,0 +1,91 @@
+<?php 
+$data                = $this->data;
+$demande             = $this->demande;
+$demandeid           = $demande->demandeid;
+$entrepriseid        = $this->entrepriseid;
+$entreprise          = $this->entreprise;
+$demandeurid         = $demande->demandeurid;
+$promoteurid         = $demande->promoteurid;
+$promoteur           = $this->promoteur;
+ 
+$demandeType         = $this->type;
+$typeid              = $demande->typeid;
+$statutid            = $demande->statutid;
+$statut              = $this->statut;
+$state               = $this->state;
+$documentype         = $this->documentype;
+$identite            = $this->identite;
+$identiteTypes       = $this->identiteTypes;
+$demandeurIdentite   = $this->demandeurIdentite;
+$promoteurIdentite   = $this->promoteurIdentite;
+$domaine             = $this->domaineActivite;
+$forme               = $this->formeJuridique;
+$documents           = $this->documents;
+
+$me                  = Sirah_Fabric::getUser();
+
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"verify"  ,"typeid"=>$typeid),"default",true);
+$linkList            = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"list")   ,"default",true);
+$linkDownload        = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"download","demandeid"=>$demandeid),"default",true);
+$linkRetry           = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"retry","demandeid"=>$demandeid),"default",true);
+
+$buttonBar           = $buttonbar = $this->buttonsbar(array(), $this->jqueryHandler());
+$btnCreate           = $buttonBar->button("Nouvelle réservation"     ,"plus");
+$btnDownload         = $buttonBar->button("Télécharger l'attestation","download");
+$btnRetry            = $buttonBar->button("Télécharger l'attestation","edit");
+$btnCancel           = $buttonBar->button("Revenir sur la liste"     ,"chevron-left");
+
+$buttonBar->add($btnCancel, "cancelButton");
+$buttonBar->add($btnCreate, "createButton");
+$btnCreate->setAttributes(array("type"=>"submit","class"=>"btn btn-success"));
+if(($demande->statutid==5) || ($demande->statutid==3)) {
+	$buttonBar->add( $btnRetry, "retryButton");
+	$btnRetry->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkRetry));
+}
+if( count($documents)) {
+	$buttonBar->add($btnDownload, "downloadButton");
+	$btnDownload->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkDownload));
+}
+$btnCreate->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkCreate));
+$btnCancel->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkList));
+?>
+<?php $this->headStyle()->captureStart() ?>
+#information-section,.topadding{padding:100px 0 !important}
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="information-section" class="topadding information-section section">
+    <div class="container" >
+	    <div class="row section-buttons mrg20B mrg5L"><?php echo $buttonBar; ?></div>
+		<div class="row">
+			<div  class="col-sm-12 col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Informations de la demande </h4> </div>  
+					<?php echo $this->partial("demandes/demande.phtml",array("forme"=>$forme,"localite"=>$localite,"statut"=>$statut,"identiteType"=>$identiteType,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+				</div>    
+                <div class="panel panel-default">
+				    <div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-paperclip"></span> Documents </h4></div> 
+				    <?php echo $this->partial("demandes/documents.phtml",array("demande"=>$demande,"demandeid"=>$demandeid,"documents"=>$documents,"jquery"=>&$jq)); ?>
+                </div> 				
+			</div>	
+			<div  class="col-sm-12 col-md-6">
+				<div class="panel panel-warning">
+					<div class="panel-heading"> <h4 class="panel-title"><span class="glyph-icon icon-institution"></span> Informations de l'entreprise</h4></div>  
+					<?php echo $this->partial("demandes/entreprise.phtml",array("domaine"=>$domaine,"forme"=>$forme,"entreprise"=>$entreprise,"entrepriseid"=>$entrepriseid,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+				</div>
+				<div class="panel panel-danger">
+					<div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-user"></span> Informations du promoteur </h4></div>              
+					<?php echo $this->partial("demandes/promoteur.phtml",array("promoteur"=>$promoteur,"identiteTypes"=>$identiteTypes,"identite"=>$promoteurIdentite,"promoteurid"=>$promoteurid,"demande"=>$demande,"jquery"=>&$jq)); ?>
+				</div>  
+			</div>
+		</div>
+	</div>
+</div>
+
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

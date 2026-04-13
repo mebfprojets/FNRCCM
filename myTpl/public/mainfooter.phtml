@@ -1,0 +1,91 @@
+<?php
+    $baseUrl                = $this->baseUrl();
+	$tplPath                = VIEW_BASE_PATH;
+	$basePath               = str_replace(APPLICATION_PATH , ROOT_PATH. DS ."application", APPLICATION_DATA_PATH );
+	$entrepriseLogo         = ROOT_PATH."/myTpl/public/assets/images/LOGOWEB.png";
+	  
+	$user                   = Sirah_Fabric::getUser();
+	$layout                 = Zend_Layout::getMvcInstance();
+	$view                   = $layout->getView();
+	
+	$application            = new Zend_Session_Namespace("erccmapp");
+	$documentTypes          = $application->documentypes;
+	
+	$linkHome               = $view->url(array("controller"=>"index","action"=>"index","module"=>"public"),"default",true);
+  
+    $linkPresentation       = $view->url(array("controller"=>"project" ,"action"=>"presentation"),"default",true);
+	$linkStructure          = $view->url(array("controller"=>"project" ,"action"=>"structure"   ),"default",true);
+	$linkContact            = $view->url(array("controller"=>"project" ,"action"=>"contact"),"default",true);
+ 	 
+    $linkTarification       = $view->url(array("controller"=>"project" ,"action"=>"tarification","module"=>"public"),"default",true);
+    $linkDashboard          = $view->url(array("controller"=>"members" ,"action"=>"dashboard","module"=>"public"), "default",true);
+    $linkCreateAccount      = $view->url(array("controller"=>"members" ,"action"=>"create"   ,"module"=>"public"), "default",true);
+    $linkLogin              = $view->url(array("controller"=>"members" ,"action"=>"register" ,"module"=>"public"), "default",true);
+    $linkSettings           = $view->url(array("controller"=>"account" ,"action"=>"settings" ,"module"=>"public"), "default",true);
+	$linkStatistics         = $view->url(array("controller"=>"statistiques","action"=>"list" ,"module"=>"public","advanced"=> 1), "default",true);
+	$linkCGU                = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>3,"code"=>"cgu"),"articles",true);
+    $linkFAQ                = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>1,"code"=>"faq"),"articles",true);
+    $linkBlog               = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>2,"code"=>"blog"),"articles",true);
+	$linkHelp               = $view->url(array("controller"=>"articles" ,"action"=>"list","module"=>"public","catid"=>4,"code"=>"help"),"articles",true);
+	
+	$linkSearch             = $view->url(array("controller"=>"registres","action"=>"search","module"=>"public","advanced"=>1),"default");
+	$linkRequestVerify      = $view->url(array("controller"=>"requetes" ,"action"=>"verify","module"=>"public"),"default",true);
+    $linkRequestReservation = $view->url(array("controller"=>"requetes" ,"action"=>"reservation","module"=>"public"),"default",true);
+?>
+<?php $this->headStyle()->captureStart() ?>
+#footersection{background:#8cbd4b url(/myTpl/public/images/bottom-bg.png) no-repeat !important}
+h3.footer-header{margin-bottom:10px !important;}
+div.main-footer ul li {list-style: none!important;margin-bottom: 5px !important;}
+h3.footer-header {margin-bottom:10px !important;}
+<?php $this->headStyle()->captureEnd(); ?>
+<div id="footer-navigation" class="footer-navigation container clearfix">
+	<div class="row section-content">
+		<div class="col-sm-3 col-md-3"> 		     
+			 <div style="color:#FFF !important;" class="row custom bottom-logo-infos">
+				<p align="left"><img src="<?php echo ROOT_PATH.'/myTpl/public/images/LOGOWEB.png'; ?>"  alt="Le logo du FICHIER NATIONAL" /> </p>
+			    <p align="justify" style="color:#FFF !important;padding:5px"> <span style="text-decoration: underline;"><strong>Adresse:</strong></span> 132, Avenue de Lyon,11 BP 379 OUAGADOUGOU 11, BURKINA FASO<br>
+				<span style="text-decoration: underline;"><strong>Tél:</strong></span><strong>:&nbsp;</strong><strong>(+226)25 39 80 60/ 70 41 96 02/76 00 74 05</strong><br><span style="text-decoration: underline;"><strong> E-mail:</strong></span>contact@fichiernationalrccm.bf</p>
+			</div>
+		</div>
+		<div class="col-sm-3 col-md-3">
+			<h3 class="footer-header"> A PROPOS </h3>
+			<ul class="footernav">
+				<li> <a title="Qui sommes nous ?" href="<?php echo $linkStructure; ?>">Présentation du FNRCCM</a></li>
+				<li> <a title="Présentation de la plateforme ERCCM" href="<?php echo $linkPresentation;?>"> Présentation de la plateforme</a></li>
+				<li> <a title="Accédez au blog du Fichier National" href="<?php echo $linkBlog; ?>">Blog</a></li>
+				<li> <a title="Conditions générales d'utilisation"  href="<?php echo $linkCGU; ?>"> Conditions générales d'utilisation  </a></li>
+				<li> <a title="Besoin d'assistance"                 href="<?php echo $linkFAQ; ?>"> Foire aux questions </a></li>
+				<li> <a title="Tarification"                        href="<?php echo $linkTarification;?>"> Tarifs  </a></li>
+				<li> <a title="Nous contacter pour avoir plus d'informations" href="<?php echo $linkContact; ?>"> Contacts</a></li>
+			</ul>
+		</div>
+		<div class="col-sm-3 col-md-3">
+			<h3 class="footer-header"> SERVICES </h3>
+			<ul class="footernav">
+				<li> <a title="Créez votre compte professionnel afin d'accéder aux services de la plateforme" href="<?php echo $linkCreateAccount; ?>"> S'inscrire</a></li>
+				<li> <a title="Effectuez simplement des recherches sur les entreprises immatriculées au Burkina Faso" href="<?php echo $linkSearch; ?>"> Rechercher des entreprises </a></li>
+				<li> <a title="Accéder aux documents officiels associés aux différentes entreprises" href="<?php echo $linkRequestVerify; ?>"> Vérifier un nom commercial </a></li>
+				<li> <a title="Demander une réservation de nom commercial" href="<?php echo $linkRequestReservation; ?>"> Réservation de nom commercial</a></li>
+				<li> <a title="Effectuez en toute simplicité vos commandes de documents que vous pourrez télécharger après un paiement" href="#"> Paiements en ligne </a></li>
+				<li> <a title="Accédez aux données statistiques en matière de création d'entreprises" href="<?php echo $linkStatistics; ?>"> Observatoire statistique </a></li>
+ 
+			</ul>
+		</div>
+		<div class="col-sm-3 col-md-3">
+				<h3 class="footer-header"> DOCUMENTS OFFICIELS </h3>
+				<?php if(count($documentTypes)): ?>
+					<ul class="footernav">
+						<?php foreach( $documentTypes as $documentType): ?>
+						<?php
+							$linkDocInfos  = $view->url(array("controller"=>"documentheque","action"=>"types","module"=>"public","typeid"=>$documentType['typeid'],"libelle"=>Sirah_Functions_String::cleanUtf8(preg_replace("/\s+/","-",$documentType['libelle']))),"documentsofficiels");
+							$documentTitle = $documentType["libelle"];
+							$documentDesc  = $documentType["description"];
+						?>
+							<li> <a title="<?php echo $documentDesc; ?>"  href="<?php echo $linkDocInfos; ?>"><?php echo $documentTitle; ?></a></li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+		</div>
+	</div>
+</div>   
+ 

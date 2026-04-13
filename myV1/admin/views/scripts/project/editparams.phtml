@@ -1,0 +1,198 @@
+<?php
+$data          = $this->data;
+$project       = $this->project;
+$roles         = $this->roles;
+$projectid     = $this->projectid;
+
+$formSubmit    = $this->url(array("controller" =>"project", "action" => "params", "projectid" => $projectid, "module" => "admin"), "default" );
+$backList      = $this->url(array("controller" =>"project", "action" => "infos" , "projectid" => $projectid, "module" => "admin"), "default" );
+$basePath      = VIEW_BASE_PATH;
+
+$jq            = $this->jQuery();  
+$onLoad        = "
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input:checkbox').bootstrapSwitch();
+jQuery('input:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state == true) && (this.name =='default_find_documents')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide'); 
+	} 
+	if((state == false) && (this.name =='default_find_documents')){
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	}
+});
+tinymce.init({selector:'textarea',language:'fr_FR', plugins:['advlist autolink lists link image charmap print preview anchor textcolor','searchreplace visualblocks code fullscreen','insertdatetime media table contextmenu paste imagetools'],
+                fontsize_formats: '8pt 9pt 10pt 11pt 12pt 13pt 14pt 16pt 18pt 26pt 36pt',mode:'specific_textareas',editor_selector:/(default_pdf_header|default_pdf_footer)/,
+			    height:125,toolbar:'forecolor backcolor|insertfile undo redo | styleselect | sizeselect | fontsizeselect | fontselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'});
+
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){e.preventDefault();var  formSelector = jQuery('#editProjectParams');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+$jq->addStyleSheet(     $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/js/editors/tinymce/tinymce.min.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+<form method="post"  id="editProjectParams" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data" action="<?php echo $formSubmit; ?>">  
+  <div   class="row">
+  <div class="col-md-12">
+  <div class="panel panel-default">
+    <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-file-pdf-0'></span> Personnalisation des documents PDF </h4> </div>
+	<div class="panel-body"> 
+	   Vous pouvez utiliser des mots réservés pour les informations de l'entreprise.
+	   <ul class="list-group">
+	     <li class="list-group-item">  
+		    <div class="row"> 
+			    <label class="control-label col-sm-2"> Logo: </label>
+				<div class="col-sm-2"> [LOGO] </div>
+				<label class="control-label col-sm-2"> Raison sociale: </label>
+				<div class="col-sm-2"> [RAISON_SOCIAL]</div>
+				<label class="control-label col-sm-2"> Numéro IFU: </label>
+				<div class="col-sm-2"> [NUMERO_IFU]</div>
+			</div>
+		 </li>
+		 <li class="list-group-item">  
+		    <div class="row"> 			    
+				<label class="control-label col-sm-2">  Adresse: </label>
+				<div class="col-sm-2"> [ADRESSE]</div>
+				<label class="control-label col-sm-2"> Adresse email: </label>
+				<div class="col-sm-2"> [EMAIL]</div>
+				<label class="control-label col-sm-2"> Téléphone:</label>
+				<div class="col-sm-2"> [TEL_FIXE] </div>
+			</div>
+		 </li>
+		 <li class="list-group-item">  
+		    <div class="row"> 
+			    <label class="control-label col-sm-2"> Chiffre d'affaire: </label>
+				<div class="col-sm-2"> [CHIFFRE_AFFAIRE]  </div>
+				<label class="control-label col-sm-2"> Capital:           </label>
+				<div class="col-sm-2"> [CAPITAL]          </div>
+				<label class="control-label col-sm-2"> Forme Juridique:           </label>
+				<div class="col-sm-2"> [FORME_JURIDIQUE]          </div>
+			</div>
+		 </li>
+         <li class="list-group-item">  
+		    <div class="row"> 
+			    <label class="control-label col-sm-2"> RCCM: </label>
+				<div class="col-sm-2"> [RCCM]  </div>
+				<label class="control-label col-sm-2"> Immatriculation CNSS:           </label>
+				<div class="col-sm-2"> [CNSS]          </div>
+			</div>
+		 </li>
+	   </ul>
+	</div>
+	<ul class="list-group">
+	   <li class="list-group-item">
+		  <div class="form-group"><label class="control-label"> Entete des pages: </label></div>
+		  <div class="form-group">
+		     <textarea name="default_pdf_header" id="default_pdf_header" class="form-control textarea-sm"><?php echo $data["default_pdf_header"]; ?> </textarea>
+		  </div>
+	   </li>
+	   <li class="list-group-item">
+		  <div class="form-group"><label class="control-label"> Pied de pages: </label></div>
+		  <div class="form-group">
+		     <textarea name="default_pdf_footer" id="default_pdf_footer" class="form-control textarea-sm"><?php echo $data["default_pdf_footer"]; ?> </textarea>
+		  </div>
+	   </li>
+	</ul>
+   </div>  
+  </div>  
+</div>
+  
+<div   class="row">
+   <div class="col-md-12"> 
+    <div class="panel panel-default" id="panelConfig"> 	
+	 <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-th'></span> Options préférées </h4> </div>
+	 <ul class="list-group">
+		<li class="list-group-item">
+		    <div class="form-group"> 
+		      <label class="col-sm-2 control-label"> Nbre d'élements par page: </label>
+			  <div   class="col-sm-8"><input type="text" name="nb_elements_page" id="nb_elements_page" class="form-control" placeholder="Nombre total d'élements par page" value="<?php echo $data['nb_elements_page']; ?>" maxlength="6" /></div> 
+			</div>
+		</li>
+		<li class="list-group-item">
+		    <div class="form-group"> 
+		      <label class="col-sm-2 control-label"> L'année par défaut: </label>
+			  <div   class="col-sm-8"><input type="text" name="default_year" id="default_year" class="form-control" placeholder="L'année par défaut" value="<?php echo $data['default_year']; ?>" maxlength="4" /></div> 
+			</div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+		   <label class="col-sm-2 control-label"> La période par défaut: </label>
+		   <div   class="col-sm-8">
+	          <div class="input-group">
+		         <span class="input-group-addon"><input type="text" name="startime_date" id="startime_date" class="form-control datepicker" value="<?php echo $data["startime_date"]; ?>" /></span>
+                 <span class="input-group-addon"><input type="text" name="endtime_date"  id="endtime_date"  class="form-control datepicker" value="<?php echo $data["endtime_date"];  ?>" /></span>
+              </div>
+	       </div>     
+		  </div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+            <label class="col-sm-2 control-label"> Indexation automatique: </label>
+            <div   class="col-sm-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="default_find_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["default_find_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+          </div>
+		</li>
+		<li class="list-group-item">
+	      <div class="form-group"> 
+           <label class="col-sm-2 control-label"> Contrôle de la qualité: </label>
+           <div   class="col-sm-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="default_check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["default_check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+          </div>
+		</li>
+		<li class="list-group-item">
+	      <div id="findDocumentsOptions" class="form-group "> 
+	       <label class="col-sm-2 control-label"> Dossier source indexation automatique*: </label>
+		   <div   class="col-sm-8"> <input type="text" name="default_find_documents_src" id="default_find_documents_src" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["default_find_documents_src"]; ?>" /></div> 
+	     </div>
+		</li>
+		<li class="list-group-item">
+	      <div id="findDocumentsOptions" class="form-group"> 
+	       <label class="col-sm-2 control-label"> Dossier de destination des fichiers*: </label>
+		   <div   class="col-sm-8"> <input type="text" name="default_indexation_folder_destination" id="default_indexation_folder_destination" class="form-control" placeholder="Dossier de destination des fichiers" value="<?php echo $data["default_indexation_folder_destination"]; ?>" /></div> 
+	     </div>
+		</li>
+		<li class="list-group-item">
+		  <div class="form-group"> 
+		   <label class="col-sm-2 control-label"> Le secteur d'activité par défaut: </label>
+		   <div   class="col-sm-8"> <?php echo $this->formSelect("default_domaineid",$data["default_domaineid"],array("class" => "form-control chosen"), $this->domaines); ?> </div>     
+		  </div>
+		</li>
+	  </ul>
+    </div>
+   </div>
+</div>
+
+<div  class="row">
+ 
+<?php     
+   $buttonsbar      = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Mettre à jour les paramètres","save")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler et revenir sur la liste","ban");     
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add($toolCreate, "createButton");
+   $buttonsbar->add($toolCancel, "cancelCreationButton");
+   
+   $toolCreate->onClick("event.preventDefault();var formSelector       = jQuery('#editProjectParams');formSelector.submit();");
+   $toolCancel->onClick("event.preventDefault();document.location.href = '".$backList."';");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }  
+   ?>
+</div>
+ <input type="hidden" name="projectid" id="projectid" value="<?php echo $this->projectid; ?>" />                               
+</form>

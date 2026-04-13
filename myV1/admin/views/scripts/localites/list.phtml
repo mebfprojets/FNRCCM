@@ -1,0 +1,311 @@
+<?php 
+$localites         = $this->localites;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module" => "admin","controller" => "localites", "action"=> "list")  , "default");
+$linkCreate        = $this->url(array("module" => "admin","controller" => "localites", "action"=> "create"), "default");
+$linkEdit          = $this->url(array("module" => "admin","controller" => "localites", "action"=> "edit"  ), "default");
+$linkDelete        = $this->url(array("module" => "admin","controller" => "localites", "action"=> "delete"), "default");
+ 
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector   = jQuery('#localiteSearchForm') ;
+		var keywordsText   = jQuery.trim(formSelector.find('#keywords').val());		
+		var pageNum        = parseInt(   formSelector.find('#page').val());
+		pageNum++;
+		
+		var searchData     = {};
+		searchData.page    = pageNum;
+		searchData.maxitems= parseInt(formSelector.find('#maxitems').val());						 
+		searchData.libelle = keywordsText;
+        var maincontent	   = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector   = jQuery('#localiteSearchForm') ;
+		var keywordsText   = jQuery.trim(formSelector.find('#keywords').val());		
+		var pageNum        = parseInt(   formSelector.find('#page').val());
+		pageNum--;
+		
+		var searchData     = {};
+		searchData.page    = pageNum;
+		searchData.maxitems= parseInt(formSelector.find('#maxitems').val());						 
+		searchData.libelle = keywordsText;
+        var maincontent	   = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#searchLocalite').click(function( event ){
+		event.preventDefault();
+		var formSelector   = jQuery('#localiteSearchForm') ;
+		var keywordsText   = jQuery.trim(formSelector.find('#keywords').val());		
+		
+		var searchData     = {};
+		searchData.maxitems= parseInt(formSelector.find('#maxitems').val());						 
+		searchData.libelle = keywordsText;
+
+        var maincontent	   = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector      = jQuery('#localiteSearchForm') ;
+		var keywordsText      = jQuery.trim(formSelector.find('#keywords').val());		
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());						 
+		searchData.libelle    = keywordsText;
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+	var getCheckedLocalitesId = function() {
+		var checkedItems = jQuery('#localitesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var localiteid   = parseInt(jQuery(this).attr('id').replace('localiteids',''));
+             	checkedIds.push( localiteid );
+           });
+		}
+		return checkedIds;
+  };
+  jQuery('#localitesListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#localitesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#localitesListTable'));
+		       if( checkedItems ) {
+		           disableButtons(['editButton','deleteButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#localitesListTable'));
+		      enableButtons(['editButton','deleteButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['editButton','deleteButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['editButton','deleteButton']);
+		       }
+		  }
+		}
+   });
+		");
+
+$toolbar      = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate   = $toolbar->tool("Enregistrer une nouvelle localité", "plus");
+$toolEdit     = $toolbar->tool("Modifier" , "edit");
+$toolDelete   = $toolbar->tool("Supprimer", "trash-o");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#localitesListTable').find('input[type=\'checkbox\'][name=\'localiteids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var localiteid     = parseInt(checkedItem.attr('id').replace('localiteids',''));
+		             var localitename   = jQuery('#name-'+localiteid).val();
+		             var dialogEdit    = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		             dialogEdit.dialog2({
+		                                  title : 'Mettre à jour les informations de la localité `<u>'+localitename+'</u>`',
+		                                  content : '".$linkEdit."/localiteid/'+localiteid,
+		                                  autoOpen: false,
+		                                  modalClass:'modal-wide',
+		                                  removeOnClose: true,
+		                                  closeOnEscape: false,
+		                                  closeOnOverlayClick: true,
+		                                  showCloseHandle:true,
+		                                  initialLoadText: 'Chargement...'
+                                       });
+		            dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Sauvegarder',{primary:true,click :function(){var editForm=jQuery('#dialogEdit').find('form').eq(0);SIRAH.request.post(editForm,'".$linkEdit."/localiteid/'+localiteid);}});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-ban\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled        = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedLocalites = getCheckedLocalitesId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedLocalites )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les localités selectionnées ? </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'localiteids[]': checkedLocalites},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedLocalites = getCheckedLocalitesId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                  setTimeout(function(){jQuery.each(checkedLocalites,function(key,localiteid){jQuery('#localiteRowId-'+localiteid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+
+<div id="localitesListWrapper"  class="row">
+  <form id="localiteSearchForm" class="" method="post" role="form">
+    <div  class="col-md-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">               
+                <div class="float-right col-md-4 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters['libelle']; ?>" name="keywords" id="keywords" placeholder="Saisir des mots clés">
+                        <div class="input-group-btn">
+                            <button id="searchLocalite" type="button" class="btn btn-default" tabindex="-1"><i class="glyph-icon icon-search"></i></button>
+                            <button  type="button" class="btn alert-danger resetPage" tabindex="-1"><i class="glyph-icon icon-remove"></i></button>
+                        </div>
+                    </div>
+               </div>
+           </div>                                                                  
+           <div class="mail-toolbar clearfix"> 
+              <div class="float-left" > 
+                 <a href="#" title="Actualiser la page" class="btn btn-default mrg5R resetPage"><i class="glyph-icon font-size-11 icon-refresh"></i></a>
+                            
+              </div>
+              <div class="float-right"> <?php  echo $pagination->render(); ?> </div>
+           </div>
+           <table id="localitesListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+                          <th width="4%">  IDs                           </th> 
+                          <th width="15%">  Codes                        </th> 
+                          <th width="45%">  Désignations de la localité  </th> 
+                          <th width="35%">  Description                  </th> 
+                    </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $localites ) ) {
+                              	  foreach( $localites as $localite ) {
+                              	  	       $localiteid           = intval($localite['localiteid']);
+                              	  	       $localiteLibelle      = $localite["libelle"];
+                              	  	       $localiteCode         = $localite["code"];
+                              	  	       $localiteDescription  = $localite["description"];
+                              	  	       $linkInfos            = $this->url(array("module" => "admin","controller" => "localites", "id" => $localiteid, "action" => "infos"), "default");
+
+                              	  	       $output .= "<tr id=\"localiteRowId-".$localiteid."\">";
+                              	  	                $output .= "<td> <input type=\"checkbox\" name=\"localiteids[]\" id=\"localiteids".$localiteid."\" class=\"localiteids\" /> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$localiteid           ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$localiteCode         ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$localiteLibelle      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$localiteDescription  ." </a> </td>";
+                              	  	        $output .= "</tr>";
+                              	  	        
+                              	  	        $output .= "<input type=\"hidden\"  name=\"name-".$localiteid."\" id=\"name-".$localiteid."\"   value=\"".$localiteLibelle."\"  />" ;
+                              	  }                              	
+                              }  else {
+                              	$output .= "<tr id=\"localiteRowId-0\"> <td style=\"text-align:center;\" colspan=\"6\"> Aucune localité n'a été retrouvée </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+       </div>    
+    </div>
+    <input type="hidden" name="page"      id="page"     value="<?php echo $this->pageNum;  ?>"  /> 
+    <input type="hidden" name="maxitems"  id="maxitems" value="<?php echo $this->pageSize; ?>"  />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>   

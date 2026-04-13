@@ -1,0 +1,39 @@
+<?php 
+$me          = Sirah_Fabric::getUser();
+$client      = $this->client; 
+$travels     = $this->travels;
+$linkDelete  = $this->url(array("module"=>"public","controller"=>"travels","action"=>"delete"), "default") ;
+$linkCreate  = $this->url(array("module"=>"public","controller"=>"travels","action"=>"create"), "default") ;
+$linkConsign = $this->url(array("module"=>"public","controller"=>"travels","action"=>"consign"),"default") ;
+
+$output      = "<table id=\"travelsList\" class=\"table table-striped table-responsive travelsList\">
+				    <thead><tr><th width=\"width:20%\">Dates</th><th width=\"width:40%\"> Compagnies Voyage</th><th width=\"width:25%\"> Destinations</th></tr></thead>";
+if( count(  $travels ) ) {
+    foreach($travels as $travel ) {
+			$advertiseid    = intval($travel['advertiseid']);
+			$dateVoyage     = $travel["date_voyage"] ;
+			$code           = $travel["code"] ;
+			$company        = $travel["entreprise"];
+			$weight         = sprintf("%d grammes", $travel["forsale_weight"] ) ;
+			$cost           = $travel["forsale_cost"] ;
+			$adresseStr     = sprintf("%s : %s - %s",$travel["country"], $travel["city"], $travel["destaddress"]);
+			$statute        = $travel["statuteLibelle"];
+			$rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+			$linkInfos      = $this->url(array("module"=>"public","module"=>"public","controller"=>"travels","action"=>"infos","advertiseid"=>$advertiseid), "default");
+			$linkDelete     = $this->url(array("module"=>"public","module"=>"public","controller"=>"travels","action"=>"delete","advertiseid"=>$advertiseid), "default");  
+			$output .= "<tr id=\"travelRowId-".$advertiseid."\" style=\"background-color:".$rowBg."\"> ";
+					$output.= "<td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de cette annonce\" href=\"".$linkInfos."\"> ".$dateVoyage." </a></td>";
+					$output.= "<td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de cette annonce\" href=\"".$linkInfos."\"> ".$company   ." </a></td>";
+					$output.= "<td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de cette annonce\" href=\"".$linkInfos."\"> ".$adresseStr." </a></td>";
+					$output.= "<td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de cette annonce\" href=\"".$linkDelete."\"> <i class=\"glyph-icon icon-trash-o\"> </i> Supprimer </a></td>";										
+			$output .= "</tr>";
+    }
+} else {
+            $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucune annonce n'a été retrouvée dans votre compte </td> </tr>";
+}
+$output.= " </tbody></table>";   
+
+echo  $output ;
+
+?>
+             

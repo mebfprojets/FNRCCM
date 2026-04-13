@@ -1,0 +1,69 @@
+<?php 
+  $user               = $this->user;
+  $params             = $this->params;
+  
+  $formSubmit         = $this->url(array("module" => "admin", "controller" => "account" , "action"  => "settings") , "default");
+  $linkEdit           = $this->url(array("module" => "admin", "controller" => "account" , "action"  => "edit") , "default");
+  $linkProfile        = $this->url(array("module" => "admin", "controller" => "myprofile" , "action" => "infos"));
+?>
+
+<ul class="list-group">
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="lastname"> <b> Nom de famille : </b> </label></div> 
+            <div class="col-md-8"> <a title="Accéder aux informations de mon profil" href="<?php echo $linkProfile; ?>"> <?php echo $user->lastname;  ?> </a>  </div>
+         </div>
+        </li>
+        <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="firstname"> <b> Prénom : </b> </label></div> 
+            <div class="col-md-8"> <a title="Accéder aux informations de mon profil" href="<?php echo $linkProfile; ?>"> <?php echo $user->firstname;  ?> </a>  </div>
+         </div>
+        </li>
+        <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="username"> <b> Nom d'utilisateur: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->username;  ?>   </div>
+         </div>
+        </li>
+        <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="email"> <b> Adresse e-mail: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->email;  ?> </div>
+         </div>
+        </li>
+        <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="tel1"> <b> Téléphone principal: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->phone1;  ?> </div>
+         </div>
+       </li>
+       <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="tel2"> <b> Téléphone secondaire: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->phone2;  ?> </div>
+         </div>
+       </li>
+       <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="langue"> <b> Langue parlée: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->language;  ?> </div>
+         </div>
+       </li>
+       <li class="list-group-item">
+         <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="country"> <b> Mon pays d'origine: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $user->country;  ?> </div>
+         </div>
+       </li>          
+   </ul> 
+   
+ <?php 
+if($this->isAjax) {
+	echo $jq;
+} else {
+	echo "<div class='row col-md-12' >
+	              <button type='submit' id='editAccountButton' class=\"btn btn-primary editAccount\" > <i class=\"glyphicon glyphicon-edit\"></i> Mettre à jour mes informations </button>
+	      </div>";
+}
+?>

@@ -1,0 +1,85 @@
+<?php
+   $hideRemove           = $this->hideRemove; 
+   $competences          = $this->competences;
+   $competenceLevels     = array( 0 => "Selectionnez le niveau", 1 => "Debutant", 2 => "Moyen",3 => "Intermédiaire", 4 => "Bon", 5 => "Excellent");
+   $linkDelete           = $this->url(array("controller" => "profile", "action" => "removecompetence") , "default") ;
+   $linkInsertCompetence = $this->url(array("controller" => "profile", "action" => "insertcompetence"), "default");
+   $output           = "";
+   $output          .= "<div class=\"list-group competenceList\">";
+    if( count(     $competences ) ) {
+    	  foreach( $competences as $competence ) {
+    	  	$competenceId    = intval($competence["competenceid"]);
+    	  	$profession      = $competence["profession"];
+    	  	$appreciation    = $competence["appreciation"];
+    	  	$competenceLevel = ( isset( $competenceLevels[$competence["level"]] ) ) ? $competenceLevels[$competence["level"]] : "";    	  	
+    	  	$output  .= "
+    	  	            <li class=\"list-group-item\" id=\"competenceId-".$competenceId."\">
+    	  	                <h4 class=\"list-group-item-heading\"> ".$this->escape( $profession )."</h4>
+    	  	                <p  class=\"list-group-item-text\">   Niveau de connaissance : ".$this->escape( $competenceLevel )." </p>
+    	  	                <p  class=\"list-group-item-text\">   <small>".$this->escape( $appreciation)."</small> </p>";
+    	  	if( !$hideRemove ) 
+    	  	     $output  .= "<span title=\"Supprimer cette compétence\" href=\"#\" id=\"closeId-".$competenceId."\" class=\"glyphicon glyphicon-remove pull-right pull-top closeItemCompetence\"></span>";
+    	  	$output  .= "</li>";
+    	  }    	
+    } else {
+    	$output .= " <li class=\"list-group-item\" id=\"competenceId-0\"><p class=\"text-muted\"> 
+    	                 <h4 class=\"list-group-item-heading\"> Aucune compétence n'a été enregistrée </h4>
+    	             </li>";
+    }
+
+    $output     .= "</div>";
+    echo  $output ;
+    
+$jq      =  $this->jQuery();
+$onLoad  = "
+   jQuery('.closeItemCompetence').css('cursor','pointer');
+   jQuery('.closeItemCompetence').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cette compétence ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer cette action',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                var modalBody = jQuery('.modal').find('.modal-body');
+             		                var insertBtn = jQuery('.modal-footer').find('.btn-primary').eq(0);
+             		                insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'ids' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   SIRAH.loading.off();
+             		                                   if( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+                                                           insertBtn.btnLoading({on:false});
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#competenceId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#competenceId-'+itemId).remove();
+             		             		                               insertBtn.btnLoading({on:false});
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },1500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });";
+if( !$hideRemove )    
+    $jq->addOnLoad($onLoad);
+?>
+             

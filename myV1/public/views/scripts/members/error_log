@@ -1,0 +1,65 @@
+[27-Dec-2022 21:28:50 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/commandes.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/commandes.phtml on line 2
+[27-Dec-2022 21:28:54 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/create - Copie.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/create - Copie.phtml on line 2
+[27-Dec-2022 21:28:57 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/create.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/create.phtml on line 2
+[27-Dec-2022 21:29:00 Europe/Paris] PHP Warning:  Use of undefined constant ROOT_PATH - assumed 'ROOT_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/members/createaccount.phtml on line 2
+[27-Dec-2022 21:29:00 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/createaccount.phtml:3
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/createaccount.phtml on line 3
+[27-Dec-2022 21:29:02 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/dashboard.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/dashboard.phtml on line 2
+[27-Dec-2022 21:29:06 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/demandes.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/demandes.phtml on line 2
+[27-Dec-2022 21:29:10 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Model_Document' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/documents.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/documents.phtml on line 2
+[27-Dec-2022 21:29:14 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/edit.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/edit.phtml on line 2
+[27-Dec-2022 21:29:16 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/factures.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/factures.phtml on line 2
+[27-Dec-2022 21:29:20 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/infos.phtml on line 2
+[27-Dec-2022 21:29:22 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/list.phtml on line 2
+[27-Dec-2022 21:29:25 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Controller_Front' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/login.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/login.phtml on line 2
+[27-Dec-2022 21:29:29 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/paiements.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/paiements.phtml on line 2
+[27-Dec-2022 21:29:31 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/profile.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/profile.phtml on line 2
+[27-Dec-2022 21:29:33 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/members/register.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/register.phtml on line 2
+[27-Dec-2022 21:29:36 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/members/travels.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/members/travels.phtml on line 2

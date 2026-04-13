@@ -1,0 +1,47 @@
+<?php 
+    $demande              = $this->demande;
+    $similarites          = $this->similarites;
+	$similariteActivities = $this->similariteActivities;
+    $sourceid             = $this->sourceid;
+    $sourceCode           = $this->sourceCode;
+	$query                = $this->query;
+	$searchKeywords       = (isset($demande->keywords))?$demande->keywords : $this->keywords;
+	$searchKeywordsArr    = preg_split("/[\s,]+/", trim($searchKeywords));
+	
+    $output               = "<div class=\"list-group\">";
+	$i            = 1;					  
+	if( count(   $similarites ) ) {
+		foreach( $similarites as $key=> $similariteName ) {
+			     if( count(   $searchKeywordsArr )) {
+					 foreach( $searchKeywordsArr as $searchKeyword ) {
+						      if(!empty( $searchKeyword )) {
+								  $similariteName = preg_replace("/\w*?$searchKeyword\w*/i", "<span title=\"Mots similaires aux mots clés recherchés\" style=\"color:#FF0000;text-decoration:underline\"><b>$0</b></span>", $similariteName);
+							  }
+					 }
+				 } elseif(!empty( $searchKeywords )) {
+					 $similariteName = (!empty($searchKeywords))?preg_replace("/\w*?$searchKeywords\w*/i", "<span title=\"Mots similaires aux mots clés recherchés\" style=\"color:#FF0000;text-decoration:underline\"><b>$0</b></span>", $similariteName) : $similariteName;
+				 }
+			    
+			     $bgColorClass       = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();	
+                 $similariteActivite = (isset($similariteActivities[$key]))? $similariteActivities[$key]: "Aucune activité n'est associée à cet élement";				 
+				 $similariteActivite = (!empty($similariteActivite       ))?iconv(mb_detect_encoding($similariteActivite, mb_detect_order(), true), "UTF-8", $similariteActivite) : "";
+				 $output            .= " <a href=\"#\"  class=\"list-group-item\">";
+						$output     .= "
+						                    <h4 class=\"list-group-item-heading\">".$similariteName." </h4>
+										    <p  class=\"list-group-item-text\"   >".$similariteActivite." </p>
+						              ";
+				 $output            .= "</a>";				   
+				 $i++;
+		}				    
+	}  else {
+		         $output            .=" <a style=\"text-align:center;\" class=\"list-group-item\" href=\"#\"><p style=\"text-align:center;\" class=\"list-group-item-text\"> AUCUNE SIMILARITE N'A ETE TROUVEE </p> </a>";
+	}					  
+    $output     .="   </div>";
+    echo  $output ;          
+?>
+<?php $this->headStyle()->captureStart() ?>
+p{margin-bottom:5px !important;}
+.chosen{width:200px !important;}
+.chosen-grp-addon{border:0px;}
+<?php $this->headStyle()->captureEnd()   ?>
+             

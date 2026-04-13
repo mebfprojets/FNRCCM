@@ -1,0 +1,154 @@
+<?php 
+$user        = $this->user;
+$params      = $this->params;
+$roles       = $this->roles;
+$domaines    = $this->domaines;
+$localites   = $this->localites;
+$pwdtoken    = $this->pwdtoken;
+$useravatar  = ROOT_PATH."/myTpl/default/images/login_avatar.png";
+
+if( file_exists($user->avatar)){
+    $useravatar= "";
+}
+$lastConnectionDate = new Zend_Date($user->lastConnectedDate , Zend_Date::TIMESTAMP , "fr_FR");
+$lastUpdatedDate    = new Zend_Date($user->lastUpdatedDate   , Zend_Date::TIMESTAMP , "fr_FR");
+$registeredDate     = new Zend_Date($user->registeredDate    , Zend_Date::TIMESTAMP , "fr_FR");
+$updatedUser        = Sirah_Fabric::getUser($user->creatoruserid);
+$creationUser       = Sirah_Fabric::getUser($user->updateduserid);
+$formSubmit         = $this->url(array("module" => "admin", "controller" => "account" , "action"  => "settings") , "default");
+$linkEdit           = $this->url(array("module" => "admin", "controller" => "account" , "action"  => "edit") , "default");
+$linkEditPwd        = $this->url(array("module" => "admin", "controller" => "recoverpwd", "action"  => "init") , "default");
+$linkProfile        = $this->url(array("module" => "admin", "controller" => "myprofile" , "action" => "infos"));
+$typeOfUsers        = array("Personne" , "Mon groupe" , "Mon réseau" , "Tout le monde");
+
+$jq     = $this->jQuery();
+$onLoad = "
+  var saveNotificationParams  = function( ) {
+          jQuery('#editNotificationsParams').btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+          var formSelector  = jQuery('#saveNotificationParams-form');
+          SIRAH.request.post( formSelector,null,
+          {
+            success    : function( data )
+            {
+               jQuery('#editNotificationsParams').btnLoading({on:false});
+               jQuery('#patientez').fadeOut('slow');
+               if ( undefined !== data.error ) {
+                   SIRAH.error.raise( formSelector , data.error , 'error');
+                   return data;
+               } else if(undefined !== data.success ) {
+                   SIRAH.error.raise( formSelector , data.success , 'success');
+                   return data;
+               } else if( undefined !== data.message ) {
+                   SIRAH.error.raise( formSelector , data.message , 'message');
+                   return data;
+               } else {
+                  SIRAH.error.raise(  formSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                  return data;
+               }		                	 
+		   }       
+      });
+  };
+  var saveSecurityParams  = function( ) {
+          jQuery('#editSecurityParams').btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+          var formSelector  = jQuery('#saveSecurityParams-form');
+          SIRAH.request.post( formSelector,null,
+          {
+            success    : function( data )
+            {
+               jQuery('#editSecurityParams').btnLoading({on:false});
+               jQuery('#patientez').fadeOut('slow');
+               if ( undefined !== data.error ) {
+                   SIRAH.error.raise( formSelector , data.error , 'error');
+                   return data;
+               } else if(undefined !== data.success ) {
+                   SIRAH.error.raise( formSelector , data.success , 'success');
+                   return data;
+               } else if( undefined !== data.message ) {
+                   SIRAH.error.raise( formSelector , data.message , 'message');
+                   return data;
+               } else {
+                  SIRAH.error.raise(  formSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                  return data;
+               }		                	 
+		   }       
+      });
+  };
+  var saveConfidentialityParams  = function( ) {
+          jQuery('#editConfidentialityParams').btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+          var formSelector  = jQuery('#saveConfidentialityParams-form');
+          SIRAH.request.post( formSelector , null ,
+          {
+            success    : function( data )
+            {
+               jQuery('#editConfidentialityParams').btnLoading({on:false});
+               jQuery('#patientez').fadeOut('slow');
+               if ( undefined !== data.error ) {
+                   SIRAH.error.raise( formSelector , data.error , 'error');
+                   return data;
+               } else if(undefined !== data.success ) {
+                   SIRAH.error.raise( formSelector , data.success , 'success');
+                   return data;
+               } else if( undefined !== data.message ) {
+                   SIRAH.error.raise( formSelector , data.message , 'message');
+                   return data;
+               } else {
+                  SIRAH.error.raise(  formSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                  return data;
+               }		                	 
+		   }       
+      });
+  };
+  jQuery('#settingsTabs').tab();
+  jQuery('.save').click(function(e){
+      e.preventDefault();
+      var formSelector = jQuery('#saveparams-form');
+      formSelector.submit();
+   });   
+  jQuery('.edit').click(function(e){
+      e.preventDefault();
+      document.location.href = '".$linkEdit ."';
+   });  
+  jQuery('.changePassword').click(function(e){
+         e.preventDefault();
+         document.location.href = '".$linkEditPwd ."';
+   });
+  jQuery('#editAccountButton').click(function( event ) {
+         event.preventDefault();
+         document.location.href = '".$linkEdit."';
+  
+  });
+  jQuery('#editNotificationsParams').click(function( event ) {
+          event.preventDefault();
+          saveNotificationParams();
+  });
+  jQuery('#editSecurityParams').click(function( event ) {
+          event.preventDefault();
+          saveSecurityParams();
+  });
+  jQuery('#editConfidentialityParams').click(function( event ) {
+          event.preventDefault();
+          saveConfidentialityParams();
+  });";
+$jq->addOnLoad($onLoad);
+?>
+
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+ 
+ <div id="usersettings" class="row col-md-12" style="text-align:left;"> 
+     <ul  id="settingsTabs" class="nav nav-tabs" data-tabs="tabs">
+          <li class="active"><a href="#myPersonnalData" data-toggle="tab">Informations personnelles </a> </li>
+          <li><a href="#myNotificationSettings"     data-toggle="tab"> Les notifications       </a> </li>
+          <li><a href="#mySecuritySettings"         data-toggle="tab"> Sécurité           </a> </li>
+          <li><a href="#myConfidentialitySettings"  data-toggle="tab"> Mes préférences    </a> </li>
+          <li><a href="#myPasswordSettings"         data-toggle="tab"> Mot de passe   </a> </li>
+     </ul>
+     <div id="settingsContent" class="tab-content">
+       <div class="tab-pane active" id="myPersonnalData">   <br/> <?php echo $this->partial("account/settings.personaldata.phtml" , array("user" => $user, "params" => $params)); ?> </div>     
+       <div class="tab-pane" id="myNotificationSettings">   <br/> <?php echo $this->partial("account/settings.notifications.phtml", array("user" => $user, "params" => $params)); ?> </div>
+       <div class="tab-pane" id="mySecuritySettings">       <br/> <?php echo $this->partial("account/settings.security.phtml", array("user" => $user, "params" => $params)); ?> </div>
+       <div class="tab-pane" id="myConfidentialitySettings"><br/> <?php echo $this->partial("account/settings.private.phtml" , array("user" => $user, "params" => $params, "domaines" => $domaines, "localites" => $localites)); ?> </div>
+       <div class="tab-pane" id="myPasswordSettings">       <br/> <?php echo $this->partial("account/settings.password.phtml", array("user" => $user, "params" => $params, "pwdtoken" => $pwdtoken )); ?> </div>
+    </div>   
+</div>

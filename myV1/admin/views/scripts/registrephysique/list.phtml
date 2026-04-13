@@ -1,0 +1,649 @@
+<?php 
+$registres         = $this->registres;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$localites         = $this->localites;
+$domaines          = $this->domaines;
+$users             = $this->users;
+$types             = $this->types;
+$statuts           = $this->statuts;
+$me                = Sirah_Fabric::getUser();
+$findSimilar       = (isset($params["findsimilar"]))?intval($params["findsimilar"]) : 0;
+$searchQ           = (isset($params["searchq"]    ))?$params["searchq"] : $filters["searchQ"];
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "list")  , "default");
+$linkCreate        = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "create"), "default");
+$linkEdit          = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "edit")  , "default");
+$linkDelete        = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "delete"));
+$linkImport        = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "import"));
+$linkAjaxImport    = $this->url(array("module"=>"admin","controller"=>"ajaxres", "action"=> "csvrows"), "default" );
+$linkIndexation    = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "updatedocs","category" => 7),"default");
+$linkIndexationAll = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=> "updatealldocs","category" => 7),"default");
+$linkExport        = $this->url(array("module"=>"admin","controller"=>"registres","action" => "export"));
+$linkExportCSV     = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"exportcsv"));
+$linkExportZIP     = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"exportzip"));
+$linkUserdocuments = $this->url(array("module"=>"admin","controller"=>"userdocuments","action"=>"infos"),"default");
+$linkSearchQ       = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"registres","type"=>1));
+
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/hogan.js");
+$jq->addJavascriptFile($basePath."/js/typeahead/dist/typeahead.bundle.min.js");
+$jq->addStyleSheet(    $basePath."/css/typeahead.css");
+$jq->addOnload("
+var registresEngine =new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:10,remote:{url:'".$linkSearchQ."?q=%QUERY'}});
+registresEngine.initialize();
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."'; });
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});		
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});
+jQuery('input[name=\'sexe\']').click(function( event ){if(jQuery(this).is(':checked')) {jQuery('#sexeVal').val(jQuery(this).val());} });
+
+jQuery('#searchRegistres').click(function(event){
+		event.preventDefault();
+		var formSelector               = jQuery('.advancedSearchForm').eq(0) ;
+		var searchData                 = {};	
+        searchData.searchQ             = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());		
+		searchData.page                = parseInt(formSelector.find('#page').val());
+		searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+        searchData.numero              = jQuery.trim(formSelector.find('#numero').val());
+		searchData.numifu              = jQuery.trim(formSelector.find('#numifu').val());
+		searchData.numcnss             = jQuery.trim(formSelector.find('#numcnss').val());
+        searchData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+        searchData.keywords            = jQuery.trim(formSelector.find('#keywords').val());		
+        searchData.name                = jQuery.trim(formSelector.find('#name').val());	
+        searchData.passport            = jQuery.trim(formSelector.find('#passport').val());	
+        searchData.sexe                = jQuery.trim(formSelector.find('#sexeVal').val());			
+		searchData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+		searchData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+		searchData.domaineid           = parseInt(formSelector.find('#domaineid').val());
+		searchData.country             = parseInt(formSelector.find('#country').val());
+		searchData.statut              = parseInt(formSelector.find('#statut').val());
+		searchData.annee               = parseInt(formSelector.find('#annee').val());
+		searchData.date_year           = parseInt(formSelector.find('#date_year').val());
+		searchData.date_month          = parseInt(formSelector.find('#date_month').val());
+		searchData.date_day            = parseInt(formSelector.find('#date_day').val());
+		searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+		searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+		searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+		searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+		searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+		searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());		
+        var maincontent	               = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Patientez...' );
+		jQuery('#registresListWrapper').loadingOn();
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();}		
+		                  });
+});
+jQuery('#searchQ').typeahead({highlight:true,hint:true,minLength:3},{name:'searchQ',displayKey:'value',source:registresEngine.ttAdapter(),limit:Number.MAX_VALUE,templates:{header:'<h3 class=\'searchresults-header\'> Vous recherchez peut être...: </h3>' }});
+jQuery('#searchQ').bind('typeahead:selected',function(obj,datum,name){jQuery('#searchQ').val(datum.label);if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selecteditem'))){jQuery('#simpleSearch').trigger('click');}jQuery.data( jQuery('#globalFormSearch'),'selecteditem',datum.value);});
+jQuery('#searchQ').on('change', function( event ){
+	event.preventDefault();
+	var searchQValue = jQuery(this).val();
+	if( SIRAH.util.isEmpty(searchQValue)) {
+		jQuery('.resetPage').trigger('click');
+	}	
+});	
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		 
+		searchData.searchQ  = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on( maincontent , 'Patientez...' );
+		jQuery('#maincontent').loadingOn();
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);jQuery('#maincontent').loadingOff();},
+	                          success    : function(data){maincontent.html(data);jQuery('#maincontent').loadingOff();},
+		                      update     : function(data){maincontent.html(data);jQuery('#maincontent').loadingOff();}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+		var simpleSearchSelector= jQuery('#globalFormSearch');
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+		var searchQ             = simpleSearchSelector.find('#searchQ').val();
+		var searchQType         = parseInt(simpleSearchSelector.find('#type').val());
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData                     = {};
+		paginationData.page                    = pageNum;
+		paginationData.maxitems                = parseInt(formSelector.find('#maxitems').val());
+		if(!SIRAH.util.isEmpty(searchQ)) {
+			paginationData.searchQ             = searchQ;
+			paginationData.searchQType         = searchQType;
+		} else {
+			paginationData.numero              = jQuery.trim(formSelector.find('#numero').val());
+			paginationData.numcnss             = jQuery.trim(formSelector.find('#numcnss').val());
+			paginationData.numifu              = jQuery.trim(formSelector.find('#numifu').val());
+			paginationData.libelle             = jQuery.trim(formSelector.find('#libelle').val());
+			paginationData.name                = jQuery.trim(formSelector.find('#name').val());	
+			paginationData.passport            = jQuery.trim(formSelector.find('#passport').val());
+			paginationData.keywords            = jQuery.trim(formSelector.find('#keywords').val());	
+			paginationData.sexe                = jQuery.trim(formSelector.find('#sexeVal').val());		
+			paginationData.creatorid           = parseInt(formSelector.find('#creatorid').val());
+			paginationData.localiteid          = parseInt(formSelector.find('#localiteid').val());
+			paginationData.domaineid           = parseInt(formSelector.find('#domaineid').val());
+			paginationData.country             = parseInt(formSelector.find('#country').val());
+			paginationData.statut              = parseInt(formSelector.find('#statut').val());
+			paginationData.annee               = parseInt(formSelector.find('#annee').val());
+			paginationData.date_year           = parseInt(formSelector.find('#date_year').val());
+			paginationData.date_month          = parseInt(formSelector.find('#date_month').val());
+			paginationData.date_day            = parseInt(formSelector.find('#date_day').val());
+			paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+			paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+			paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+			paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+			paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+			paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());
+		}			       					 	
+		var maincontent                    = jQuery('#maincontent');			
+		SIRAH.loading.on( maincontent , 'Patientez...' );
+		jQuery('#registresListWrapper').loadingOn();
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('#registresListWrapper').loadingOff();}		
+		                  });		
+});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedRegistresId = function() {
+		var checkedItems  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds    = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var registreid   = parseInt(jQuery(this).attr('id').replace('registreids',''));
+             	checkedIds.push(registreid);
+           });
+		}
+		return checkedIds;
+};
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','updatealldocsButton','exportButton','editButton']);});
+jQuery('#registresListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','updatealldocsButton','editButton']);
+	}
+});");
+$myDataPath  = $me->getDatapath();  
+$docUrl      = $myDataPath . DS. "ARCHIVES" . DS ."ERCCM_ListDocuments.pdf";
+$toolbar     = $this->supinaToolsbar(array(), $this->jqueryHandler());
+$toolCreate  = $toolbar->tool("Nouveau"   , "plus");
+$toolEdit    = $toolbar->tool("Modifier"  , "edit");
+$toolDelete  = $toolbar->tool("Supprimer" , "trash-o");
+$toolExport  = $toolbar->tool("Exporter"  , "download");
+$toolImport  = $toolbar->tool("Importer"  , "upload");
+$toolIndexer = $toolbar->tool("Re-Indexer", "refresh");
+
+if($me->isAllowed("registrephysique", "create"))
+   $toolbar->add( $toolCreate, "createPhysiqueButton");
+if($me->isAllowed("registrephysique", "export"))
+   $toolbar->add( $toolExport, "exportButton");
+if($me->isAllowed("registrephysique", "import"))
+   $toolbar->add( $toolImport, "importButton");
+if($me->isAllowed("registrephysique", "edit"))
+   $toolbar->add( $toolEdit    , "editButton");
+if($me->isAllowed("registrephysique", "updatealldocs"))
+   $toolbar->add( $toolIndexer , "updatealldocsButton");
+if($me->isAllowed("registrephysique", "delete"))
+   $toolbar->add( $toolDelete  , "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolExport->dropdown(array("exportPDFButton"=>"<span class=\"glyph-icon icon-file-pdf-o\">&nbsp</span>     Exporter en PDF",
+						    "exportCSVButton"=>"<span class=\"glyph-icon icon-file-excel-o\">&nbsp</span>   Exporter en EXCEL",
+							"exportZIPButton"=>"<span class=\"glyph-icon icon-file-archive-o\">&nbsp</span> Générer une archive"), $this->jqueryHandler());
+
+$toolEdit->disable();
+$toolEdit->onClick("event.preventDefault();
+		            var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name=\'registreids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                    }
+		            var registreid         = parseInt(checkedItem.attr('id').replace('registreids',''));
+		            document.location.href = '".$linkEdit."/registreid/'+registreid;");
+$toolIndexer->onClick("event.preventDefault();
+					   var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedRegistres = getCheckedRegistresId();
+					   var localizedButton  = jQuery.fn.dialog2.localization.localizedButton;
+		               if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogIndexation = jQuery('<div> Voulez-vous vraiment re-indexer les registres selectionnés ? Les documents rattachés à ces registres vont être remplacés </div>').attr('id','dialogIndexation');             		             		   
+					   dialogIndexation.dialog2({title :'Attention, confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick: true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+             		   dialogIndexation.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+												jQuery('.modal-footer:first').find('button.btn').remove();
+												jQuery('#dialogIndexation').dialog2('addButton','Annuler',{click:function(){jQuery('#dialogIndexation').dialog2('close'); }});
+												jQuery('.modal-header:first').find('h3').first().html('Re-Indexation en cours...');
+												var progressBarContainer = jQuery('<div/>').addClass('progressbar').addClass('progress-striped').attr('data-value','0').attr('id','progressbar');	
+												var progressBarValue     = jQuery('<div/>').addClass('progressbar-value').addClass('bg-red').addClass('tooltip-button').attr('data-original-title','Initialisation...').attr('id','progressBarValue')
+												                           .append(jQuery('<div/>').addClass('progress-label').html('0%').attr('id', 'progressLabel'))
+																		   .append(jQuery('<div/>').addClass('progress-overlay').attr('id','progressBarOverlay'));	
+												progressBarContainer.append(progressBarValue);
+												jQuery('#dialogIndexation').html(progressBarContainer);
+												var progressBarTxt       = jQuery('<div/>').addClass('row').css('color','black').css('font-weight','bold').attr('id','progressBarTxt');
+												jQuery('#dialogIndexation').append(progressBarTxt);
+												var nbre                 = 0;
+												var totalSuccess         = 0;
+												var totalRegistres       = checkedRegistres.length;
+												jQuery.each(checkedRegistres, function(key,registreid) {			    
+													    var numeroRegistre  = jQuery('#numero-'+registreid).val();														
+														setTimeout(function(){
+															var xhr = jQuery.ajax({url:'".$linkIndexation."',async:true,dataType:'json',type:'GET',data:{'registreid':registreid}});
+															xhr.done(function( data ){
+																nbre++;
+																if( data.error !== undefined ) {
+																	SIRAH.error.raise(jQuery('#dialogIndexation'),data.error, 'error');																						
+																} else if( data.success !== undefined ) {
+																	totalSuccess++;
+																}
+																var percent    = parseInt(nbre*(100/totalRegistres));
+																var percentTxt = percent+'%';
+														        progressBarContainer.attr('data-value', percent );
+																progressBarValue.css('width', percentTxt);
+														        progressBarValue.attr('data-original-title','Indexation du registre n° '+numeroRegistre+'...');
+														        jQuery('#progressLabel').html(percentTxt);
+																progressBarTxt.html('(Copie du registre n° '+numeroRegistre+' en cours...)');																												
+																
+																if( nbre == totalRegistres ) {
+																	progressBarValue.removeClass('bg-red').addClass('bg-green');
+															        SIRAH.error.raise(jQuery('#dialogIndexation'),'L\'opération d\'indexation des documents s\'est effectuée avec succès, au total,'+totalSuccess+' ont été indexés', 'success');
+															        setTimeout(function(){jQuery('#dialogIndexation').dialog2('close');return false;},4500);											        
+														        }
+															});	
+															jQuery('.modal-footer:first').find('button.btn').first().click(function(event){ event.preventDefault();xhr.abort();});															
+														}, 500);														
+												});														   
+                                                           }}); 
+             		      dialogIndexation.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogIndexation.dialog2('open');");				
+$toolDelete->disable();
+$toolDelete->onClick(" event.preventDefault();
+		               var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedRegistres = getCheckedRegistresId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les registres selectionnés ? Ces registres seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({title:'Attention, confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+													        jQuery('#dialogDelete').loadingOn();
+															setTimeout(function(){
+             		                                            jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'registreids[]': checkedRegistres},type:'GET' ,
+																	success  : function(data) {
+																			jQuery('#dialogDelete').loadingOff();
+																			if(data.error !== undefined) {
+																			   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																			   return;
+																			} else if(data.success !== undefined) {
+																			   var checkedRegistres = getCheckedRegistresId();  	            		
+																			   SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																			   setTimeout(function(){jQuery.each(checkedRegistres,function(key,registreid){jQuery('#registreRowId-'+registreid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+																		    }
+																	}
+             		                                            });
+                                                            }, 1000);															   
+                                                }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); ");
+$toolImport->onClick("
+                   event.preventDefault();
+                   var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');             		 
+                   dialogUploadFile.dialog2({title:'Importer un fichier Excel',content:'".$linkAjaxImport."',autoOpen:false,modalClass:'modal-wide',removeOnClose: true,closeOnEscape:true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+                   dialogUploadFile.dialog2('addButton','<span class=\'glyph-icon icon-upload\'></span> Importer votre fichier Excel',{primary:true,click:function(){alert('Veuillez fournir un document valide');}}); 
+                   dialogUploadFile.dialog2('addButton','Annuler' ,{primary: false,click : function(){jQuery(this).dialog2('close');}});        		            		
+                   dialogUploadFile.dialog2('open');");
+
+$buttonExportPDF = $toolExport->getDropdownItem("exportPDFButton");
+if( $buttonExportPDF ) {
+	$buttonExportPDF->onClick(sprintf("
+	                                event.preventDefault(); 
+									var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+									var checkedRegistres = getCheckedRegistresId();
+									if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+										SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										return;
+									}
+									var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+										  click:function(event){
+												jQuery(this).dialog2('close');
+												var formSelector = jQuery('#registresListSearchForm');
+												SIRAH.request.post(jQuery('#registresListSearchForm'),'%s',{
+																	data:{'registreids[]':checkedRegistres},
+																	 success:function( data ){
+																			var mainContentSelector = jQuery('#maincontent');
+																			jQuery('#patientez').fadeOut('slow');
+																			jQuery('#sirah-page-message').fadeOut('slow');
+																			if( undefined !== data.error){
+																				SIRAH.error.raise(mainContentSelector,data.error,'error');
+																				return data;
+																			} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+																				SIRAH.loading.off(false);
+																				var listOfRccmUri      = '%s';
+																				var dialogTitle        = encodeURIComponent('Liste des registres');
+																				var linkViewDoc        = '%s?doc='+listOfRccmUri+'&dialogTitle='+dialogTitle;
+												 
+																				var documentDialog     = jQuery('<div></div>').attr('id','documentDialog'); 
+																				documentDialog.dialog2({title:'Création du document..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+																				documentDialog.dialog2('open');
+																			}	else if( undefined !== data.reload ) {
+																				var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+																				document.location.href  =  reloadurl ;
+																			} else {
+																				SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+																				return data;
+																			}
+																	 }
+												});
+										  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExport,urlencode($docUrl), $linkUserdocuments));
+}
+    $buttonExportCSV = $toolExport->getDropdownItem("exportCSVButton");
+if( $buttonExportCSV ) {
+	$buttonExportCSV->onClick(sprintf("event.preventDefault(); 
+									   var checkedRegistres = getCheckedRegistresId();	        
+									   if( SIRAH.util.isEmpty(checkedRegistres)) {
+										   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										   return;
+									   }
+									   var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									   dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									   dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																  click:function(event){
+																		jQuery(this).dialog2('close');
+																		var formSelector = jQuery('<form> </form>').attr('id', 'exportListCSVForm').attr('method', 'post').attr('action', '%s');
+																		jQuery.each(checkedRegistres, function(index,inputValue){
+																					var checkedInput  = jQuery('<input />').attr('type','hidden').attr('name','registreids[]').attr('value', inputValue);
+																					formSelector.append(checkedInput);
+																		}); 
+																		jQuery(document.body).append(formSelector); 
+																		formSelector.submit();	
+																  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExportCSV));
+}
+
+    $buttonExportZIP = $toolExport->getDropdownItem("exportZIPButton");
+if( $buttonExportZIP ) {
+	$buttonExportZIP->onClick(sprintf("event.preventDefault(); 
+									   var checkedRegistres = getCheckedRegistresId();  		        
+									   if( SIRAH.util.isEmpty(checkedRegistres)) {
+										   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										   return;
+									   }
+									   var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									   dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									   dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																  click:function(event){
+																		jQuery(this).dialog2('close');
+																		var formSelector = jQuery('<form> </form>').attr('id', 'exportListZIPForm').attr('method', 'post').attr('action', '%s');
+																		jQuery.each(checkedRegistres, function(index,inputValue){
+																					var checkedInput  = jQuery('<input />').attr('type','hidden').attr('name','registreids[]').attr('value', inputValue);
+																					formSelector.append(checkedInput);
+																		}); 
+																		jQuery(document.body).append(formSelector); 
+																		formSelector.submit();	
+																  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExportZIP));
+}				   
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+ .form-row,.row {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;margin-right:-25px;margin-left: -25px;}
+ p{margin-bottom:10px !important;}
+ td .list-group-item {padding:10px 0px !important;}
+ td .row{margin-left:0 !important;margin-right:0 !important;}
+ .col-md-2,.col-sm-2,.col-sm-10,.col-md-10{padding-right:5px !important;padding-left:5px !important;}
+ .similarLink{color:green;text-decoration:underline}
+<?php $this->headStyle()->captureEnd() ?>
+
+<div  id="registresListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		   <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ"  type="text" class="form-control" placeholder="Recherchez un registre, saisir le numéro RC ou le nom commercial...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button" title="Faire une recherche rapide"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button" title="Faire une recherche avancée des registres de commerce"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> </button>
+			</span>
+		   </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		  </form>
+    	</div>	
+		<form id="registresListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		    <ul class="list-group">
+				<li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label">  <b> Numéro RCCM:</b> </label> 
+						<div   class="col-sm-3"><input type="text" name="numero" id="numero" value="<?php echo $filters['numero']; ?>" class="form-control" placeholder="Saisir un numéro RCCM"      /></div>
+						<label class="col-sm-2 col-md-2 control-label">  <b> Nom commercial:</b> </label> 
+						<div   class="col-sm-5 col-md-5"><input type="text" name="libelle" id="libelle" value="<?php echo $filters['libelle'];?>" class="form-control" placeholder="Saisir un nom commercial" /></div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label">  <b> Nom ou Prénom:</b> </label> 
+						<div   class="col-sm-3 col-md-3"><input type="text" name="name" id="name" value="<?php echo $filters['name']; ?>" class="form-control" placeholder="Saisir le nom de l'exploitant"      /></div>
+						<label class="col-sm-2 col-md-2 control-label">  <b> CNIB/Passport:</b> </label> 
+						<div   class="col-sm-5 col-md-5"><input type="text" name="passport" id="passport" value="<?php echo $filters['passport'];?>" class="form-control" placeholder="Rechercher un numéro passport ou CNIB" /></div>
+					</div>
+				</li>
+				<li class="list-group-item"> 
+					<div class="form-group"> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Numéro IFU:</b> </label> 
+					   <div   class="col-md-5 col-sm-5"><input type="text" name="numifu"  id="numifu"   value="<?php echo $filters['numifu']; ?>"  class="form-control" placeholder="Saisir un numéro IFU" /></div>
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Numéro CNSS:</b> </label> 
+					   <div   class="col-md-5 col-sm-5"><input type="text" name="numcnss" id="numcnss"  value="<?php echo $filters['numcnss'];?>"  class="form-control" placeholder="Saisir un numéro CNSS" /></div>
+					</div> 			   
+				</li>		     
+				<li class="list-group-item"> 
+				    <div class="form-group">
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Statut:</b> </label> 
+					   <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("statut", $filters["statut"], array("class"=>"form-control"), $statuts);?> </div> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Année de création:</b> </label>
+					   <div   class="col-sm-5 col-md-5"><?php echo $this->formSelect("annee" , intval($filters["annee"]), array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>  
+				    </div> 			   
+				</li>
+				<li class="list-group-item"> 
+				    <div class="form-group">
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Localité:</b> </label> 
+					   <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("localiteid",intval($filters["localiteid"]),array("class"=>"form-control chosen"), $localites); ?> </div> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Secteur d'activités:</b> </label> 
+					   <div   class="col-sm-5 col-md-5"><?php echo $this->formSelect("domaineid" ,intval($filters["domaineid"]) ,array("class"=>"form-control chosen"), $domaines); ?> </div> 
+				    </div> 			   
+				</li>	
+				<li class="list-group-item"> 
+				   <div class="form-group">
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Nationalité:</b> </label> 
+					   <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("country",$filters["country"],array("class" => "form-control chosen"),array(0=>"Selectionnez un pays")+$this->countries()); ?> </div> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Sexe:</b> </label> 
+					   <div   class="col-sm-3 col-md-3 radio radio-primary"> 
+						   <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($filters["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+						   <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($filters["sexe"] == "F") echo "checked"; ?>> Femme </label>
+						   <input type="hidden" name="sexeVal" id="sexeVal" value="<?php echo $filters["sexe"]; ?>" />
+					   </div>
+				   </div> 			   
+				</li>			
+				<li class="list-group-item"> 
+					<div class="form-group"> 
+					  <label class="col-sm-2 col-md-2 control-label"> <b>Date de création:</b> </label>
+					  <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("date_day"  , intval($filters["date_day"]) , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+					  <div   class="col-sm-2 col-md-2"><?php echo $this->formSelect("date_month", intval($filters["date_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+					  <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("date_year" , intval($filters["date_year"]), array("class"=>"form-control chosen"),array("0000"=>"Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+				   </div>
+				</li>
+				<li class="list-group-item">
+					 <div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label">  <b> Période initiale:</b> </label> 
+						<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_start_day"  ,intval($filters["periode_start_day"])  , array("class" => "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-sm-2 col-md-2"><?php echo $this->formSelect("periode_start_month",intval($filters["periode_start_month"]), array("class" => "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_start_year" ,intval($filters["periode_start_year"]), array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					 </div>
+				</li>
+				<li class="list-group-item">
+					 <div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label">  <b> Période finale:</b> </label> 
+						<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_end_day"  ,intval($filters["periode_end_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-sm-2 col-md-2"><?php echo $this->formSelect("periode_end_month",intval($filters["periode_end_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_end_year" ,intval($filters["periode_end_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					 </div>
+				  </li>
+				  <li class="list-group-item">
+					 <div  class="form-group">
+						<?php if( $me->isAdmin()): ?>
+						  <label class="col-sm-2 col-md-2 control-label">  <b> Opérateur de saisie:</b> </label>
+						  <div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("creatorid",$filters["creatorid"], array("class"=>"form-control chosen"), $users);?></div>
+						<?php endif; ?>
+						
+						<label class="col-sm-2 col-md-2 control-label">  <b> Nbre d'élements:</b> </label> 
+						<div   class="col-sm-5 col-md-5"> <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000, "5000" => 5000, "100000000" => "Tout")); ?> </div>
+					 </div>
+				  </li>			  			  
+		   </ul>
+		   <div class="panel-footer"> 
+		      <button id="searchRegistres" class="btn btn-primary searchRegistre advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+              <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		   </div>
+		   <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>" />
+		   <input type="hidden" name="maxitems" id="maxitems" value="<?php echo $this->pageSize;?>" />
+		</form>
+		<table id="registresListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable registresListTable text-left" style="text-align:left;">
+                <thead>
+                    <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>   
+                          <th width="14%" > Numéros RC     </th>    
+                          <th width="10%" > Années         </th>  
+                          <th width="35%">  Nom commercial </th> 
+                          <th width="25%">  Promoteurs     </th> 						  
+                          <th width="15%" > Localités      </th>                                        
+                    </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $registres ) ) {
+                              	  foreach( $registres as $registre ) {
+                              	  	       $registreid  = intval($registre['registreid']);
+                              	  	       $libelle     = $registre["libelle"] ;
+                              	  	       $numero      = $registre["numero"] ;
+                              	  	       $description = $registre["description"] ;
+										   $promoteur   = sprintf("%s %s", $registre["nom"], $registre["prenom"]);
+                              	  	       $domaine     = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+                              	  	       $localite    = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+                              	  	       $annee       = $registre["annee"]; 
+                              	  	       $linkInfos   = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"infos","id"=> $registreid), "default");                             	  	      
+                              	  	       $rowBg       = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+										   $output     .= "<tr style=\"background-color:".$rowBg."\" id=\"registreRowId-".$registreid."\"> ";
+                              	  	                $output .= "<td> <input type=\"checkbox\" name=\"registreids[]\" id=\"registreids".$registreid."\" class=\"registreids\" /> </td>";
+                              	  	                $output .= "<td><a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$numero   ." </a> </td>";
+                              	  	                $output .= "<td><a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$annee    ." </a> </td>";                             	  	                
+                              	  	                $output .= "<td><a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$libelle  ." </a> </td>";
+                                                    $output .= "<td><a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$promoteur." </a> </td>"; 													
+													$output .= "<td><a title=\"Accéder aux informations de ce registre\" href=\"".$linkInfos."\"> ".$localite ." </a> </td>";
+                              	  	       $output .= "</tr>";
+										   $output .="<input type='hidden'  name='numero-".$registreid."' id='numero-".$registreid."' value='".$numero."'  />" ;
+                              	  }                              	
+                              }  else {
+                              	    if(!$findSimilar && !empty($searchQ)) {
+										$linkSearchSimilar = $this->url(array("module"=>"admin","controller"=>"registrephysique","action"=>"list","findsimilar"=>1,"searchq"=>urlencode($searchQ),"maxitems"=>100), "default");
+										$output    .= "<tr id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE DE COMMERCE PERSONNE PHYSIQUE N'A ETE RETROUVE. <a class=\"similarLink\" href=\"".$linkSearchSimilar."\" title=\"Recherchez des informations similaires\"> VOUS POUVEZ TROUVER DES NOMS COMMERCIAUX SIMILAIRES SUR CE LIEN </a> </td> </tr>";
+									} else {
+										$output    .= "<tr id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE DE COMMERCE PERSONNE PHYSIQUE N'A ETE RETROUVE . </td> </tr>";
+									}
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+		<?php echo $pagination->render(); ?>
+	 </div>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+   

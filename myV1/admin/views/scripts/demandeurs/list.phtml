@@ -1,0 +1,427 @@
+<?php 
+$me                   = Sirah_Fabric::getUser();
+$demandeurs           = $this->demandeurs;
+$filters              = $this->filters;
+$paginator            = $this->paginator;
+$groupes              = $this->groupes;
+$typeDemandeurs         = $this->types;
+$familles             = array();
+
+$basePath             = VIEW_BASE_PATH;
+$avatarDefaultFile    = $basePath."/images/login_avatar.png";
+$logoDefaultFile      = $basePath."/images/default_company_logo.png";
+$jq                   = $this->jQuery();
+
+$linkSearch           = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"list") , "default");
+$linkCreate           = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"create") , "default");
+$linkCreatePhysique   = $this->url(array("module"=>"admin","controller"=>"demandeurphysiques","action"=>"create") , "default");
+$linkCreateMorale     = $this->url(array("module"=>"admin","controller"=>"demandeurmorales","action"=>"create") , "default");
+$linkEdit             = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"edit") , "default");
+$linkDelete           = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"delete"));
+$linkExport           = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"export"));
+$linkUserdocuments    = $this->url(array("module"=>"admin","controller"=>"userdocuments","action"=>"infos"),"default");
+$linkExportCSV        = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"exportcsv"));
+$linkExportZIP        = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=>"exportzip"));
+$linkSearchQ          = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"demandeurs"));
+$linkSearchEntreprise = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"entrepriseslist","parentform"=>"demandeursListSearchForm","selectCmdKey"=>"selectEntreprise","selectedKey"=>"entrepriseid","selectedVal"=>"entreprise"), "default");										 
+$jq->addOnload("
+jQuery('.demandeurCard').css('cursor','pointer');
+jQuery('.demandeurCard').click(function( event ){event.preventDefault();document.location.href= jQuery(this).attr('rel');});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#selectEntreprise').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une entreprise',content:'".$linkSearchEntreprise."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		searchData.searchq  = searchData.generalfilter = jQuery.trim(jQuery('#globalFormSearch').find('#searchq').val());
+		 			 
+        var maincontent	    = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.searchDemandeurs,#searchDemandeurs').click(function(    event ){
+		event.preventDefault();
+		var formSelector          = jQuery('#demandeursListSearchForm,.advancedSearchForm:first') ;					
+		var searchData            = {};
+		searchData.page           = parseInt(formSelector.find('#page').val());
+		searchData.maxitems       = parseInt(formSelector.find('#maxitems').val());
+		searchData.name           = formSelector.find('#name').val();
+		searchData.numidentite    = formSelector.find('#numidentite').val();
+		searchData.telephone      = formSelector.find('#telephone').val();
+		searchData.email          = formSelector.find('#email').val();
+		searchData.identitetypeid = parseInt(formSelector.find('#identitetypeid').val());
+ 
+        var maincontent	          = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#demandeursListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector              = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum                   = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems              = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum       = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum                 = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum         = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                   = parseInt( currentBtnNum - 1);
+		}
+		var paginationData            = {};
+		paginationData.page           = pageNum;
+		paginationData.maxitems       = parseInt(formSelector.find('#maxitems').val());
+
+		paginationData.name           = formSelector.find('#name').val();
+		paginationData.numidentite    = formSelector.find('#numidentite').val();
+		paginationData.telephone      = formSelector.find('#telephone').val();
+		paginationData.email          = formSelector.find('#email').val();
+		paginationData.identitetypeid = parseInt(formSelector.find('#identitetypeid').val());
+		
+		var maincontent               = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedDemandeursId = function() {
+		var checkedItems = jQuery('#demandeursListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if( checkedItems) {
+		    checkedItems.each(function() {
+             	var demandeurid   = parseInt(jQuery(this).attr('id').replace('demandeurids',''));
+             	checkedIds.push(demandeurid);
+           });
+		}
+		return checkedIds;
+};
+jQuery('#demandeursListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#demandeursListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#demandeursListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#demandeursListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#demandeursListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['editButton','exportButton','deleteButton','releveButton']);
+	}
+});  ");
+$toolbar      = $this->supinaToolsbar(array(), $this->jqueryHandler());
+$toolCreate   = $toolbar->tool("Nouveau demandeur", "plus");
+$toolEdit     = $toolbar->tool("Modifier" , "edit");
+$toolDelete   = $toolbar->tool("Supprimer", "trash-o");
+$toolExport   = $toolbar->tool("Exporter" , "download");
+
+if( $me->isAllowed("demandeurs","create")) {
+	$toolbar->add( $toolCreate ,"createButton");
+	$toolCreate->onClick(sprintf("event.preventDefault();document.location.href='%s';" , $linkCreate));
+}
+ 
+$toolbar->add( $toolExport        , "exportButton");
+if( $me->isAllowed("demandeurs","edit")) {
+	$toolbar->add( $toolEdit          , "editButton");
+	//$toolEdit->disable();
+    $toolEdit->onClick("event.preventDefault();
+						var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						var checkedItem  = jQuery('#demandeursListTable').find('input[type=\'checkbox\'][name=\'demandeurids[]\']:checked').eq(0);
+						if( isDisabled || !checkedItem) {
+							SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							return;
+						}
+						var demandeurid        = parseInt(checkedItem.attr('id').replace('demandeurids',''));
+						document.location.href = '".$linkEdit."/demandeurid/'+demandeurid;");
+}
+if( $me->isAllowed("demandeurs","delete")) {
+	$toolbar->add( $toolDelete        , "deleteButton");
+	//$toolDelete->disable();
+    $toolDelete->onClick(" 
+						var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+						var checkedDemandeurs = getCheckedDemandeursId();
+						if( isDisabled || SIRAH.util.isEmpty( checkedDemandeurs )) {
+							SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+							return;
+						}
+						var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les demandeurs selectionnés ? Ces demandeurs seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+						dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+						dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+												function(){
+															jQuery.ajax({url:'".$linkDelete."',async:false,dataType :'json',
+																		data: {'demandeurids[]': checkedDemandeurs},type: 'GET' ,
+																		success  : function(data) {
+																		if(data.error !== undefined) {
+																		   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																		   return;
+																		} else if(data.success !== undefined) {
+																		   var checkedDemandeurs = getCheckedDemandeursId();  	            		
+																		  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																		setTimeout(function(){
+																		  jQuery.each(checkedDemandeurs, function(key , demandeurid) {
+																				  jQuery('#demandeurRowId-'+demandeurid).remove();
+																			});
+																		   jQuery('#dialogDelete').dialog2('close');
+																		  },2500);
+																	   }
+																	 }
+																   });     		
+															   }}); 
+						dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+						dialogDelete.dialog2('open'); ");
+}
+$toolExport->dropdown(array("exportPDFButton"=>"<span class=\"glyph-icon icon-file-pdf-o\">&nbsp</span>   Exporter en PDF",
+						    "exportCSVButton"=>"<span class=\"glyph-icon icon-file-excel-o\">&nbsp</span> Exporter en EXCEL"), $this->jqueryHandler());
+$buttonExportPDF = $toolExport->getDropdownItem("exportPDFButton");
+if( $buttonExportPDF ) {
+	$buttonExportPDF->onClick(sprintf("
+	                                event.preventDefault(); 
+									var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+									var checkedDemandeurs = getCheckedDemandeursId();
+									if( isDisabled || SIRAH.util.isEmpty( checkedDemandeurs )) {
+										SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										return;
+									}
+									var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+										  click:function(event){
+												jQuery(this).dialog2('close');
+												var formSelector = jQuery('#demandeursListSearchForm');
+												SIRAH.request.post(jQuery('#demandeursListSearchForm'),'%s',{
+																	data:{'demandeurids[]':checkedDemandeurs},
+																	 success:function( data ){
+																			var mainContentSelector = jQuery('#maincontent');
+																			jQuery('#patientez').fadeOut('slow');
+																			jQuery('#sirah-page-message').fadeOut('slow');
+																			if( undefined !== data.error){
+																				SIRAH.error.raise(mainContentSelector,data.error,'error');
+																				return data;
+																			} else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+																				SIRAH.loading.off(false);
+																				var listOfRccmUri      = '%s';
+																				var dialogTitle        = encodeURIComponent('Liste des demandeurs');
+																				var linkViewDoc        = '%s?doc='+listOfRccmUri+'&dialogTitle='+dialogTitle;
+												 
+																				var documentDialog     = jQuery('<div></div>').attr('id','documentDialog'); 
+																				documentDialog.dialog2({title:'Ouverture du document..',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+																				documentDialog.dialog2('open');
+																			}	else if( undefined !== data.reload ) {
+																				var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+																				document.location.href  =  reloadurl ;
+																			} else {
+																				SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+																				return data;
+																			}
+																	 }
+												});
+										  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExport,urlencode($docUrl), $linkUserdocuments));
+}
+    $buttonExportCSV = $toolExport->getDropdownItem("exportCSVButton");
+if( $buttonExportCSV ) {
+	$buttonExportCSV->onClick(sprintf("event.preventDefault(); 
+									   var checkedDemandeurs = getCheckedDemandeursId();	        
+									   if( SIRAH.util.isEmpty(checkedDemandeurs)) {
+										   SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+										   return;
+									   }
+									   var dialogConfirmExport = jQuery('<div> Voulez-vous vraiment effectuer cette opération, elle prendra certainement beaucoup de temps ? </div>').attr('id','dialogExport').addClass('modal-medium');             		 
+									   dialogConfirmExport.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+									   dialogConfirmExport.dialog2('addButton','Oui',{primary:true ,
+																  click:function(event){
+																		jQuery(this).dialog2('close');
+																		var formSelector = jQuery('<form> </form>').attr('id', 'exportListCSVForm').attr('method', 'post').attr('action', '%s');
+																		jQuery.each(checkedDemandeurs, function(index,inputValue){
+																					var checkedInput  = jQuery('<input />').attr('type','hidden').attr('name','demandeurids[]').attr('value', inputValue);
+																					formSelector.append(checkedInput);
+																		}); 
+																		jQuery(document.body).append(formSelector); 
+																		formSelector.submit();	
+																  }
+									   });
+									   dialogConfirmExport.dialog2('addButton','Non',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+									   dialogConfirmExport.dialog2('open');", $linkExportCSV));
+}
+$this->toolsbar  = $toolbar;
+$pagination      = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.chosen{width:200px !important;}
+.chosen-grp-addon{border:0px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="demandeursListListWrapper"  class="row">
+  <div    class="panel panel-default listPanel">
+    <div  class="panel-heading bg-blue-alt">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		  <div class="input-group">
+		    <input value="<?php echo $filters['searchQ']; ?>" id="searchq" name="searchq"  type="text" class="form-control" placeholder="Saisissez le nom ou le prénom d'un demandeur...">
+		    <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Filtrer </button>
+               <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button id="resetSimpleSearch" class="btn btn-danger  resetSimpleSearch resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		  </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+    </div>
+	<form id="demandeursListSearchForm" method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+	  <ul class="list-group">
+	        <li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Nom du demandeur:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['name']; ?>" type="text" name="name"  id="name" class="form-control" placeholder="Saisir le nom et/ou prénom d'un demandeur" /></div>
+				</div>
+			</li>
+		    <li class="list-group-item">
+			    <div  class="form-group">
+			      <label class="col-sm-2 col-md-2 control-label">  <b> Numéro d'idendité:</b> </label> 
+				    <div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['numidentite']; ?>" type="text" name="numidentite" id="numidentite" class="form-control" placeholder="Saisir le numéro d'identité d'un demandeur" /></div>
+					<div   class="col-sm-6 col-md-6"><?php echo $this->formSelect("identitetypeid", intval($filters["identitetypeid"]),array("class"=>"form-control"), $this->identiteTypes); ?> </div>
+				</div>
+			</li>			
+			<li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Téléphone:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['telephone'];?>" type="text" name="telephone" id="telephone" class="form-control" placeholder="Saisir un numéro de téléphone" /></div>
+					<label class="col-sm-2 col-md-2 control-label">  <b> Adresse email:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['email'];?>"     type="text" name="email"     id="email"     class="form-control" placeholder="Saisir une adresse email" /></div>
+				</div>
+			</li>
+	        <li class="list-group-item">
+				<div  class="form-group">					
+					<label class="col-sm-2 col-md-2 control-label">  <b> Afficher:</b> </label> 
+					<div   class="col-md-10 col-sm-10">
+						<div class = "input-group">			 
+							<?php echo $this->formSelect("maxitems",$this->maxitems , array("class"=> "form-control chosen"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=>5000,"100000000" => "Tout")); ?> 
+							<span class="input-group-addon chosen-grp-addon bg-primary"> Elements</span>
+						</div>
+					</div>
+				</div>
+		    </li>
+		</ul>
+		<div class="panel-footer"> 
+			<button id="searchDemandeurs" class="btn btn-primary searchDemandeurs advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+			<button id="resetDemandeurs"  class="btn btn-danger  resetDemandeurs  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		<input type="hidden" name="page"     id="page"      value="<?php echo $this->pageNum;    ?>"           />
+	</form>
+	<table id="demandeursListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+        <thead>
+            <tr> 
+                <th width="2%" > <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>  
+				<th width="25%"> Numéros d'identité   </th> 
+                <th width="25%"> Noms et Prénoms      </th>
+				<th width="35%"> Contacts             </th>   
+                <th width="13%"> Professions          </th>				
+            </tr>
+        </thead>                
+        <tbody>
+        <?php 
+			$output   = "";
+			if( count(   $demandeurs ) ) {
+				foreach($demandeurs as $demandeur ) {
+						$demandeurid         = intval($demandeur['demandeurid']);
+						$NumIdentite         = $demandeurCode = $demandeur["numidentite"] ;
+						$demandeurLastName   = $demandeur["lastname"] ;
+						$demandeurFirstName  = $demandeur["firstname"] ;
+						$demandeurName       = $demandeur["name"] ;
+						$demandeurProfession = $demandeur["profession"] ;
+						$demandeurAdresse    = $demandeur["adresse"] ;					 
+						$demandeurPhone      = $demandeur["telephone"];				 							   
+						$demandeurEmail      = $demandeur["email"];
+						$demandeurSexe       = $demandeur["sexe"];
+						$demandeurAddress    = sprintf("Adresse : %s, Tel: %s", $demandeurAdresse, $demandeurPhone);
+						$demandeurNumPiece   = $demandeur["numeroPiece"];
+						$demandeurPieceTypeId= $demandeur["typePieceId"];
+						$demandeurPieceType  = $demandeur["typePiece"];
+						$pieceOrganisme      = $demandeur["organisme_etablissement"];
+						$pieceLieu           = $demandeur["lieu_etablissement"];
+						$pieceDate           = $demandeur["date_etablissement"];
+ 						   
+						$linkInfos           = $this->url(array("module"=>"admin","controller"=>"demandeurs","action"=> "infos", "demandeurid" => $demandeurid ), "default");							   
+						$demandeurAddress    = "<li title=\"Voir les informations de ce demandeur\" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+													<div class=\"row\" style=\"padding:0px !important;\">
+														<div class=\"col-md-12\"> <p class=\"list-group-item-text\">".$demandeurAddress."</p></div>
+													</div>
+												</li>";
+
+						 $output.= "<tr id=\"demandeurRowId-".$demandeurid."\"> ";
+								$output.="<td> <input type=\"checkbox\" name=\"demandeurids[]\" id=\"demandeurids".$demandeurid."\" class=\"demandeurids\" /> </td>";
+								$output.="<td><a title=\"Visualiser les informations de ce demandeur\" href=\"".$linkInfos."\"> ".$NumIdentite  ." </a></td>";
+								$output.="<td><a title=\"Visualiser les informations de ce demandeur\" href=\"".$linkInfos."\"> ".$demandeurName." </a></td>";
+								$output.="<td title=\"Visualiser les informations de ce demandeur\" rel=\"".$linkInfos."\" style=\"padding:4px !important;\" class=\"list-group demandeurCard\">".$demandeurAddress."</td>"; 
+								$output.="<td><a title=\"Visualiser les informations de ce demandeur\" href=\"".$linkInfos."\"> ".$demandeurProfession ." </a></td>";                             	  	                
+						 $output.= "</tr>";
+				}                              	
+			}  else {
+						 $output .= "<tr align=\"center\" id=\"demandeurRowId-0\"><td style=\"text-align:center !important;\" align=\"center\" colspan=\"5\"> AUCUN DEMANDEUR N'A ETE RETROUVE  </td> </tr>";
+			}                              
+			  echo $output;                      
+        ?>                             
+       </tbody>           
+    </table>
+	 <?php echo $pagination->render(); ?>
+  </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+		 echo $this->headStyle();
+     	 echo $this->jQuery();	     
+     }
+?>

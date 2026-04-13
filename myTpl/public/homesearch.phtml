@@ -1,0 +1,72 @@
+<?php
+	$me                   = Sirah_Fabric::getUser();
+	$basePath             = VIEW_BASE_PATH;
+	
+	$layout               = Zend_Layout::getMvcInstance();
+	$view                 = $layout->getView();
+    $csrfTokenId          = $csrfTokenValue   = "";
+	$defaultSession       = new Zend_Session_Namespace();
+	if(!isset($defaultSession->formStates) || !isset($defaultSession->formStateInitialized)) {
+		$csrfTokenSession                     = new Zend_Session_Namespace("csrfTokens");
+		$csrfTokenSession->tokenId            = $csrfTokenSession->tokenValue = $csrfTokenSession->initialized = null;		
+		$defaultSession->formStates           = array("searchQ"=>null,"libelle"=>null,"localiteid"=>0,"domaineid"=>0,"numero"=>null,"annee"=>0,"typeid"=>0);
+	    $defaultSession->formStateInitialized = true;
+	}
+	$csrfHelper           = Zend_Controller_Action_HelperBroker::getStaticHelper("Csrf");
+	$csrfTokenId          = ($csrfHelper)?$csrfHelper->getTokenId(15) : "";
+	$csrfTokenValue       = ($csrfHelper)?$csrfHelper->getToken(300)  : "";
+    $formStates           = $defaultSession->formStates;
+	$linkSearch           = $view->url(array("module"=>"public","controller"=>"registres","action"=>"search","reset"=>1),"default",true);
+	$linkSearchAdvanced   = $view->url(array("module"=>"public","controller"=>"registres","action"=>"search","advanced"=>1),"default", true);
+	$linkSearchQ          = $view->url(array("module"=>"public","controller"=>"registres","action"=>"ajaxsearch"),"default",true);	
+?>
+<?php $view->headStyle()->captureStart() ?>
+#searchQ{border-top-left-radius:0px;border-bottom-left-radius:0px;border-left:0px !important;height:46px !important}
+.searchBeforeAddon{border-bottom-left-radius:16px;border-top-left-radius:16px;border-bottom-right-radius:0px;border-top-right-radius:0px;border-right:none;background-color:#FFF !important;box-shadow:none;}
+.searchBeforeAddon{border-bottom-left-radius:16px;border-top-left-radius:16px;border-bottom-right-radius:0px;border-top-right-radius:0px;border-right:none;background-color:#FFF !important;box-shadow:none;}
+.searchBtn,#searchBtn{border-bottom-right-radius:16px;border-top-right-radius:16px;border-bottom-left-radius:0px;border-top-left-radius:0px;border-right:none;}
+.homesearchbox-header{margin-bottom:15px !important}
+.advancedSearchBtn{color:#FFF !important;font-weight:bold !important;}
+<?php $view->headStyle()->captureEnd();  ?>
+<div id="homeSearchWrapper" class="homeSearchWrapper container ls-container ls-fullwidth">
+    <div class="jumbontron homesearch" id="homesearchbox">
+        <h1 class="homesearchbox-header"> Recherchez des entreprises </h1>
+        <form id="searchRegistres" class="form-horizontal" action="<?php echo $linkSearch; ?>" method="post"> 
+            <div class="input-group">
+			    <span  style="border-bottom-left-radius:16px;border-top-left-radius:16px;border-bottom-right-radius:0px;border-top-right-radius:0px;border-right:none;background-color:#FFF !important;box-shadow:none;" class="input-group-addon searchBeforeAddon"><i class="glyph-icon icon-search"></i></span>
+                <input style="border-bottom-left-radius:0px;border-top-left-radius:0px;height:46px !important" type="text" class="form-control input-lg searchQ" name="searchQ" id="searchQ" value="<?php echo $formStates['searchQ'] ?>"  placeholder="Saisissez un numéro RCCM, un nom commercial ou le nom du dirigeant d'une entreprise..." />
+                <div class="input-group-btn"><button id="searchBtn" class="btn btn-lg btn-primary searchBtn"><span class="glyph-icon icon-search"></span> </button></div>
+            </div>
+            <div class="input-group home-search-bottom">
+                <div class="col-md-8 col-sm-8">&nbsp;</div>
+                <div class="col-md-4 col-sm-4 pull-right"><a id="advancedSearchBtn" class="pull-right advancedSearchBtn" title="Cliquez pour effectuer une recherche avancée" href="#"> RECHERCHE AVANCEE <i class="glyph-icon icon-chevron-right"></i></a></div>
+            </div>
+			<input type="hidden" name="reset" id="reset" value="1"  />
+			<input type="hidden" name="<?php echo $csrfTokenId;?>" id="<?php echo $csrfTokenId; ?>" value="<?php echo $csrfTokenValue; ?>" />   			    
+        </form>
+    </div>
+</div>
+<form id="searchAdvancedRegistres" style="display:none!important" class="hide" method="post" action="<?php echo $linkSearch;?>">
+	<input type="hidden" name="cardUpdateBtn" id="cardUpdateBtn"  />
+</form>
+<?php
+	$jq     = $view->jQuery();
+	$onLoad = "
+	    var registresEngine  = new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer:Bloodhound.tokenizers.whitespace,local:[],limit:10,remote:{url:'".$linkSearchQ."?".$csrfTokenId."=".$csrfTokenValue."&q=%QUERY'}});
+		registresEngine.initialize();
+		jQuery('#searchQ').typeahead({highlight:true,hint:true,minLength:3},{name:'searchQ',displayKey:'value',source:registresEngine.ttAdapter(),limit:Number.MAX_VALUE,templates:{header:'<h3 class=\'searchresults-header\'> Premiers résultats de votre recherche </h3>' }});
+        jQuery('#searchQ').bind('typeahead:selected',function(obj,datum,name){jQuery('#searchQ').val(datum.label);if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selecteditem'))){jQuery('#searchRegistres').find('.searchBtn').eq(0).trigger('click');}jQuery.data( jQuery('#searchRegistres'),'selecteditem',datum.value);});
+	    jQuery('#searchBtn').click(function(event){
+			event.preventDefault();
+			var formSelector = jQuery('#searchRegistres');
+			var searchQ      = encodeURIComponent(jQuery('#searchQ').val());
+			
+			formSelector.submit(); 
+		});
+		jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();document.location.href='".$linkSearchAdvanced."';});";
+	$jq->addOnLoad(        $onLoad );
+	$jq->addJavascriptFile($basePath."/js/typeahead/dist/hogan.js");
+	$jq->addJavascriptFile($basePath."/js/typeahead/dist/typeahead.bundle.min.js");
+	$jq->addStyleSheet(    $basePath."/css/typeahead.css");
+	
+?>

@@ -1,0 +1,41 @@
+             <?php 
+                   $profile  = $this->profile;       
+                   if ( $profile->birthday ) {
+                   	    $birthday      = new Zend_Date($profile->birthday , Zend_Date::TIMESTAMP);
+                   	    $dateNaissance = $birthday->toString("dd MMMM yyyy");
+                   } else {
+                   	    $dateNaissance = "00/00/0000";
+                   }      
+             ?>           
+             <ul class="list-group">
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Nom :</b></div> 
+                             <div class="col-md-6"><?php echo sprintf(" %s %s", $this->escape($profile->lastname) ,$this->escape($profile->firstname) ); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Date de naissance :</b></div> 
+                             <div class="col-md-6"><?php echo $dateNaissance; ?></div>
+                           </div>
+                       </li>
+                        <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Lieu de naissance :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($profile->birthaddress); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Situation matrimoniale:</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($profile->socialstate); ?></div>
+                           </div>
+                       </li>
+                        <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Sexe :</b></div> 
+                             <div class="col-md-6"><?php echo ( $profile->sexe == "M") ? "Homme" : "Femme";  ?></div>
+                           </div>
+                       </li>
+           </ul>

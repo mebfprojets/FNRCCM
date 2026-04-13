@@ -1,0 +1,125 @@
+<?php 
+$domaine         = $this->domaine;
+$domaineid       = $domaine->domaineid;
+$parent          = $this->parent;
+$children        = $this->children;
+$linkCreate      = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"create"), "default" ) ;
+$linkEdit        = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"edit" , "id" => $domaineid), "default" ) ;
+$linkCancel      = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"list"), "default" ) ;
+ 
+$buttonbar       = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate    = $buttonbar->button(" Nouveau", "plus")->setPriority("primary");
+$buttonEdit      = $buttonbar->button(" Modifier", "pencil")->setPriority("primary");
+$buttonDelete    = $buttonbar->button(" Supprimer","trash-o");
+$buttonCancel    = $buttonbar->button(" Revenir sur la liste", "chevron-left");
+
+$buttonbar->add( $buttonCancel , "cancelButton");
+$buttonbar->add( $buttonCreate , "createButton");
+$buttonbar->add( $buttonEdit   , "editButton");
+$buttonbar->add( $buttonDelete , "deleteButton");
+
+$buttonCreate->onClick("event.preventDefault();document.location='".$linkCreate."' ");
+$buttonEdit->onClick(  "event.preventDefault();document.location.href='".$linkEdit."' ;");
+$buttonDelete->onClick("event.preventDefault();document.location.href='".$linkDelete."' ;");
+$buttonCancel->onClick("event.preventDefault();document.location.href='".$linkCancel."' ;");
+
+$jq            = $this->jQuery();  
+$jq->addOnLoad("");
+				
+$creationDate             = "00/00/0000";
+$updateDate               = "00/00/0000";
+$domaineCreationDate    = "00/00/0000";
+$creator                  = Sirah_Fabric::getUser($domaine->creatorid     );
+$updatedUser              = Sirah_Fabric::getUser($domaine->updateduserid );
+if($domaine->creationdate ) {
+   $zendCreationDate      = new Zend_Date( $domaine->creationdate, Zend_Date::TIMESTAMP );
+   $domaineCreationDate = $creationDate = $zendCreationDate->toString("d MMM yyyy à H:m");
+}
+if( $domaine->updatedate ) {
+   $zendUpdatedate = new Zend_Date( $domaine->updatedate , Zend_Date::TIMESTAMP );
+   $updateDate     = $zendUpdatedate->toString("d MMM yyyy à H:m");
+}
+$this->toolsbar    = $buttonbar ;					
+?>
+<div  class="container" style="text-align:left;">
+    <div class="row">
+		<div class="col-sm-7 col-md-7">
+			<div class="panel panel-primary">
+				<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-home'></span> Les informations du secteur</h4> </div>
+				<ul class="list-group">
+				    <li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-sm-4 col-md-4"> <label class="label" for="sigle"> <b> Code :</b> </label></div> 
+							<div class="col-sm-8 col-md-8"><?php echo $this->escape($domaine->code);  ?></div>
+					    </div>
+					</li>
+					<?php if( $parent ): ?>
+					<li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-sm-4 col-md-4"> <label class="label" for="parent"> <b> Parent:</b> </label></div> 
+							<div class="col-sm-8 col-md-8"><?php printf("%s : %s",$parent->code, $parent->libelle);  ?></div>
+					    </div>
+					</li>
+					<?php endif; ?>
+					<li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-sm-4 col-md-4"> <label class="label" for="libelle"> <b> Désignation :</b> </label></div> 
+							<div class="col-sm-8 col-md-8"><?php echo $this->escape($domaine->libelle);  ?></div>
+					    </div>
+					</li>					 	
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-sm-4 col-md-4"> <b> Description:</b></div> 
+							<div class="col-sm-8 col-md-8"><?php echo $domaine->description; ?></div>
+						</div>
+					</li>
+					<?php if($creator->userid) : ?>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-12"> Enregistrée le <?php echo $creationDate;?> par <?php echo sprintf("%s %s", $creator->lastname , $creator->firstname ); ?>    </div> 
+						</div>
+					</li>
+					<?php endif; ?>
+					<?php if($updatedUser->userid) : ?>
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf("%s %s", $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+						</div>
+					</li>
+					<?php endif; ?>
+				</ul>
+			</div>
+		</div> 
+        		
+		<div class="col-md-5 col-sm-5">		   
+			<div class="panel panel-default">
+				<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-home'></span> Les sous-secteurs </h4> </div>
+				<ul class="list-group">
+				<?php if(count($children)): ?>
+				<?php
+						$output = " ";
+						foreach( $children as $childDomaine ) {
+								 $linkViewChild = $this->url(array("module"=>"admin","controller"=>"domaines","action"=>"infos" , "id" => $childDomaine["domaineid"]), "default" ) ;
+								 $childName     = sprintf("%s %s", $childDomaine["code"] ,$childDomaine["libelle"]);
+								 $output       .=" <li class=\"list-group-item\"> <a title=\"Visualiser les informations de la secteur\" href=\"".$linkViewChild."\"> ".$childName." </a> </li> ";
+						}
+						$output.= " ";
+						
+						echo $output;
+				?>
+				<?php else: ?>
+					<li class="list-group-item"> Aucun sous-secteur n'a été associé à ce secteur </li>
+				<?php endif; ?>
+				</ul>
+			</div>           				
+		</div>
+
+	</div>  	
+</div>
+
+
+<?php 
+	  if($this->isAjax) {
+		 echo $this->jQuery();
+	  }
+  ?>   

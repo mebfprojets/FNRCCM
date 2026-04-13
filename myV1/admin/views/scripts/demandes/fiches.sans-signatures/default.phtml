@@ -1,0 +1,192 @@
+<?php
+$demande              = $this->demande;
+$demandeid            = $this->demandeid;
+$localite             = $this->localite;
+$entreprise           = $this->entreprise;
+$demandeur            = $this->demandeur;
+$promoteur            = $this->promoteur;
+$identite             = $this->demandeurIdentite;
+$promoteurIdentite    = $this->promoteurIdentite;
+$identiteTypeRow      = $this->identiteType;
+$identiteTypes        = $this->identitetypes;
+$data                 = $this->data;
+$me                   = ($demande->creatorid)? Sirah_Fabric::getUser($demande->creatorid) : Sirah_Fabric::getUser();
+$zendDemandeDate      = ( $demande->date    )? new Zend_Date($demande->date, Zend_Date::TIMESTAMP) : Zend_Date::now();
+if( $zendDemandeDate ) {
+	$demandeDate      = $todayDate = $zendDemandeDate->toString("dd MMMM yyyy");
+} else {
+	$demandeDate      = $todayDate = ($demande->date)? date("d/m/Y", $demande->date) : date("d/m/Y");
+}
+$nationalites         = $this->countries();
+$demandeNumero        = $demande->numero;
+$demandeObjet         = $demande->objet;
+
+$demandeurNumIdentite = (isset($demandeur->numidentite))? $demandeur->numidentite : "";
+$demandeurName        = (isset($demandeur->name       ))? $demandeur->name        : "";
+$demandeurFirstname   = (isset($demandeur->firstname  ))? $demandeur->firstname   : "";
+$demandeurLastname    = (isset($demandeur->lastname   ))? $demandeur->lastname    : "";
+$demandeurAdresse     = (isset($demandeur->adresse    ))? $demandeur->adresse     : "";
+$demandeurEmail       = (isset($demandeur->email      ))? $demandeur->email       : "";
+$demandeurTelephone   = (isset($demandeur->telephone  ))? $demandeur->telephone   : "";
+$demandeurCountry     = (isset($demandeur->country    ))? strtolower($demandeur->country) : "bf";
+$demandeurNationalite = (isset($nationalites[$demandeurCountry]))? $nationalites[$demandeurCountry] : "";
+$demandeurSexe        = (isset($demandeur->sexe       ))? $demandeur->sexe        : "";
+$demandeurProfession  = (isset($demandeur->profession ))? $demandeur->profession  : "";
+$demandeurAdresse     = sprintf(" %s, Tel : %s", $demandeurAdresse,$demandeurTelephone);
+
+$promoteurName        = (isset($promoteur->name       ))? $promoteur->name        : "";
+$promoteurTelephone   = (isset($promoteur->telephone  ))? $promoteur->telephone   : "";
+$promoteurAdresse     = (isset($promoteur->adresse    ))? $promoteur->adresse     : "";
+$promoteurAdresse     = sprintf("%s, Tel: %s", $promoteurAdresse, $promoteurTelephone);
+$demandeurDateEtablissement = $identite->date_etablissement;
+if( Zend_Date::isDate($identite->date_etablissement,"YYYY-MM-dd")) {
+	$zendDateEtablissement      = new Zend_Date($identite->date_etablissement,"YYYY-MM-dd");
+	$demandeurDateEtablissement = ($zendDateEtablissement)?$zendDateEtablissement->toString("dd-MM-YYYY") : $demandeurDateEtablissement;
+}
+
+if( $identite ) {
+	$identiteType     = (isset($identiteTypes[$identite->typeid]))? ucfirst($identiteTypes[$identite->typeid]) : (($identiteTypeRow)?$identiteTypeRow->libelle : "CNIB");
+	$demandeurIdentite= sprintf("%s numéro %s établi le %s à %s ",$identiteType, $identite->numero,$demandeurDateEtablissement,$identite->lieu_etablissement);
+    $demandeurIdentiteOrganisme = $identite->organisme_etablissement;
+} else {
+	$demandeurIdentite          = "";
+	$demandeurIdentiteOrganisme = "";
+}
+$demandeurNumIdentite = $demandeurIdentite;
+
+$NatureEntreprise     = ($demande->personne_morale)? "Personne Morale" : "Personne Physique";
+$NomCommercial        = ( $entreprise)?$entreprise->nomcommercial : "";
+$Sigle                = ( $entreprise)?$entreprise->sigle         : "";
+$Denomination         = ( $entreprise)?$entreprise->denomination  : "";
+$localiteName         = ( isset($localite->libelle))?$localite->libelle : "Ouagadougou";
+$output = "";
+$output.= "<form method=\"post\" action=\"#\" enctype=\"multipart/form-data\">";
+$output.= "<table width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\">
+                <tr>
+                    <td valign=\"top\" align=\"left\" width=\"70%\"> 
+					    <p align=\"center\" style=\"vertical-align:top;text-align:centert;font-size:11pt;\">
+					        <strong> MINISTERE DE LA JUSTICE, DES DROITS HUMAINS ET DE LA PROMOTION CIVIQUE </strong><br/>
+							 -----------------------------------------
+					    </p> 
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> SECRETARIAT GENERAL </strong><br/>
+							-----------------------------------------
+					    </p>	
+                        <p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> DIRECTION DES GREFFES </strong><br/>
+							-----------------------------------------
+					    </p>					
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;font-size:11pt;\">
+					        <strong> FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER </strong> <br/>
+					    </p>					
+					</td>
+                    <td align=\"center\" valign=\"top\" style=\"vertical-align:top;\" width=\"30%\"> &nbsp;</td>
+                </tr>
+          </table>";        
+$output.="<table style=\"border-collapse:collapse;margin:0px;\" border=\"1\" cellpadding=\"3\" cellspacing=\"2\" width=\"100%\">
+            <tr><td height=\"20\" style=\"height:25px;background-color:#0a5993;\" align=\"center\" valign=\"middle\" bgcolor=\"#0a5993\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:12pt;padding:5px;color:#FFF;\"> FICHE DE RECHERCHE DE DISPONIBILITE ET DE RESERVATION N° {$demandeNumero} </span> </td></tr>
+            <tr><td height=\"20\" style=\"height:25px;background-color:#CCCCCC;\" align=\"center\" valign=\"middle\" bgcolor=\"#CCCCCC\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:10pt;padding:5px;\"> I.IDENTITE DU DEMANDEUR </span> </td></tr>
+            <tr nobr=\"true\">
+				<td style=\"border-left:1px solid black;border-bottom:1px solid black;\" width=\"75%\" > 
+					<span style=\"font-family:arial;font-size:11pt;\"> Nom et Prénom(s): </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$demandeurName."</span> 
+				</td>
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" width=\"25%\"> &nbsp;</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Adresse: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$demandeurAdresse."</span> 
+				</td>
+            </tr>
+            <tr><td height=\"20\" style=\"height:25px;background-color:#CCCCCC;\" align=\"center\" valign=\"middle\" bgcolor=\"#CCCCCC\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:10pt;padding:5px;\"> II.REFERENCES DE LA PIECE D'IDENTITE </span> </td></tr>
+            <tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\"  colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".ucfirst($demandeurNumIdentite)."</span> 
+				</td>
+            </tr>
+            <tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+				    <span style=\"font-family:arial;font-size:11pt;\"> Délivré(e) par : </span>
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".ucfirst($demandeurIdentiteOrganisme)."</span> 
+				</td>
+            </tr>
+            <tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+				    <span style=\"font-family:arial;font-size:11pt;\"> Profession : </span>
+					<span style=\"font-family:arial;font-size:12pt;font-weight:bold;\">".$demandeurProfession."</span> 
+				</td>
+            </tr>
+            <tr><td height=\"20\" style=\"height:25px;background-color:#CCCCCC;\" align=\"center\" valign=\"middle\" bgcolor=\"#CCCCCC\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:10pt;padding:5px;\"> III.POUR LE COMPTE DU PROMOTEUR </span> </td></tr>			
+            <tr nobr=\"true\">
+				<td style=\"border-left:1px solid black;border-bottom:1px solid black;\" width=\"75%\" > 
+					<span style=\"font-family:arial;font-size:11pt;\"> Nom et Prénom(s): </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$promoteurName."</span> 
+				</td>
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" width=\"25%\"> &nbsp;</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Adresse: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$promoteurAdresse."</span> 
+				</td>
+            </tr>
+			<tr><td height=\"20\" style=\"height:25px;background-color:#CCCCCC;\" align=\"center\" valign=\"middle\" bgcolor=\"#CCCCCC\" colspan=\"2\"> <span style=\"font-weight:bold;font-size:10pt;padding:5px;\"> IV.L'OBJET DE LA RECHERCHE </span> </td></tr>	
+		    <tr nobr=\"true\">
+				<td style=\"border-left:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Nature de l'entreprise : </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$NatureEntreprise."</span> 
+				</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-left:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Dénomination Sociale : </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Denomination."</span> 
+				</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-left:1px solid black;border-bottom:1px solid black;\" colspan=\"2\" > 
+					<span style=\"font-family:arial;font-size:11pt;\"> Nom commercial: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$NomCommercial."</span> 
+				</td>
+            </tr>
+			<tr nobr=\"true\">
+				<td style=\"border-right:1px solid black;border-bottom:1px solid black;\" colspan=\"2\"> 
+					<span style=\"font-family:arial;font-size:11pt;\"> Sigle: </span> 
+					<span style=\"font-family:arial;font-size:11pt;font-weight:bold;\">".$Sigle."</span> 
+				</td>
+            </tr>
+		</table>";
+$civilites   = array("Mr"=>"Monsieur","Mme"=>"Madame","Mle"=> "Mademoiselle", "Excellence"=>"Son excellence","Maître"=>"Maître","Dr" => "Docteur","Pr" => "Professeur","Conseiller"=>"Le Conseiller");
+$myCivilite  = (isset($civilites[$me->civilite]) )?$civilites[$me->civilite] : "Maître";
+$myLastName  = ( $me )?$me->lastname  : "";
+$myFirstName = ( $me )?$me->firstname : ""; 		  
+$myName      = sprintf("%s %s %s", $myCivilite, $myFirstName, $myLastName);
+$output.=<<<EOF
+<table width="100%" cellspacing="2" border=0 cellpadding="2">   
+    <tr>
+        <td align="center" valign="middle" width="100%">
+            <p style="text-align:center;font-size:11pt;"> Fait à {$localiteName}, le <b> {$todayDate} </b> </p>
+        </td>
+    </tr>
+    <tr>
+	    <td align="left" width="50%">
+            <p align="left" style="text-align:left;">
+                <b><u> LE DEMANDEUR </u></b>
+            </p> 
+        </td>
+        <td align="right" width="50%">
+            <p align="right" style="text-align:right;">
+                <b><u> L'AGENT COMPÉTENT</u></b><br/><br/><br/><br/><br/>
+                <b> {$myName} </b>
+            </p> 
+        </td>
+         
+    </tr>
+
+</table> 
+EOF;
+ 
+$output.= "</form>";
+
+echo $output;

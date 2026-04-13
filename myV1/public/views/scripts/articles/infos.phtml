@@ -1,0 +1,77 @@
+<?php 
+$data                    = $this->data;
+$articleid               = $this->articleid;
+$galleryid               = $this->galleryid;
+$gallery                 = $this->gallery;
+$photos                  = $this->photos;
+$article                 = $article = $this->article;
+
+$categorie               = $this->categorie;
+ 
+ 
+$me                      = Sirah_Fabric::getUser();
+$basePath                = VIEW_BASE_PATH;
+$jq                      = $this->jQuery();
+ 
+$creationDate            = "00/00/0000";
+$updateDate              = "00/00/0000";
+$articleDate             = "00/00/0000";
+$periodStartDate         = $periodEndDate = "00/00/0000";
+$creator                 = Sirah_Fabric::getUser($article->creatorid     );
+$updatedUser             = Sirah_Fabric::getUser($article->updateduserid );
+
+if( $article->creationdate ) {
+	$zendCreationdate    = new Zend_Date( $article->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate        = $zendCreationdate->toString("dd MMM Y à H:m");
+}
+if( $article->updatedate ) {
+	$zendUpdatedate      = new Zend_Date( $article->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate          = $zendUpdatedate->toString("dd MMM Y à H:m");
+}
+$this->toolsbar          = $buttonBar;
+$basePath                = VIEW_BASE_PATH;
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd() ?>
+<div class="row">
+	<div  class="col-md-12 col-sm-12">
+		<div class="panel panel-white"> 
+			<ul class="list-group">			    	 
+                <div class="panel-body panel-body-lg">
+				    <?php if(!empty($article->photogarde)) : ?>
+					<?php
+					    $introtext         = $article->introtext;
+					    $imagePath         = APPLICATION_DATA_PATH.DS."articles".DS."photogarde".DS."mini".DS.$article->photogarde;
+						$imageFile         = null;
+						if((null !== $imagePath) && file_exists($imagePath)) {
+							$imagePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+							$imageFile     = str_replace( DS , "/" , $imagePathname);
+						}
+						//echo $imagePath; die();
+						if(!empty($imageFile)) {
+							$output = "<div class=\"flex-shrink-0 col-md-4\"> <img  width=\"100%\" src=\"".$imageFile."\" /></div>";
+							$output.= "<div class=\"flex-grow-1 col-md-8 ms-auto\"><p class=\"item-card-text\"> ".$introtext."</p></div>";
+						    echo $output;
+						} else {
+							echo "<p class=\"item-card-text\"> ".$introtext." </p>";
+						}
+					?>
+					<?php else: ?>
+					     <div class="panel-desc"><?php echo $article->introtext; ?> </div>
+					<?php endif; ?>
+				    <p><?php echo $article->content; ?></p>	
+                </div>				
+			</ul>
+	    </div> 
+	</div>	     
+</div>
+<?php if(count($photos)): ?>
+   <?php echo $this->partial("articles/gallery.photos.phtml", array("article"=>$article,"articleid"=>$articleid,"gallery"=>$gallery,"galleryid"=>$galleryid,"photos"=>$photos)); ?>
+<?php endif; ?>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

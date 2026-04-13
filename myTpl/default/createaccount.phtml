@@ -1,0 +1,187 @@
+<?php
+   $user            = Sirah_Fabric::getUser(); 
+   $layout          = Zend_Layout::getMvcInstance();
+   $helperBroker    = Zend_Controller_Action_HelperBroker::getStaticHelper("HttpUri");
+   $view            = $layout->getView();
+   $token           = $view->token;
+   $urlCreationDone = $helperBroker->get( array("controller" => "offres"   , "action" => "list"));
+   $formSubmit      = $view->url(array("controller" => "account", "action" => "create"));
+   $loginLink       = $view->url(array("controller" => "account", "action" => "login"), "login");
+      
+   $jq              = $view->jQuery();
+   
+   $onLoad          = " 
+                        jQuery('#lastname').bind('blur change',function(e){
+                               e.preventDefault();
+                               var lastname = jQuery.trim(jQuery(this).val());
+                               if( !SIRAH.util.isEmpty(lastname) ) {
+                                   jQuery('#lastname').removeClass('input-error');
+                                   jQuery('#name-validation-message').html('');
+                               } else {
+                                   jQuery('#lastname').addClass('input-error');
+                                   return;
+                               }
+                          });  
+                          jQuery('#firstname').bind('blur change',function(e) {
+                                 e.preventDefault();
+                                 var firstname = jQuery.trim(jQuery(this).val());
+                                 if( !SIRAH.util.isEmpty(firstname)){
+                                     jQuery('#firstname').removeClass('input-error');
+                                     jQuery('#name-validation-message').html('');
+                                 }  else {
+                                     jQuery('#firstname').addClass('input-error');
+                                     return;
+                                 }
+                        });
+                        jQuery('#email').bind('blur change',function(e){
+                               e.preventDefault();
+                               var email = jQuery.trim(jQuery(this).val());
+                               if( !SIRAH.validators.isEmailAddress(email) ) {
+                                   jQuery('#email').addClass('input-error');
+                                   jQuery('#email-validation-message').html('');
+                                   SIRAH.error.raise('email-validation-message','Entrez un email valide');
+                                   return;
+                                }  else {
+                                   jQuery('#email').removeClass('input-error');
+                                   jQuery('#email-validation-message').html('');
+                                }    
+                         });    
+                        jQuery('#password').bind('blur change',function(e){
+                               e.preventDefault();
+                               var credential = jQuery.trim(jQuery(this).val());
+                               if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+                               jQuery('#password').addClass('input-error');
+                               jQuery('#password-validation-message').html('');
+                               SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+                               return;
+                        }  else {
+                               jQuery('#password').removeClass('input-error');
+                               jQuery('#password-validation-message').html('');
+                        }    
+                     });
+  
+                    jQuery('#confirmedpassword').bind('blur change',function(e){
+                           e.preventDefault();
+                           var credential   = jQuery.trim(jQuery('#password').val());
+                           var credential2  = jQuery.trim(jQuery(this).val());
+                           if( credential2 !== credential ) {
+                               jQuery('#confirmedpassword').addClass('input-error');
+                               jQuery('#confirmedpassword-validation-message').html('');
+                               SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+                               return;
+                           } else {
+                               jQuery('#confirmedpassword').removeClass('input-error');
+                               jQuery('#confirmedpassword-validation-message').html('');
+                           }      
+                      });
+                       jQuery('.connectToAccount').click(function( event ) {
+                              event.preventDefault();   
+                              document.location.href = '".$loginLink."';
+                       });
+                       jQuery('.createMyAccount').click(function( event ) {
+                               event.preventDefault();                 
+                               var  formSelector = jQuery('#accountCreationForm');
+                               var  firstname    = jQuery.trim(jQuery('#firstname').val());
+                               var  lastname     = jQuery.trim(jQuery('#lastname').val());
+                               var  email        = jQuery.trim(jQuery('#email').val());
+                               var  credential   = jQuery.trim(jQuery('#password').val());
+                               var  credential2  = jQuery.trim(jQuery('#confirmedpassword').val());
+      
+                               if( SIRAH.util.isEmpty( lastname ) ) {
+                                   jQuery('#lastname').addClass('input-error');
+                                   jQuery('#name-validation-message').html('');
+                                   SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+                                   return;
+                                } else {
+                                   jQuery('#lastname').removeClass('input-error');
+                                   jQuery('#name-validation-message').html('');
+                                }
+                                if( SIRAH.util.isEmpty(firstname) ) {
+                                    jQuery('#firstname').addClass('input-error');
+                                    jQuery('#name-validation-message').html('');
+                                    SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+                                    return;
+                                }  else {
+                                    jQuery('#firstname').removeClass('input-error');
+                                    jQuery('#name-validation-message').html('');
+                                }    
+                               if( !SIRAH.validators.isEmailAddress(email) ) {
+                                   jQuery('#email').addClass('input-error');
+                                   jQuery('#email-validation-message').html('');
+                                   SIRAH.error.raise('email-validation-message','Entrez un email valide');
+                                   return;
+                               }  else {
+                                   jQuery('#email').removeClass('input-error');
+                                   jQuery('#email-validation-message').html('');
+                               }     
+                               if( SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4) ) {
+                                   jQuery('#password').addClass('input-error');
+                                   jQuery('#password-validation-message').html('');
+                                   SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+                                   return;
+                               } else {
+                                   jQuery('#credential').removeClass('input-error');
+                                   jQuery('#password-validation-message').html('');
+                               }      
+                              if( credential2 !== credential ) {
+                                  jQuery('#confirmedpassword').addClass('input-error');
+                                  jQuery('#confirmedpassword-validation-message').html('');
+                                  SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+                                  return;
+                               } else {
+                                  jQuery('#confirmedpassword').removeClass('input-error');
+                                  jQuery('#confirmedpassword-validation-message').html('');
+                               }
+                               jQuery('#lastname').val(lastname);
+                               jQuery('#firstname').val(firstname);
+                               jQuery('#email').val(email);
+                               jQuery('#password').val(credential);
+                               jQuery('#confirmedpassword').val(credential2);
+                               formSelector.submit(); }); ";  
+   $jq->addonLoad($onLoad);
+ 
+?>
+<!--  -->
+ <div   id="createAccountBox" class="container sr_bx">
+     <div id="sirah-title" class="sirah-title row" >
+              <div class="sirah-title-content"> <i class="glyphicon glyphicon-user"></i> Créer mon compte </div>
+     </div> 
+     <div id="creationRow" class="row">
+      <form method="post" action="<?php echo $formSubmit; ?>" align="center" id="accountCreationForm" role="form">
+       <div class="row">
+          <div class="col-md-5"> <input class="input-lg" type="text" id="lastname"  placeholder="Nom" name="lastname" autocomplete="off" > </div>
+          <div class="col-md-6"> <input class="input-lg" type="text" id="firstname" placeholder="Prénom" name="firstname" autocomplete="off" > </div>  
+          <p id="name-validation-message" class="validation-message"></p>           
+       </div>
+       <div class="row">
+            <input class="input-lg"  type="text" id="email" placeholder="Adresse email" name="email" autocomplete="off" > <br/>
+            <p id="email-validation-message" class="validation-message"></p> 
+       </div>
+      <div class="row">
+            <input class="input-lg"  type="password" id="password" name="password" autocomplete="off" placeholder="Mot de passe" /><br/>
+            <p id="password-validation-message" class="validation-message"></p> 
+      </div>
+      <div class="row">
+            <input class="input-lg"  type="password" id="confirmedpassword" name="confirmedpassword" autocomplete="off" placeholder="Confirmer le mot de passe" />
+            <p id="confirmedpassword-validation-message" class="validation-message"></p> 
+      </div>
+      <div class="row form-group">
+        <div class="controls" style="text-align:left;" >
+             <label class="radio-inline"> <input type="radio" name="sexe" id="sexe-m" value="M"  > Homme </label>          
+             <label class="radio-inline"> <input type="radio" name="sexe" id="sexe-f" value="F"  > Femme </label>
+         </div>
+      </div>
+      <div  class="row tosRow">
+           <p class="text-muted credit">En créant un compte, vous acceptez les <a href="#"> Conditions d'utilisation </a> et la <a href="#"> Politique de confidentialité </a> de SIRAH.</p>
+      </div>
+      <div class="row form-group creationBtn">           
+          <div class="controls" style="text-align:left;" >
+               <button type="submit" class="btn btn-default btn-primary createMyAccount"> <i class="glyphicon glyphicon-plus-sign  glyphicon glyphicon-white "></i> Créer </button>
+               <button type="submit" class="btn btn-default connectToAccount"> <i class="glyphicon glyphicon-log-in"></i> J'ai un compte </button>              
+          </div>                                        
+      </div>       
+      <input type="hidden" name="t"       id="token"   value="<?php echo $token; ?>" />
+      <input type="hidden" name="doneUri" id="doneUri" value="<?php echo $urlCreationDone; ?>" />
+      </form>        
+   </div>
+</div>

@@ -1,0 +1,24 @@
+<?php
+  $tplPath       = VIEW_BASE_PATH;
+  
+  $regions   = $this->regions;
+
+?>
+
+<?php if( count( $regions ) ): ?>
+        <?php 
+           $catOutput = "<ul class=\"list-group regionsList\">";
+              foreach( $regions as $region ) {
+              	       $regionid         = intval($region["regionid"]);
+              	       $libelle          = $region["libelle"];
+              	       $urlLibelle       = Sirah_Functions_String::cleanUtf8( $libelle );
+              	 
+              	       $linkBeneficiaire = $this->url(array("controller" => "regions", "action" => "infos", "regionid" => $regionid, "libelle" => $urlLibelle), "regions");
+              	       $catOutput    .= "<li id=\"regionid-".$regionid."\" class=\"list-group-item\"> <a title='Voir les activités réalisées dans cette région' href='".$linkBeneficiaire."'> ". $libelle ." </a></li> ";
+              } 
+           $catOutput.= "</ul>";
+           
+           echo $catOutput;
+        ?> 
+<?php endif; ?>
+

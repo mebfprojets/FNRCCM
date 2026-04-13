@@ -1,0 +1,88 @@
+<?php 
+$userRoles   = $this->userRoles;
+$allRoles    = $this->allRoles;
+$userid      = $this->userid;
+$priorities  = array("Inconnue","Très Elevée" , "Elevée" , "Normale" , "Basse" , "La plus basse");
+$formSubmit  = $this->url(array("module"=>"admin","controller"=>"accounts","action"=>"assignroles","userid"=> $userid) , "default" );
+$linkCancel  = $this->url(array("module"=>"admin","controller"=>"accounts","action"=>"list") , "default" );
+
+$jQuery      = $this->jQuery();
+
+$jQuery->addOnLoad(" jQuery('.cancel').click(function(e){e.preventDefault();document.location.href = '".$linkCancel."';});");
+
+?>
+<form  method="post" action="<?php echo $formSubmit; ?>" align="center" id="assignRolesForm" role="form" class="form-horizontal">
+    <div class="panel panel-default">  
+     <?php 
+           $table  = $this->table(array("id" => "rolesListTable","class"  => array("table sirah-ui-table scrollable")));    
+           $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+           
+           $rowHeader  = $table->row();
+           $rowHeader->add("<input type=\"checkbox\" name=\"checkall\" id=\"checkAll\" class=\"checkAll\" />")
+                     ->add("ID")->add("Désignations")->add("Hérite du/des role(s)")->add("Priorités");
+           $table->setHeader($rowHeader);
+            
+         $checkedRoles   = array_intersect_key( $allRoles , $userRoles);
+         $uncheckedRoles = array_diff_key( $allRoles , $userRoles); 
+         
+         if(!empty($checkedRoles)) {
+         	 foreach($checkedRoles as $checkedRoleId => $checkedRoleName) {
+         		$checkedRoleRow  = $table->row(array("id" => "rowRole-".$checkedRoleId));
+         		$accessLevel     = Sirah_User_Acl_Table::getAccesslevel($checkedRoleId);
+         		$parents         = Sirah_User_Acl_Table::getRoleParents($checkedRoleId);
+         		
+         		$checkedRoleRow->add("<input value=\"".$checkedRoleId."\" type=\"checkbox\" name=\"roles[]\" id=\"roleids-".$checkedRoleId."\" class=\"checkbox\" checked=\"checked\" />" , array("id" => "checkboxCell-".$checkedRoleId));
+         		$checkedRoleRow->add("id#".$checkedRoleId);
+         		$checkedRoleRow->add($checkedRoleName);
+         		if(empty($parents )){
+         		   $checkedRoleRow->add("Aucun");
+         		} else {
+         			$checkedRoleRow->add(implode(" , " , $parents));
+         		}  
+         		if(!empty($accessLevel) && isset($priorities[$accessLevel[0]])) {
+         			$checkedRoleRow->add($priorities[$accessLevel[0]]);
+         		}  else {
+         			$checkedRoleRow->add($priorities[5]);
+         		}    		
+         		$table->add($checkedRoleRow);         		
+         	}
+         }
+         
+         if(!empty($uncheckedRoles)) {
+         	foreach($uncheckedRoles as $checkedRoleId => $checkedRoleName) {
+         		$checkedRoleRow  = $table->row(array("id" => "rowRole-".$checkedRoleId));
+         		$accessLevel     = Sirah_User_Acl_Table::getAccesslevel($checkedRoleId);
+         		$parents         = Sirah_User_Acl_Table::getRoleParents($checkedRoleId);
+         		 
+         		$checkedRoleRow->add("<input value=\"".$checkedRoleId."\" type=\"checkbox\" name=\"roles[]\" id=\"roleids-".$checkedRoleId."\" class=\"checkbox\" />" , array("id" => "checkboxCell-".$checkedRoleId));
+         		$checkedRoleRow->add("id#".$checkedRoleId);
+         		$checkedRoleRow->add($checkedRoleName);
+         		if(empty($parents )){
+         			$checkedRoleRow->add("Aucun");
+         		} else {
+         			$checkedRoleRow->add(implode(" ," , $parents));
+         		}
+         	    if(!empty($accessLevel) && isset($priorities[$accessLevel[0]])) {
+         			$checkedRoleRow->add($priorities[$accessLevel[0]]);
+         		}  else {
+         			$checkedRoleRow->add($priorities[5]);
+         		}    		
+         		$table->add($checkedRoleRow);
+         	}
+         }         
+         echo $table;
+     ?>  
+    <?php if(!$this->isAjax) : ?>
+        <div class="panel-footer">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary assign"><span class="glyph-icon icon-edit"></span >Assigner</button>
+                <button class="btn cancel"> <span class="glyph-icon icon-ban-circle"></span > Annuler</button>    
+            </div>                          
+        </div> 
+   <?php else: ?>
+       <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+  </form>
+
+

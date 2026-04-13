@@ -1,0 +1,90 @@
+<?php 
+$me              = Sirah_Fabric::getUser();
+$data            = $this->data;
+$documents       = $this->documents;
+$categories      = array( 0 =>"Selectionnez un type", "A" => "A", "B" => "B");
+$registreid      = $this->registreid;
+$registre        = $this->registre;
+$entreprise      = $this->entreprise;
+$domaine         = $this->domaine;
+$localite        = $this->localite;
+$forme           = $this->forme;
+$modifications   = $this->modifications;
+$suretes         = $this->suretes;
+$dirigeants      = $this->dirigeants;
+$entreprise      = $this->entreprise;
+$address         = $this->address;
+$representant    = $this->representant;
+$annee           = date("Y", $registre->date);
+$localiteid      = $registre->localiteid;
+
+$linkDownload    = "";
+$linkAddToCart   = $this->url(array("controller"=>"ordercart","action"=>"addregistre","registreid"=>$registreid,"module"=>"public"),"default", true);
+
+$linkRequest     = $this->url(array("controller"=>"requetes" ,"action"=>"create","registreid"=>$registreid,"module"=>"public"),"default", true);
+$linkCancel      = $this->url(array("controller"=>"registres","action"=>"search"), "default", true);
+
+$basePath        = VIEW_BASE_PATH;
+$jq              = $this->jQuery();
+
+$jq->addOnLoad("jQuery('.makeRequest').click( function(event){event.preventDefault();document.location.href = '".$linkRequest."';});
+                jQuery('.cancelButton').click(function(event){event.preventDefault();document.location.href = '".$linkCancel."'; });");
+
+$buttonBar      = $buttonbar  = $this->buttonsbar(array()  , $this->jqueryHandler());
+//$btnAddRequest  = $buttonBar->button("Demander un accès aux informations" ,"send");
+$btnAddToCart   = $buttonBar->button("Ajouter au panier" ,"shopping-cart");
+$buttonCancel   = $buttonBar->button("Revenir sur la recherche","chevron-left");
+
+$buttonBar->add($buttonCancel , "cancelButton");
+$buttonBar->add($btnAddToCart , "addToCartButton");
+//$buttonBar->add($btnAddRequest, "addRequestButton");
+
+$btnAddToCart->setAttributes( array("type"=>"submit", "class"=>"btn btn-danger"));
+//$btnAddRequest->setAttributes(array("type"=>"submit", "class"=>"btn btn-success"));
+$buttonCancel->setAttributes( array("type"=>"submit"));
+
+//$btnAddRequest->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkRequest));
+$btnAddToCart->onClick( sprintf("event.preventDefault(); document.location.href='%s';", $linkAddToCart));
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel));
+?>
+<?php $this->headStyle()->captureStart() ?>
+#information-section,.topadding{padding:100px 0 !important}
+ 
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="information-section" class="topadding information-section section">
+    <div class="container" >
+	    <div class="row section-buttons mrg20B mrg5L"><?php echo $buttonBar; ?></div>
+	    <div class="row section-content">
+		    <div class="col-sm-12 col-md-7">
+			    <div class="panel panel-success">
+				    <div class="panel-heading"> <h4> <span class="glyph-icon icon-institution"></span> Les informations de l'entreprise </h4> </div>
+					<?php echo $this->partial("registres/rccminfos.phtml", array("localite"=>$localite,"domaine"=>$domaine,"registre"=>$registre,"entreprise"=>$entreprise,"forme"=>$forme,"address"=>$address)); ?>
+				</div>                 																
+			</div>
+			<div class="col-sm-12 col-md-5">
+			    <div class="panel panel-info">
+				    <div class="panel-heading"> <h4> <span class="glyph-icon icon-file-pdf-o"></span> Documents Officiels </h4></div>
+		            <?php echo $this->partial("registres/documents.phtml", array("documents"=>$documents,"registreid"=>$registreid,"registre"=>$registre,"numero"=>$this->numero)); ?>
+			    </div>
+				<div class="panel panel-default">
+				    <div class="panel-heading"><h4> <span class="glyph-icon icon-history"></span> Historique des modifications </h4></div>
+		            <?php echo $this->partial("registres/modifications.phtml", array("modifications"=>$modifications,"registreid"=>$registreid,"registre"=> $registre )); ?>		
+				</div>
+				<div class="panel panel-danger">
+				    <div class="panel-heading"> <h4> <span class="glyphicon glyphicon-user"></span>Dirigeant</h4> </div>
+					<?php echo $this->partial("registres/promoteur.phtml", array("representant"=>$representant,"registreid"=>$registreid,"registre"=>$registre )); ?>
+				</div>
+				<div class="panel panel-warning">
+				    <div class="panel-heading"> <h4> <span class="glyph-icon icon-users"></span> Associés</h4> </div>
+					<?php echo $this->partial("registres/dirigeants.phtml", array("dirigeants"=>$dirigeants,"registreid"=>$registreid,"registre"=>$registre )); ?>
+				</div>
+			</div>
+		</div>	
+    </div>
+</div>	
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?> 

@@ -1,0 +1,135 @@
+<?php 
+$data                  = $this->data;
+$professions           = $this->professions;
+$formSubmit            = $this->url(array("controller" =>"myprofile", "action" => "insertprofession") , "default" );
+$backList              = $this->url(array("controller" =>"myprofile", "action" => "infos")      , "default" );
+$linkSearchProfessions = $this->url(array("controller" =>"datalist" , "action" => "professions")  , "default" );
+$professionLevels      = array( 0 => "Selectionnez le niveau",    1 => "Debutant", 2 => "Moyen",3 => "Intermédiaire", 4 => "Bon", 5 => "Excellent");
+$basePath              = ROOT_PATH."/myTpl/default";
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%; margin:auto;}
+textarea, input[type="text" class="input"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{height : 45px;line-height: 30px;font-size: 1.3em;}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio{color: #333333;font-size: 18px;font-weight: normal;padding:20px;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$levelRows    = array();
+$jq     = $this->jQuery(); 
+$jq->addJavascriptFile( $basePath."/js/jquery.dynamic-select.min.js"); 
+$onLoad = "";
+$onLoad          =" var levelsListe= []; \n";
+if( count( $professionLevels  ) ) {
+	$onLoad.=" levelsListe = {";
+	foreach( $professionLevels  as $levelKey => $levelVal ) {
+		$levelRows[]  =  "{'label':'".addslashes($levelVal)."','value':'".addslashes($levelKey)."'}";
+	}
+	$onLoad  = " levelsListe = [".implode("," , $levelRows)."]; \n";
+}
+$onLoad.= "var professions =".ZendX_JQuery::encodeJson( $professions ).";";
+$onLoad.= "
+var professionsEngine = new Bloodhound({datumTokenizer:Bloodhound.tokenizers.obj.whitespace('value'),queryTokenizer: Bloodhound.tokenizers.whitespace,
+                                      local : professions,remote:{url: '".$linkSearchProfessions."?q=%QUERY'}});
+professionsEngine.initialize();
+var typeaHeadParams    = {name:'profession',displayKey:'value',source:professionsEngine.ttAdapter(),limit:10};
+
+var typeahead_initialize= function() {
+    jQuery('.typeahead').typeahead(null,typeaHeadParams);
+}
+typeahead_initialize(); 
+var addRow = function( lastRowId ) {
+       lastRowId        = parseInt( lastRowId );              
+       if( !lastRowId ) {
+            lastRowId   = parseInt(jQuery('#professionTable > tr').last().attr('ligne'));
+        }               
+       var newRowId     = parseInt( lastRowId ) + 1;
+       if( jQuery('#professionLigne-'+newRowId).attr('ligne')== newRowId || ( newRowId >= 10 ) ) {
+           return;
+       }
+       jQuery('.typeahead').typeahead('destroy');
+       var row  = jQuery('<tr></tr>').attr('id','professionLigne-'+newRowId)
+                                     .attr('ligne', newRowId )
+                                     .append(jQuery('<input id=\'professions'+newRowId+'\'  type=\'hidden\' name=\'competences[]\' />').val( newRowId ) )
+                                     .append(jQuery('<input id=\'professionid'+newRowId+'\' type=\'hidden\' name=\'professionid'+newRowId+'\' />') );
+       var supprCol = jQuery('<td/>').attr('col','0')
+                                     .append(jQuery('<a/>').attr('href','#').attr('id','removeProfession'+newRowId).addClass('removeProfession').attr('title','Supprimer cette ligne')
+                                     .append(jQuery('<i/>')
+                                             .addClass('glyphicon')
+                                             .addClass('glyphicon-remove')
+                                             .attr('id','delete-'+newRowId )                                                       
+                                             .bind('click',function(e){e.preventDefault();jQuery('#professionLigne-'+newRowId).remove(); })));
+       var numCol   = jQuery('<td/>').attr('col','1').append(' '+newRowId);
+       var labelCol = jQuery('<td/>').attr('col','2')
+                                     .append(jQuery('<input type=\'text\' name=\'profession'+newRowId+'\' id=\'profession'+newRowId+'\' class=\'form-control typeahead\' />')
+                                             .attr('placeholder','Saisir la compétence')
+                                             .bind('typeahead:selected',function(obj,datum,name){jQuery('#professionid'+newRowId).val(datum.label);jQuery.data(document.body,'selectedprofession'+newRowId,datum.value );})
+                                             .change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedprofession'+newRowId))){jQuery('#professionid'+newRowId).val('');}})
+                                             .bind('click' ,function(e){e.preventDefault();addRow(newRowId);}));
+       var levelsCol= jQuery('<td/>').attr('col','3')
+                                     .append(jQuery('<select/>').attr('name', 'professionLevel'+newRowId)
+                                                                .attr('id', 'professionLevel'+newRowId)
+														        .dynamicSelect('update', levelsListe )); 
+       var appreciationCol = jQuery('<td/>').attr('col','4')
+                                            .append(jQuery('<input type=\'text\' name=\'appreciation'+newRowId+'\' id=\'appreciation'+newRowId+'\' class=\'form-control\' />')
+                                            .attr('placeholder', 'Décrire votre niveau')
+                                            .bind('click',function(e){e.preventDefault();addRow(newRowId);}));
+       var addCol          = jQuery('<td/>').attr('col','5')
+                                            .append(jQuery('<a/>').attr('href','#').attr('id','addProfession'+newRowId).addClass('addProfession').attr('title','Nouvelle ligne')
+                                            .append(jQuery('<i/>').addClass('glyphicon').addClass('glyphicon-plus').addClass('addProfession')
+                                                                  .attr('id','addProfession'+newRowId)
+                                                                  .bind('click',function(e){e.preventDefault();addRow(newRowId);}))); 
+      row.append( supprCol )
+         .append( numCol   )
+         .append( labelCol )
+         .append( levelsCol)
+         .append( appreciationCol  )
+         .append( addCol );                  
+      jQuery('#professionTable').find('tbody').append(row);
+      typeahead_initialize();
+      return; };
+jQuery('#profession1').click(function(e){e.preventDefault();addRow(1);});
+jQuery('#addProfession1').click(function(e){e.preventDefault();addRow(1);});
+jQuery('#profession1').bind('typeahead:selected',function(obj,datum,name){jQuery('#professionid1').val(datum.label);jQuery.data(document.body,'selectedprofession1',datum.value );});
+jQuery('#profession1').change(function(event){event.preventDefault();if(jQuery.trim(jQuery(this).val())!=jQuery.trim(jQuery.data(document.body,'selectedprofession1'))){jQuery('#professionid1').val('');}});
+jQuery('.cancel').click(function(e){e.preventDefault();document.location.href='".$backList."';});
+jQuery('.insertProfession').click(function(e){e.preventDefault();}); ";
+$jq->addOnLoad( $onLoad );
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="insertprofession-form" role="form">
+<div class="container">
+    <table id="professionTable"  class="table table-bordered table-stripped scrollable professionTable">
+       <tbody>
+          <tr id="professionLigne-1" ligne="1">
+              <td col="0"> <a title="Supprimer cette ligne" class="removeProfession" id="removeProfession1" href="#"><i class="glyphicon glyphicon-remove"></i></a> </td>
+              <td col="1"> 1 </td>
+              <td col="2"> <input type="text" name="profession1" class="form-control typeahead"  placeholder="Saisir la compétence" id="profession1" /> </td> 
+              <td col="3"> <?php echo $this->formSelect("professionLevel1", null , array(), $professionLevels ); ?> </td>
+              <td col="4"> <input type="text" name="appreciation1" class="form-control"  placeholder="Décrire votre niveau" id="appreciation1" /> </td>
+              <td col="5"> <a title="Ajouter une ligne" class="addProfession" id="addProfession1" href="#"><i class="glyphicon glyphicon-plus"></i></a> </td>
+              <input type="hidden" name="competences[]" id="competences1" value="1" />
+              <input type="hidden" name="professionid1" id="professionid1"                      />	 
+         </tr>
+         <tr id="professionId-1"> </tr>
+       </tbody>
+   </table>
+
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                       <button type="submit" class="btn btn-default btn-primary insertProfession"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancel">Annuler</button>         
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+
+</form>

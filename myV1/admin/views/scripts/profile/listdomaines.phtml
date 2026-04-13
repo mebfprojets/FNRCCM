@@ -1,0 +1,75 @@
+<?php
+   $csrfHelper        = Zend_Controller_Action_HelperBroker::getStaticHelper("Csrf"); 
+   $domaines          = $this->domaines;
+   $tokenId           = $csrfHelper->getTokenId();
+   $tokenValue        = $csrfHelper->getToken();
+   $linkDelete        = $this->url(array("module" => "admin", "controller" => "profile", "action" => "removedomaine", $tokenId => $tokenValue), "default") ;
+   $linkDeleteDomaine = $this->url(array("module" => "admin", "controller" => "profile", "action" => "removedomaine", $tokenId => $tokenValue), "default");
+   $linkInsertDomaine = $this->url(array("module" => "admin", "controller" => "profile", "action" => "insertdomaine")  , "default");
+   $hideRemove        = $this->hideRemove;
+   $output       = "";
+   $output       = "<div class=\"controls\"> <ul id=\"domaineList\" class=\"nav nav-pills list-inline pills-default-bg selectedList domaineList\">";
+    if( count(     $domaines ) ) {
+    	  foreach( $domaines as $domaine ) {
+    	  	$domaineId    = intval(  $domaine["domaineid"]);
+    	  	$domaineLib   = $domaine["domaine"];
+    	  	$linkView     = $this->url(array("controller"=> "profile", "action" => "infosdomaine", "id" => $domaineId) , "default");
+    	  	
+    	  	$output .= " <li  id=\"domaineId-".$domaineId."\"> <a href=\"#experiences\">".$domaineLib;
+    	  	if( !$hideRemove ) 
+    	  	    $output .=" <i title=\"Supprimer cet element\" href=\"#\" id=\"closeId-".$domaineId."\" class=\"glyphicon glyphicon-remove closeItemDomaine\"></i>";
+    	  	
+    	  	$output .=" </a> </li> ";
+    	  }    	
+    } else {
+    	$output .= " <li class=\"group-item-list\" id=\"domaineId-0\"> <p> Vous n'avez pas encore enregistré vos domaines de compétences.</p></li> ";
+    }
+    $output     .= "</ul></div>";
+    echo  $output ;
+    
+$jq      =  $this->jQuery();
+$onLoad  = "
+ jQuery('.closeItemDomaine').css('cursor','pointer');
+ jQuery('.closeItemDomaine').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cet element ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer ',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDeleteDomaine."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'domaines[]': itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if ( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#domaineId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#domaineId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });"; 
+if( !$hideRemove )   
+    $jq->addOnLoad($onLoad);
+?>
+             

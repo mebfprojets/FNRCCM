@@ -1,0 +1,80 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("controller" =>"registres", "action" => "findmissing", "module" => "admin"), "default" );
+$backList     = $this->url(array("controller" =>"registrephysique", "action" => "list", "module" => "admin"), "default" );
+$localites    = $this->localites;
+$annees       = $this->annees;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#findMissingButton').click(function(e){e.preventDefault();var formSelector = jQuery('#findMissingForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form method="post"  id="findMissingForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Type de registre* : </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("category", $data["category"], array("class"=>"form-control"), array("A" => "Personnes Physiques", "B" => "Personnes Morales")); ?> </div> 		   
+     </div>     
+     <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localités concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("localites",$data["localites"], array(), $localites,"<br />"); ?> </div>   
+     </div>       
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Plages d'années* : </label>
+           <div   class="col-sm-3"> <?php echo $this->formSelect("start_annee", $data["start_annee"], array("class"=>"form-control"), $annees); ?> </div> 
+           <div   class="col-sm-3"> <?php echo $this->formSelect("end_annee"  , $data["end_annee"]  , array("class"=>"form-control"), $annees); ?> </div> 		   
+     </div>
+
+    <h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Les paramètres d'accès à la base de données </small></h3>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source* : </label>
+           <div   class="col-sm-6"> <input type="text" name="rootpath" id="rootpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["rootpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Plage des numéros* : </label>
+        <div   class="col-sm-2"> <input type="text" name="from" id="from" class="form-control" placeholder="Commence à...." value="<?php echo $data["from"]; ?>" /></div>        
+        <div   class="col-sm-2"> <input type="text" name="to"   id="to"   class="form-control" placeholder="Finit à...."    value="<?php echo $data["to"]  ; ?>" /></div> 
+	</div>
+	<div class="form-group"> 
+         <label class="col-sm-3 control-label"> Rechercher à la racine* : </label>
+         <div   class="col-sm-6"> <?php echo $this->formRadio("findInRoot",$data["findInRoot"], array(), array(1 => "Oui", 0 => "Non"),"<br/>"); ?> </div>        
+     </div>     
+     
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Vérifier les documents manquants","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"findMissingButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

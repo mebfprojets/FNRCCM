@@ -1,0 +1,113 @@
+<?php 
+$data                = $this->data;
+$demande             = $this->demande;
+$demandeid           = $demande->demandeid;
+$entrepriseid        = $this->entrepriseid;
+$entreprise          = $this->entreprise;
+$demandeurid         = $demande->demandeurid;
+$demandeur           = $this->demandeur;
+$promoteurid         = $demande->promoteurid;
+$promoteur           = $this->promoteur;
+ 
+$demandeType         = $this->type;
+$typeid              = $demande->typeid;
+$statutid            = $demande->statutid;
+$statut              = $this->statut;
+$state               = $this->state;
+$documentype         = $this->documentype;
+$identite            = $this->identite;
+$identiteType        = $this->identiteType;
+$demandeurIdentite   = $this->demandeurIdentite;
+$domaine             = $this->domaineActivite;
+$forme               = $this->formeJuridique;
+$documents           = $this->documents;
+
+$me                  = Sirah_Fabric::getUser();
+
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"public","controller"=>"reservations","action"=>"create","typeid"=>$typeid), "default");
+$linkCancel          = $this->url(array("module"=>"public","controller"=>"reservations","action"=>"list") ,"default");
+$linkEdit            = $this->url(array("module"=>"public","controller"=>"reservations","action"=>"edit"  ,"demandeid"=>$demandeid) , "default");
+$linkDelete          = $this->url(array("module"=>"public","controller"=>"reservations","action"=>"delete","ids"=>$demandeid), "default");
+$linkDownload        = $this->url(array("module"=>"public","controller"=>"reservations","action"=>"get"  ,"demandeid"=>$demandeid) , "default");
+ 
+$jq->addOnload("");
+$buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate        = $buttonBar->button("Nouvelle réservation"    , "plus")->setPriority("primary");
+$buttonEdit          = $buttonBar->button("Modifier" , "edit");
+$buttonDownload      = $buttonGetDemande = $buttonBar->button("Générer la fiche"  , "download");
+$buttonDelete        = $buttonBar->button("Annuler la demande", "trash-o");
+$buttonCancel        = $buttonBar->button("Revenir sur la liste"   , "arrow-left");
+
+$buttonBar->add($buttonCancel  , "cancelButton");
+$buttonBar->add($buttonCreate  , "createButton");
+$buttonBar->add($buttonDownload, "getButton");
+$buttonBar->add( $buttonDelete , "deleteButton");
+	
+$buttonCancel->setAttributes(  array("type" => "submit","title"=>"Retourner sur la liste des demandes de vérifications"));	
+$buttonCreate->setAttributes(  array("type" => "submit","title"=>"Créer une nouvelle demande de vérification et de réservation"));
+//$buttonEdit->setAttributes(    array("type" => "submit","class"=>"btn btn-warning","title"=>"Modifier les informations de cette demande"));
+$buttonDownload->setAttributes(array("type" => "submit","class"=>"btn btn-info","title"=>"Générer et imprimer la fiche de cette demande"));
+$buttonDelete->setAttributes(  array("type" => "submit","class"=>"btn alert-danger","title"=>"Annuler cette demande de vérification"));
+ 
+$buttonCreate->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkCreate ));
+//$buttonEdit->onClick(  sprintf("event.preventDefault();document.location.href='%s';",$linkEdit   ));
+$buttonDelete->onClick(sprintf("
+        event.preventDefault();
+        var dialogDeleteDemande = jQuery('<div> Etes-vous sur d\'annuler cette demande ? </div>').attr('id','dialogDeleteDemande');
+        dialogDeleteDemande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnValidate:true,closeOnEscape:false,closeOnOverlayClick:true,showValidateHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteDemande.dialog2('addButton','Oui, supprimer', {primary:true ,click:function(){document.location.href ='%s';}}); 
+        dialogDeleteDemande.dialog2('addButton','Non, ne pas supprimer', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteDemande.dialog2('open');" , $linkDelete));
+		
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+ 
+if( $buttonDownload) {
+	$buttonDownload->onClick("event.preventDefault();document.location.href='".$linkDownload."';");
+}
+ 
+$this->toolsbar       = $buttonBar;
+?>
+
+<div class="row">
+	<div  class="col-sm-12 col-md-6">
+		<div class="panel panel-primary">
+			<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Les informations de la demande </h4> </div>  
+			<?php echo $this->partial("reservations/demande.phtml",array("localite"=>$localite,"statut"=>$statut,"identiteType"=>$identiteType,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+	    </div>
+	</div>	
+	<div  class="col-sm-12 col-md-6">
+	    <div id="accordionRight" class="panel-group">
+			<div class="panel panel-primary">
+				<div class="panel-heading"> <h4 class="panel-title"><a title="Les informations du promoteur" data-parent="#accordionRight" data-toggle="collapse" href="#promoteurData"><span class="glyph-icon icon-user"></span>Les informations du promoteur </a></h4></div>              
+				<div id="promoteurData" class="panel-collapse collapse in">
+					<?php echo $this->partial("reservations/promoteur.phtml",array("promoteur"=>$promoteur,"promoteurid"=>$promoteurid,"demande"=>$demande,"jquery"=>&$jq)); ?>
+				</div>	
+			</div>
+			<div class="panel panel-warning">
+			    <div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les informations sur les destinataires de la demande" data-parent="#accordionRight" data-toggle="collapse" href="#entrepriseData"><span class="glyph-icon icon-institution"></span> L'entreprise à créer </a></h4></div>  
+			    <div id="entrepriseData" class="panel-collapse collapse">
+				   <?php echo $this->partial("reservations/entreprise.phtml",array("domaine"=>$domaine,"forme"=>$forme,"entreprise"=>$entreprise,"entrepriseid"=>$entrepriseid,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+				</div>
+			</div>
+			<?php if( $me->isAllowed("reservations","upload")): ?>	
+			    <div class="panel panel-default">
+				     
+				    <div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les documents qui ont été rattachés" data-parent="#accordionRight" data-toggle="collapse" href="#documentsData"><span class="glyph-icon icon-paperclip"></span> Documents associés à la demande </a></h4></div>              
+				    <div id="documentsData" class="panel-collapse collapse">
+					    <?php echo $this->partial("reservations/documents.phtml",array("demande"=>$demande,"demandeid"=>$demandeid,"documents"=>$documents,"jquery"=>&$jq)); ?>
+					</div>		
+				</div>
+			<?php endif; ?>	 
+		</div>
+	</div>
+ </div>
+
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

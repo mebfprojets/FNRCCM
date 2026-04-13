@@ -1,0 +1,261 @@
+<?php
+$data             = $this->data;
+$registres        = $this->registres;
+$checkedAnnees    = $this->checkedAnnees;
+$checkedLocalites = $this->checkedLocalites;
+$invalids         = $this->invalids;
+$usernames        = $this->usernames;
+$periodes         = $this->periodes;
+$statistiques     = $this->statistiques;
+$zendDate         = new Zend_Date(array("year" => date("Y"), "month" => date("m"), "day" => date("d")));
+
+//On affiche les statistiques des valides par localité et par OPS
+if( $zendDate )  {
+	$tableauDate = $zendDate->toString("dd MMM yyyy");
+}
+$output          = "";
+$output         .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                   $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf("STATISTIQUES DES DOCUMENTS  TRAITES VALIDES PAR LOCALITE,ANNEE ET OPS A LA DATE DU %", $tableauDate)." </b></td></tr>";
+$output         .=" </table>";
+
+$ColWidth        = (count($usernames))? (80/(count($usernames))) : 0;
+$firstColWidth   = 5;
+$secondColWidth  = 5;
+$lastColWidth    = 5;
+$totalColspan    = count($usernames)+2;
+
+$output         .= "<table border=\"1\" cellpadding=\"4\" cellspacing=\"4\" width=\"100%\" align=\"center\"><thead><tr>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$firstColWidth."%\" > Localités </th>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$secondColWidth."%\"> Années    </th>";
+                if( count(   $usernames )) {
+					foreach( $usernames as $username ) {
+						     $output .=" <th style=\"text-align:center;\" > ".$username." </th> ";
+					}
+				}
+				$output .=" <th style=\"text-align:center;\" width=\"".$lastColWidth."%\" > Total FNRCCM      </th>";
+				$output .=" <th style=\"text-align:center;\" width=\"".$lastColWidth."%\" > Total TC          </th>";
+				$output .=" <th style=\"text-align:center;\" width=\"".$lastColWidth."%\" > Reste à collecter </th>";
+$output         .= "</tr> </thead><tbody>";	
+$totalLocalites          = array();
+$totalAnnees             = array();
+$totalUsernames          = array();
+$totalUsernamesLocalites = array();
+$totalGeneral            = 0;
+if( count(   $checkedLocalites ) && count( $checkedAnnees ) && count( $usernames )) {
+	foreach( $checkedLocalites as $localiteCode ) {
+		     if( isset( $registres[$localiteCode]["annees"] )) {
+				 $rowspan = count($registres[$localiteCode]["annees"]) + 1;
+                 $i       = 0;				 
+				 foreach( $registres[$localiteCode]["annees"] as $checkedAnnee => $localiteAnneeRow ) {
+					      $output .=" <tr> ";
+						  if( $i == 0 )
+				              $output .="<td style=\"text-align:center;\" rowspan=\"".$rowspan."\" width=\"".$firstColWidth."%\"> ".$localiteCode." </td>";
+					      $output .="    <td style=\"text-align:center;\"> ".$checkedAnnee." </td>";
+						  foreach( $usernames as $username ) {
+							       if( empty( $username ) || (null == $username )) {
+									   continue;
+								   }
+							       $totalUsernames[$username]["nombre"]                         = (isset($totalUsernames[$username]["nombre"]    )) ? $totalUsernames[$username]["nombre"] : 0;
+								   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]         = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"])) ? $totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+							       $totalUsernamesLocalites[$localiteCode][$username]["nombre"] = (isset($totalUsernamesLocalites[$localiteCode][$username]["nombre"])) ? $totalUsernamesLocalites[$localiteCode][$username]["nombre"] : 0;
+								   $totalLocalites[$localiteCode]["nombre"]                     = (isset($totalLocalites[$localiteCode]["nombre"])) ? $totalLocalites[$localiteCode]["nombre"] : 0;
+								   if( isset( $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"] ) ) {
+									   $output .=" <td style=\"text-align:center;\"> ".number_format($registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"] , 0, ' ',' ')." </td> ";
+								       
+									   $totalLocalites[$localiteCode]["nombre"]                    += $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"];
+									   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]        += $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"];
+									   $totalUsernamesLocalites[$localiteCode][$username]["nombre"]+= $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"];
+									   $totalUsernames[$username]["nombre"]                        += $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["valids"]["total"];
+								   } else {
+									   $output .=" <td style=\"text-align:center;\" > 0 </td> ";
+								   }							  
+						  }
+						  $thisYearTotal    = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"]))?$totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+						  $tcYearTotal      = (isset($statistiques[$localiteCode][$checkedAnnee]))? $statistiques[$localiteCode][$checkedAnnee] : 0;
+						  $thisYearMissings = ($tcYearTotal>=$thisYearTotal)?($tcYearTotal-$thisYearTotal) : 0;
+						  $output          .=" <td style=\"text-align:center;\">".number_format($thisYearTotal   , 0, ' ', ' ')." </td>";
+						  $output          .=" <td style=\"text-align:center;\">".number_format($tcYearTotal     , 0, ' ', ' ')." </td>";
+                          $output          .=" <td style=\"text-align:center;\">".number_format($thisYearMissings, 0, ' ', ' ')." </td>";							  
+				          $output .=" </tr> ";
+						  $i++;
+				 }
+				 $totalUsernameLocalite  = 0;
+				 $output .=" <tr> ";
+				 $output .="   <td style=\"text-align:center;\" width=\"".$firstColWidth."%\" > TOTAL ".$localiteCode." </td>";
+				 foreach( $usernames as $username ) {					      
+						  $usernameLocalite      = (isset($totalUsernamesLocalites[$localiteCode][$username]["nombre"] )) ? $totalUsernamesLocalites[$localiteCode][$username]["nombre"] : 0;
+                          $totalUsernameLocalite+= $usernameLocalite;
+						  $output .=" <td style=\"text-align:center;\">".number_format($usernameLocalite     , 0, ' ', ' ')." </td>";						  						 
+				 }
+				 $output .=" <td colspan=\"3\" style=\"text-align:center;\">".number_format($totalUsernameLocalite, 0, ' ', ' ')." </td>";
+				 $output .=" </tr> ";
+              				 
+			 }
+	}
+	$output .=" <tr> ";
+	$output .="    <td style=\"text-align:center;\" colspan=\"2\"  > TOTAL </td>";
+	        foreach( $usernames as $username ) {
+				     if( isset( $totalUsernames[$username]["nombre"] )) {
+						 $output       .=" <td style=\"text-align:center;\"> ".number_format($totalUsernames[$username]["nombre"], 0, ' ',' ')." </td> ";
+						 $totalGeneral += $totalUsernames[$username]["nombre"];
+					 }
+			}
+	$output .="    <td colspan=\"3\" style=\"text-align:center;\"  > ".number_format($totalGeneral, 0 , " ", " " )." </td>";
+	$output .=" </tr> ";
+}
+$output        .= " </tbody></table><br/><br/>";
+
+/*
+$output        .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                   $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf("STATISTIQUES DES DOCUMENTS TRAITES VALIDES PAR LOCALITE,ANNEE ET PAR PERIODE A LA DATE DU %", $tableauDate)." </b></td></tr>";
+$output        .=" </table>";
+
+$output        .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"2\" width=\"100%\" align=\"center\"><thead><tr>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$firstColWidth."%\" > Localités </th>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$secondColWidth."%\"> Années    </th>";
+                if( count(   $periodes )) {
+					foreach( $periodes as $periode ) {
+						     $output .=" <th style=\"text-align:center;\"> ".$periode." </th> ";
+					}
+				}
+				$output .=" <th style=\"text-align:center;\" > Total Année </th>";
+$output         .= "</tr> </thead><tbody>";	
+
+$totalLocalites  = array();
+$totalAnnees     = array();
+$totalPeriodes   = array();
+$totalGeneral    = 0;
+if( count(   $checkedLocalites ) && count( $checkedAnnees ) && count( $periodes )) {
+	foreach( $checkedLocalites as $localiteCode ) {
+		     if( isset( $registres[$localiteCode]["annees"] )) {
+				 $rowspan = count($registres[$localiteCode]["annees"]);
+                 $i       = 0;				 
+				 foreach( $registres[$localiteCode]["annees"] as $checkedAnnee => $localiteAnneeRow ) {
+					      $output .=" <tr> ";
+						  if( $i == 0 )
+				              $output .="<td style=\"text-align:center;\" rowspan=\"".$rowspan."\" width=\"".$firstColWidth."%\" > ".$localiteCode." </td>";
+					      $output .="    <td style=\"text-align:center;\"> ".$checkedAnnee." </td>";
+						  foreach( $periodes as $periode ) {
+							       $totalPeriodes[$periode]["nombre"]                       = (isset($totalPeriodes[$periode]["nombre"]    )) ? $totalPeriodes[$periode]["nombre"] : 0;
+								   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]     = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"])) ? $totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+							       $totalLocalites[$localiteCode]["nombre"]                 = (isset($totalLocalites[$localiteCode]["nombre"])) ? $totalLocalites[$localiteCode]["nombre"] : 0;
+								   if( isset( $registres[$localiteCode]["annees"][$checkedAnnee]["periodes"][$periode]["valids"]["total"] ) ) {
+									   $output .=" <td style=\"text-align:center;\" > ".number_format($registres[$localiteCode]["annees"][$checkedAnnee]["periodes"][$periode]["valids"]["total"] , 0, ' ',' ')." </td> ";
+								       
+									   $totalLocalites[$localiteCode]["nombre"]            += $registres[$localiteCode]["annees"][$checkedAnnee]["periodes"][$periode]["valids"]["total"];
+									   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]+= $registres[$localiteCode]["annees"][$checkedAnnee]["periodes"][$periode]["valids"]["total"];
+									   $totalPeriodes[$periode]["nombre"]                  += $registres[$localiteCode]["annees"][$checkedAnnee]["periodes"][$periode]["valids"]["total"];
+								   } else {
+									   $output .=" <td style=\"text-align:center;\"> 0 </td> ";
+								   }							  
+						  }
+						  $thisYearTotal = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"])) ? $totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+						  $output       .=" <td style=\"text-align:center;\" >".number_format($thisYearTotal, 0, ' ', ' ')." </td>";						   
+				          $output .=" </tr> ";
+						  $i++;
+				 }				 				 
+			 }
+	}
+	$output .=" <tr> ";
+	$output .="    <td style=\"text-align:center;\" colspan=\"2\"  > TOTAL </td>";
+	        foreach( $periodes as $periode ) {
+				     if( isset( $totalPeriodes[$periode]["nombre"] )) {
+						 $output       .=" <td style=\"text-align:center;\"  > ".number_format($totalPeriodes[$periode]["nombre"], 0, ' ',' ')." </td> ";
+						 $totalGeneral += $totalPeriodes[$periode]["nombre"];
+					 }
+			}
+	$output .="    <td style=\"text-align:center;\" > ".number_format($totalGeneral, 0 , " ", " " )." </td>";
+	$output .=" </tr> ";
+}
+$output        .= " </tbody></table><br/><br/>";*/
+
+
+$output        .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                   $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf("STATISTIQUES DES DOCUMENTS TRAITES INVALIDES PAR LOCALITE,ANNEE ET OPS A LA DATE DU %", $tableauDate)." </b></td></tr>";
+$output        .=" </table>";
+$output        .=" <table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$firstColWidth."%\" > Localités </th>";
+                $output .=" <th style=\"text-align:center;\" width=\"".$secondColWidth."%\"> Années    </th>";
+                if( count(   $usernames )) {
+					foreach( $usernames as $username ) {
+						     $output .=" <th style=\"text-align:center;\"> ".$username." </th> ";
+					}
+				}
+				$output .=" <th style=\"text-align:center;\" > Total Année </th>";
+$output         .= "</tr> </thead><tbody>";	
+$totalLocalites  = array();
+$totalAnnees     = array();
+$totalUsernames  = array();
+$totalGeneral    = 0;
+if( count(   $checkedLocalites ) && count( $checkedAnnees ) && count( $usernames )) {
+	foreach( $checkedLocalites as $localiteCode ) {
+		     $i       = 0;
+			 $rowspan = count($registres[$localiteCode]["annees"]);
+		     if( count( $registres[$localiteCode]["annees"] )) {				
+				 foreach( $registres[$localiteCode]["annees"] as $checkedAnnee => $localiteAnneeRow ) {
+					      $output .=" <tr> ";
+						  if( $i == 0 )
+				              $output .="<td style=\"text-align:center;\" rowspan=\"".$rowspan."\" width=\"".$firstColWidth."%\" > ".$localiteCode." </td>";
+					      $output .="    <td style=\"text-align:center;\"   > ".$checkedAnnee." </td>";
+						  foreach( $usernames as $username ) {
+							       if( empty( $username ) || (null == $username )) {
+									   continue;
+								   }
+							       $totalUsernames[$username]["nombre"]                     = (isset($totalUsernames[$username]["nombre"]    )) ? $totalUsernames[$username]["nombre"] : 0;
+								   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]     = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"])) ? $totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+							       $totalLocalites[$localiteCode]["nombre"]                 = (isset($totalLocalites[$localiteCode]["nombre"])) ? $totalLocalites[$localiteCode]["nombre"] : 0;
+								   if( isset( $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["invalids"]["total"] ) ) {
+									   $output .=" <td style=\"text-align:center;\" > ".number_format($registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["invalids"]["total"] , 0, ' ',' ')." </td> ";
+								       $totalLocalites[$localiteCode]["nombre"]            += $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["invalids"]["total"];
+									   $totalAnnees[$localiteCode][$checkedAnnee]["nombre"]+= $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["invalids"]["total"];
+									   $totalUsernames[$username]["nombre"]                += $registres[$localiteCode]["annees"][$checkedAnnee]["proprietaires"][$username]["invalids"]["total"];
+								   } else {
+									   $output .=" <td style=\"text-align:center;\"  > 0 </td> ";
+								   }							  
+						  }
+						  $thisYearTotal = (isset($totalAnnees[$localiteCode][$checkedAnnee]["nombre"])) ? $totalAnnees[$localiteCode][$checkedAnnee]["nombre"] : 0;
+						  $output       .=" <td style=\"text-align:center;\" width=\"".$lastColWidth."%\">".number_format($thisYearTotal, 0, ' ', ' ')." </td>";						   
+				          $output       .=" </tr> ";
+						  $i++;
+				 }				 				 
+			 }
+	}
+	$output .=" <tr> ";
+	$output .="    <td style=\"text-align:center;\" colspan=\"2\"  > TOTAL </td>";
+	        foreach( $usernames as $username ) {
+				     if( isset($totalUsernames[$username]["nombre"] )) {
+						 $output       .=" <td style=\"text-align:center;\" > ".number_format($totalUsernames[$username]["nombre"],0, ' ',' ')." </td> ";
+						 $totalGeneral += $totalUsernames[$username]["nombre"];
+					 }
+			}
+	$output .="    <td style=\"text-align:center;\"  > ".number_format($totalGeneral, 0 , " ", " " )." </td>";
+	$output .=" </tr> ";
+}
+$output     .= " </tbody></table><br/><br/>";
+
+$output     .=" <table cellspacing=\"4\" cellpadding=\"4\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+               $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> LISTE DES DOCUMENTS INVALIDES DES RETRAITEMENTS</b></td></tr>";
+$output     .=" </table>";
+$output     .= "<table border='1' width='100%' cellspacing='2' cellpadding='2'> 
+		            <thead> <tr>
+							    <th width='10%'> N° d'ordre   </th>
+							    <th width='80%'> Numéros RCCM </th> 
+							</tr> 
+					</thead>
+				 <tbody>";
+	if(count( $invalids )) {
+		$i = 1;
+		foreach( $invalids  as $numRegistre ) {
+			     $output .=" <tr> ";
+				 $output .=" <td> ".$i." </td> <td> ".$numRegistre." </td>";
+				 $output .=" </tr> ";
+				 $i++;
+		}
+	} else {
+		         $output         .=" <tr><td align=\"center\" colspan=\"3\"> AUCUN FICHIER INVALIDE OU INCOHERENT N'A ETE TROUVE </td></tr>";
+	}
+
+$output     .= " </tbody></table>";
+
+echo $output;
+?>

@@ -1,0 +1,114 @@
+<html lang="en">
+<?php 
+    //On initialise les variables nécessaires
+    $layout        = $this->layout();
+    $baseUrl       = $this->baseUrl();
+    $tplPath       = ROOT_PATH."/myTpl/default";
+    
+    $columns       = $this->columns;
+    $bodyClasses   = (!$this->bodyClasses) ? array() : $this->bodyClasses;
+    
+    if(in_array("left",$columns) && in_array("right",$columns) && empty($bodyClasses)){
+       $bodyClasses    = array();
+    } elseif(in_array("left",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-left";
+    } elseif(in_array("right",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-right";
+    } elseif(in_array("content",$columns) && empty($bodyClasses)) {
+       $bodyClasses[]  = "only-content";
+    }   
+    $showLeftColumn   = in_array("left",$columns);
+    $showRightColumn  = in_array("right",$columns);
+    
+    $showLeftColumn    = in_array("left" , $columns);
+    $showRightColumn   = in_array("right", $columns);
+    $showResourcesMenu = $this->showResourcesMenu;
+?>
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" /> 
+<?php echo $this->headMeta() ?>
+ <?php
+           echo $this->headLink() ;
+           echo $this->headStyle();            
+           echo "<script type=\"text/javascript\">
+                     window.SIRAH ||(window.SIRAH={}); 
+                     SIRAH.basePath = \"".$tplPath."/\";
+                 </script>";
+           echo $this->headScript();
+ ?>
+<style type="text/css">
+ </style>
+</head>
+<body <?php echo (!empty($bodyClasses)) ? " class='sr_page_body ".implode(' ',$bodyClasses)."' " : "sr_page_body"; ?>>
+  <!--Entete principale du site-->
+   <?php echo $this->render("pagehead.phtml")   ?>
+  <!--Fin entete principale du site-->     
+  <!--Le corps du site-->
+   <div id="sirah-page-body" class="colmask wrapper three-columns container" >  
+     <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >                 
+          <!--Bloc central de la page du site-->
+            <div id="sirah-page-mainblock-wrapper" class="col1 simple"> 
+			     
+                 <?php if( !empty( $message ) ) : ?>
+                      <?php $this->headStyle()->captureStart(); ?>
+                           div#sirah-page-mainblock-wrapper{margin-top:50px;}
+                           div#currentMsg{width:100% !important;top:60px;z-index: 1030;}
+                      <?php $this->headStyle()->captureEnd(); echo $this->headStyle(); ?>
+                           <div id="currentMsg" class="alert alert-danger affix"> <?php echo $message; ?> <i class='glyphicon glyphicon-remove close clearMessage'></i> </div>
+                <?php endif; ?> 
+                <!--Le bloc des messages d'erreurs-->
+                    <?php echo $this->errormessage(); ?>
+                <!--Fin du bloc des messages d'erreurs-->
+                
+                <?php if(!empty($this->title)): ?>               
+                    <div id="viewBaseTitle" class="panel panel-default nomargins nopaddings"> 
+                      <div class="panel-heading viewBaseTitle"> <h4> <?php echo $this->title; ?> </h4> </div>
+                    </div>
+                 <?php endif; ?>  
+                 <div id="sirah-page-content" class="sirah-page-content page-content-no-scrollable" >
+                    <div id="maincontent" class="col-lg-12 layoutcontent maincontent ">
+                       <?php echo $layout->content ?>
+                   </div>
+                </div>
+               <!--Fin du bloc du contenu de la page-->   
+          </div>
+        <!--Fin du bloc principal de la page du site-->
+       
+        <!--Le bloc gauche du corps du site-->
+         <div id="sirah-page-leftblock-wrapper" class="col2" >
+           <?php 
+                 if( $showLeftColumn ) {
+                    echo $this->render("leftmodules.phtml") ;
+                    if( $this->showProfileMenu ) {
+                    	echo $this->render("profilemenu.phtml") ;
+                    }
+                 }   
+            ?>      
+         </div>  
+        <!--Fin du bloc de gauche du site-->    
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+             <?php 
+                   if($showRightColumn) {
+                      echo $this->render("rightmodules.phtml") ;
+                   }  
+             ?>             
+         </div>  
+        <!--Fin du bloc de droite du corps du site-->            
+       </div>
+    </div>   
+  </div> 
+  <!--Fin corps du site-->         
+  <!--Pied de page du site-->
+   <?php echo $this->render("pagefooter.phtml")   ?>  
+  <!--Fin pied de page du site-->    
+ <?php           
+           echo $this->jQuery();
+ ?>
+<div id="loadingBox"></div>
+</body>
+</html>

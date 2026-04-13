@@ -1,0 +1,45 @@
+<?php 
+$orderCart  = new Zend_Session_Namespace("ordercart");
+if(!isset($orderCart->outputString) || empty($orderCart->outputString)) {
+	$articles   = $this->articles;
+    $output     = "";
+	$output.="  <table class=\"table table-bordered table-striped \" width=\"100%\" border=\"1\" >";                  
+				$output.="  <tr><th style=\"text-align:left;\"   width=\"10%\"><b>QUANTITE</b></th>
+								<th style=\"text-align:left;\"   width=\"30%\"><b>SERVICES/ARTICLES</b></th>
+								<th style=\"text-align:left;\"   width=\"25%\"><b>DETAILS</b></th>
+								<th style=\"text-align:right;\"  width=\"15%\"><b>TARIFS</b></th>
+							</tr>";
+				if( count(   $articles ) ) {
+					$montantTotal = $montantTotalTTC = 0;
+					foreach( $articles as $article ) {
+							 $productid          = $article["productid"];
+							 $registreid         = $article["registreid"];
+							 $documentid         = $article["documentid"];
+							 $productLibelle     = $article["libelle"];
+							 $productDescription = $article["description"];
+							 $quantite           = $article["quantite"];
+							 $montantHT          = (intval($quantite))?($article["cout_ht"]*$quantite) : $article["cout_ht"];
+							 $montantTTC         = (intval($quantite))?($article["cout_ttc"]*$quantite): $article["cout_ttc"];
+							 $montantTotal      += $montantHT;
+							 $montantTotalTTC   += $montantTTC;
+							 $bgColorClass       = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+							 $output .=" <tr id=\"cardProductId".$productid."\" style=\"background-color:".$bgColorClass."\">";
+									$output     .=" <td style=\"text-align:left;background-color:".$bgColorClass."\">".$quantite." </td>";
+									$output     .=" <td style=\"text-align:left;background-color:".$bgColorClass."\">".$productLibelle." </td>";
+									$output     .=" <td style=\"text-align:left;background-color:".$bgColorClass."\">".$productDescription." </td>";
+									$output     .=" <td style=\"text-align:right;background-color:".$bgColorClass."\">".number_format($montantHT, 0,' ', ' ')." F CFA </td>";
+							 $output .=" </tr>";
+					}				 										 
+					$output .=" <tr><td style=\"text-align:right;background-color:".$bgColorClass."\" colspan=\"2\"><b> MONTANT HT</b></td><td colspan=\"2\" style=\"text-align:right;\">".number_format($montantTotal,0,' ', ' ')." F CFA</td>  </tr>";
+					$output .=" <tr><td style=\"text-align:right;background-color:".$bgColorClass."\" colspan=\"2\"><b> TOTAL TTC </b></td><td colspan=\"2\" style=\"text-align:right;\">".number_format($montantTotalTTC,0,' ', ' ')." F CFA </td>  </tr>";	 
+				}					                 
+			 
+	$output       .=" </table>";
+	$orderCart->outputString = $output;
+	$orderCart->setExpirationSeconds(600,"outputString");
+} else {
+	$output        = $orderCart->outputString;
+}
+echo $output;	 
+ 
+ 

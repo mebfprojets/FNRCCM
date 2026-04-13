@@ -1,0 +1,62 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller"=>"domaines","action"=>"importcsv","module"=>"admin"),"default",true);
+$backList      = $this->url(array("controller"=>"domaines","action"=>"list"     ,"module"=>"admin"),"default",true);
+$basePath      = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#domaines').filestyle({buttonText:'Chercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){e.preventDefault();var formSelector = jQuery('#importdataForm');formSelector.submit();}); ";
+
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/js-core/raphael.js");
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">Import de secteurs d'activités </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="importdataForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">  
+        <div class="form-group"> 
+            <label class="col-sm-3 control-label"> Chercher un document : </label>
+            <div   class="col-sm-9 col-md-9"> <input name="domaines" type="file" id="domaines" /> </div>
+        </div>	
+     
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Importer des domaines","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+	$buttonsbar->add($toolCancel ,"cancelCreationButton");
+    $buttonsbar->add($toolCreate ,"importButton");
+       
+    if(!$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+?>

@@ -1,0 +1,15 @@
+<?php
+     $layout    = Zend_Layout::getMvcInstance();
+     $view      = $layout->getView();
+     
+     $jq        = $view->jQuery();
+     $jq->addOnLoad("");
+?>
+ <div id="userProfileMenu" class="row">
+      <ul class="nav nav-list userProfileMenu affix">
+          <li class="active"> <a class="userProfileBtn" href="#general"> <i class="icon-vcard"></i>    <i class="glyphicon glyphicon-chevron-right"></i> Informations personnelles </a></li>
+          <li > <a class="userProfileBtn" href="#experiences"> <i class="icon-suitcase"></i> <i class="glyphicon glyphicon-chevron-right"></i> Expériences  professionnelles  </a></li>
+          <li>  <a class="userProfileBtn" href="#competences"> <i class="icon-graduation"></i><i class="glyphicon glyphicon-chevron-right"></i> Formations </a></li>
+          <li > <a class="userProfileBtn" href="#documents">   <i class="icon-docs"></i> <i class="glyphicon glyphicon-chevron-right"></i> Documents </a></li>
+      </ul>
+</div>

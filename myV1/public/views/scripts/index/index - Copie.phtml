@@ -1,0 +1,79 @@
+<?php 
+    $projectInfos = $this->projectInfos;
+    
+    $registres    = $this->registres;
+?>
+
+<div class="panel-body"> <?php echo $projectInfos; ?> </div>
+<div class="panel-heading"> <h4> Les derniers registres </h4> </div>
+<table  class="table table-hover table-bordered">
+    <thead>
+            <tr>
+                 <th width="10%"> Numéros            </th>
+                 <th width="10%"> Années             </th>
+                 <th width="15%"> Types              </th>
+                 <th width="20%"> Localités          </th>
+                 <th width="30%"> Dénommination      </th>
+                 <th width="15%"> Documents          </th>
+            </tr>    
+    </thead>
+    
+    <tbody>
+        <?php 
+               $output   = "";
+                              if( count(   $registres ) ) {
+                              	  $modelDocument = new Model_Document();
+                              	  $model         = new Model_Registre();
+                              	  foreach( $registres as $registre ) {
+                              	  	       $registreid       = intval($registre['registreid']);
+                              	  	       $libelle          = $registre["libelle"] ;
+                              	  	       $numero           = $registre["numero"] ;
+                              	  	       $domaine          = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+                              	  	       $localite         = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+                              	  	       $type             = (!empty( $registre["type"]    )) ? $registre["type"]     : "";
+                              	  	       $annee            = $registre["annee"]; 
+                              	  	       $urlLibelle       = Sirah_Functions_String::cleanUtf8( $numero );
+                              	  	       if( $registre["typeid"] == 1 ) {
+                              	  	       	   $linkInfos    = $this->url(array("registreid"=> $registreid, "registrelib" => $urlLibelle, "type" => "physiques" ), "registre");  
+                              	  	       } elseif( $registre["typeid"] == 2  ) {
+                              	  	       	   $linkInfos    = $this->url(array("registreid"=> $registreid, "registrelib" => $urlLibelle, "type" => "morales"), "registre"); 
+                              	  	       } else {
+                              	  	       	   $linkInfos    = "#";
+                              	  	       }                             	  	       
+                              	  	       $documents        = $model->documents( $registreid , 0 );
+                              	  	       $linkDownload     = "";
+                              	  	       if( count( $documents )) {
+                              	  	           $document     = $documents[0];
+                              	  	       	   $documentid   = $document["documentid"];
+                              	  	       	   $filextension = strtolower($document["filextension"]);
+                              	  	       	   $filename     = $document["filename"];
+                              	  	       	   $documentLib  = $modelDocument->filterIndex( $filename, $document["userid"] );
+                              	  	       	   $urlDocument  = Sirah_Functions_String::cleanUtf8( $documentLib );
+                              	  	       	   $linkDownload = $this->url(array( "documentid" => $documentid, "libelle" => $urlDocument, "module" => "public"), "documentheque");
+                              	  	       }                             	  	      
+                              	  	       $output .= "<tr id=\"registreRowId-".$registreid."\"> ";
+                              	  	                $output .= "<td style=\"text-align:left;\"> <a href=\"".$linkInfos."\"> ".$numero   ." </a> </td>";
+                              	  	                $output .= "<td style=\"text-align:left;\"> <a href=\"".$linkInfos."\"> ".$annee    ." </a> </td>";
+                              	  	                $output .= "<td style=\"text-align:left;\"> <a href=\"".$linkInfos."\"> ".$type     ." </a> </td>";
+                              	  	                $output .= "<td style=\"text-align:left;\"> <a href=\"".$linkInfos."\"> ".$localite ." </a> </td>";
+                              	  	                $output .= "<td style=\"text-align:left;\"> <a href=\"".$linkInfos."\"> ".$libelle  ." </a> </td>"; 
+                              	                    if( empty( $linkDownload )) {
+                              		                    $output .= "<td style=\"text-align:left;\">  Document non disponible </td>";
+                              	                     } else {
+                              		                    $output .= "<td style=\"text-align:left;\"><a title=\"Télécharger le document\" href=\"".$linkDownload."\"> <span class=\"glyphicon glyphicon-paperclip\"></span>  Télécharger </a> </td>";
+                              	                     }
+                              	  	       $output .= "</tr>";
+                              	  }                              	
+                              }  else {
+                              	           $output .= "<tr  id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE  N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output; 
+        
+        
+        ?>
+    
+    
+    </tbody>
+
+
+</table>

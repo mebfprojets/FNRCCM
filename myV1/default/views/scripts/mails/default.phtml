@@ -1,0 +1,64 @@
+<?php
+$messageSubject  = $this->subject;
+$message         = $this->message;
+$enteteImg       = $this->enteteImg;
+$logoImg         = APPLICATION_STRUCTURE_LOGO;
+$replyToEmail    = $this->replyToEmail;
+$replyToName     = $this->replyToName;
+$replyToTel      = $this->replyToTel;
+$replyToSiteWeb  = $this->replyToSiteWeb;
+
+$toName          = $this->toName;
+$toEmail         = $this->toEmail;
+
+$imagePathName   = SERVER_IMAGES_PATHNAME;
+?>
+<div style="background:#fff <?php echo 'url('.$imagePathName."body_bg.png".') '; ?> repeat-x; width:100%; height:auto; font-size: 11px; font-family:Arial,Times,Tahoma,Geneva,Kalimati,sans-serif; text-align: center;"><br /> 
+	<table style="width:620px; margin: auto; text-align: center; height: auto;" border="0" cellspacing="2" cellpadding="2">
+		<tbody>
+			<tr>
+				<td style="background-color:#fff;border:1px solid #AAD3EE;-moz-border-radius:4px;-webkit-border-radius:4px;" colspan="2">
+					<table width="100%" border="0" cellpadding="0" cellspacing="0">
+						<tr>
+							<td valign="top" align="left" width="70%"> 
+								<p align="center" style="vertical-align:top;text-align:center;line-height:11px;font-size:10pt;">
+									<strong> MINISTERE DE LA JUSTICE, DES DROITS HUMAINS ET DE LA PROMOTION CIVIQUE </strong><br/>
+									 -----------------------------------------
+								</p> 
+								<p align="center" style="vertical-align:top;text-align:center;line-height:11px;font-size:10pt;">
+									<strong> SECRETARIAT GENERAL </strong><br/>
+									-----------------------------------------
+								</p>	
+								<p align="center" style="vertical-align:top;text-align:center;line-height:11px;font-size:10pt;">
+									<strong> DIRECTION DES GREFFES </strong><br/>
+									-----------------------------------------
+								</p>					
+								<p align="center" style="vertical-align:top;text-align:center;font-size:10pt;">
+									<strong> FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER </strong> <br/>
+								</p>					
+							</td>
+							<td align="center" valign="top" style="vertical-align:top;" width="30%"> &nbsp;</td>
+						</tr>
+					</table>
+					<table style="width: 100%; height: 100%;" border="0">
+						<!--Entete du contenu--> 
+						<tbody>
+							<tr>
+								<td style="height: auto; padding: 5px; text-align: left; color: #46260f;">       
+									<div><h2 style="background:#26860C;color:#fff;font-size:12px;font-weight:bold;text-align:left;padding:5px;width:98%;height:25px;"><?php echo $messageSubject;?><br /></h2></div>
+								</td>
+							</tr>
+							<tr>
+								<td style="color: black; font-size: 11px; text-align: justify; height: auto;" valign="top">
+									<?php echo stripslashes($message);  ?>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+

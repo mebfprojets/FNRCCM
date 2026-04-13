@@ -1,0 +1,38 @@
+<?php 
+   $dirigeants      = $this->dirigeants;   
+   $output       = "<ul class=\"list-group dirigeantsList\">";
+     if( count( $dirigeants ) ){
+     	$output .="<li id=\"dirigeantId-0\" class=\"list-group-item\">
+		             <div class=\"row\">
+                         <div class=\"col-md-5\"> Nom & prénom </div>
+                         <div class=\"col-md-5\"> Date & lieu de naiss.  </div>						 
+                         <div class=\"col-md-2\"> Profession    </div>
+                    </div> 
+				   </li>";
+		$i      = 0;
+     	foreach( $dirigeants as $dirigeant ) {
+     		     $dirigeantid  = $dirigeant["representantid"];
+     		     $nom          = sprintf("%s %s", $dirigeant["nom"] , $dirigeant["prenom"] );
+				 $zendBirthDate= new Zend_Date( $dirigeant["datenaissance"], Zend_Date::DATETIME );
+                 $birthDate    = ($zendBirthDate) ? $zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+				 $dateLieuNaiss= sprintf("%s à %s" , $birthDate, $dirigeant["lieunaissance"]);
+     		     $adresse      = sprintf("%s %s %s", $dirigeant["adresse"] , $dirigeant["telephone"], $dirigeant["email"] );
+				 $profession   = $dirigeant["profession"];
+     		     $linkView     = $this->url(array("controller" => "dirigeants", "action" => "infos", "dirigeantid" => $dirigeantid ));
+     		     
+     		     $output .="<li id=\"dirigeantId-".$i."\" class=\"list-group-item\">
+				             <div class=\"row\">
+     		                    <div class=\"col-md-5\"> <a title=\"Visualiser les informations du dirigeant \" class=\"dialogViewInfos\" href='#'> ".$nom           ." </a> </div>
+								<div class=\"col-md-5\"> <a title=\"Visualiser les informations du dirigeant \" class=\"dialogViewInfos\" href='#'> ".$dateLieuNaiss ." </a> </div>
+     		                    <div class=\"col-md-2\"> <a title=\"Visualiser les informations du dirigeant \" class=\"dialogViewInfos\" href='#'> ".$profession    ." </a> </div>
+     		                 </div>
+                           </li> ";  
+                $i++;							
+     	}
+     } else {
+     	$output .= " <li id=\"nodirigeants\" class=\"list-group-item\"> <div class=\"row \"> Aucun dirigeant n'est rattaché à ce registre </div> </li>";     	
+     }  
+   $output     .= "</ul>";
+   echo  $output ;
+?>
+             

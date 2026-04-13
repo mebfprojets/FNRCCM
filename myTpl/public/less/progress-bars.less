@@ -1,0 +1,49 @@
+/*
+    Progress bar styling
+*/
+
+// Outer container
+.progress {
+    box-shadow: none;
+    background-color: @progress-bg;
+}
+
+// Bar of progress
+.progress-bar {
+    background-color: @progress-bar-bg;
+    box-shadow: none;
+    text-align: left;
+    padding-left: 10px;
+}
+
+
+// Variations
+// -------------------------
+
+.progress-bar-gray {
+    .progress-bar-variant(@gray-light);
+}
+
+.progress-bar-success {
+    .progress-bar-variant(@progress-bar-success-bg);
+}
+
+.progress-bar-info {
+    .progress-bar-variant(@progress-bar-info-bg);
+}
+
+.progress-bar-warning {
+    .progress-bar-variant(@progress-bar-warning-bg);
+}
+
+.progress-bar-danger {
+    .progress-bar-variant(@progress-bar-danger-bg);
+}
+
+
+.progress-sm {
+    height: 10px;
+}
+.progress-xs {
+    height: 3px;
+}

@@ -1,0 +1,332 @@
+<?php 
+$clients           = $this->clients;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$groupes           = $this->groupes;
+$familles          = array();
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch           = $this->url(array("module" => "public", "module"  => "public","controller" => "clients" , "action"  => "list") , "default");
+$linkCreate           = $this->url(array("module" => "public", "module"  => "public","controller" => "clients" , "action"  => "create") , "default");
+$linkEdit             = $this->url(array("module" => "public", "module"  => "public","controller" => "clients" , "action"  => "edit") , "default");
+$linkDelete           = $this->url(array("module" => "public", "module"  => "public","controller" => "clients" , "action"  => "delete"));
+$linkExport           = $this->url(array("module" => "public", "module"  => "public","controller" => "clients" , "action"  => "export"));
+$linkSearchEntreprise = $this->url(array("module" => "public", "module"  => "public","controller" => "ajaxres" , "action" => "entrepriseslist","parentform" => "clientsListSearchForm", 
+                                         "selectCmdKey" => "selectEntreprise","selectedKey" => "entrepriseid","selectedVal" => "entreprise"), "default");
+
+$jq->addOnload("
+jQuery('.searchEntreprise').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une entreprise',content:'".$linkSearchEntreprise."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		var nameText        = jQuery.trim(jQuery('#globalFormSearch').find('#name').val());
+		var lastname        = '';
+		var firstname       = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		if(SIRAH.util.isEmpty(firstname)) {
+		   searchData.identifiant = lastname;
+		   searchData.lastname    = searchData.firstname = '';
+		} else {
+		   searchData.identifiant = '';
+		   searchData.lastname    = lastname;
+		   searchData.firstname   = firstname;
+		}				 
+        var maincontent	     = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+
+jQuery('.searchClients,#searchClients').click(function(    event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#clientsListSearchForm,.advancedSearchForm:first') ;					
+		var searchData          = {};
+		searchData.page         = parseInt(formSelector.find('#page').val());
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.identifiant  = formSelector.find('#identifiant').val();
+		searchData.lastname     = formSelector.find('#lastname').val();
+		searchData.firstname    = formSelector.find('#firstname').val();
+		searchData.numpass      = formSelector.find('#numpass').val();
+		searchData.identifiant  = formSelector.find('#identifiant').val();
+		searchData.telephone    = formSelector.find('#telephone').val();
+		searchData.email        = formSelector.find('#email').val();
+		searchData.groupid      = parseInt(formSelector.find('#groupid').val());
+		searchData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());	
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#clientsListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData          = {};
+		paginationData.page         = pageNum;
+		paginationData.maxitems     = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.numpass      = formSelector.find('#numpass').val();
+		paginationData.identifiant  = formSelector.find('#identifiant').val();
+		paginationData.lastname     = formSelector.find('#lastname').val();
+		paginationData.firstname    = formSelector.find('#firstname').val();
+		paginationData.telephone    = formSelector.find('#telephone').val();
+		paginationData.email        = formSelector.find('#email').val();
+		paginationData.groupid      = parseInt(formSelector.find('#groupid').val());
+		paginationData.entrepriseid = parseInt(formSelector.find('#entrepriseid').val());
+		
+		var maincontent             = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+		");
+
+$toolbar     = $this->buttonsbar(array() , $this->jqueryHandler()); 
+$toolCreate  = $toolbar->button("Nouveau client", "plus")->setPriority("primary");
+$toolEdit    = $toolbar->button("Mettre à jour" , "edit");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#clientsListTable').find('input[type=\'checkbox\'][name=\'clientids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var clientid     = parseInt(checkedItem.attr('id').replace('clientids',''));
+		             var clientname   = jQuery('#name-'+clientid).text();
+		             var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		             dialogEdit.dialog2({
+		                                  title : 'Mettre à jour les informations du client '+clientname,
+		                                  content : '".$linkEdit."/clientid/'+clientid,
+		                                  autoOpen: false,
+		                                  modalClass:'modal-wide',
+		                                  removeOnClose: true,
+		                                  closeOnEscape: false,
+		                                  closeOnOverlayClick: true,
+		                                  showCloseHandle:true,
+		                                  initialLoadText: 'Chargement...'
+                                       });
+		             dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Enregistrer',{primary : true,click :
+		                                function(){
+		                                             var editForm = jQuery(this).find('form').eq(0);
+		                                             SIRAH.request.post(editForm,'".$linkEdit."/clientid/'+clientid);
+                                        }});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-ban\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$this->toolsbar = $toolbar;
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<div id="clientsListListWrapper"  class="row">
+  <div  class="panel panel-default listPanel">
+     <div  class="panel-heading bg-blue-alt">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		  <div class="input-group">
+		    <input value="<?php echo $filters['name']; ?>" id="name" name="name"  type="text" class="form-control" placeholder="Recherchez un client, saisir son nom, prénom ou identifiant...">
+		    <span class="input-group-btn ">
+               <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		  </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+    </div>
+	<form id="clientsListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+	  <ul class="list-group">
+		<li class="list-group-item">
+           <div  class="row">
+			   <label class="col-sm-2 control-label">  <b> Entreprise:</b> </label> 
+               <div class="col-sm-8">
+                   <div class="input-group">
+                      <input type="text" name="entreprise" id="entreprise" value="<?php echo $this->entreprise; ?>" class="form-control" placeholder="Selectionnez une entreprise"  />
+                      <div class="input-group-btn">
+                        <button id="selectEntreprise" class="btn btn-primary" tabindex="-1"><i class="glyph-icon icon-search selectEntreprise"> </i> Selectionner </button>
+                        <button id="removeEntreprise" class="btn btn-danger"  tabindex="-1"><i class="glyph-icon icon-remove removeEntreprise"> </i> Effacer </button>
+                      </div>
+                   </div>
+               </div>
+            </div>
+        </li>
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Code client:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['identifiant']; ?>" type="text" name="identifiant" id="identifiant" class="form-control" placeholder="Saisir un code client" /></div>
+            <label class="col-sm-2 control-label">  <b> N° passport:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['numpass'];?>" type="text" name="numpass" id="numpass" class="form-control" placeholder="Saisir un numéro passport" /></div>
+        </li>
+		<li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Nom de famille:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['lastname']; ?>" type="text" name="lastname"  id="lastname"  class="form-control" placeholder="Saisir un nom de famille" /></div>
+            <label class="col-sm-2 control-label">  <b> Prénom:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['firstname'];?>" type="text" name="firstname" id="firstname" class="form-control" placeholder="Saisir un prénom" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item">
+          <div  class="row">
+            <label class="col-sm-2 control-label">  <b> Téléphone:</b> </label> 
+			<div class="col-md-3"><input value="<?php echo $filters['telephone']; ?>" type="text" name="telephone" id="telephone" class="form-control" placeholder="Saisir un numéro de téléphone" /></div>
+            <label class="col-sm-2 control-label">  <b> Adresse email:</b> </label> 
+			<div class="col-md-3"> <input value="<?php echo $filters['email'];?>" type="text" name="email" id="email" class="form-control" placeholder="Saisir une adresse email" /></div>
+          </div>
+       </li>
+	   <li class="list-group-item"> 
+		<div class="row">
+			<label class="col-sm-2 control-label">  <b> Groupe:</b> </label> 
+			<div   class="col-sm-3"><?php echo $this->formSelect("groupeid", intval($filters["groupeid"]),array("class" => "form-control"), $groupes); ?> </div> 
+            <label class="col-sm-2 control-label">  <b> Famille :</b> </label> 
+			<div   class="col-sm-3"><?php echo $this->formSelect("familleid", intval($filters["familleid"]),array("class" => "form-control"), $familles); ?> </div>
+		</div> 			   
+	  </li>
+	</ul>
+	<div class="panel-footer"> 
+		<button id="searchClients" class="btn btn-primary searchClients advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+        <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+	</div>
+	<input type="hidden" name="page"     id="page"      value="<?php echo $this->pageNum;    ?>"           />
+	</form>
+	<table id="clientsListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="15%"> Codes          </th> 
+                          <th width="45%"> Noms & Prénoms </th>
+                          <th width="20%"> Telephone      </th>
+                          <th width="20%"> Adresses Emails</th>  
+                           
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $clients ) ) {
+                              	  foreach( $clients as $client ) {
+                              	  	       $clientid     = intval($client['clientid']);
+                              	  	       $code         = $client["code"] ;
+                              	  	       $name         = sprintf("%s %s", $client["lastname"], $client["firstname"]);
+                              	  	       $famille      = $client["famille"] ;
+                              	  	       $groupe       = $client["groupe"] ;
+                              	  	       $telephone    = sprintf("%s / %s", $client["tel1"], $client["tel2"]);
+                              	  	       $adresse      = $client["adress"] ;
+                              	  	       $email        = $client["email"] ;
+                              	  	       $adresseStr   = sprintf("<span> Adresse: %s </span>  <br/>
+                              	  	       		                    <span> Email: %s </span> <br/>
+                              	  	       		                    <span> Telephone : %s </span>
+                              	  	       		                   ",
+                              	  	       		                   $adresse, $email , $telephone);
+                              	  	       $linkInfos    = $this->url(array("module" => "public", "module"  => "public","controller" => "clients", "action" => "infos", "clientid" => $clientid ), "default");
+                              	  	      
+                              	  	       $output .= "<tr   id=\"clientRowId-".$clientid."\"> ";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$code      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$name      ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$telephone ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$email     ." </a> </td>";                              	  	                
+                              	  	        $output .= "</tr>";
+                              	  }                              	
+                              }  else {
+                              	            $output .= "<tr  id=\"clientRowId-0\"> <td colspan=\"8\"> AUCUN CLIENT N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+       </tbody>           
+    </table>
+	 <?php echo $pagination->render(); ?>
+  </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

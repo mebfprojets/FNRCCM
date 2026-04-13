@@ -1,0 +1,92 @@
+<?php 
+$data               = $this->data;
+$formSubmit         = $this->url(array("controller" =>"localites", "action" => "edit"), "default" );
+$backList           = $this->url(array("controller" =>"localites", "action" => "list"), "default" );
+$basePath           = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  
+  jQuery('#cancelEditButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+  jQuery('#editButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#editlocalite-form');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      
+      if(  SIRAH.util.isEmpty( libelle )){
+           jQuery('#libelle').addClass('input-error');
+           jQuery('#libelle-validation-message').html('');
+           SIRAH.error.raise('libelle-validation-message','Entrez une désignation valide de la localité');
+         return;
+      } else {
+           jQuery('#libelle').removeClass('input-error');
+           jQuery('#libelle-validation-message').html('');
+      }      
+      jQuery('#libelle').val( libelle );
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center" id="editlocalite-form" role="form">
+ <div class="container col-md-12" style="text-align:left;">
+  <ul class="list-group">
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="libelle"> <b> Désignation *: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="libelle" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Désignation de la localité" placeholder="Désignation de la localité"  name="libelle" value="<?php echo $data['libelle']; ?>">
+         </div>                 
+     </div> 
+     <p id="libelle-validation-message" class="validation-message"></p>    
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="code"> <b> Le code: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="code" type="text" maxlength="4" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Le code la localité" placeholder="Le code la localité"  name="code" value="<?php echo $data['code']; ?>">
+         </div>                 
+     </div>   
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="description"> <b>Description  : </b> </label> </div>
+         <div class="col-md-8">
+            <textarea name="description" id="description" class="form-control textarea-sm"><?php echo $data["description"]; ?> </textarea>
+         </div>              
+     </div>  
+   </li>
+  
+ </ul>  
+<?php     
+   $buttonsbar      = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Sauvegarder","edit")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add( $toolCreate, "editButton");
+   $buttonsbar->add( $toolCancel, "cancelEditButton");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   <input type="hidden" name="parentid"   id="parentid"   value="<?php echo $data['parentid'];  ?>" />
+   <input type="hidden" name="localiteid" id="localiteid" value="<?php echo $data['localiteid']; ?>" />
+</form>

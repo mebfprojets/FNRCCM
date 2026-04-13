@@ -1,0 +1,113 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller"=>"registres","action"=>"finderrors","module"=>"admin"), "default" );
+$backList    = $this->url(array("controller"=>"registres","action"=>"list","module"=>"admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+$users       = $this->users;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$basePath = VIEW_BASE_PATH;
+$jq       = $this->jQuery();  
+$onLoad   = " 
+jQuery('input:checkbox').bootstrapSwitch();
+jQuery('input:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state==true)  && (this.name=='check_documents')) {
+		jQuery('.CheckDocuments').removeClass('hide');
+	} 
+	if((state==false) && (this.name=='check_documents')){
+		jQuery('.CheckDocuments').addClass('hide');
+	}
+});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input[name=\'check_documents\']').click(function( event ){
+        if( jQuery(this).is(':checked')) {
+			jQuery('.CheckDocuments').removeClass('hide');
+        } else {
+			jQuery('.CheckDocuments').addClass('hide');
+        } 
+});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validateRCForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath."/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath."/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath."/assets-minified/widgets/input-switch/inputswitch.js");
+ $jq->addStylesheet(    $basePath."/assets-minified/widgets/input-switch/inputswitch.css" );
+?>
+
+<div    class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="validateRCForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+		<div class="form-group"> 
+          <label class="col-sm-3 col-md-3  control-label"> OPS* : </label>
+           <div  class="col-sm-9 col-md-9"> <?php echo $this->formSelect("ops_userid", $data["ops_userid"] , array("class"=>"form-control chosen"), $users); ?> </div>   
+        </div>
+		<div class="form-group"> 
+          <label class="col-sm-3 col-md-3  control-label"> Localité* : </label>
+           <div  class="col-sm-9 col-md-9"> <?php echo $this->formSelect("localite", $data["localite"] , array("class"=>"form-control chosen"), $localites); ?> </div>   
+        </div> 
+		<div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Année* : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("annee", $data["annee"], array("class"=>"form-control chosen"), $annees); ?> </div>           
+        </div>		
+		<div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Nombre d'élements : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("maxitems", $data["maxitems"], array("class"=>"form-control chosen"), createYearsArray(100, 25000 )); ?> </div>           
+        </div>
+		<div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Vérifier les documents: </label>
+           <div   class="col-sm-9 col-md-9" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+        </div>     
+        <div class="form-group CheckDocuments <?php echo (intval($data["check_documents"]) == 1) ? 'hide' :''; ?> "> 
+		   <label class="col-sm-3 col-md-3 control-label"> Dossier source* : </label>
+		   <div   class="col-sm-9 col-md-9"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["srcpath"]; ?>" /></div>        
+		</div>
+		<div class="form-group CheckDocuments <?php echo (intval($data["check_documents"]) == 1) ? 'hide' :''; ?> "> 
+			<label class="col-sm-3 col-md-3 control-label"> Dossier de destination* : </label>
+			<div   class="col-sm-6 col-md-9"> <input type="text" name="errorspath" id="errorspath" class="form-control" placeholder="Dossier de destination des documents comportant des erreurs" value="<?php echo $data["errorspath"]; ?>" /></div>        
+		</div>
+		<div  class="form-group">
+			<label class="col-sm-3 col-md-3 control-label">  <b> Période initiale:</b> </label> 
+			<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_start_day"  ,intval($data["periode_start_day"])  , array("class" => "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+			<div   class="col-sm-2 col-md-2"><?php echo $this->formSelect("periode_start_month",intval($data["periode_start_month"]), array("class" => "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+			<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_start_year" ,intval($data["periode_start_year"]) , array("class" => "form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+		</div>
+		<div  class="form-group">
+			<label class="col-sm-3 col-md-3 control-label">  <b> Période finale:</b> </label> 
+			<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_end_day"  ,intval($data["periode_end_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+			<div   class="col-sm-2 col-md-2"><?php echo $this->formSelect("periode_end_month",intval($data["periode_end_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+			<div   class="col-sm-3 col-md-3"><?php echo $this->formSelect("periode_end_year" ,intval($data["periode_end_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+		 </div>
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Verifier mes travaux","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+    
+	$buttonsbar->add($toolCancel ,"cancelCreationButton");
+    $buttonsbar->add($toolCreate ,"validationButton");
+        
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

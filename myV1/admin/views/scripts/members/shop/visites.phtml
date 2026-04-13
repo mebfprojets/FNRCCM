@@ -1,0 +1,48 @@
+<?php   
+   $visites   = $this->visites;   
+   $member    = $this->member;     
+   $memberid  = $this->memberid; 
+   $linkCreate= $this->url(array("controller" => "visites", "action" => "create" , "memberid" => $memberid), "default") ;
+   
+   $output    = " <table id=\"visitesListt\" class=\"table table-stripped visitesListt\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:25%\"> Dates           </th>                                 
+									 <th width=\"width:25%\"> Ophtalmologues  </th>
+									 <th width=\"width:35%\"> Corrections     </th>
+									 <th width=\"width:20%\"> Observations    </th>
+                              </tr>
+                       </thead>"; 
+	if( count(   $visites )) {
+        foreach( $visites as $visite ) {
+                 $visiteid      = $visite["visiteid"];
+                 $member        = $visite["member"];
+                 $ophtalmologue = $visite["ophtalmologue"];
+                 $date          = (isset( $visite["date_visite"] )) ? $visite["date_visite"] : $visite["date"];
+                 $linkInfos     = $this->url(array("controller" => "visites","action" => "infos","visiteid" => $visiteid), "default");
+                 $bgColor       = $this->cycle(array("#F0F0F0", "#F9F9F9"))->next();
+				 $corrections   = sprintf("Sphère: %s, Cylindre: %s, Addition:%s, Axe:%s, Diamètre:%s, Hauteur:%s, VP:%s",
+				                          $visite["sphOG"]."/".$visite["sphOD"], $visite["cylOG"]."/".$visite["cylOD"],
+										  $visite["addOG"]."/".$visite["addOD"], $visite["axeOG"]."/".$visite["axeOD"],
+										  $visite["axeOG"]."/".$visite["axeOD"], $visite["diaOG"]."/".$visite["diaOD"],
+										  $visite["hautOG"]."/".$visite["hautOD"], $visite["VPOG"]."/".$visite["VPOD"]);
+				 $observation   = $visite["observation"]; 						
+                      	  	       
+                $output      .= "<tr id=\"visiteId-".$visiteid."\" style=\"background-color:".$bgColor."\" class=\"visiteIds\">"; 
+                      	$output.="    <td> <a href=\"".$linkInfos."\"> ".$date          ." </a></td>";
+                      	$output.="    <td> <a href=\"".$linkInfos."\"> ".$ophtalmologue ." </a></td>";
+                      	$output.="    <td> <a href=\"".$linkInfos."\"> ".$corrections   ." </a></td>";
+                      	$output.="    <td> <a href=\"".$linkInfos."\"> ".$observation   ." </a></td>";
+                $output      .= "</tr>";                      	  	       
+         }
+    } else {
+                $output      .= "<tr><td colspan=\"7\"> AUCUNE VISITE N'A ETE TROUVEE POUR CE CLIENT </td> </tr>";
+     }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;	
+
+$jq    =  $this->jQuery();
+$onLoad= "jQuery('.addVisite').click(function( event ){event.preventDefault();document.location.href = '".$linkCreate."';});";    
+    $jq->addOnLoad($onLoad);   
+?>

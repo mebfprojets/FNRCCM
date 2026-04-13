@@ -1,0 +1,40 @@
+[28-Dec-2022 10:01:24 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/annees.phtml on line 2
+[28-Dec-2022 10:01:24 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/annees.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/annees.phtml on line 4
+[28-Dec-2022 10:01:26 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaine.phtml on line 2
+[28-Dec-2022 10:01:26 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaine.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaine.phtml on line 4
+[28-Dec-2022 10:01:27 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.old.phtml on line 2
+[28-Dec-2022 10:01:27 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.old.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.old.phtml on line 4
+[28-Dec-2022 10:01:29 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.phtml on line 2
+[28-Dec-2022 10:01:29 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/domaines.phtml on line 4
+[28-Dec-2022 10:01:30 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/list.phtml on line 2
+[28-Dec-2022 10:01:30 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/list.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/list.phtml on line 4
+[28-Dec-2022 10:01:32 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localite.phtml on line 2
+[28-Dec-2022 10:01:32 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localite.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localite.phtml on line 4
+[28-Dec-2022 10:01:34 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localites.phtml on line 2
+[28-Dec-2022 10:01:34 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localites.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/localites.phtml on line 4
+[28-Dec-2022 23:24:53 Europe/Paris] PHP Warning:  Use of undefined constant VIEW_BASE_PATH - assumed 'VIEW_BASE_PATH' (this will throw an Error in a future version of PHP) in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/sexes.phtml on line 2
+[28-Dec-2022 23:24:53 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/sexes.phtml:4
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/statistiques/sexes.phtml on line 4

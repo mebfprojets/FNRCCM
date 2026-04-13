@@ -1,0 +1,68 @@
+<?php 
+   $suretes = $this->suretes;
+   $linkDelete    = $this->url(array("controller"=> "registresuretes","action" => "delete","module" => "admin"), "default") ;   
+   $output        = "<ul class=\"list-group suretesList\">";
+     if( count( $suretes ) ){
+     	$output .="<li id=\"sureteId-0\" class=\"list-group-item\">
+		             <div class=\"row\">
+					     <div class=\"col-md-1\"> *       </div>                        
+                         <div class=\"col-md-6\"> Numéros </div>
+                         <div class=\"col-md-5\"> Types   </div>							 
+                    </div> 
+				   </li>";
+		$i      = 0;
+     	foreach( $suretes as $surete ) {
+     		     $sureteid   = $surete["registreid"];
+     		     $sureteType = $surete["type"];
+				 $sureteNum  = $surete["numero"];
+                 $zendDate   = ( intval($surete["date"])) ? new Zend_Date($surete["date"], Zend_Date::TIMESTAMP) : null;
+                 $date       = ( $zendDate ) ?	 $zendDate->toString("dd MMMM Y") : null;			 
+     		     $linkView   = $this->url(array("controller" => "registresuretes","action" => "infos","registreid" => $sureteid, "module" => "admin"), "default");
+     		     
+     		     $output .="<li id=\"sureteId-".$i."\" class=\"list-group-item\">
+				             <div class=\"row\">
+     		                    <div class=\"col-md-1\"> <span title=\"Supprimer cette sûrété\" id=\"delSureteId-".$sureteid."\" class=\"glyph-icon icon-remove deleteSurete\">&nbsp;</span></div>
+     		                    <div class=\"col-md-6\"> <a title=\"Voir les informations de cette sûrété \" class=\"dialogViewInfos\" href=\"".$linkView."\"> ".$sureteType." </a> </div>
+     		                    <div class=\"col-md-5\"> <a title=\"Voir les informations de cette sûrété \" class=\"dialogViewInfos\" href=\"".$linkView."\"> ".$sureteNum ." </a> </div>
+							 </div>
+                           </li> ";  
+                $i++;							
+     	}
+     } else {
+     	$output .= " <li id=\"nosuretes\" class=\"list-group-item\"> <div class=\"row \"> Aucune sûrété n'a été trouvée pour ce registre </div> </li>";     	
+     }  
+   $output     .= "</ul>";
+   echo  $output ;
+   
+   $jq      =  $this->jQuery();
+   $onLoad  = " 
+                jQuery('.deleteSurete').css('cursor','pointer');
+				jQuery('.deleteSurete').click(function( event ){
+                        event.preventDefault();					
+                        var itemId           = parseInt(jQuery(this).attr('id').replace('delSureteId-',''));
+                        var dialogDeleteSurete = jQuery('<div> Etes-vous sur de supprimer cette sûrété ? </div>').attr('id','dialogDeleteSurete');
+						dialogDeleteSurete.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose: true,closeOnEscape: false, closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+                        dialogDeleteSurete.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'registreids':itemId},type:'GET',
+             		                             success  : function(data) 
+             		                             {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteSurete') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteSurete'), data.success , 'success');
+             		                                       setTimeout(function(){
+             		             		                               jQuery('#delSureteId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteSurete').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                             }
+             		                            });     		
+                                         }}); 
+                        dialogDeleteSurete.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+                        dialogDeleteSurete.dialog2('open'); 
+				});";
+	$jq->addOnLoad($onLoad);			
+?>
+             

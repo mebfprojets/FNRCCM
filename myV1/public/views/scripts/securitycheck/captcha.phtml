@@ -1,0 +1,40 @@
+<?php 
+$captcha      = $this->captcha;
+$messages     = $this->errormessages;
+$formSubmit   = $this->url(array("module"=>"public","controller" => "securitycheck", "action" => "captcha", "module" => "public"), "default" );
+$cancelLink   = $this->url(array("module"=>"public","controller" => "index", "action" => "index", "module" => "public"), "default" );
+$basePath     = VIEW_BASE_PATH;
+
+$jq     = $this->jQuery();  
+  $onLoad = " 
+             jQuery('.cancel').click(function( event ){ event.preventDefault(); document.location.href = '".$cancelLink."';});
+             jQuery('.checkCaptcha').click(function( event ){
+                     event.preventDefault();     
+                     var  code    = jQuery('#captchainput').val();     
+                     if(SIRAH.util.isEmpty(code)){
+                        SIRAH.error.raise('checkCaptchaform','Saisir une valeur valide');
+                        return;
+                      }      
+                       jQuery('#checkCaptchaform').submit();
+               });";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<div class="panel panel-default">
+   <div class="panel-heading"><div class="panel-title"> Controle de sécurité: Saisissez le code qui apparait dans l'image </div></div>
+   <div class="panel-body" style="padding-top:30px">
+     <form accept-charset="UTF-8" id="checkCaptchaform" method="post" action="<?php echo $formSubmit; ?>" class="form-horizontal" role="form">
+       <div class="form-group"> <?php echo $this->errormessage(); ?></div>
+       <div class="form-group"> <img  alt="Entrez le code qui apparait dans l'image" src="<?php  echo $captcha->getImgUrl(). $captcha->getId()  ?>.png" /><br/> </div>
+       <div style="margin-bottom: 25px;width:100%" class="input-group">
+         <input type="text" name="captcha[input]" id="captchainput" autocomplete="off" placeholder="Entrez le code qui apparait dans l'image">
+       </div>
+       <div class="input-group"><button type="submit" class="btn btn-block btn-primary checkCaptcha"> VERIFIER </button></div>
+       <div class="input-group"><button type="submit" class="btn btn-block cancel"> ANNULER </button></div>
+       <input type="hidden" name="captcha[id]" value="<?php echo $captcha->getId();  ?>" id="captcha[id]"  /><br/>
+       <input type="hidden" name="captchatime" value="<?php echo time(); ?>" id="captchatime"  /> 
+    </form>
+   </div>
+</div>
+

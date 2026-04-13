@@ -1,0 +1,163 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" => "registremoral", "action" => "addmanager"), "default");
+$backList      = $this->url(array("controller" => "registremoral", "action" => "list"  ), "default" );
+
+$basePath      = VIEW_BASE_PATH;
+
+$buttonbar     = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate  = $buttonbar->button("Enregistrer le dirigeant","floppy-disk")->setPriority("primary");
+$buttonCancel  = $buttonbar->button("Revenir sur la liste ","ban-circle");
+
+$buttonCreate->setAttributes(array("type" => "submit"));
+$buttonCancel->setAttributes(array("type" => "submit"));
+
+$buttonbar->add( $buttonCreate, "createButton");
+$buttonbar->add( $buttonCancel, "cancelCreationButton");
+
+$buttonCancel->onClick("event.preventDefault() ; document.location.href= '".$backList."' ;");
+
+$buttonCreate->onClick("
+		event.preventDefault();
+		var  formSelector = jQuery('#createRepresentantForm');
+		var  prenom       = jQuery.trim(jQuery('#prenom').val());
+		var  nom          = jQuery.trim(jQuery('#nom').val());
+
+		if(SIRAH.util.isEmpty(nom)){
+		   jQuery('#nom').addClass('input-error');
+		   jQuery('#name-validation-message').html('');
+		   SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+		   return;
+        } else {
+		   jQuery('#nom').removeClass('input-error');
+		   jQuery('#name-validation-message').html('');
+        }
+		if(SIRAH.util.isEmpty(prenom)){
+		   jQuery('#prenom').addClass('input-error');
+		   jQuery('#name-validation-message').html('');
+		   SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+		   return;
+       }  else {
+		   jQuery('#prenom').removeClass('input-error');
+		   jQuery('#name-validation-message').html('');
+       }   
+		jQuery('#nom').val(nom);
+		jQuery('#prenom').val(prenom);
+		formSelector.submit(); ");
+$jq     = $this->jQuery();
+$onLoad = "";
+$onLoad.= "
+  jQuery('input:checkbox, input:radio').uniform();
+  jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+";
+
+$jq->addOnLoad( $onLoad );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+
+$situations   = array("Célibataire" => "Célibataire", "Marié(e)" => "Marié(e)", "Divorcé(e)" => "Divorcé(e)", "Veuf(ve)" => "Veuf(ve)");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="createRepresentantForm"   role="form" class="form-horizontal">
+  <div class="col-md-12" style="text-align:left;" >   
+        <ul class="list-group">
+                <li class="list-group-item">  
+                    <div class="form-group">              
+                      <div class="col-md-3"> <label class="label" for="prenom"> <b> Nom & Prénom* : </b> </label> </div>
+                      <div class="col-md-9"> 
+		                 <div class="input-group">
+		                   <input type="text" name="nom"    id="nom"    class="form-control" value="<?php echo $data["nom"];   ?>" placeholder="Nom de famille" />
+                           <span class="input-group-btn" style="width:0px;"></span>
+			               <input type="text" name="prenom" id="prenom" class="form-control" value="<?php echo $data["prenom"];?>" placeholder="Prénom" />      
+                         </div>
+		              </div>                     
+                       <p id="name-validation-message" class="validation-message"></p>    
+                    </div> 
+                 </li>                  
+                 <li class="list-group-item">  
+                   <div class="form-group"> 
+                     <label class="col-md-3 control-label"> Adresse*: </label>
+                     <div   class="col-md-9"> <input type="text" name="adresse" id="adresse" class="form-control" value="<?php echo $data["adresse"]; ?>" placeholder="Adresse" /></div>       
+                   </div>    
+                 </li>
+                 <li class="list-group-item">  
+                    <div class="form-group"> 
+                       <label class="col-md-3 control-label"> Numéro de téléphone: </label>
+                       <div   class="col-md-9"> <input type="text" name="telephone" id="telephone" class="form-control" value="<?php echo $data["telephone"]; ?>" placeholder="Numéro de téléphone" /></div>       
+                    </div>
+                 </li>
+                 <li class="list-group-item">         
+                   <div class="form-group">    
+                    <label class="col-md-3 control-label"> Date & lieu de naissance*: </label>
+			        <div   class="col-md-9">
+			           <div class = "input-group">
+			              <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect("date_naissance_day"  , $data["date_naissance_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?></span>
+				          <span class="input-group-btn" style="width:0px;"></span>
+				          <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_month', $data["date_naissance_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?> </span>
+			              <span class="input-group-btn" style="width:0px;"></span>
+				          <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_year' , $data["date_naissance_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?></span>
+				          <span class="input-group-btn" style="width:0px;"></span>
+				          <input style="height:40px;" type="text" name="lieunaissance" id="lieunaissance" class="form-control" value="<?php echo $data["lieunaissance"]; ?>" placeholder="Lieu de naissance" />
+			          </div>
+			        </div>    
+                 </div>
+                </li>
+               <li class="list-group-item">         
+                <div class="form-group"> 
+                    <label class="col-md-3 control-label"> Sexe*: </label>
+                    <div   class="col-md-9 radio radio-primary"> 
+		                <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+                        <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>> Femme </label>
+		            </div>        
+                </div>
+               </li>
+           <li class="list-group-item">       
+	              <div class="form-group">          
+                    <label class="col-md-3 control-label"> Nationalité* : </label>
+                    <div   class="col-md-9"> <?php echo $this->formSelect("country", $data['country'], array("class" => "form-control chosen") , $this->countries());?> </div>
+                  </div>
+           </li>
+           <li class="list-group-item">       
+	            <div class="form-group"> 
+                   <label class="col-md-3 control-label"> Situation matrimoniale*: </label>
+                   <div   class="col-md-9"> <?php echo $this->formSelect("marital_status", $data["marital_status"], array("class" => "form-control"), $situations); ?> </div>        
+                </div>
+           </li>
+          <li class="list-group-item">       
+            <div class="form-group"> 
+              <label class="col-md-3 control-label"> N° passport ou N°CNIB*: </label>
+              <div   class="col-md-9"> <input type="text" name="passport" id="passport" class="form-control" value="<?php echo $data["passport"]; ?>" placeholder="Le numéro d'identité (CNIB ou PASSPORT)" /></div>        
+            </div>
+          </li>
+          <li class="list-group-item">       
+            <div class="form-group"> 
+              <label class="col-md-3 control-label"> Profession: </label>
+              <div   class="col-md-9"> <input type="text" name="profession" id="profession" class="form-control"  placeholder="La profession du gérant" value="<?php echo $data["profession"]; ?>" /></div>        
+            </div>
+          </li>
+          <li class="list-group-item">      
+              <div class="form-group"> 
+               <label class="col-md-3 control-label"> Adresse email: </label>
+               <div   class="col-md-9"> <input type="text" name="email" id="email" class="form-control" value="<?php echo $data["email"]; ?>" placeholder="Adresse email" /></div>       
+             </div>
+          </li>               
+    </ul>
+    </div>
+      
+  <?php 
+          if(!$this->isAjax) {
+          	  echo $buttonbar;
+          } else {
+          	  echo $this->jQuery();
+          	  echo $this->headScript();
+          	  echo $this->headStyle();
+          }
+      ?>
+      <input type="hidden" name="city"       id="city"  />
+</form>

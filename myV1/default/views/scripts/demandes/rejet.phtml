@@ -1,0 +1,102 @@
+<?php 
+$data            = $this->data;
+$demande         = $this->demande;
+$demandeid       = $this->demandeid;
+$jq              = $this->jQuery();
+$linkCancel      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"infos" ,"demandeid"=>$demandeid), "default");
+$formSubmit      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"reject","demandeid"=>$demandeid), "default");
+ 
+
+$onLoad          = "
+jQuery('input[type=\'checkbox\'].custom-checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+/*jQuery('input[name=\'statutid\']').click(function( event ){
+	if( jQuery(this).attr('value') == '5') {
+		jQuery('#RejetAbsoluMotif').show().removeClass('hide');
+	} else {
+		jQuery('#RejetAbsoluMotif').hide().addClass('hide');
+	} 
+});*/
+jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';});
+jQuery('#validateButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#rejectForm');
+      formSelector.submit();
+   });
+";
+
+$jq->addOnLoad($onLoad);
+
+$basePath        = ROOT_PATH.'/myTpl/public';
+
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> Veuillez préciser la/les cause(s) du rejet </h3>
+    <form method="post"  id="rejectForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data" action="<?php echo $formSubmit; ?>">  
+        <div class="form-group"> 
+		    <div   class="col-sm-12 col-md-12">
+				<div class="radio-inline">
+					<label>
+					   <input type="radio" name="statutid" id="statutid-3" class="custom-radio" <?php echo ($data["statutid"] == "3")? 'checked' : ''; ?> value="3"> 
+						Nom commercial Indisponible 
+					</label>
+				</div>
+				<div class="radio-inline">
+				    <label><input type="radio" name="statutid" id="statutid" class="custom-radio" <?php echo ($data["statutid"] == "5") ? 'checked' : ''; ?> value="5"> Nom commercial rejeté</label>
+				</div>                
+           </div>
+		</div>
+		<div id="RejetAbsoluMotif" class="form-group"> 
+			<label class="col-md-3 col-sm-3 control-label"> Pour des causes absolues de rejet suivantes : </label>
+			<div   class="col-md-9 col-sm-9">
+				<div class="checkbox">
+					<label><input type="checkbox" name="motifs[]" id="motifs1" class="custom-checkbox" value="DS, NC ou Sigle a un lien avec l’Etat "> DS, NC ou Sigle a un lien avec l’Etat </label>
+				</div>
+				<div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs2" class="custom-checkbox" value="DS, NC ou Sigle déjà attribué (e) à un organisme d’Etat"> DS, NC ou Sigle déjà attribué (e) à un organisme d’Etat </label>
+				</div>
+				<div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs3" class="custom-checkbox" value="DS, NC ou Sigle constitué (e) d’un terme ou d’une expression à caractère international"> DS, NC ou Sigle constitué (e) d’un terme ou d’une expression à caractère international </label>
+				</div> 
+				<div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs4" class="custom-checkbox" value="DS, NC ou Sigle évoque les signes ou symboles officiels ou sacrés du Burkina Faso "> DS, NC ou Sigle évoque les signes ou symboles officiels ou sacrés du Burkina Faso </label>
+				</div>
+				<div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs5" class="custom-checkbox" value="DS, NC ou Sigle identique à une DS ou NC déjà immatriculé (e) au RCCM"> DS, NC ou Sigle identique à une DS ou NC déjà immatriculé (e) au RCCM;  </label>
+				</div>
+                <div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs6" class="custom-checkbox" value="DS, NC ou Sigle présente de fortes similitudes à une DS ou NC déjà immatriculé (e) au RCCM"> DS, NC ou Sigle présente de fortes similitudes à une DS ou NC déjà immatriculé (e) au RCCM ;  </label>
+				</div>
+                <div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs7" class="custom-checkbox" value="DS, NC ou Sigle contraire à la sécurité intérieure et à l’intérêt public">DS, NC ou Sigle contraire à la sécurité intérieure et à l’intérêt public</label>
+				</div>
+                <div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs8" class="custom-checkbox" value="DS, NC ou Sigle contraire à l’ordre public ou aux bonnes mœurs "> DS, NC ou Sigle contraire à l’ordre public ou aux bonnes mœurs </label>
+				</div>
+                <div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs9" class="custom-checkbox" value="DS, NC ou Sigle à un caractère trompeur ">DS, NC ou Sigle à un caractère trompeur  </label>
+				</div>
+                <div class="checkbox">
+				    <label><input type="checkbox" name="motifs[]" id="motifs10"class="custom-checkbox" value="DS, NC ou Sigle constitué (e ) l’origine géographique des produits"> DS, NC ou Sigle constitué (e ) l’origine géographique des produits </label>
+				</div>				
+			</div>     
+		</div>
+    </form>
+	<?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Valider le rejet","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la demande","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+    
+	$buttonsbar->add($toolCancel ,"cancelButton");
+    $buttonsbar->add($toolCreate ,"validateButton");
+    
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+	
+	<input type="hidden" name="demandeid" id="demandeid" value="<?php echo $demandeid; ?>" />
+</div>

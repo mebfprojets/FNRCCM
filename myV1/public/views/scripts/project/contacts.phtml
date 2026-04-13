@@ -1,0 +1,146 @@
+<?php 
+$user       = $this->user;
+$data       = $this->data;
+$formSubmit = $this->url(array("controller"=>"project","action"=>"contacts","module"=>"public"),"default",true);
+$linkCancel = $this->url(array("controller"=>"index"  ,"action"=>"index", "module"=>"public")  ,"default",true);
+$basePath   = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery(); 
+$onLoad = " 
+jQuery('#cancelContactsButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';});  
+jQuery('#sendButton').click(function(e){
+    e.preventDefault();      
+    var formSelector = jQuery('#contactsForm');
+    var name         = jQuery.trim(formSelector.find('#name').val());
+	var message      = jQuery.trim(formSelector.find('#message').val());
+    var subject      = jQuery.trim(formSelector.find('#subject').val());
+    var email        = jQuery.trim(formSelector.find('#email').val());
+      
+    if( SIRAH.util.isEmpty(name)){
+        jQuery('#name').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+        SIRAH.error.raise('name-validation-message', 'Entrez votre nom et prénom');
+        return;
+    } else {
+        jQuery('#name').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+    }
+    if( SIRAH.util.isEmpty( subject )){
+        jQuery('#subject').addClass('input-error');
+        jQuery('#subject-validation-message').html('');
+        SIRAH.error.raise('subject-validation-message', 'Saisissez l\'objet de votre message');
+       return;
+    } else {
+           jQuery('#subject').removeClass('input-error');
+           jQuery('#subject-validation-message').html('');
+      }
+      if(  SIRAH.util.isEmpty( message )){
+           jQuery('#message').addClass('input-error');
+           jQuery('#message-validation-message').html('');
+           SIRAH.error.raise('message-validation-message', 'Veuillez saisir votre message');
+         return;
+      } else {
+           jQuery('#message').removeClass('input-error');
+           jQuery('#message-validation-message').html('');
+      }	  
+       if(  SIRAH.util.isEmpty( email )){
+           jQuery('#email').addClass('input-error');
+           jQuery('#email-validation-message').html('');
+           SIRAH.error.raise('subject-validation-message', 'Saisissez votre adresse email');
+         return;
+      } else {
+           jQuery('#email').removeClass('input-error');
+           jQuery('#email-validation-message').html('');
+      }
+      formSelector.submit();
+   }); ";
+$jq->addOnLoad( $onLoad );
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="contactsForm" role="form" class="form-horizontal">
+  <div class="panel panel-default">
+  <ul class="list-group">
+  <?php if(!$user->userid ):  ?>
+    <li class="list-group-item">
+		<div class="form-group">            
+			<label class="col-sm-3 control-label" for="name"> <b> Nom Complet*:</b> </label>
+			<div   class="col-sm-9 col-md-9"><input id="name" name="name" value="<?php echo $data['name']; ?>" type="text" maxlength="300" class="form-control" title="Votre nom et prénom" placeholder="Votre nom et prénom" /></div>
+			<p id="name-validation-message" class="validation-message"></p> 
+		</div>					
+	</li>   
+   <li class="list-group-item">
+		<div class="form-group">
+			<label class="col-sm-3 control-label" for="email"> <b>Adresse email*:</b> </label>
+			<div   class="col-sm-9 col-md-9"><input id="email" type="text" maxlength="200" class="form-control" title="Votre adresse email" placeholder="Votre adresse email"  name="email" value="<?php echo $data['email']; ?>"></div>              
+		</div>  
+		<p id="email-validation-message" class="validation-message"></p>   
+	</li>
+    <li class="list-group-item">
+		<div class="form-group">            
+			<label class="col-sm-3 control-label">  <b>Téléphone*:</b> </label> 
+			<div   class="col-sm-9 col-md-9"><input id="phone" name="phone" value="<?php echo $data['phone']; ?>" type="text" class="form-control" title="Numéro de téléphone" placeholder="Numéro de téléphone" /></div>
+			<p id="phone-validation-message" class="validation-message"></p> 
+		</div>					
+    </li>
+    <li class="list-group-item">
+		<div class="form-group">            
+			<label class="col-sm-3 control-label">  <b> Adresse:</b> </label> 
+			<div   class="col-sm-9 col-md-9"><input id="address" name="address" value="<?php echo $data['address']; ?>" type="text" maxlength="200" class="form-control" title="Votre adresse" placeholder="Adresse" /></div>
+		</div>					
+    </li>    
+   <?php else: ?>
+   <input type="hidden" name="name"         id="name"         value="<?php echo $data['name'];   ?>"       />
+   <input type="hidden" name="email"        id="email"        value="<?php echo $data['email'];  ?>"       />
+   <input type="hidden" name="phone"        id="phone"        value="<?php echo $data['phone'];  ?>"       />
+   <input type="hidden" name="address"      id="address"      value="<?php echo $data['address'];?>"       />
+   <?php endif; ?>
+    <li class="list-group-item">
+		<div class="form-group">            
+			<label class="col-sm-3 control-label"><b> Objet du message:</b> </label> 
+			<div   class="col-sm-9 col-md-9"><input id="subject" type="text" class="form-control" title="L'objet du message" placeholder="L'objet du message" name="subject" value="<?php echo $data['subject']; ?>"></div>
+			<p id="subject-validation-message" class="validation-message"></p> 
+		</div>					
+    </li>
+    <li class="list-group-item">
+		<div class="form-group">            
+			<label class="col-sm-3 control-label"><b> Votre message:</b> </label> 
+			<div   class="col-sm-9 col-md-9"><textarea name="message" id="message" class="form-control textarea-sm"><?php echo $data["message"]; ?></textarea></div>
+			<p id="message-validation-message" class="validation-message"></p> 
+		</div>					
+    </li>
+    <li class="list-group-item">
+        <div class="form-group">
+		    <div   class="col-sm-2  col-md-2"></div> 
+		    <div   class="col-sm-10 col-md-10"> 
+              <label class="checkbox"><?php echo $this->formCheckbox("send_copy",$data["send_copy"],null,array("1","0")); ?> Recevoir une copie de ce message dans mon adresse EMAIL</label>
+            </div>  
+        </div>  
+    </li>	
+ </ul>    
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolEdit   = $buttonsbar->button("Envoyer" , "send")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler", "chevron-left");
+   
+   $toolEdit->setAttributes(  array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add( $toolCancel, "cancelContactsButton");
+   $buttonsbar->add( $toolEdit  , "sendButton");
+   
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+</form>

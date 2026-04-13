@@ -1,0 +1,51 @@
+<?php 
+$linkSearch = $this->url(array( "controller" => "courseinstance" , "action" => "list"  , "calendarFormat" => "weekformat"), "default");
+$basePath   = VIEW_BASE_PATH;
+$jq         = $this->jQuery();
+
+$jq->addStyleSheet( $basePath . "/js/fullcalendar/fullcalendar.css" );
+$this->headScript()->prependFile( $basePath . "/js/moment.min.js");
+$jq->addJavascriptFile( $basePath . "/js/fullcalendar/fullcalendar.min.js" );
+$jq->addJavascriptFile( $basePath . "/js/fullcalendar/lang/all.js" );
+$jq->addJavascriptFile( $basePath . "/js/html2canvas-0.4.1/build/html2canvas.min.js" );
+$jq->addJavascriptFile( $basePath . "/js/jspdf/jspdf.js" );
+$jq->addJavascriptFile( $basePath . "/js/jspdf/jspdf.plugin.addimage.js" );
+
+$onLoad   = " 
+              jQuery('#close-advanced-searchform').click(function( event ){event.preventDefault(); jQuery('#advanced-searchform-wrapper').hide();});
+              jQuery('#show-advanced-searchform').click(function( event ){event.preventDefault();jQuery('#advanced-searchform-wrapper').show();});
+              jQuery('#schoolprogram').fullCalendar({
+                                                      header: {left: 'prev,next today',center: 'title',right: ''},
+                                                      defaultView: 'agendaWeek',
+                                                      lang : 'fr',
+                                                      editable: false,
+                                                      buttonText: {today: 'Aujourd\'hui',month: 'Mois',week:  'Semaines',day:   'Jours'},
+                                                      dayClick  : function( start, jsEvent, view) {jsEvent.preventDefault();},
+                                                      events    : function( start, end , timezone , callback ) {
+                                                                            var cohortid  = 0,courseid = 0, salleid   = 0;
+                                                                            var startMonth= start.format('MM');
+                                                                            var startYear = start.format('YYYY');
+                                                                            var startDay  = start.format('DD');
+                                                                            var endMonth  = end.format('MM');
+                                                                            var endYear   = end.format('YYYY');
+                                                                            var endDay    = end.format('DD');
+                                                                            var eventDate = startYear+'-'+startMonth+'-'+startDay;
+                                                                            var startDate = eventDate;
+                                                                            var endDate   = endYear+'-'+endMonth+'-'+endDay;
+                                                                            var startime  = start.unix();
+                                                                            var endtime   = end.unix();
+
+                                                                   jQuery.ajax({
+                                                                                 url      : '".$linkSearch."',
+                                                                                 dataType :'json',
+                                                                                 data     : {'year':endYear,'month':startMonth,'day': startDay,'startime': startime,
+                                                                                             'endtime':endtime,'startdate':startDate,'endate': endDate,'cohortid': cohortid,
+                                                                                             'courseid': courseid,'salleid'  : salleid,'calendarFormat': 'weekformat'},
+                                                                                 success : function( data ){callback(data.events);}
+                                                                                });
+                                                                 }
+                                                          }); ";
+$jq->addOnLoad($onLoad);            
+?>
+
+ <div class="row simplerow" id="schoolprogram" > </div>   

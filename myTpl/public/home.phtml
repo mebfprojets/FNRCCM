@@ -1,0 +1,152 @@
+<!DOCTYPE html> 
+<html lang ="en">
+<?php 
+    //On initialise les variables nécessaires
+    $layout                  = $this->layout();
+    $baseUrl                 = $this->baseUrl();
+    $tplPath                 = ROOT_PATH."/myTpl/public";     
+
+    $projectStats            = $this->stats;
+    $columns                 = $this->columns;
+	$layoutModules           = (!empty( $this->modules ))? $this->modules     : array();
+    $bodyClasses             = ( $this->bodyClasses     )? $this->bodyClasses : array();
+	$pageMainColumnClass     = "col-md-9 col-sm-9 col-xs-12";
+    
+    if(in_array("left",$columns) && in_array("right",$columns) && empty($bodyClasses)){
+    	$bodyClasses         = array();
+		$pageMainColumnClass = "col-md-6 col-sm-6 col-xs-12";
+    } elseif(in_array("left",$columns)    && empty($bodyClasses)){
+    	$bodyClasses[]       = "only-left";
+		$pageMainColumnClass = "col-md-9 col-sm-9 col-xs-12";
+    } elseif(in_array("right",$columns)   && empty($bodyClasses)){
+    	$bodyClasses[]       = "only-right";
+		$pageMainColumnClass = "col-md-9 col-sm-9 col-xs-12";
+    } elseif(in_array("content",$columns) && empty($bodyClasses)){
+    	$bodyClasses[]       = "only-content";
+		$pageMainColumnClass = "col-md-12 col-sm-12 col-xs-12";
+    }    
+    $showLeftColumn          = in_array("left"          , $columns);
+    $showRightColumn         = in_array("right"         , $columns);
+    $view                    = $layout->getView();
+    $message                 = $view->messages;
+	$defaultErrorMessage     = $this->errormessage();
+ 
+?>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title><?php echo $this->escape($this->title); ?></title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Favicons -->
+<style>
+    #searchQ{border-top-left-radius:0px;border-bottom-left-radius:0px;border-left:0px !important;height:46px !important}
+    .searchBeforeAddon{border-bottom-left-radius:12px;border-top-left-radius:12px;border-bottom-right-radius:0px;border-top-right-radius:0px;border-right:none;background-color:#FFF !important;box-shadow:none;}
+	.searchBeforeAddon{border-bottom-left-radius:16px;border-top-left-radius:16px;border-bottom-right-radius:0px;border-top-right-radius:0px;border-right:none;background-color:#FFF !important;box-shadow:none;}
+	.searchBtn,#searchBtn{border-bottom-right-radius:16px;border-top-right-radius:16px;border-bottom-left-radius:0px;border-top-left-radius:0px;border-right:none;}
+	
+	.homesearchbox-header{margin-bottom:10px !important}
+    #footersection{border-top:2px solid #b18c09 !important}
+    #newsection{background:linear-gradient(45deg, #eef7fb 25%, #E0EFFF 75%) !important}
+    .siraahub-card {border-radius:1rem}
+    .siraahub-card-title{line-height:16px;height:60px;display:block;text-align:justify;font-size:1rem;margin-bottom:2rem}
+    .main-header ul.main-nav li, .main-header ul.main-nav li a{overflow:inherit !important;}
+	.main-header ul.main-nav li, .main-header ul.main-nav li a{overflow:inherit !important;}
+	.stats-row-header{color:#FFF !important;margin-bottom:10px !important}
+	#statSection .section-hero {position:relative;font-weight:600;font-size:3em;color:#d0dee7;margin:0;line-height:1;padding-bottom:15px;text-align:center}
+	#statSection .section-body{font-size:1.5em;text-align:center;color:#d0dee7;padding-top:10px}
+	#statSection .section-hero:after {content:"";position:absolute;width:80px;height:4px;left:0;right:0;bottom:0;margin:auto;background-color:#f5c418;}
+	.statColumn{text-align:center !important}
+	.statBox{padding:15px !important}
+	#statSection .counter{font-size:2.5em;font-weight:bold;color:#FFF;margin:35px 0 0 0;padding-bottom:5px;position:relative;}
+	#statSection .counter:after {content:"";position:absolute;width:50px;height:3px;left:0;right:0;bottom:0;margin:auto;background-color:#f5c418;}
+	#statSection .counter-text{font-size:1em;padding-top:10px;margin-bottom:10px;}
+	#statSection{background-color:#146C53;padding:40px;color:#d0dee7;transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;border-top:2px solid #f5c418}
+	#statSectionFooter{text-align:center !important;}
+	#statSection .btn-warning{font-size:1em;font-weight:bold;background-color:#f5c418;border-color:#b18c09 !important;padding:5px 10px 5px 20px;height:44px}
+    .section{padding-top:15px;padding-bottom:15px}
+    img-responsive{width:100% !important;}
+   .support-img{width:100% !important;border:none !important;background:none !important;box-shadow:none !important}
+    #footersection{background:#8cbd4b url(/myTpl/public/images/bottom-bg.png) no-repeat !important;padding-top:20px!important}
+	h3.footer-header{margin-bottom:10px !important;}
+	div.main-footer ul li {list-style: none!important;margin-bottom: 5px !important;}
+	h3.footer-header {margin-bottom:10px !important;}
+    .title-hero{color: #006600 !important;}
+    .main-header ul.btn-nav {margin-bottom: 0;}
+    .main-header .main-nav.nav-alt li>ul, .sf-mega{background: #f7f7f7 !important;padding:10px !important}
+	.main-header .main-nav.nav-alt li>ul li{line-height:40px !important;height:40px !important;}
+    .main-header .main-nav.nav-alt li>ul li a{color:#111 !important;line-height:40px !important;height:40px !important;}
+    #loading {position:fixed;width:100%;height:100%;left:0;top:0;right:0;bottom:0;display:block;background:#fff;z-index:10000;}
+    #loading img {position:absolute;top:50%;left:50%;margin: -23px 0 0 -23px;}
+	.bootstrap-switch-info,.checkbox-info div[id^='uniform-'] span.checked,.radio-info div[id^='uniform-'] span.checked,.badge-info,.label-info,.btn-info,.hover-blue:hover,.hover-info:hover,.bg-blue{color:#fff;border-color:#0065ca;background:#0065ca;}
+	@media (max-width:600px) {	 
+       #contentWrapper,#helpsection .container{padding-right:15px !important; padding-left:15px !important}
+	   #maincontent>div.col-xs-12>img{margin-bottom:10px !important;}
+    }
+	@media (max-width:1050px) {#main-footer>.container{display:block !important;}}
+	#maincontent .section-hero{text-align:justify}
+</style>
+<?php echo $this->headMeta() ?>
+<link href="<?php echo $tplPath; ?>/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon">
+<link rel="apple-touch-icon-precomposed"  href="<?php echo $tplPath; ?>/images/icons/FAVICON.png">
+<?php
+	echo $this->headLink() ;
+	echo $this->headStyle(); 
+?>
+</head>
+<body class="<?php echo (!empty($bodyClasses)) ? " class=\"sr_page_body frontend-layout ".implode(' ',$bodyClasses)."\"" : "sr_page_body frontend-layout"; ?>">
+    <div id="headerSection" class="headerSection featured-area bg-green-gradient">
+        <!-- .main-header -->   
+		<div id="mainheader" class="main-header bg-green-gradient header-fixed wow fadeInDown" data-0="padding:15px 0;">
+			<div class="container clearfix"><?php echo $this->render("pagehead.phtml"); ?></div>
+		</div>
+		<!-- HOME SEARCH BOX -->
+		<?php echo $this->render("homesearch.phtml"); ?>
+	</div>
+	<!-- Section des documents officiels -->
+	<?php echo $this->render("modules/mod_documentypes/default.phtml")   ?>	
+	<!-- Composant principal -->
+	<?php if(!empty( $layout->content) || $showLeftColumn || $showRightColumn ): ?>
+	<div id="mainContentWrapper" class="small-padding mainContentWrapper">
+	    <div id="contentWrapper" class="container contentWrapper">
+		    <div class="row section-content">
+				<?php if($showLeftColumn): ?>
+				<div class="col-md-3 col-sm-3 col-xs-hidden modulesBlock" id="leftModulesBlock"> <?php echo $this->render("leftmodules.phtml");?> </div>				   
+				<?php endif;?>
+				<div class="<?php echo $pageMainColumnClass;?>" id="mainComponentWrapper">
+					<?php if(count($this->messages) || !empty($defaultErrorMessage)): ?>
+						<div class="container-fluid appMessages" id="appMessagesContainer"><?php printf("%s %s", $this->messages, $defaultErrorMessage); ?> </div>
+					<?php else: ?>
+						
+					<?php endif;?>					
+					<div class="pageContentContainer row maincontent wow bounceInLeft animated"  id="maincontent"> 
+					  <?php echo $layout->content ?> <br/> 
+					</div>
+				</div>
+				<?php if($showRightColumn): ?>
+				<div class="col-md-3 col-sm-3 col-xs-hidden modulesBlock" id="rightModulesBlock"><?php echo $this->render("rightmodules.phtml");?> </div>
+				<?php endif;?>
+			</div>		    
+		</div>
+	</div>
+	<?php endif;  ?>	
+	<!-- SERVICES PROPOSES -->
+	<div id="appFeatureSection" class="app-features-section small-padding section"><?php echo $this->render("appfeatures.phtml"); ?></div>
+	
+	<?php if( $projectStats ): ?>
+	<div id="statSection" class="app-stats-section section"><?php echo $this->render("stats.phtml"); ?></div>
+    <?php endif;?>
+	<!-- ASSISTANCE -->
+	<div id="helpsection" class="app-help-section section"><?php echo $this->render("support.phtml"); ?></div>
+
+	<!-- ACTUALITES -->
+	<div id="newsection" class="app-news-section small-padding section wow bounceInLeft animated "><?php echo $this->render("modules/mod_news/default.phtml")   ?>	</div>
+
+	<!-- .footer --> 
+    <div id="footersection" class="main-footer inverse section clearfix">
+	    <?php echo $this->render("mainfooter.phtml");?>
+		<?php echo $this->render("footer.phtml");?>	
+	</div>
+</body>
+<?php  echo $this->headScript();echo $this->jQuery();?>
+
+</html>

@@ -1,0 +1,110 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("controller" =>"index", "action" => "renamemorales", "module" => "admin"), "default" );
+$backList     = $this->url(array("controller" =>"registremoral", "action" => "list" , "module" => "admin"), "default" );
+$localites    = $this->localites;
+$annees       = $this->annees;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#importForm');
+      var  annee        = parseInt(jQuery.trim(formSelector.find('#annee').val()));
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty( annee )){
+          SIRAH.error.raise('importForm','Entrez une année valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('importForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Paramèters des données source</small></h3>
+    <form method="post"  id="importForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">  
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom du serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="dbsource_host" id="dbsource_host" class="form-control" placeholder="Nom du serveur" value="<?php echo $data["dbsource_host"]; ?>" /></div>        
+     </div>     
+    <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom d'utilisateur serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="dbsource_user" id="dbsource_user" class="form-control" placeholder="Nom d'utilisateur serveur" value="<?php echo $data["dbsource_user"]; ?>" /></div>        
+     </div>  
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Mot de passe du serveur* : </label>
+           <div   class="col-sm-6"> <input type="text" name="dbsource_password" id="dbsource_password" class="form-control" placeholder="Mot de passe du serveur" value="<?php echo $data["dbsource_password"]; ?>" /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom de la base de donnée* : </label>
+           <div   class="col-sm-6"> <input type="text" name="dbsource_name" id="dbsource_name" class="form-control" placeholder="Nom de la base de donnée" value="<?php echo $data["dbsource_name"]; ?>" /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Nom de la table* : </label>
+           <div   class="col-sm-6"> <input type="text" name="dbsource_tablename" id="dbsource_tablename" class="form-control" placeholder="Nom de la table" value="<?php echo $data["dbsource_tablename"]; ?>" /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source des documents* : </label>
+           <div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source des documents" value="<?php echo $data["srcpath"]; ?>" /></div>        
+     </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier destination des documents* : </label>
+           <div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Dossier destination des documents" value="<?php echo $data["destpath"]; ?>" /></div>        
+     </div>
+      
+      <h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Les paramètres des registres à extraire </small></h3>
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité concernée* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("localitekey", $data["localitekey"] , array("class"=>"form-control"), $localites); ?> </div>   
+       </div> 
+       
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> L'année concernée* : </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("annee", $data["annee"] , array("class"=>"form-control"), $annees); ?> </div>        
+       </div>
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Les pages à extraire: </label>
+           <div   class="col-sm-6"> <input type="text" name="extract_pages" id="extract_pages" class="form-control" placeholder="Pages à extraire pour le formulaire. Exemple:1,2,3" value="<?php echo $data["extract_pages"]; ?>" /></div>        
+       </div>                 
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Copier/Renommer les données","download")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

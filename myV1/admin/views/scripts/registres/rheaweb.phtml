@@ -1,0 +1,91 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" =>"registres", "action" => "rheaweb", "module" => "admin"), "default" );
+$backList      = $this->url(array("controller" =>"registrephysique", "action" => "list", "module" => "admin"), "default" );
+$localites     = $this->localites;
+$annees        = $this->annees;
+$maxNumByYears = $this->maxNumByYears;	
+$basePath      = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('input[name=\'check_documents\']').bootstrapSwitch();
+jQuery('input[name=\'extract_components\']').bootstrapSwitch();
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+$jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+$jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> ETAPE 1 <small> Paramètres de sélection des RCCM </small></h3>
+    <form method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+     <!--
+	 <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Type de registre* : </label>
+           <div   class="col-sm-6"> <?php //echo $this->formSelect("category", $data["category"], array("class"=>"form-control"), array("A" => "Personnes Physiques", "B" => "Personnes Morales", "M" => "Modifications")); ?> </div> 		   
+     </div>   -->  
+     <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localités concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("localites",$data["localites"], array(), $localites,""); ?> </div>   
+     </div>       
+     <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Années concernées* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formMultiCheckbox("checked_annees", $data["checked_annees"], array(), $annees, ""); ?> </div>   
+     </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier source* : </label>
+           <div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source des documents de rheaweb" value="<?php echo $data["srcpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier destination* : </label>
+           <div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Dossier de destination" value="<?php echo $data["destpath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Dossier ERCCM* : </label>
+           <div   class="col-sm-6"> <input type="text" name="storepath" id="storepath" class="form-control" placeholder="Dossier de destination" value="<?php echo $data["storepath"]; ?>" /></div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Extraire les composants*: </label>
+        <div   class="col-sm-8" style="height:32px;"><input type="checkbox" data-on-color="primary" name="extract_components" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["extract_components"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+    </div>
+    <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Contrôle de la qualité*: </label>
+           <div   class="col-sm-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+    </div>
+</form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Convertir et Copier les données de RHEAWEB","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

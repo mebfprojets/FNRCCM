@@ -1,0 +1,114 @@
+<?php 
+     $regions       = $this->regions;
+     $provinces     = $this->provinces;
+     $villes        = $this->villes;
+     
+     $modelRegion   = new Model_Region();
+     $modelProvince = new Model_Province();
+     $modelVille    = new Model_Ville();
+     $modelCommune  = new Model_Commune();
+     
+     $basePath      = $this->basePath; 
+
+     $jq            = $this->jQuery();
+     
+     $onLoad1        = " var regions = []; \n var provinces = []; \n var villes = []; \n var communes = []; \n";  
+     $onLoad2        = "";
+     $onLoad3        = "";
+     if( count(   $regions ) ) {
+     	 foreach( $regions  as $regionid => $regionLibelle ) {
+     	 	      $regionRows[]     = "{'label':'".addslashes( $regionLibelle )."' , 'value':'".addslashes( $regionid )."'}";
+     	 	      $regionProvinces  = $modelProvince->getList(array("regionid" => $regionid ));
+     	 	      if( count(   $regionProvinces ) ) {
+     	 	      	  $onLoad1       .= " provinces[".$regionid."]=[";
+     	 	      	  $provincesLabel = array();
+     	 	      	  foreach( $regionProvinces as $provinceRow ) {
+     	 	      	  	       $provinceid       = $provinceRow["provinceid"];
+     	 	      	  	       $provinceLibelle  = $provinceRow["libelle"];
+     	 	      	  	       
+     	 	      	  	       $provincesLabel[] =" {'label':'".stripslashes( $provinceLibelle )."','value':'".$provinceid."'}";
+     	 	      	  	       $provinceVilles   = $modelVille->getList( array("provinceid" => $provinceid ));
+     	 	      	  	       if( count(   $provinceVilles ) ) {
+     	 	      	  	       	   $onLoad2     .= "villes[".$provinceid."]=[]; villes[".$provinceid."]=[";
+     	 	      	  	       	   $villesLabel  = array();
+     	 	      	  	       	   foreach( $provinceVilles as $provinceVille )  {
+     	 	      	  	       	   	        $villeid      = $provinceVille["villeid"];
+     	 	      	  	       	   	        $villeLibelle = $provinceVille["libelle"];
+     	 	      	  	       	   	        
+     	 	      	  	       	   	        $villesLabel[]=" {'label':'".stripslashes( $villeLibelle )."','value':'".$villeid."'}";
+     	 	      	  	       	   	        
+     	 	      	  	       	   	        $villeCommunes= $modelCommune->getList(array("villeid" => $villeid ));
+     	 	      	  	       	   	        if( count( $villeCommunes )) {
+     	 	      	  	       	   	        	$onLoad3      .= " communes[".$villeid."]=[";
+     	 	      	  	       	   	        	$communesLabel = array();
+     	 	      	  	       	   	        	foreach( $villeCommunes as $villeCommune  ) {
+     	 	      	  	       	   	        		     $communeid      = $villeCommune["communeid"];
+     	 	      	  	       	   	        		     $communeLibelle = $villeCommune["libelle"];
+     	 	      	  	       	   	        		     
+     	 	      	  	       	   	        		     $communesLabel[]=" {'label':'".stripslashes( $communeLibelle )."','value':'".$communeid."'}";
+     	 	      	  	       	   	        	}
+     	 	      	  	       	   	        	$onLoad3     .= implode(",", $communesLabel );
+     	 	      	  	       	   	        	$onLoad3     .="];\n";
+     	 	      	  	       	   	        }
+     	 	      	  	       	   }
+     	 	      	  	       	   $onLoad2     .= implode(",", $villesLabel);
+     	 	      	  	       	   $onLoad2     .="];\n";
+     	 	      	  	       }     	 	      	  	       	   
+     	 	      	  	 }
+     	 	      	  	 $onLoad1   .= implode(",", $provincesLabel);
+     	 	      	  	 $onLoad1   .="];\n";
+     	 	      	  }     	 	      	 
+     	 	      }
+
+     }     
+     $onLoad      = $onLoad1 . $onLoad2 . $onLoad3;     
+     $onLoad     .= "
+                     jQuery('#localisation_provinceid').dynamicSelect();
+                     jQuery('#localisation_villeid').dynamicSelect();
+                     jQuery('#localisation_communeid').dynamicSelect();
+                     jQuery('#localisation_regionid').trigger('change');
+                     
+                     jQuery('#localisation_regionid').change(function( event ){
+                            event.preventDefault();
+                            var regionid        = jQuery(this).val();
+                            var regionProvinces = provinces[regionid];
+                            if( jQuery.isArray( regionProvinces) ) {
+                                jQuery('#localisation_provinceid').dynamicSelect('update', regionProvinces );
+                                var firstProvinceid = regionProvinces[0].value;
+                                jQuery('#localisation_provinceid').val( firstProvinceid );
+                                jQuery('#localisation_provinceid').trigger('change');
+                            } else {
+                                jQuery('#localisation_provinceid').dynamicSelect('update', [{'label' : 'Aucune Province', 'value':'0'}] );
+                                jQuery('#localisation_villeid').dynamicSelect('update', [{'label' : 'Aucune Ville', 'value':'0'}] );
+                                jQuery('#localisation_communeid').dynamicSelect('update', [{'label' : 'Aucune Commune', 'value':'0'}] );
+                            }                           
+                     });                     
+                     jQuery('#localisation_provinceid').change(function( event ){
+                            event.preventDefault();
+                            var provinceid      = jQuery(this).val();
+                            var provinceVilles  = villes[provinceid];
+                            if( jQuery.isArray( provinceVilles ) ) {
+                                jQuery('#localisation_villeid').dynamicSelect('update', provinceVilles );
+                                var firstVilleid    = provinceVilles[0].value;
+                                jQuery('#localisation_villeid').val( firstVilleid );
+                                jQuery('#localisation_villeid').trigger('change');
+                            } else {
+                                jQuery('#localisation_villeid').dynamicSelect('update', [{'label' : 'Aucune Ville', 'value':'0'}] );
+                                jQuery('#localisation_communeid').dynamicSelect('update', [{'label' : 'Aucune Commune', 'value':'0'}] );
+                            }
+                            
+                     });
+                     jQuery('#localisation_villeid').change(function( event ){
+                            event.preventDefault();
+                            var villeid         = jQuery(this).val();
+                            var villeCommunes   = communes[villeid];
+                             if( jQuery.isArray( villeCommunes ) ) {
+		                        jQuery('#localisation_communeid').dynamicSelect('update', villeCommunes );
+		                         var firstCommuneid  = villeCommunes[0].value;
+                                 jQuery('#localisation_communeid').val( firstCommuneid );
+		                    } else {
+		                         jQuery('#localisation_communeid').dynamicSelect('update', [{'label' : 'Aucune Commune', 'value':'0'}] );
+		                    }
+                     }); ";
+     
+     $jq->addOnLoad( $onLoad );

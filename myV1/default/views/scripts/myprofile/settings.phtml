@@ -1,0 +1,97 @@
+<?php 
+$profileid   = $this->profileid;
+$params      = $this->params;
+$typeOfUsers = array( 0  => "Personne" , 
+  		              1  => "Tout le monde", 
+  		              2  => "Uniquement mes collaborateurs et recruteurs" , 
+  		              3  => "Uniquement les recruteurs et formateurs",
+  		              4  => "Uniquement ceux qui possèdent un compte");
+$formSubmit  =  $this->url(array("controller" => "myprofile", "action" => "settings") , "default");
+$jq          = $this->jQuery();
+$onLoad      = "jQuery('select').chosen({disable_search_threshold :10,allow_single_deselect:true,width:'95%'});";
+$jq->addOnLoad( $onLoad );
+?>
+<form action="<?php echo $formSubmit; ?>" method="post"  id="saveConfidentialityParams-form" role="form" >
+ <ul class="list-group">
+       <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_infos"> <b> Qui peut voir mes infos personnelles ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_infos", $params["view_profile_infos"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>   
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_coordonnees"> <b> Qui peut voir mes coordonnées ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_coordonnees", $params["view_profile_coordonnees"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li> 
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_experiences"> <b> Qui peut accéder à mes expériences ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_experiences", $params["view_profile_experiences"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_formations"> <b> Qui peut accéder à mes formations ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_formations", $params["view_profile_formations"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_cv"> <b> Qui peut accéder à ma cvthèque ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_cv", $params["view_profile_cv"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_contacts"> <b> Qui peut accéder à mes contacts ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_contacts", $params["view_profile_contacts"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="view_profile_content"> <b> Qui peut accéder au contenu que je partage ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("view_profile_content" , $params["view_profile_content"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="findme_from_email"> <b> Qui peut me retrouver par mon adresse email ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("findme_from_email" , $params["findme_from_email"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="findme_from_name"> <b> Qui peut me retrouver par mon nom ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("findme_from_name" , $params["findme_from_name"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="findme_from_phone"> <b> Qui peut me retrouver par mon téléphone ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("findme_from_phone" , $params["findme_from_phone"] , array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> <label class="label" for="findme_from_tags"> <b> Qui peut me retrouver par des mots clés ?: </b> </label> </div>
+            <div class="col-md-6"> <?php echo $this->formSelect("findme_from_tags" , $params["findme_from_tags"], array() , $typeOfUsers ); ?></div>    
+          </div>
+        </li>
+        <li class="list-group-item">
+          <div class="row"> 
+             <div class="col-md-6"> 
+                <label class="checkbox">
+                  <?php echo $this->formCheckBox("allow_robots_index", $params["allow_robots_index"], null ,array("1", "0")); ?> Autoriser les moteurs de recherche à indexer mon profil
+                 </label>
+              </div>
+             <div class="col-md-6">&nbsp;</div>    
+          </div>
+       </li>             
+    </ul>
+    <input type="hidden" name="<?php echo $this->csrfTokenId; ?>"  id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />
+  </form>
+  <?php if($this->isAjax) : ?>
+  <?php echo $this->jQuery(); echo $this->headStyle(); ?>
+  <?php endif; ?>   

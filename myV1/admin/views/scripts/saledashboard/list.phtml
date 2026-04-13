@@ -1,0 +1,143 @@
+<?php
+   $me                       = Sirah_Fabric::getUser();    
+   $allowedPanels            = 0;         
+       
+   $commandeTotal            = $this->commandeTotal;
+   $paiementTotal            = $this->paiementTotal;
+   $totalMembers             = $this->totalMembers;
+ 
+   $paiementByStatut         = $this->paiementBilanStatut;
+   $commandeByStatut         = $this->commandeBilanStatut;
+   
+   $paiementByProductype     = $this->paiementBilanProductype;
+   $commandeByProductype     = $this->commandeBilanProductype;
+   
+   $paiementByAnnee          = $this->paiementBilanAnnuel;
+   $commandeBilanAnnuel      = $this->commandeBilanAnnuel;
+   
+   $montantTotalCommande     = (isset($commandeTotal->valTotal) && floatval($commandeTotal->valTotal))?number_format($commandeTotal->valTotal,0," "," ") : 0;
+   $montantTotalPaiement     = (isset($paiementTotal->valTotal) && floatval($paiementTotal->valTotal))?number_format($paiementTotal->valTotal,0," "," ") : 0;
+ 
+   $nombreTotalCommande      = (isset($commandeTotal->nbreTotal) && floatval($commandeTotal->nbreTotal))?number_format($commandeTotal->nbreTotal,0," "," ") : 0;
+   $nombreTotalPaiement      = (isset($paiementTotal->nbreTotal) && floatval($paiementTotal->nbreTotal))?number_format($paiementTotal->nbreTotal,0," "," ") : 0;
+ 
+   $models                   = $this->models;
+   $linkMembers              = $this->url(array("module"=>"admin","controller"=>"members"  ,"action"=> "list"), "default",true);
+   $linkCommandes            = $this->url(array("module"=>"admin","controller"=>"commandes","action"=> "list"), "default",true);
+   $linkPaiements            = $this->url(array("module"=>"admin","controller"=>"paiements","action"=> "list"), "default",true);
+   $linkProductCategories    = $this->url(array("module"=>"admin","controller"=>"productcategories","action"=> "list"), "default",true);
+   $linkProducts             = $this->url(array("module"=>"admin","controller"=>"products" ,"action"=> "list"), "default",true);
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<div class="row">
+    <div class="col-md-4 col-lg-4">
+       <div class="tile-box bg-red">
+            <div class="tile-header"> Comptes Clients</div>
+            <div class="tile-content-wrapper"> 
+               <div class="tile-content"> <?php echo $totalMembers; ?> <span> abonnés</span> </div> 
+               <small> <?php echo (intval($totalMembers))?number_format($totalMembers,0," "," ") : $totalMembers; ?> comptes créés sur la plateforme</small>
+            </div>
+            <div class="tile-footer"> <a style="color:#FFF !important" href="<?php echo $linkMembers; ?>"> Consulter <i class="glyph-icon icon-arrow-right"></i> </a></div>
+       </div>    
+    </div>    
+    <div class="col-md-4 col-lg-4">
+        <div class="tile-box bg-green">
+            <div class="tile-header"> Commandes </div>
+            <div class="tile-content-wrapper"> 
+               <div class="tile-content"><?php echo $montantTotalCommande; ?> F CFA  <span> </span></span> </div> 
+               <small> <?php echo $nombreTotalCommande; ?> commandes ont été créées</small>
+            </div>
+            <div class="tile-footer"> <a style="color:#FFF !important" href="<?php echo $linkCommandes; ?>"> Accéder à la liste <i class="glyph-icon icon-arrow-right"></i> </a></div>
+        </div>    
+    </div>    
+    <div class="col-md-4 col-lg-4">
+        <div class="tile-box bg-blue">
+            <div class="tile-header"> Paiements </div>
+            <div class="tile-content-wrapper"> 
+               <div class="tile-content"><?php echo $montantTotalPaiement; ?> F CFA  <span> </span></span> </div> 
+               <small> <?php echo $nombreTotalPaiement; ?> paiements ont été enregistrés</small>
+            </div>
+            <div class="tile-footer"> <a style="color:#FFF !important" href="<?php echo $linkPaiements; ?>"> Accéder à la liste <i class="glyph-icon icon-arrow-right"></i> </a></div>
+        </div>    
+    </div>
+</div>
+<div   class="row">
+<?php if( $me->isAllowed("members","list")): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:64px;" class="glyph-icon icon-users font-black"> </i>  </div>
+                 <div class="panel-content bg-black"> <h3> <a style="color:white;" href="<?php echo $linkMembers; ?>"> Gestion des clients</a>  </h3> </div>
+             </div>        
+          </div>      
+      </div>
+   <?php $allowedPanels++; endif; ?>  
+   <?php if( $me->isAllowed("commandes","list")): ?>
+        <div class="col-md-3"> 
+            <div  class="panel-layout dashboardPanel">
+              <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-briefcase font-blue"> </i>  </div>
+                 <div class="panel-content bg-blue-alt"> <h3> <a style="color:white;" href="<?php echo $linkCommandes;?>"> Gestion des commandes</a>  </h3> </div>
+             </div>         
+            </div>      
+        </div>
+   <?php $allowedPanels++; endif; ?>  
+   <?php if( $me->isAllowed("paiements", "list")): ?>
+        <div class="col-md-3"> 
+			<div  class="panel-layout dashboardPanel">
+				<div class="panel-box col-xs-12">
+					 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-credit-card font-green"> </i>  </div>
+					 <div class="panel-content bg-green"> <h3> <a style="color:white;" href="<?php echo $linkPaiements; ?>"> Gestion des paiements</a> </h3> </div>
+				</div>          
+			</div>      
+        </div>
+    <?php $allowedPanels++; endif; ?>
+    <?php if( $me->isAllowed("productcategories", "list")): ?>
+       <div class="col-md-3"> 
+			<div  class="panel-layout dashboardPanel">
+				<div class="panel-box col-xs-12">
+					<div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-table font-red"> </i>  </div>
+					<div class="panel-content bg-red"> <h3> <a style="color:white;" href="<?php echo $linkProductCategories; ?>"> Types de produits</a> </h3> </div>
+				</div>          
+			</div>      
+      </div>
+    <?php $allowedPanels++; endif; ?> 
+    <?php if( $me->isAllowed("products", "list") && ($allowedPanels <= 4)): ?>
+      <div class="col-md-3"> 
+          <div  class="panel-layout dashboardPanel">
+             <div class="panel-box col-xs-12">
+                 <div class="panel-content bg-white"> <i style="font-size:65px;" class="glyph-icon icon-cube font-azure"> </i>  </div>
+                 <div class="panel-content bg-azure"> <h3> <a style="color:white;" href="<?php echo $linkProducts; ?>"> Gestion des produits </a> </h3> </div>
+             </div>          
+          </div>      
+      </div>
+    <?php $allowedPanels++; endif; ?>
+</div>
+
+<div  class="row">   
+	<div class="col-md-6">
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		   <h3  class="content-box-header">  Bilan des paiements par statut </h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("saledashboard/paiements/statuts.phtml" , array("rows" => $paiementByStatut)); ?></div>
+		</div> 
+        <div class="content-box border-top border-blue mrg25B dashboardPanel">
+			<h3  class="content-box-header">  Bilan des paiements par type de produit</h3>
+			<div class="content-box-wrapper"> <?php echo $this->partial("saledashboard/paiements/productypes.phtml", array("rows"=>$paiementByProductype)); ?> </div>
+		</div>		
+	</div>    
+	<div class="col-md-6"> 
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		   <h3  class="content-box-header">  Bilan des commandes par statut </h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("saledashboard/commandes/statuts.phtml" , array("rows" => $commandeByStatut)); ?></div>
+		</div> 
+        <div class="content-box border-top border-blue mrg25B dashboardPanel">
+			<h3  class="content-box-header">  Bilan des commandes par type de produit</h3>
+			<div class="content-box-wrapper"> <?php echo $this->partial("saledashboard/commandes/productypes.phtml", array("rows"=>$commandeByProductype)); ?> </div>
+		</div>		
+	</div>                 
+</div>
+

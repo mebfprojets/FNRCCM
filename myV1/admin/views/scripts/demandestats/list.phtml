@@ -1,0 +1,164 @@
+<?php
+   $me               = Sirah_Fabric::getUser();
+   $basePath         = VIEW_BASE_PATH;
+ 
+   $statStatuts      = $this->statstatuts;
+   $statyears        = $this->statyears;
+   $statlocalites    = $this->statlocalites;
+   $userstats        = $this->userstats;
+   $statsexes        = $this->statsexes;
+   $statypes         = $this->statypes;
+   $statnationalites = $this->statnationalites;
+   $nbreTotal        = $this->total;
+ 
+   $annees           = $this->annees;
+   $localites        = $this->localites;
+   $localitesList    = $this->localitesList;
+   $statages         = $this->statages; 
+   $filters          = $this->filters;
+   $params           = $this->params;   
+   
+   $jq               = $this->jQuery();
+   $linkSearch       = $formSubmit = $this->url(array("module"=>"admin","controller"=>"demandestats","action"=>"list"), "default",true);
+   $linkExportPDF    =               $this->url(array("module"=>"admin","controller"=>"demandestats","action"=>"exportpdf"), "default",true);
+   
+   $onLoad           = "
+        jQuery('#exportStatsBtn,.exportStatsBtn').click(function(event){event.preventDefault();document.location.href='".$linkExportPDF."/layoutype/all';});
+        jQuery('.exportglobalstatspdfBtn,#exportglobalstatspdfBtn').click(function(event){event.preventDefault();document.location.href='".$linkExportPDF."/layoutype/globalstats';});
+        jQuery('.exportrancheagepdfBtn,#exportrancheagepdfBtn').click(function(event){event.preventDefault();document.location.href='".$linkExportPDF."/layoutype/trancheage';});
+		jQuery('.exportregionstatspdfBtn,#exportregionstatspdfBtn').click(function(event){event.preventDefault();document.location.href='".$linkExportPDF."/layoutype/regionstats';});
+		var getSelectedLocalites = function(formSelector=null) {
+			if( null===formSelector ) {
+				  formSelector = jQuery('#filterStatsForm');
+			}
+			var selectedLocalites = [];
+			if( jQuery('#localiteids :selected').length > 0){			   
+				jQuery('#localiteids :selected').each(function(i, selected) {
+						  selectedLocalites[i] = jQuery(selected).val();
+				});
+			}
+			return selectedLocalites;
+		};
+		jQuery('#resetStatsBtn,.resetStatsBtn').click(function(event){event.preventDefault();jQuery('#filterStatsForm')[0].reset();});
+		jQuery('#filterStatsBtn,.filterStatsBtn').click(function(event){
+			event.preventDefault();
+			var formSelector = jQuery('#filterStatsForm') ;
+			formSelector.attr('action','".$formSubmit."');
+			formSelector.submit();
+		});
+        jQuery('#exportStatsBtn,.exportStatsBtn').click(function(event){
+			event.preventDefault();
+			var formSelector = jQuery('#filterStatsForm') ;
+			formSelector.attr('action','".$linkExportPDF."/layoutformat/pdf');
+			formSelector.submit();
+		});
+		jQuery('#localiteids').multiselect({
+			enableFiltering:true,enableCaseInsensitiveFiltering:true,filterPlaceholder:'Rechercher une localité..',
+			includeSelectAllOption:true,nonSelectedText:'Veuillez selectionner une localité...',
+			selectAllText:'Tout Sélectionner',selectAllNumber:false,selectAllValue:0,selectAllName:'checkAll',
+			nSelectedText:' - Localités sélectionnés',maxHeight:350,buttonWidth:'100%',
+			checkboxName:function(option) {return 'localiteids[]';},
+			onDropdownShow:function(event){jQuery('input[type=\'checkbox\']').addClass('icheckbox_minimal-blue');}
+ 
+		}); ";
+   $jq->addOnLoad($onLoad);  
+   $jq->addJavascriptFile( VIEW_BASE_PATH ."/js/jquery.dynamic-select.min.js");
+   $supinaThemePath  = ROOT_PATH ."/myTpl/rccm/assets-minified/";
+   $jq->addStyleSheet(     $supinaThemePath ."widgets/multiselect/multiselect.css");
+   $jq->addJavascriptFile( $supinaThemePath ."widgets/multiselect/multiselect.js");
+   $jq->addJavascriptFile( $supinaThemePath .'widgets/multiselect/ajaxchosen.min.js');
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+<div id="filterStats" class="row">  
+    <div class="col-md-12">
+	    <div class="content-box border-top border-purple mrg25B dashboardPanel">
+		    <h3  class="content-box-header"> Filtrer les données des tableaux ci-dessous </h3>
+			<div  class="content-box-wrapper">
+			    <form method="post" role="form" class="form-horizontal filterStatsForm" id="filterStatsForm" action="<?php echo $formSubmit; ?>">
+                    <ul class="list-group">
+					    <li class="list-group-item"> 
+							<div class="form-group">
+							   <label class="col-sm-2  col-md-2 control-label"><b>Juridictions:</b> </label> 
+							   <div   class="col-sm-10 col-md-10"><?php echo $this->formSelect("localiteids[]", $this->checkedLocalites, array("multiple" => "multiple", "style" => "height:100px !important;","class"=>"form-control"),$localitesList);?>  </div> 
+							   				   					    
+							</div> 			   
+						</li>
+                        <li class="list-group-item">
+							<div class="form-group"> 
+								  <label class="col-sm-2 col-md-2 control-label">  <b> Période initiale:</b> </label> 
+								  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodstart_day"  ,intval($params["periodstart_day"])  , array("class"=> "form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+								  <div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodstart_month",intval($params["periodstart_month"]), array("class"=> "form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+								  <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periodstart_year" ,intval($params["periodstart_year"]) , array("class"=> "form-control chosen"),array("0000"=> "Année")+createYearsArray(1970, (date("Y")+2) ));?></div>
+							 </div>
+						</li>
+						<li class="list-group-item">
+							 <div class="form-group"> 
+								<label class="col-sm-2 col-md-2 control-label">  <b> Période finale:</b> </label> 
+								<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodend_day"  ,intval($params["periodend_day"])  , array("class"=>"form-control chosen"),array("00"  =>"Jour")+createDatesArray());?></div>
+								<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periodend_month",intval($params["periodend_month"]), array("class"=>"form-control chosen"),array("00"  =>"Mois")+$this->months()); ?></div>
+								<div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("periodend_year" ,intval($params["periodend_year"]) , array("class"=>"form-control chosen"),array("0000"=> "Année")+createYearsArray(1970, (date("Y")+2) ));?></div>
+							 </div>
+						</li>
+						<li class="list-group-item"> 
+							<div class="form-group">
+							    <label class="col-sm-2 col-md-2 control-label">  <b> Demande en ligne: </b> </label> 
+								<div   class="col-sm-4 col-md-4"> 
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-1" value="1" <?php if($params["web"]=="1") echo "checked"; ?>> Oui </label>          
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-0" value="0" <?php if($params["web"]=="0") echo "checked"; ?>> Non </label>
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="web" id="web-4" value="4" <?php if($params["web"]=="4") echo "checked"; ?>> Peu Importe </label>
+								</div>
+								<label class="col-sm-2 col-md-2 control-label">  <b>Personne Physique: </b> </label> 
+								<div   class="col-sm-4 col-md-4"> 
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="personne_physique" id="personne_physique-1" value="1" <?php if($params["personne_physique"]=="1") echo "checked"; ?>> Oui </label>          
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="personne_physique" id="personne_physique-2" value="2" <?php if($params["personne_physique"]=="2") echo "checked"; ?>> Personne Morale</label>
+									<label class="radio-inline"><input class="custom-radio" type="radio" name="personne_physique" id="personne_physique-4" value="4" <?php if($params["personne_physique"]=="4") echo "checked"; ?>> Peu Importe </label>
+								</div> 
+							</div> 			   
+						</li>
+                    </ul>					
+                </form>				
+			</div>
+			<div class="button-pane">
+				<a id="filterStatsBtn" href="#" class="btn btn-link btn-primary hover-white filterStatsBtn"><i class="glyph-icon icon-search"> </i> Rechercher    </a>
+				<a id="exportStatsBtn" href="#" class="btn btn-link btn-success hover-white exportStatsBtn"><i class="glyph-icon icon-file-pdf-o"> </i> Exporter      </a>
+				<a id="resetStatsBtn"  href="#" class="btn btn-link btn-danger  hover-white resetStatsBtn"> <i class="glyph-icon icon-refresh"></i> Réinitialiser </a>
+			</div>
+	    </div>
+	</div>
+</div>
+<div  class="row">   
+	<div class="col-md-7">
+	    <div class="content-box border-top border-green mrg25B dashboardPanel">
+			 <h3 class="content-box-header"> Nombre de demandes par GREFFIER</h3>
+		   <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-greffiers.phtml", array("rows"=>$userstats,"params"=>$params,"params"=>$params)); ?> </div>
+		</div>
+	    	
+	</div>
+     
+	<div class="col-md-5"> 
+        <div class="content-box border-top border-blue mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Nombre de demandes par statut </h3>
+		    <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-statuts.phtml" , array("rows" =>$statStatuts,"params"=>$params,"params"=>$params)); ?></div>
+		</div>	
+		<div class="content-box border-top border-red mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Nombre de demandes par année </h3>
+		    <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-years.phtml", array("rows" => $statyears,"params"=>$params,"params"=>$params)); ?> </div>
+		</div>
+		<div class="content-box border-top border-yellow mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Nombre de demandes par localité </h3>
+		    <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/stats-localites.phtml", array("rows"=>$statlocalites,"params"=>$params,"params"=>$params)); ?></div>
+		</div> 
+		       		
+	</div>                 
+</div>
+<div  class="row"> 
+	<div class="col-md-12"> 
+		<div class="content-box border-top border-blue mrg25B dashboardPanel">
+		    <h3 class="content-box-header"> Statistiques globales des demandes par localité et par année </h3>
+		    <div class="content-box-wrapper"> <?php echo $this->partial("demandestats/statglobal.phtml", array("annees"=> $annees,"localites"=>$localites,"params"=>$params,"params"=>$params)); ?> </div>
+		</div>
+	</div>
+</div>

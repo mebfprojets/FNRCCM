@@ -1,0 +1,61 @@
+<?php 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" =>"registres", "action" => "findmissings", "module" => "admin"), "default" );
+$backList      = $this->url(array("controller" =>"registres", "action" => "missings"    , "module" => "admin"), "default" );
+$localites     = $this->localites;
+$annees        = $this->annees;
+$basePath      = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#validationButton').click(function(e){e.preventDefault();var formSelector = jQuery('#validationForm');formSelector.submit();}); ";
+
+$jq->addOnLoad($onLoad);
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">  Paramètres de sélection des RCCM </small></h3>
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="validationForm" class="form-horizontal mrg15T row" role="form">   	       
+     <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Année* : </label>
+           <div   class="col-sm-9"> <?php echo $this->formSelect("annee", $data["annee"], array("class"=>"form-control chosen"), $this->annees); ?> </div>           
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-3 control-label"> Localité concernée* : </label>
+        <div  class="col-sm-9"> <?php echo $this->formSelect("localite", $data["localite"] , array("class"=>"form-control"), $this->localites); ?> </div>   
+    </div>
+	<div class="form-group"> 
+           <label class="col-sm-3 control-label"> Limiter la recherche à : </label>
+           <div   class="col-sm-6"> <input type="text" name="maxres" id="maxres" class="form-control" placeholder="Limiter les résultats de RHEAWEB à....." value="<?php echo $data["maxres"]; ?>" /></div>        
+    </div> 
+</form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Rechercher dans RHEAWEB","check")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"validationButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

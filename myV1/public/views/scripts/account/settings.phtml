@@ -1,0 +1,41 @@
+<?php 
+$me          = $this->user;
+$params      = $this->params;
+$roles       = $this->roles;
+$pwdtoken    = $this->pwdtoken;
+
+$linkEdit    = $this->url(array("module"=>"public","controller"=>"account","action"=>"edit","module"=>"public"),"default",true);
+$jq          = $this->jQuery();
+
+$jq->addOnLoad("jQuery('.editInfos').click(function( event ){event.preventDefault(); document.location.href = '".$linkEdit."'; });");
+?>
+<div class="panel panel-default">
+    <ul class="list-group">
+	    <li class="list-group-item"> 
+		    <div class="row">
+			    <div class="col-md-4"> <b> Nom de famille: </b></div>
+			    <div class="col-md-8"> <?php echo $me->lastname; ?> </div>
+		    </div>  
+	    </li>
+	    <li class="list-group-item"> 
+		    <div class="row">
+			    <div class="col-md-4"><b> Prénom : </b></div>
+			    <div class="col-md-8"> <?php echo $me->firstname; ?> </div>
+		    </div>  
+	    </li>
+	   <li class="list-group-item"> 
+		  <div class="row">
+			  <div class="col-md-4"><b> E-mail :</b> </div>
+			  <div class="col-md-8"> <?php echo $me->email; ?> </div>
+		   </div>  
+	    </li>
+	    <li class="list-group-item"> 
+		  <div class="row">
+			  <div class="col-md-4"> <b> Téléphone:</b> </div>
+			  <div class="col-md-8"> <?php printf("%s / %s", $me->phone1, $me->phone2); ?> </div>
+		   </div>  
+	    </li>
+   
+    </ul>
+    <div class="panel-footer"><div class="controls"><button type="submit" class="btn btn-success glyph-icon icon-edit editInfos"> Mettre à jour</button></div></div>
+</div>

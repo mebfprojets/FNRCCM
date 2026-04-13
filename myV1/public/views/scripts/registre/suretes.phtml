@@ -1,0 +1,43 @@
+<?php 
+   $suretes = $this->suretes;  
+   $output  = "<ul class=\"list-group suretesList\">";
+     if( count( $suretes ) ){
+     	$output .="<li id=\"sureteId-0\" class=\"list-group-item\">
+		             <div class=\"row\">					                           
+                         <div class=\"col-md-4\"> Numéros </div>
+                         <div class=\"col-md-4\"> Types   </div>
+                         <div class=\"col-md-4\"> *       </div>  						 
+                    </div> 
+				   </li>";
+		$i      = 0;
+     	foreach( $suretes as $surete ) {
+     		     $sureteid   = $surete["registreid"];
+     		     $sureteType = $surete["type"];
+				 $sureteNum  = $surete["numero"];
+                 $zendDate   = ( intval($surete["date"])) ? new Zend_Date($surete["date"], Zend_Date::TIMESTAMP) : null;
+                 $date       = ( $zendDate ) ?	 $zendDate->toString("dd MMMM Y") : null;			 
+     		     $linkView   = $this->url(array("controller" => "registresuretes","action" => "infos","registreid" => $sureteid, "module" => "admin"), "default");
+     		     
+     		     $output .="<li id=\"sureteId-".$i."\" class=\"list-group-item\">
+				             <div class=\"row\">
+     		                    <div class=\"col-md-4\"> <a title=\"Voir les informations de cette sûrété \" href=\"#\"> ".$sureteType." </a> </div>
+     		                    <div class=\"col-md-4\"> <a title=\"Voir les informations de cette sûrété \" href=\"#\"> ".$sureteNum ." </a> </div>
+								<div class=\"col-md-4\"> 
+								    <a class=\"btn btn-primary\" title='Télécharger le document' href=\"#\"><span class=\"glyphicon glyphicon-download\"></span> Télécharger </a> <br/>
+								    <a class=\"btn btn-primary\" title=\"\" href=\"#\"><span class=\"	glyphicon glyphicon-shopping-cart\"></span> Ajouter au panier </a>
+								</div>
+							 </div>
+                           </li> ";  
+                $i++;							
+     	}
+     } else {
+     	$output .= " <li id=\"nosuretes\" class=\"list-group-item\"> <div class=\"row \"> Aucune sûrété n'a été trouvée pour ce registre </div> </li>";     	
+     }  
+   $output     .= "</ul>";
+   echo  $output ;
+   
+   $jq      =  $this->jQuery();
+   $onLoad  = " ";
+	$jq->addOnLoad($onLoad);			
+?>
+             

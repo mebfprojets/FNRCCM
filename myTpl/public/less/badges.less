@@ -1,0 +1,54 @@
+/* 
+    Badges styling
+*/
+
+// Base classes
+.badge {
+    color: @badge-color;
+    background-color: @badge-bg;
+}
+
+// Contextual classes 
+.badge-primary {
+    background-color: @label-primary-bg;   
+}
+
+.badge-success {
+    background-color: @label-success-bg;   
+}
+
+.badge-info {
+    background-color: @label-info-bg;   
+}
+
+.badge-warning {
+    background-color: @label-warning-bg;   
+}
+
+.badge-danger {
+    background-color: @label-danger-bg;   
+}
+
+.badge-transparent {
+    .label-variant-transparent(@badge-bg);
+}
+
+.badge-primary-transparent {
+    .label-variant-transparent(@label-primary-bg);
+}
+
+.badge-success-transparent {
+    .label-variant-transparent(@label-success-bg);
+}
+
+.badge-info-transparent {
+    .label-variant-transparent(@label-info-bg);
+}
+
+.badge-warning-transparent {
+    .label-variant-transparent(@label-warning-bg);
+}
+
+.badge-danger-transparent {
+    .label-variant-transparent(@label-danger-bg);
+}

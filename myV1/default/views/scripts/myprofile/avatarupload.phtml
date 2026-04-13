@@ -1,0 +1,151 @@
+<?php 
+$avatarPath        = USER_AVATAR_PATH .DS ."mini".DS."";
+$linkAvatarUpload  = $this->url(array("controller" => "myprofile" , "action" => "changeavatar") , "default");
+$linkInfos         = $this->url(array("controller" => "myprofile" , "action" => "infos")   , "default" ) ;
+$linkProgress      = $this->url(array("controller" => "datalist"  , "action" => "fileprogress")   , "default" ) ;
+$formNames         = $this->formNames;
+$jq  = $this->jQuery();
+
+$onLoad  = " 
+   jQuery('#myavatar').filestyle({
+   		                            buttonText  : ' Choisir un avatar',
+   		                            classButton : 'btn btn-default',
+   		                            classIcon   : 'glyphicon glyphicon-folder-open',
+   		                            icon        : true
+   		                         });
+   jQuery('#fileupload').fileupload({
+       paramName:'myavatar',
+       url      : '".$linkAvatarUpload."' ,
+       dropZone : jQuery('#dropzone'),
+       type     : 'POST',
+       dataType : 'json',
+       add : function(e , data) {
+           jQuery('#importAvatarBtn').on('click' , function( event ) {
+   		            event.preventDefault();
+   		            SIRAH.loading.on( jQuery('.modal-body').first(), 'Patientez , chargement de l\'avatar...' );
+   		            var jqXhr    = data.submit();
+   		            jqXhr.success(function(result , textStatus , jqXHR){
+                    if( result.success != undefined) {
+                        SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée : '+result.success , 'success');
+                        var file  = result.files[0];
+                        if(file  != undefined ){
+                           var newfilename  = file.path + file.name; 
+                           SIRAH.loading.off(false);                                                                  
+                           setTimeout(function(){jQuery('#myavatarThumbnail').attr('src', newfilename);jQuery('#dialogChangeAvatar').dialog2('close');document.location.href = '".$linkInfos."';}, 1000);                                                     
+                         }
+                    } else if(result.error != undefined) {
+                       SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée : '+result.error , 'error');
+                       SIRAH.loading.off(false); 
+                       return true;      
+                    }
+           });
+           jqXhr.error(function( result , textStatus, errorThrown){
+                 SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+                 SIRAH.loading.off(false);
+                 return false;        
+           });
+   		});  },    
+        messages: {uploadedBytes: 'Le fichier que vous voulez uploader est trop lourd'}
+     });
+   jQuery('#fileupload').bind('fileuploadsubmit', function (e, data) {
+          var inputs = jQuery(this).find(':input');
+          data.formData = inputs.serializeArray();
+    });     
+   jQuery('#fileupload').bind('fileuploadprogress', function (e, data) {
+          var progress = parseInt(data.loaded / data.total * 100, 10);
+          jQuery('#progress').css('width', progress+'%');
+          jQuery('#progress').html(progress+'%');
+    });
+   jQuery('#fileupload').bind('fileuploaddrop', function (event , data) {
+            event.preventDefault();
+   		    SIRAH.loading.on( jQuery('#dialogChangeAvatar') , 'Patientez , chargement de l\'avatar...' );
+   		     var jqXhr    = jQuery(this).fileupload('send', data );
+   		     jqXhr.success(function(result , textStatus , jqXHR){
+             if( result.success != undefined) {
+                 SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée : '+result.success , 'success');
+                 var file  = result.files[0];
+                 if( file  != undefined ){
+                     var newfilename  = file.path + file.name; 
+                     SIRAH.loading.off(false);                                       
+                     jQuery('#dialogChangeAvatar').dialog2('close');
+                     setTimeout(function(){jQuery('#myavatarThumbnail').attr('src' , newfilename);document.location.href = '".$linkInfos."';}, 500);                                                     
+                         }
+                 } else if(result.error != undefined) {
+                    SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée : '+result.error , 'error');
+                    SIRAH.loading.off(false); 
+                    return true;      
+                 }
+           });
+           jqXhr.error(function( result , textStatus, errorThrown){
+                 SIRAH.error.raise(jQuery('#dialogChangeAvatar') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+                 SIRAH.loading.off(false);
+                 return false;        
+           });
+   });
+   jQuery(document).bind('dragover', function (e) {
+          var dropZone = jQuery('#dropzone'),
+          timeout = window.dropZoneTimeout;
+          if (!timeout) {
+              dropZone.addClass('in');
+           } else {
+              clearTimeout(timeout);
+           }
+         var found = false,
+      	         node = e.target;
+          do {
+               if (node === dropZone[0]) {
+       		   found = true;
+       		   break;
+       	    }
+       	     node = node.parentNode;
+              } while (node != null);
+              if (found) {
+                 dropZone.addClass('hover');
+               } else {
+                 dropZone.removeClass('hover');
+               }
+           window.dropZoneTimeout = setTimeout(function () {
+                 window.dropZoneTimeout = null;
+                  dropZone.removeClass('in hover');
+            }, 100);
+    }); ";
+$jq->addOnLoad($onLoad);
+$basePath    = ROOT_PATH."/myTpl/default";
+$jq->addStyleSheet(     $basePath . "/js/fileupload/css/jquery.fileupload.css");
+$jq->addStyleSheet(     $basePath . "/js/fileupload/css/jquery.fileupload-ui.css");
+$jq->addStyleSheet(     $basePath . "/css/sirahfileupload.css");
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/js/fileupload/js/vendor/jquery.ui.widget.js");
+$jq->addJavascriptFile( $basePath . "/js/fileupload/js/jquery.iframe-transport.js");
+$jq->addJavascriptFile( $basePath . "/js/fileupload/js/jquery.fileupload.js");
+$jq->addJavascriptFile( $basePath . "/js/fileupload/js/jquery.fileupload-ui.js");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bar{height: 18px;background: green;}
+div.bootstrap-filestyle input[type="text"]{width:auto;margin-left:5px;margin-right:5px;margin-bottom:0;}
+div.bootstrap-filestyle, div.fileUploadRow{margin-bottom:15px;}
+<?php $this->headStyle()->captureEnd()   ?>  
+<form style="margin-bottom:10px;" class="form-horizontal" id="fileupload"  action="<?php echo $linkAvatarUpload; ?>" enctype="multipart/form-data" method="post">
+    <div class="row">           
+       <div class="col-lg-12 fileupload-progress fade">                
+         <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+              <div id="progress" class="progress-bar progress-bar-success" style="width:0%;"></div>
+         </div>
+         <div class="progress-extended">&nbsp;</div>              
+       </div>
+    </div>
+     <div class="row col-md-12 fileUploadRow">
+        <div class="col-md-4"> <label class="control-label" for="avatar"> Chercher une photo (png ,gif,jpg ) 3MB : </label> </div>
+        <div class="col-md-8"><input name="myavatar" type="file" id="myavatar" /> <button type="submit" class="btn btn-success btn-primary" id="importAvatarBtn"> <span class="glyphicon glyphicon-upload"></span> Charger </button> </div>		 
+	 </div>
+	 <div id="dropzone" class="well fade">
+           Vous pouvez glisser-deposer votre photo dans ce cadre ou cliquez dans le champ ci-dessous.
+     </div>	   
+    <input type="hidden" name="<?php echo $this->csrfTokenId; ?>"       id="<?php echo $this->csrfTokenId; ?>"       value="<?php echo $this->csrfTokenValue; ?>" />
+    <input type="hidden" name="<?php echo $formNames['profileid']; ?>"  id="<?php echo $formNames['profileid']; ?>"  value="<?php echo $this->profileid; ?>"    />
+</form>    
+<?php if($this->isAjax) : ?>
+<?php echo $this->jQuery(); echo $this->headStyle(); ?>
+<?php endif; ?>
+    

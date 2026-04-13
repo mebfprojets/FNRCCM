@@ -1,0 +1,130 @@
+<?php
+$rows                = $this->rows;
+$sourceItems         = $this->sourceItems;
+$foundItems          = $this->foundItems;
+$notFoundItems       = $this->notFoundItems;
+$annees              = $this->annees;
+$localites           = $this->localites;
+$checkedLocalites    = $this->checkedLocalites;
+$localiteTotalFound  = array();
+$localiteTotalSource = array();
+$tableauDate         = date("d/m/Y");
+$zendDate            = new Zend_Date(array("year" => date("Y"), "month" => date("m"), "day" => date("d")));
+$type                = $this->type;
+
+if( $type == "A" ) {
+	$categoryLibelle = "PERSONNES PHYSIQUES";
+} elseif( $type == "B") {
+	$categoryLibelle = "PERSONNES MORALES";
+} elseif( $type == "M") {
+	$categoryLibelle = "MODIFICATIONS";
+} elseif( $type == "S") {
+	$categoryLibelle = "SURETES";
+}
+if( $zendDate )  {
+	$tableauDate = $zendDate->toString("d MMM yyyy");
+}
+$output        = "";
+$output       .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> STATISTIQUES DES DOCUMENTS  TRAITES VALIDES </b></td></tr>";
+$output       .=" </table>";
+$ColWidth      = (count($checkedLocalites)) ? (90 / (count($checkedLocalites))) : 0;
+$firstColWidth = 5;
+$lastColWidth  = 5;
+$totalColspan  = count($checkedLocalites)+2;	
+$output       .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $checkedLocalites )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Années </th>";
+				   foreach( $checkedLocalites as $localitecode) { 
+                             $localiteLibelle           = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							 if( null==$localiteLibelle){
+								 $errorMessages[]       = "Localité Invalide";
+								 continue;
+							 }				   
+      	  	                $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> ".$localitecode." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$lastColWidth."%\"> Total année       </th> ";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> "; 
+                           $anneeTotalFound  = 0;
+						   $anneeTotalSource = 0;
+                           $output     .=" <td style=\"text-align:center;\" width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $sourceTotal  = (isset($sourceItems[$localitecode][$annee]["total"]  ))? $sourceItems[$localitecode][$annee]["total"]   : 0;
+										$missingTotal = (isset($notFoundItems[$localitecode][$annee]["total"]))? $notFoundItems[$localitecode][$annee]["total"] : 0;
+										$foundTotal   = (isset($foundItems[$localitecode][$annee]["total"]   ))? $foundItems[$localitecode][$annee]["total"]    : 0;
+																				
+										$percent      = ( $sourceTotal ) ? ($foundTotal/$sourceTotal)*100 : 0;
+										$statChiffres = sprintf("%s/%s", $foundTotal, $sourceTotal);
+										$bgColor      = "";
+										if( $percent <= 50 ) {
+											$bgColor  = "background-color:#d9534f;border-color:#d43f3a;color:#fff";
+										} elseif( $percent > 50 && $percent <= 75 ) {
+											$bgColor  = "background-color:#f0ad4e;border-color:#d43f3a;color:#fff";
+										} elseif( $percent > 75 && $percent < 100 ) {
+											$bgColor  = "background-color:#5bc0de;border-color:#5bc0de;color:#fff";
+										} elseif( $percent == 100 ) {
+											$bgColor  = "background-color:#5cb85c;border-color:#4cae4c;color:#fff";
+										}
+										$colVal       = sprintf(" %s/%s (%s%%)", $foundTotal, $sourceTotal, number_format( $percent, 2 ));
+										if( $sourceTotal <= 0 ) {
+											$colVal   = "NC";
+										}
+      	  	               	   	        $output      .= "<td style=\"text-align:center;".$bgColor."\" width=\"".$ColWidth."%\"> ".$colVal." </td>";
+										
+										$anneeTotalFound                            += $foundTotal;
+										$anneeTotalSource                           += $sourceTotal;
+										$localiteTotalFound[$localitecode]["total"] += $foundTotal;
+										$localiteTotalSource[$localitecode]["total"]+= $sourceTotal;
+      	  	               	   }
+      	  	               }
+						   $percentAnnee  = ( $anneeTotalSource > 0 ) ? ($anneeTotalFound/$anneeTotalSource)*100 : 0;
+						   $colAnneeTotal = ( $percentAnnee         ) ? sprintf("%s%%", number_format( $percentAnnee, 2 )) : "NC";
+						   if( $anneeTotalSource <= 0 ) {
+							   $colAnneeTotal = "NC";
+						   }
+                           $output       .=" <td style=\"text-align:center;\" width=\"".$lastColWidth."%\"> ".$colAnneeTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE VALIDE NA ETE TROUVE POUR CES CRITERES </td></tr> ";
+}
+$totalFound  = 0;
+$totalSource = 0;
+if( count(   $checkedLocalites )) {
+	$output .="<tr><td style=\"text-align:left;\" width=\"".$firstColWidth."%\"> Total / Localités </td>";
+	foreach($checkedLocalites as $localitecode ) {
+		    $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+			if( null==$localiteLibelle) {
+				$errorMessages[]        = "Localité Invalide";
+				continue;
+			}
+            $sourceTotal  = (isset($localiteTotalSource[$localitecode]["total"])) ? $localiteTotalSource[$localitecode]["total"]: 0;
+			$foundTotal   = (isset($localiteTotalFound[$localitecode]["total"] )) ? $localiteTotalFound[$localitecode]["total"] : 0;
+			$percent      = ($sourceTotal > 0 ) ? ($foundTotal/$sourceTotal)*100 : 0;
+            $colVal       = ( $percent > 0 ) ? sprintf("%s/%s(%s%%)",$foundTotal, $sourceTotal, number_format( $percent, 2 )) : "NC";			
+      	  	$output      .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td> "; 
+			
+			$totalFound  += $foundTotal;
+ 			$totalSource += $sourceTotal;
+    }
+	        $totalPercent     = ( $totalSource > 0 ) ? ( $totalFound/$totalSource)*100 : 0;
+            $colLocaliteVal   = ( $totalPercent> 0 ) ? sprintf("%s/%s (%s%%)", $totalFound, $totalSource,number_format( $totalPercent, 2 )) : "NC";	
+			if( $totalSource <= 0 ) {
+				$colLocaliteVal = "NC";
+			}
+	$output .="  <td style=\"text-align:center;\" width=\"".$lastColWidth."%\">  ".$colLocaliteVal." </td></tr>";
+} 
+$output     .= " </tbody></table>";
+
+echo $output ;

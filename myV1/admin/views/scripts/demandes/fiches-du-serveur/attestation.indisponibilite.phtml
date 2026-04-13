@@ -1,0 +1,198 @@
+<?php
+$demande              = $this->demande;
+$demandeid            = $this->demandeid;
+$localite             = $this->localite;
+$entreprise           = $this->entreprise;
+$demandeur            = $this->demandeur;
+$promoteur            = $this->promoteur;
+$identite             = $this->demandeurIdentite;
+$promoteurIdentite    = $this->promoteurIdentite;
+$identiteTypeRow      = $this->identiteType;
+$identiteTypes        = $this->identitetypes;
+$addSignature         = $this->addSignature;
+$profile              = $this->profile;
+$profileid            = $this->profileid;
+$creatorid            = $this->creatorid;
+$signataire           = $this->signataire;
+$data                 = $this->data;
+$me                   = ($creatorid    )? Sirah_Fabric::getUser($creatorid) : Sirah_Fabric::getUser();
+$operatorName         = sprintf("%s %s",$me->lastname,$me->firstname);
+if( (stripos($operatorName,"guest")!=false) || (stripos($operatorName,"anonym")!==false)) {
+	$me               =  Sirah_Fabric::getUser();
+}
+$zendDemandeDate      = ( $demande->date    )? new Zend_Date($demande->date, Zend_Date::TIMESTAMP) : Zend_Date::now();
+if( $zendDemandeDate ) {
+	$demandeDate      = $todayDate = $zendDemandeDate->toString("dd MMMM yyyy");
+} else {
+	$demandeDate      = $todayDate = ($demande->date )? date("d/m/Y", $demande->date) : date("d/m/Y");
+}
+$nationalites         = $this->countries();
+
+$demandeNumero        = $demande->numero;
+$demandeObjet         = $demande->objet;
+
+$demandeurName        = (isset($demandeur->name      ))? $demandeur->name       : "";
+$demandeurFirstname   = (isset($demandeur->firstname ))? $demandeur->firstname  : "";
+$demandeurLastname    = (isset($demandeur->lastname  ))? $demandeur->lastname   : "";
+$demandeurAdresse     = (isset($demandeur->adresse   ))? $demandeur->adresse    : "";
+$demandeurEmail       = (isset($demandeur->email     ))? $demandeur->email      : "";
+$demandeurTelephone   = (isset($demandeur->telephone ))? $demandeur->telephone  : "";
+$demandeurCountry     = (isset($demandeur->country   ))? strtolower($demandeur->country) : "bf";
+$demandeurNationalite = (isset($nationalites[$demandeurCountry]))? $nationalites[$demandeurCountry] : "";
+$demandeurSexe        = (isset($demandeur->sexe      ))? $demandeur->sexe       : "";
+$demandeurProfession  = (isset($demandeur->profession))? $demandeur->profession : "";
+$demandeurAdresse     = sprintf(" %s, Tel : %s", $demandeurAdresse,$demandeurTelephone);
+
+if( $identite ) {
+	$zendDateEtablissement      = (Zend_Date::isDate($identite->date_etablissement,"YYYY-MM-dd"))?new Zend_Date($identite->date_etablissement,"YYYY-MM-dd")  :  null; 
+	$dateEtablissement          = ($zendDateEtablissement)?$zendDateEtablissement->toString('dd/MM/YYYY') : $identite->date_etablissement;
+	$identiteType               = (isset($identiteTypes[$identite->typeid]))? ucfirst($identiteTypes[$identite->typeid]) : (($identiteTypeRow)?$identiteTypeRow->libelle : "CNIB");
+	$demandeurIdentiteOrganisme = $identite->organisme_etablissement;
+	$demandeurIdentite          = sprintf("%s numéro %s établi le %s à %s ",$identiteType, $identite->numero,$dateEtablissement,$identite->lieu_etablissement);
+    
+} else {
+	$demandeurIdentite          = "";
+	$demandeurIdentiteOrganisme = "";
+}
+$demandeurNumIdentite = $demandeurIdentite;
+ 
+$NomCommercial        = ( $entreprise)?$entreprise->nomcommercial : "";
+$Sigle                = ( $entreprise)?$entreprise->sigle         : "";
+$Denomination         = ( $entreprise)?$entreprise->denomination  : "";
+$localiteName         = ( $localite  )?$localite->libelle         : "Ouagadougou";
+$objetPlural          = "Est Disponible ";
+$SigleHtml            = $DenominationHtml = "";
+
+$Motif                = $demande->motif_rejet;
+$MotifHTML            = "";
+$MotifArray           = (!empty($Motif))?preg_split("/[;]/", $Motif ) : array();
+
+if( empty( $Motif ) || !count($MotifArray)) {
+	$MotifHTML        = "<ul>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_1\"  value=\"1\" /> DS, NC ou Sigle a un lien avec l’Etat ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_2\"  value=\"1\" /> DS, NC ou Sigle déjà attribué (e) à un organisme d’Etat ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_3\"  value=\"1\" /> DS, NC ou Sigle constitué (e) d’un terme ou d’une expression à caractère international; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_4\"  value=\"1\" /> DS, NC ou Sigle évoque les signes ou symboles officiels ou sacrés du Burkina Faso ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_5\"  value=\"1\" /> DS, NC ou Sigle identique à une DS ou NC déjà immatriculé (e) au RCCM ;   </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_6\"  value=\"1\" /> DS, NC ou Sigle présente de fortes similitudes à une DS ou NC déjà immatriculé (e) au RCCM ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_7\"  value=\"1\" /> DS, NC ou Sigle contraire à la sécurité intérieure et à l’intérêt public; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_8\"  value=\"1\" /> DS, NC ou Sigle contraire à l’ordre public ou aux bonnes mœurs ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_9\"  value=\"1\" /> DS, NC ou Sigle à un caractère trompeur ; </li>
+							<li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_10\" value=\"1\" /> DS, NC ou Sigle constitué (e ) l’origine géographique des produits. </li>
+						</ul>";
+} else {
+	if( count(   $MotifArray )) {
+		$MotifKey      = 1;
+		$MotifHTML    .=" <ul>";
+		foreach( $MotifArray as $MotifInput ) {
+			     if(!empty($MotifInput)) {
+					 $MotifHTML.="  <li> <input type=\"checkbox\" checked=\"checked\" name=\"rejet_{$MotifKey}\"  value=\"1\" /> {$MotifInput} </li>";
+				     $MotifKey++;
+				 }			     
+		} 
+		$MotifHTML    .=" </ul>";
+	}
+}
+$civilites            = array("Mr"=>"Monsieur","Mme"=>"Madame","Mle"=> "Mademoiselle", "Excellence"=>"Son excellence","Maître"=>"Maître","Dr" => "Docteur","Pr" => "Professeur","Conseiller"=>"Le Conseiller");
+$myCivilite           = (isset($me->civilite) && !empty($me->civilite) )?$civilites[$me->civilite] : "Maître";
+$myLastName           = ( $me )?$me->lastname  : "";
+$myFirstName          = ( $me )?$me->firstname : ""; 
+$myRole               = ( $me )?$me->getRole() : "GREFFIER/GREFFIER EN CHEF/ADMINISTRATEUR DU FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER";
+if( empty($myRole) ) {
+	$myRole           = "GREFFIER/GREFFIER EN CHEF/ADMINISTRATEUR DU FICHIER NATIONAL DU REGISTRE DU COMMERCE ET DU CREDIT MOBILIER";
+}
+$myRole               = str_replace("_"," ", $myRole );
+$output.= "<form method=\"post\" action=\"#\" enctype=\"multipart/form-data\">";
+$output.= " <table width=\"100%\" style=\"line-height:11px;\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
+                <tr>
+                    <td style=\"line-height:11px;\" valign=\"top\" align=\"left\" width=\"75%\"> 
+					    <p align=\"center\" style=\"vertical-align:top;text-align:center;line-height:10px;font-size:10pt;\">
+					        <strong>MINISTERE EN CHARGE DE LA JUSTICE</strong><br/>
+							-----------------------------------------
+					    </p> 
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;line-height:10px;font-size:10pt;\">
+					        <strong>SECRETARIAT GENERAL </strong><br/>
+							-----------------------------------------
+					    </p>
+                        <p align=\"center\" style=\"vertical-align:top;text-align:center;line-height:10px;font-size:10pt;\">
+					        <strong>DIRECTION GÉNÉRALE DE L'ADMINISTRATION JUDICIAIRE</strong><br/>
+							-----------------------------------------
+					    </p>						
+                        <p align=\"center\" style=\"vertical-align:top;text-align:center;line-height:10px;font-size:10pt;\">
+					        <strong>DIRECTION DES GREFFES </strong><br/>
+							-----------------------------------------
+					    </p>					
+						<p align=\"center\" style=\"vertical-align:top;text-align:center;line-height:10px;font-size:10pt;\">
+					        <strong>FICHIER NATIONAL RCCM</strong> <br/>
+					    </p>					
+					</td>
+                    <td align=\"center\" valign=\"top\" style=\"vertical-align:top;\" width=\"30%\"> &nbsp;</td>
+                </tr>
+            </table>";        
+$output.="<table style=\"border-collapse:collapse;margin:0px;\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\" width=\"100%\">
+            <tr><td style=\"background-color:#0a5993;\" align=\"center\" valign=\"middle\" bgcolor=\"#0a5993\"><span style=\"font-weight:bold;font-size:11pt;padding:5px;color:#FFF;\">ATTESTATION D'INDISPONIBILITE N° {$demandeNumero} </span> </td></tr>
+            <tr>
+			    <td>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\"><strong>Nous, soussigné {$myCivilite} {$myFirstName} {$myLastName}, {$myRole } </strong></p> 
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\">Vu la demande de recherche de disponibilité et de réservation N° <strong>{$demandeNumero}</strong> de Mr/Mme {$demandeurName}</p>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\"><strong><u>Références</u> : </strong><br/>
+						<span style=\"font-family:arial;font-size:10pt;font-weight:bold;text-indent:0;\">".$demandeurIdentite."</span><br/>
+						<span style=\"font-family:arial;font-size:10pt;\">Délivré(e) par : </span>
+						<span style=\"font-family:arial;font-size:10pt;font-weight:bold;\">".$demandeurIdentiteOrganisme."</span>
+						<br/>
+						<span style=\"font-family:arial;font-size:10pt;\">Profession : </span>
+						<span style=\"font-family:arial;font-size:10pt;font-weight:bold;\">".$demandeurProfession."</span>
+					</p>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\">Vu les Directives pour l’attribution des dénominations sociales et des noms commerciaux au Burkina Faso;</p>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\">Après examen au fond, déclarons indisponible ou rejetons l’attribution de : </p>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\">
+						<span style=\"font-family:arial;font-size:10pt;\">La Dénomination Sociale : </span> 
+						<span style=\"font-family:arial;font-size:10pt;font-weight:bold;\">".$Denomination."</span>
+					</p>
+					<p style=\"line-height:13px;font-family:arial;font-size:10pt;text-align:justify\">
+						<span style=\"font-family:arial;font-size:10pt;\">Le Nom Commercial : </span> 
+						<span style=\"font-family:arial;font-size:10pt;font-weight:bold;\">".$NomCommercial."</span>
+					</p>					
+				    <p style=\"line-height:10px;font-family:arial;font-size:10pt;\">Pour des causes absolues de rejet suivantes :<br/>
+					    ".$MotifHTML."
+					</p>
+					<p style=\"line-height:10px;font-family:arial;font-size:10pt;text-align:right;\"> En foi de quoi la présente attestation est délivrée pour servir et valoir ce que de Droit.</p>
+				</td>
+            </tr>
+		</table>";
+ 		  
+    if(!$addSignature ) {
+$myName = sprintf("%s %s", $me->firstname, $me->lastname);
+$output.=<<<EOF
+			<table width="100%" cellspacing="2" border=0 cellpadding="1">   
+ 
+				<tr>
+					<td align="center" >
+						<p align="center" style="font-family:arial;font-size:10pt;"> Fait à {$localiteName}, le  <b> {$todayDate} </b> </p>
+						<p align="center"  style="font-family:arial;font-size:10pt;text-align:center;">
+							<b><u> L'AGENT COMPÉTENT</u></b><br/>
+			 
+						</p>
+					</td>
+				</tr>
+			</table> 
+EOF;
+	} else {
+$myName = sprintf("%s %s", $me->firstname, $me->lastname);
+$output.=<<<EOF
+			<table nobr="true" style="line-height:12px;border-collapse:collapse;margin:0px;" width="100%" cellspacing="0" border="0" cellpadding="1">   
+				<tr nobr="true">    								
+					<td style="line-height:10px;border-left:none;border-right:none;border-bottom:none" align="center" valign="middle" width="100%">
+						<p style="font-size:11pt;"> Fait à {$localiteName}, le <b> {$todayDate} </b><br/></p>
+						<p style="font-size:11pt;"><b> L'AGENT COMPÉTENT </b></p>
+						<p style="font-size:10pt;"><b>[SIGNATURE]</b></p>
+						<p style="font-size:10pt;"><b> {$myName} </b></p>
+						
+					</td>
+				</tr>
+			</table> 
+EOF;
+	}
+$output.= "</form>";
+
+echo $output;

@@ -1,0 +1,45 @@
+<?php 
+$data      = $this->data;
+$article   = $item = $this->article;
+$articleid = $this->articleid;
+$galleryid = $this->galleryid;
+$gallery   = $this->gallery;
+$photos    = $this->photos;
+$itemTitle = $this->itemTitle;
+$introtext = strip_tags($item["introtext"]);
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-body{padding:15px !important;}
+<?php $this->headStyle()->captureEnd() ?>
+<div class="panel-card item-card flex-column align-items-start">
+	<?php		
+		$output            = "";
+		$imagePath         = (!empty($item["photogarde"]))? APPLICATION_DATA_PATH.DS."articles".DS."photogarde".DS."mini".DS.$item["photogarde"] : "";
+		$imageFile         = null;
+		if((null !== $imagePath) && file_exists($imagePath)) {
+			$imagePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+			$imageFile     = str_replace( DS , "/" , $imagePathname);
+		}
+		if(!empty($imageFile)) {
+			$output       .= "<div class=\"flex-shrink-0 col-md-4\" > <img alt=\"".$itemTitle."\" class=\"img-responsive item-img\" width=\"100%\" height=\"150px\" src=\"".$imageFile."\" /></div>";
+			$output       .= "<div class=\"flex-grow-1 col-md-8 ms-auto\">
+									<p style=\"text-align:justify !important\"> ".$introtext."</p>
+									 
+							  </div>";
+		} else {
+			$output       .= "<div class=\"flex-grow-1 col-md-12 ms-auto\">
+									<p  style=\"text-align:justify !important\"> ".$introtext."</p>
+									 
+							  </div>";
+		}
+		echo $output; 
+	?>
+</div>	
+ 	
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

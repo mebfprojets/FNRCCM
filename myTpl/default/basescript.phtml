@@ -1,0 +1,32 @@
+  <div id="region-main-box" class="sirah-side-middle" > 
+        <div id="region-post-box" class="sirah-side-left" >
+                  
+          <!--Bloc central de la page du site-->
+            <div id="sirah-page-mainblock-wrapper" class="col1 simple"> 
+                <!--Le bloc des messages d'erreurs-->
+                    <?php echo $this->errormessage(); ?>
+                <!--Fin du bloc des messages d'erreurs-->                                        
+                <!--Le bloc du contenu de la page-->
+                 <div id="sirah-page-content" class="sirah-page-content " >
+                    <div class="col-lg-12">
+                             <?php echo $layout->content ?>
+                   </div>
+                </div>
+               <!--Fin du bloc du contenu de la page-->   
+          </div>
+         <!--Fin du bloc principal de la page du site-->
+   
+     
+        <!--Le bloc gauche du corps du site-->
+         <div id="sirah-page-leftblock-wrapper" class="col2" >
+            <?php echo $this->render("leftmodules.phtml")   ?>      
+         </div>  
+        <!--Fin du bloc de gauche du site--> 
+     
+        <!--Le bloc droite du corps du site-->
+         <div id="sirah-page-rightblock-wrapper" class="col3" >
+            <?php echo $this->render("leftmodules.phtml")   ?>        
+         </div>  
+        <!--Fin du bloc de droite du corps du site-->     
+		    </div>   
+  </div>

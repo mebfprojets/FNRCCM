@@ -1,0 +1,76 @@
+ <?php
+     $userstats = $this->rows;
+ ?>
+ <table  class="table table-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="45%"> OPS          </th>
+                     <th width="35%"> Localités    </th>                                          
+                     <th width="10%"> Nombre       </th>
+					 <th width="10%"> Cumul        </th>
+                </tr>         
+          </thead>          
+          <tbody>
+		         <?php
+				       $output        = "";
+                       $total         = 0;
+					   $totalUser     = 0;
+					   $userid        = 0;
+					   $typeRegistre  = 0;
+					   $precedentUser = null;
+					   $i             = 1;
+					   
+					   if( count(   $userstats )) {
+						   foreach( $userstats as  $userstat ) {
+							        $opsName   = sprintf("%s %s", $userstat["lastname"], $userstat["firstname"] );
+									if(($userid  !== $userstat["userid"]) && ($userid != 0)) {
+										$totalUserVal = number_format( $totalUser, 0, ",", " ");
+         		    	                $rowBg    = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+										$linkList = $this->url(array("module"=>"admin","controller"=>"registres","action"=>"list","creatorid"=> $userid),"default");
+         			                    $output  .=" <tr style=\"background-color:".$rowBg."\" class=\"font-blue font-bold\"> 
+         			                                   <td style=\"text-align:left;\" colspan=\"2\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"> TOTAL  de ".$precedentUser."</a></td>
+         			                                   <td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".$totalUserVal."</a></td> 
+													   <td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".$total."</a></td>
+												     </tr>";         			    
+         			                    $totalUser = 0;
+									} elseif( $userid  == $userstat["userid"] ) {
+										$opsName  =  "";
+									}
+									$localite     = $userstat["localite"];
+									$nombre       = $userstat["nombre"] ;
+                                    $total       +=	$userstat["nombre"] ;	
+                                    $totalUser   +=	$userstat["nombre"] ;										
+									
+									$rowBg        = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+									$linkList     = $this->url(array("module"=>"admin","controller"=> "registres", "action"=>"list","creatorid"=> $userstat['userid']),"default");
+									$output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output .="<td style=\"text-align:left;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".$i." - ".$opsName ." </a> </td>";
+                     	 	            $output .="<td style=\"text-align:left;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\"  href=\"".$linkList."\">".$localite." </a> </td>";                     	 	                             	 	            
+                     	 	            $output .="<td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".number_format($nombre, 0, " "," ")." </a> </td>";
+										$output .="<td style=\"text-align:right;\"><a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".number_format($total , 0, " "," ")." </a> </td>";
+                     	 	     $output.="</tr>";  
+                     	 	     $userid         = $userstat["userid"];
+								 $typeRegistre   = $userstat["type"];
+								 $precedentUser  = sprintf("%s %s", $userstat["lastname"], $userstat["firstname"] );
+								 $i++;
+						   }
+						         $rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+								 $linkList       = $this->url(array("module"=>"admin","controller"=> "registres","action"=>"list","creatorid"=> $userid),"default");
+         	                     $totalUserVal   = number_format( $totalUser, 0, ",", " ");
+         	                     $output        .=" <tr style=\"background-color:".$rowBg."\" class=\"font-blue font-bold\"> 
+         	                                           <td style=\"text-align:left;\" colspan=\"2\">  <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\"> TOTAL de ".$precedentUser."</a> </td>
+         	                                           <td style=\"text-align:right;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".$totalUserVal." </a> </td> 
+													   <td style=\"text-align:right;\"> <a title=\"Accéder à tous les RCCM de cet utilisateur\" href=\"".$linkList."\">".number_format($total, 0, " ", " ")." </a> </td> 
+													</tr>";
+													
+								$totalVal       = number_format( $total, 0 , ",", " ");
+         	                    $rowBg          = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+         	                    $output        .=" <tr style=\"background-color:".$rowBg."\" class=\"text-danger font-bold\"> 
+         	                                           <td style=\"text-align:left;\" colspan=\"3\">TOTAL  </td> 
+         	                                           <td style=\"text-align:right;\">".$totalVal."</> </td> </tr>";					
+					   }
+					   
+					   echo $output;
+				 ?>
+	</tbody>
+</table>

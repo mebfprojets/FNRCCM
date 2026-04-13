@@ -1,0 +1,44 @@
+<?php 
+   $modifications = $this->modifications;
+   $linkDownload  = $this->url(array("controller"=>"registres","action"=> "download","module"=> "public"), "default") ;   
+   $output        = "<ul class=\"list-group modificationsList\">";
+     if( count( $modifications ) ){
+     	$output .="<li id=\"modificationId-0\" class=\"list-group-item\">
+		             <div class=\"row\">
+						 <div class=\"col-md-4\"> Numéros                </div>
+                         <div class=\"col-md-4\"> Types de modifications </div>
+                         <div class=\"col-md-4\"> * </div>							 
+                    </div> 
+				   </li>";
+		$i      = 0;
+     	foreach( $modifications as $modification ) {
+     		     $modificationid   = $modification["registreid"];
+     		     $modificationType = $modification["type"];
+				 $modificationNum  = $modification["numero"];
+                 $zendDate         = ( intval($modification["date"])) ? new Zend_Date($modification["date"], Zend_Date::TIMESTAMP) : null;
+                 $date             = ( $zendDate ) ?	 $zendDate->toString("dd/MM/Y") : null;			 
+     		     $linkView         = $this->url(array("controller"=> "registremodifications","action"=>"infos","registreid" => $modificationid ));
+     		     
+     		     $output .="<li id=\"modificationId-".$i."\" class=\"list-group-item\">
+				             <div class=\"row\">     		                    
+     		                    <div class=\"col-md-4\"> <a title=\"Voir les informations de cette modification\"  href=\"#\"> ".$modificationNum ." </a> </div>
+								<div class=\"col-md-4\"> <a title=\"Voir les informations de cette modification\"  href=\"#\"> ".$modificationType." </a> </div>
+								<div class=\"col-md-4 pull-right\"> 
+								    <a class=\"btn btn-primary\" title='Télécharger le document' href=\"#\"><span class=\"glyphicon glyphicon-download\"></span> Télécharger </a> <br/>
+								    <a class=\"btn btn-primary\" title=\"\" href=\"#\"><span class=\"glyphicon glyphicon-shopping-cart\"></span> Ajouter au panier </a>
+								</div>
+     		                 </div>
+                           </li> ";  
+                $i++;							
+     	}
+     } else {
+     	$output .= " <li id=\"nomodifications\" class=\"list-group-item\"> <div class=\"row \"> Aucune modification n'a été trouvée pour ce registre </div> </li>";     	
+     }  
+   $output     .= "</ul>";
+   echo  $output ;
+   
+   $jq      =  $this->jQuery();
+   $onLoad  = " ";
+	$jq->addOnLoad($onLoad);			
+?>
+             

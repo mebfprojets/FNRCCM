@@ -1,0 +1,89 @@
+<?php 
+$data       = $this->data;
+$formSubmit = $this->url(array("module"=>"admin","controller"=>"demandeblacklist","action"=>"create"), "default");
+$backList   = $this->url(array("module"=>"admin","controller"=>"demandeblacklist","action"=>"list")  , "default");
+ 
+$jq         = $this->jQuery(); 
+$onLoad     = " 
+jQuery('.keywords,.chosen,#keywords').chosen({
+	allow_single_deselect:true,
+    no_results_text:'Ajouter des mots clés',
+	placeholder_text_multiple:'Sélectionnez des mots clés',
+    width: '100%'
+}).parent().find('.chosen-container .search-field input[type=text]').keydown(function (evt) {
+    const stroke = evt.which != null ? evt.which : evt.keyCode;
+    if (stroke === 9 || stroke === 13) {
+	
+      const target = jQuery(evt.target);
+      const chosenList = target.parents('.chosen-container').find('.chosen-choices li.search-choice > span').map(function(){return jQuery(this).text(); }).get();
+      const matchList  = target.parents('.chosen-container').find('.chosen-results li').map(function () { return jQuery(this).text(); }).get();
+      const highlightedList = target.parents('.chosen-container').find('.chosen-results li.highlighted').map(function () { return jQuery(this).text(); }).get();
+      const newString = jQuery.trim(target.val());
+      if (jQuery.inArray(newString, matchList) < 0 && jQuery.inArray(newString,chosenList) < 0 && highlightedList.length == 0) {
+        const newOption = '<option value=\'' + newString + '\' selected=\'selected\'>' + newString + '</option>';
+        const choiceSelect = target.parents('.chosen-container').siblings('.chosen');
+        choiceSelect.append(newOption);
+        choiceSelect.trigger('chosen:updated');
+        choiceSelect.trigger('chosen:close');
+        return true;
+      }
+      return true;
+    }
+});
+
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+      e.preventDefault();      
+      var formSelector    = jQuery('#createKeywordsForm');
+
+      formSelector.submit();
+}); ";
+$basePath           = ROOT_PATH.'/myTpl/public';
+$jq->addOnLoad( $onLoad );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bootstrap-filestyle input{float:left;width:70%;}
+.bootstrap-filestyle label{float:left;width:30%;}
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single .chosen-single{height:35px;line-height:35px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit;?>" id="createKeywordsForm" role="form" class="form-horizontal createKeywordsForm" enctype="multipart/form-data">
+    <div class="panel panel-default" >
+		<ul class="list-group">
+	        <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2 col-sm-2 control-label" for="keywords"> Mots clés*: </label>
+				   <div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("keywords",$data["keywords"], array("class"=>"form-control chosen","multiple"=>"multiple"), $this->types); ?> </div> 			   				     
+				</div>     
+			</li>														
+		    <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2 col-sm-2 control-label"> Description*: </label>
+					<div   class="col-md-10 col-sm-10"><textarea name="description" id="description" class="form-control textarea-sm"> <?php echo $data["description"]; ?> </textarea></div>              
+				</div>  
+			</li>
+		</ul>
+	
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+   
+   $toolCreate->setAttributes(array("type"=> "submit"));
+   $toolCancel->setAttributes(array("type"=> "submit"));
+      
+   $buttonsbar->add( $toolCancel , "cancelCreationButton");
+   $buttonsbar->add( $toolCreate , "createButton");
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+</div> 
+</form>

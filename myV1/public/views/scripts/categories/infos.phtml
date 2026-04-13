@@ -1,0 +1,79 @@
+<?php
+  $tplPath      = VIEW_BASE_PATH;
+  
+  $categorie    = $this->categorie;
+  $activites    = $this->activites;
+
+?>
+<div class="panel panel-default">
+       <div class="panel-heading"> <?php echo $categorie->libelle;      ?></div>
+       <div class="panel-body"   > <?php echo $categorie->description;  ?></div>
+       <?php 
+       
+       $modelActivite   = new Model_Activite();
+       $output          = "  <ul class=\"list-group \"> ";
+       //On crée et affiche le tableau
+       if(count( $activites ) ) {
+       	foreach( $activites as $activite ) {
+       		     $activityid       = intval($activite['activityid']);
+       		     $libelle          = $this->escape( $activite["libelle"]) ;
+       		     $introduction     = strip_tags( substr( $activite["introtext"] , 0 , 200 ) ) ;      		 
+       		     $beneficiaires    = $modelActivite->beneficiaires( $activityid );
+       
+       		     $periode          = sprintf("%s - %s", date("d/m/Y", $activite["datedebut"] ), date("d/m/Y", $activite["datefin"] ) );
+       		     $photoGarde       = "";
+       		     
+       		     $urlLibelle       = Sirah_Functions_String::cleanUtf8( $libelle );
+       		     $linkInfos        = $this->url(array("controller"=> "activites", "action"=> "infos", "activityid"=> $activityid, "activitylib" =>$urlLibelle ), "publications");
+       		 
+       		     if( empty( $libelle ))
+       			     continue;
+       
+       		     $beneficiairesOutput = "Au bénéfice de ".implode(" / ", $beneficiaires );
+       		     if( !empty( $activite["photogarde"] ) ) {
+       			       $photoGardePath   =  $activite["photogarde"];
+       			       if( file_exists( $photoGardePath ) ) {
+       				       $photoGardePathname = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photoGardePath );
+       				       $photoGarde         = str_replace( DS , "/", $photoGardePathname );
+       				       //$photoGarde         = str_replace( "original", "mini", $photoGarde );
+       			       }
+       		      }
+       		      if( !empty( $photoGarde ) ) {
+       			       $output         .="<li class=\"list-group-item\" id=\"activityId-".$activityId."\" >";
+       			               $output .= " <div class=\"row\"> ";
+       			               $output .= " <div class=\"col-md-3\"> <img class=\"img-thumbnail img-rounded\" src=\"".$photoGarde."\" width=\"150px\" title=\"Une photo de l'activité\" /> </div> ";
+       			               $output .= " <div class=\"col-md-9\">
+       			                               <h4 class=\"list-group-item-heading\">
+       			                                     <u><a title=\"Visualiser le contenu de l'activité\" href=\"".$linkInfos."\"> ".$libelle." </a> </u> </h4>
+       			                                      <p  class=\"list-group-item-text\"> ".$introduction." <a title=\"En savoir plus\" href=\"".$linkInfos."\">[...]</a> </p>";
+       			      if( count( $beneficiaires ) ){
+       				           $output .=" <p  class=\"list-group-item-text\">  <span class=\"text-muted small\"> ".$beneficiairesOutput." </span> </p> ";
+       			      }
+       			      if( intval( $activite["datedebut"] ) && intval( $activite["datefin"])) {
+       				           $output .=" <p  class=\"list-group-item-text\">  <span class=\"text-muted small\"> Dans la période du ".$periode." </span> </p> ";
+       			}
+       			               $output .= " </div> <div> ";
+       			               $output .="</li>";
+       
+       		} else {
+       			$output        .="<li class=\"list-group-item\" id=\"activityId-".$activityId."\" >";
+       			$output        .="   <h4 class=\"list-group-item-heading\"> <u> <a title=\"Visualiser le contenu de l'activité\" href=\"".$linkInfos."\">  ".$libelle." </a> </u> </h4>
+       			<p class=\"list-group-item-text\">  ".$introduction." </p> ";
+       			if( count( $beneficiaires ) ){
+       				$output    .=" <p  class=\"list-group-item-text\">  <span class=\"text-muted small\"> ".$beneficiairesOutput." </span> </p> ";
+       			}
+       			if( intval( $activite["datedebut"] ) && intval( $activite["datefin"])) {
+       				$output    .=" <p  class=\"list-group-item-text\">  <span class=\"text-muted small\"> Dans la période du ".$periode." </span> </p> ";
+       			}
+       			$output        .="</li>";
+       		}
+       	}
+       }  else {
+       	$output .=  " <li id=\"activityId-0\" class=\"list-group-item\"> <p class=\"text-muted\"> AUCUNE ACTIVITE NA ETE TROUVEE RELATIVEMENT A CE TYPE D'ACTIVITES </p> </li> ";
+       }
+       $output  .= " </ul> " ;
+       echo $output;
+        
+       
+       ?>
+</div>

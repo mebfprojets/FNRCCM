@@ -1,0 +1,37 @@
+             <?php 
+                   $coordonnees  = $this->coordonnees;
+                   $country      = $coordonnees->findParentRow("Table_Countries");
+                   $city         = $coordonnees->findParentRow("Table_Countrycities");
+             ?>             
+             <ul class="list-group">
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Adresse email :</b></div> 
+                             <div class="col-md-7"><?php echo ($coordonnees) ? $coordonnees->email : ""; ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Telephone :</b></div> 
+                             <div class="col-md-7"><?php echo ($coordonnees) ? implode(", ", array($coordonnees->tel_mob, $coordonnees->tel_bureau)) : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Code Postal:</b></div> 
+                             <div class="col-md-7"><?php echo ($coordonnees) ? $coordonnees->code_postal : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Pays d'origine:</b></div> 
+                             <div class="col-md-7"><?php echo ( $country  ) ? $country->libelle : ""; ?> </div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-5"> <b> Ville :</b></div> 
+                             <div class="col-md-7"><?php echo ( $city ) ? $city->libelle : ""; ?> </div>
+                           </div>
+                       </li>
+                  </ul>

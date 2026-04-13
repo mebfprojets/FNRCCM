@@ -1,0 +1,281 @@
+<?php 
+$messages           = $this->messages;
+$token              = $this->token;
+$data               = $this->data;
+$defaultCountry     = (isset($data["country"]) && !empty($data["country"])) ? $data["country"] : "BF";
+
+$formSubmit         = $this->url(array("controller" =>"accounts" , "action" => "create"), "default" );
+$backList           = $this->url(array("controller" =>"accounts" , "action" => "list")  , "default" );
+$registerDoneUri    = $this->registerDoneUri;
+$basePath           = VIEW_BASE_PATH;
+
+$viewRoles          = $this->roles;
+$roles              = array("Selectionnez un rôle")+$viewRoles;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('#phone1').numeric();
+  jQuery('#phone2').numeric();
+  
+  jQuery('#cancelAccountCreationButton').click(function(e)
+  {
+    e.preventDefault();
+    document.location.href='".$backList."';
+   });
+  
+  jQuery('#createAccountButton').click(function(e)
+  {
+      e.preventDefault();      
+      var  formSelector= jQuery('#createaccount-form');
+      var  firstname   = jQuery.trim(jQuery('#firstname').val());
+      var  lastname    = jQuery.trim(jQuery('#lastname').val());
+      var  email       = jQuery.trim(jQuery('#email').val());
+      var  username    = jQuery.trim(jQuery('#username').val());
+      var  credential  = jQuery.trim(jQuery('#password').val());
+      var  credential2 = jQuery.trim(jQuery('#confirmedpassword').val());
+      var  phone1      = jQuery.trim(jQuery('#phone1').val());
+      
+      if(SIRAH.util.isEmpty(lastname)){
+         jQuery('#lastname').addClass('input-error');
+         jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+      } else {
+         jQuery('#lastname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(firstname)){
+        jQuery('#firstname').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+         return;
+      }  else {
+         jQuery('#firstname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }    
+      if(SIRAH.util.isEmpty(username)){
+        jQuery('#username').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('username-validation-message','Entrez un nom d\'utilisateur valide');
+         return;
+      }  else {
+         jQuery('#username').removeClass('input-error');
+         jQuery('#name-validation-message').html('');
+      }
+       if(SIRAH.util.isEmpty(phone1)){
+        jQuery('#phone1').addClass('input-error');
+        jQuery('#phone-validation-message').html('');
+         SIRAH.error.raise('phone-validation-message','Entrez un numéro de téléphone valide');
+         return;
+      }  else {
+         jQuery('#phone1').removeClass('input-error');
+         jQuery('#phone-validation-message').html('');
+      }
+      if(!SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').addClass('input-error');
+        jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+      }  else {
+         jQuery('#email').removeClass('input-error');
+         jQuery('#email-validation-message').html('');
+      }     
+      if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+         jQuery('#password').addClass('input-error');
+         jQuery('#password-validation-message').html('');
+         SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+         return;
+      } else {
+         jQuery('#credential').removeClass('input-error');
+         jQuery('#password-validation-message').html('');
+      }      
+     if(credential2 !== credential){
+         jQuery('#confirmedpassword').addClass('input-error');
+         jQuery('#confirmedpassword-validation-message').html('');
+         SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+         return;
+      } else {
+        jQuery('#confirmedpassword').removeClass('input-error');
+        jQuery('#confirmedpassword-validation-message').html('');
+      }
+
+      jQuery('#lastname').val(lastname);
+      jQuery('#firstname').val(firstname);
+      jQuery('#username').val(username);
+      jQuery('#email').val(email);
+      jQuery('#phone1').val(phone1);
+      jQuery('#password').val(credential);
+      jQuery('#confirmedpassword').val(credential2);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center" id="createaccount-form" role="form">
+ <div class="container col-md-12" style="text-align:left;">
+  <ul class="list-group">
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="firstname"> <b> Nom complet*: </b> </label> </div>
+         <div class="col-md-5">
+               <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son nom de famille" placeholder="Nom de famille"  name="lastname" value="<?php echo $data['lastname']; ?>">
+         </div>  
+         <div class="col-md-5">
+               <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off"  class="form-control"
+                      title="Son prénom" placeholder="Prénom"  name="firstname" value="<?php echo $data['firstname']; ?>">
+         </div>                 
+     </div> 
+     <p id="name-validation-message" class="validation-message"></p>    
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="username"> <b>Nom d'utilisateur*: </b> </label> </div>
+         <div class="col-md-10">
+               <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son nom d'utilisateur" placeholder="Son nom d'utilisateur"  name="username" value="<?php echo $data['username']; ?>">
+         </div>           
+     </div>
+     <p id="username-validation-message" class="validation-message"></p>       
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="email"> <b>Adresse email*: </b> </label> </div>
+         <div class="col-md-10">
+               <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son adresse email" placeholder="Son adresse email"  name="email" value="<?php echo $data['email']; ?>">
+         </div>              
+     </div>  
+     <p id="email-validation-message" class="validation-message"></p>   
+   </li>
+   
+    <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="password"> <b> Mot de passe*: </b> </label> </div>
+         <div class="col-md-5">
+               <input id="password" type="password"  maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Son mot de passe par défaut" placeholder="Son mot de passe par défaut" name="password"  class="form-control" />
+         </div> 
+         <div class="col-md-5">
+              <input id="confirmedpassword" type="password" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Confirmez le mot de passe" placeholder="Confirmez le mot de passe" value="" name="confirmedpassword" class="form-control">
+         </div>                   
+     </div>
+     <p id="password-validation-message"          class="validation-message"></p> 
+     <p id="confirmedpassword-validation-message" class="validation-message"></p>  
+   </li>    
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="phone1"> <b> Téléphone mobile*: </b> </label> </div>
+         <div class="col-md-5">
+              <input id="phone1" type="text"  maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off"  class="form-control"
+                      title="Son téléphone principal" placeholder="Son téléphone principal" name="phone1" value="<?php echo $data['phone1']; ?>">
+         </div>
+         <div class="col-md-5">
+             <input id="phone2" type="text" maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son mobile secondaire" placeholder="Téléphone secondaire" name="phone2" value="<?php echo $data['phone2']; ?>" />
+         </div>                 
+     </div> 
+     <p id="phone-validation-message" class="validation-message"></p>  
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+        <div class="col-md-2"> <label class="label" for="phone1"> <b> Rôle *: </b> </label>  </div>
+        <div class="col-md-5"> 
+           <?php echo $this->formSelect("roleid", null, array("class" => "form-control"), $roles ); ?>
+         </div>
+     </div>
+   </li>        
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="sexe"> <b> Sexe*: </b> </label> </div>
+         <div class="col-md-4"> 
+          <label class="radio-inline">
+              <input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>>
+                Homme
+          </label>
+          
+          <label class="radio-inline">
+               <input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>>
+                  Femme
+         </label>
+         </div>
+         <div class="col-md-6">
+            &nbsp;
+         </div>    
+     </div>  
+   </li>   
+   <li class="list-group-item">
+     <div class="row">
+        <div class="col-md-3"> 
+           <label class="checkbox">
+                 <?php echo $this->formCheckbox("activated",$data["activated"],null,array("1","0")); ?> Compte activé
+            </label>
+         </div>
+         <div class="col-md-3"> 
+              <label class="checkbox">
+                <?php echo $this->formCheckbox("blocked",$data["blocked"],null,array("1","0")); ?> Compte bloqué
+              </label>
+         </div>
+         <div class="col-md-3"> 
+              <label class="checkbox">
+                 <?php echo $this->formCheckbox("locked",$data["locked"],null,array("1","0")); ?> Compte verrouillé
+              </label>
+        </div>        
+     </div>  
+   </li>  
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-10"> 
+              <label class="checkbox">
+                <?php echo $this->formCheckbox("sendmail", 1 , null , array("1" , "0")); ?> Lui notifier la création de son compte
+              </label>
+         </div>
+         <div class="col-md-2"> &nbsp; </div>    
+     </div>  
+   </li>  
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-10"> 
+              <label class="checkbox">
+                  <?php echo $this->formCheckbox("sendparams",1,null,array("1","0")); ?> Lui transmettre les paramètres de son compte (Pour la réinitialisation de son mot de passe)
+              </label>
+         </div>
+         <div class="col-md-2"> &nbsp; </div>    
+     </div>  
+   </li>  
+ </ul>  
+<?php     
+   $buttonsbar      = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Enregistrer le compte","save")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add($toolCreate ,"createAccountButton");
+   $buttonsbar->add($toolCancel ,"cancelAccountCreationButton");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   
+   <input id="t"       type="hidden" name="t" value="<?php echo $token; ?>" /> 
+   <input id="city"    type="hidden" name="city" value="" /> 
+   <input id="country" type="hidden" name="country" value="<?php echo $defaultCountry ; ?>" /> 
+</form>

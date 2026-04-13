@@ -1,0 +1,310 @@
+<?php 
+$demande         = $this->demande;
+$demandeid       = $demande->demandeid;
+$entrepriseid    = $this->entrepriseid;
+$entreprise      = $this->entreprise;
+$demandeurid     = $demande->demandeurid;
+$demandeur       = $this->demandeur;
+$promoteurid     = $demande->promoteurid;
+$promoteur       = $this->promoteur;
+$similarites     = $this->similarites;
+$similariteActivities = $this->similariteActivities;
+$totalresults    = $this->totalresults;
+$currentStep     = $this->currentStep;
+$percent         = $this->successedPercent;
+$query           = $this->query;
+$localite        = $this->localite;
+$statut          = $this->statut;
+$domaineActivite = $this->domaineActivite;
+$formeJuridique  = $this->formeJuridique;
+$renderingView   = $this->renderingView;
+$viewTitle       = $this->viewTitle;
+$sources         = $this->sources;
+$sourceid        = $this->sourceid;
+$source          = $this->source;
+$sourceCode      = $this->sourceCode;
+$next            = $this->next;
+$nextId          = (isset($sources[$next]))?$sources[$next] : 0;
+$rejected        = $this->rejected;
+
+$jq              = $this->jQuery();
+$linkReject      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"reject","demandeid"=>$demandeid,), "default");
+$linkAccept      = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"accept","demandeid"=>$demandeid,), "default");
+$linkComplete    = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify","demandeid"=>$demandeid,), "default");
+$linkFetchItems  = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify","demandeid"=>$demandeid), "default");
+$linkValidate    = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify","demandeid"=>$demandeid,"source"=>$sourceCode,"next"=>$next,"successed"=>1), "default");
+$linkUnValidate  = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"verify","demandeid"=>$demandeid,"source"=>$sourceCode,"next"=>$next,"successed"=>0), "default");
+$onLoad          = " var collapseContent = jQuery(\"#collapse".ucfirst($sourceCode)."\");";
+$onLoad         .= "
+    var patientezBox         = jQuery('<div class=\'control-group\' id=\'patientez\'> <strong> Vérification dans les Noms Reservés... </strong></div>').css('text-align','center');
+    var validateFunction     = function(){
+		var progressBar      = jQuery('#verificationProgressBar');
+		var progressBarValue = progressBar.find('.progressbar-value').eq(0);
+		var progressBarTxt   = progressBarValue.find('.progress-label').eq(0);
+		var thisPanel        = jQuery('#panelVerification".ucfirst($sourceCode)."');
+		SIRAH.loading.on( jQuery('#dialogValidate') , 'Vérification dans les Noms Reservés...' );
+		var modalBody        = jQuery('.modal').find('.modal-body');
+	    var insertBtn        = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+	    insertBtn.btnLoading({text:'Patientez...',icon:'icon-spinner4'});
+        disableButtons([insertBtn]);
+		jQuery.ajax({ url:'".$linkValidate."',async:true,dataType:'json',data: {'demandeid':'".$demandeid."','successed':1,'sourceid':'".$sourceCode."','source':'".$sourceCode."'},type: 'POST' ,
+					  beforeSend: function(){jQuery('#dialogValidate').html(patientezBox);},
+					  success  : function(data) {
+						jQuery('#patientez').fadeOut('slow');
+						SIRAH.loading.off(false);
+						insertBtn.btnLoading({on:false});
+						enableButtons([insertBtn]);
+						if( data.error !== undefined) {
+							SIRAH.error.raise(jQuery('#dialogValidate') , data.error, 'error');	
+							thisPanel.addClass('panel-danger');																				
+							if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+								appendItems(data.next, data.nextid);
+								jQuery('#dialogValidate').dialog2('close');
+							} else {
+								jQuery('#dialogValidate').dialog2('close');
+								completeVerification(data.successed);
+								return;
+							}
+						} else if(data.success !== undefined && data.nextid !== undefined ) {
+							SIRAH.error.raise(jQuery('#dialogValidate') , data.success, 'success');	
+							thisPanel.addClass('panel-success');
+							var panelHeading = thisPanel.find('.panel-heading').eq(0);
+							var panelTitle   = panelHeading.find('.panel-title').eq(0);
+							var panelTools   = jQuery('<ul class=\'panel-tools pull-right\'></ul>').append(jQuery('<li><a class=\'btn btn-sm btn-success\' href=\'#\'><i class=\'glyph-icon icon-check\'></i></a></li>'));
+							panelHeading.append(panelTools);							
+							if( data.successed !== undefined && parseInt(data.successed)) {
+								var percent = data.successed;
+								progressBarValue.attr('data-original-title','Le nom commercial recherché est disponible à '+percent+'%%');
+								progressBarValue.attr('width',percent+'%');
+								progressBarValue.css('width',percent+'%');
+								progressBarTxt.html(''+percent+'%');
+								progressBar.attr('data-value', percent );
+							}
+							if( parseInt(data.completed)) {
+								jQuery('#dialogValidate').dialog2('close');
+								completeVerification(data.successed);
+								return;
+							}
+							if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+								appendItems(data.next, data.nextid);
+								jQuery('#dialogValidate').dialog2('close');
+								return;
+							} else {
+								completeVerification();
+								jQuery('#dialogValidate').dialog2('close');
+								return;
+							}																				
+						} else {
+							thisPanel.addClass('panel-danger');	
+							if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+								appendItems(data.next, data.nextid);
+								jQuery('#dialogValidate').dialog2('close');
+								return;
+							} else {
+								completeVerification(data.successed);
+								jQuery('#dialogValidate').dialog2('close');
+								return;
+							}
+						}
+					}
+		});     		
+	};
+	var unValidateFunction   = function(){
+		var progressBar      = jQuery('#verificationProgressBar');
+		var progressBarValue = progressBar.find('.progressbar-value').eq(0);
+		var progressBarTxt   = progressBarValue.find('.progress-label').eq(0);
+		var thisPanel        = jQuery('#panelVerification".ucfirst($sourceCode)."');
+		SIRAH.loading.on( jQuery('#dialogUnValidate') , 'Rejet en cours...' );
+		var modalBody        = jQuery('.modal').find('.modal-body');
+	    var insertBtn        = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+	    insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+        disableButtons(jQuery('.modal').find('.modal-footer').find('.btn-primary'));
+		jQuery.ajax({ url:'".$linkUnValidate."',async:true,dataType :'json',data: {'demandeid':'".$demandeid."','successed':0,'sourceid':'".$sourceCode."','source':'".$sourceCode."'},type: 'POST' ,
+					  beforeSend: function(){},
+					  success   : function(data) {
+						    jQuery('#patientez').fadeOut('slow');
+							SIRAH.loading.off(false);
+							insertBtn.btnLoading({on:false});
+							enableButtons(jQuery('.modal').find('.modal-footer').find('.btn-primary'));
+							if( data.error !== undefined) {
+								SIRAH.error.raise(jQuery('#dialogUnValidate') , data.error);
+								thisPanel.addClass('panel-danger');	
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+									jQuery('#dialogUnValidate').dialog2('close');
+								} else {
+									jQuery('#dialogUnValidate').dialog2('close');
+									completeVerification(data.successed);
+									return;
+								}
+							} else if(data.success !== undefined && data.nextid !== undefined ) {
+								thisPanel.addClass('panel-danger');	
+								if( parseInt(data.completed)) {
+									completeVerification(data.successed);
+									return;
+								}
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+									jQuery('#dialogUnValidate').dialog2('close');
+									return;
+								} else {
+									completeVerification(data.successed);
+									return;
+								}																				
+							} else {
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+									jQuery('#dialogUnValidate').dialog2('close');
+									return;
+								} else {
+									completeVerification(data.successed);
+									return;
+								}
+							}
+					  }
+				});     		
+	} ;
+	var rejectFunction = function(){
+		var progressBar      = jQuery('#verificationProgressBar');
+		var progressBarValue = progressBar.find('.progressbar-value').eq(0);
+		var progressBarTxt   = progressBarValue.find('.progress-label').eq(0);
+		var thisPanel        = jQuery('#panelVerification".ucfirst($sourceCode)."');
+		jQuery.ajax({ url:'".$linkUnValidate."',async:true,dataType :'json',data: {'demandeid':'".$demandeid."','successed':0,'sourceid':'".$sourceCode."','source':'".$sourceCode."'},type: 'POST' ,
+					  beforeSend: function(){},
+					  success   : function(data) {
+						    SIRAH.loading.off(false);
+							if( data.error !== undefined) {
+								thisPanel.addClass('panel-danger');	
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+								} else {
+									completeVerification(data.successed);
+									return;
+								}
+							} else if(data.success !== undefined && data.nextid !== undefined ) {
+								thisPanel.addClass('panel-danger');	
+								if( parseInt(data.completed)) {
+									completeVerification(data.successed);
+									return;
+								}
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+									return;
+								} else {
+									completeVerification(data.successed);
+									return;
+								}																				
+							} else {
+								if( parseInt(data.nextid) && !SIRAH.util.isEmpty(data.next)) {
+									appendItems(data.next, data.nextid);
+									return;
+								} else {
+									completeVerification(data.successed);
+									return;
+								}
+							}
+					  }
+				});     		
+	} ;
+     var completeVerification = function(successed){		
+	    if( successed >= 100) {
+			var dialogComplete = jQuery('<div class=\'alert alert-success\'> <i class=\'glyph-icon icon-elusive-ok\'> </i> Les résultats de la recherche de disponibilité indiquent que le nom commercial est valide à '+successed+'%. Voulez-vous accepter la demande du promoteur ? </div>').attr('id','dialogComplete').addClass('modal-medium');             		 
+			dialogComplete.dialog2({title:'Accepter la demande',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+			dialogComplete.dialog2('addButton','<i class=\'glyph-icon icon-times\'> </i> Non, ne pas accepter',{primary:false,click:function(event){event.preventDefault();jQuery(this).dialog2('close');document.location.href=\"".$linkReject."\";}});
+			dialogComplete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui, accepter',{primary:true,click:function(event){event.preventDefault();jQuery(this).dialog2('close');document.location.href=\"".$linkAccept."\";}});	    
+			dialogComplete.dialog2('open');
+		} else {
+			var dialogComplete = jQuery('<div class=\'alert alert-danger\'> <i class=\'glyph-icon icon-elusive-ok\'> </i> Les résultats de la recherche de disponibilité indiquent que le nom commercial est valide à '+successed+'%. Voulez-vous rejeter la demande du promoteur ? </div>').attr('id','dialogComplete').addClass('modal-medium');             		 
+			dialogComplete.dialog2({title:'Rejeter la demande',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+			dialogComplete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Non, je veux accepter',{primary:false,click:function(event){event.preventDefault();jQuery(this).dialog2('close');document.location.href=\"".$linkAccept."\";}});	
+			dialogComplete.dialog2('addButton','<i class=\'glyph-icon icon-times\'> </i> Oui, je veux rejeter' ,{primary:true,click:function(event){event.preventDefault();jQuery(this).dialog2('close');document.location.href=\"".$linkReject."\";}});			    
+			dialogComplete.dialog2('open');
+		}		
+	};
+    var appendItems = function(source, sourceid){
+		jQuery.ajax({url:'".$linkFetchItems."',async:false,dataType :'html',data: {'source':''+source+''},type: 'GET',
+					 success: function(data) {
+						jQuery('#verificationSources').append(data);
+						jQuery('.collapse').collapse('hide');
+						var collapseContentId = jQuery('#accordionToggleId-'+sourceid).attr('data-target');
+						var collapseContent   = jQuery('#'+collapseContentId);   
+						if( collapseContent.attr('id') !== undefined ) {
+							collapseContent.collapse();
+						}
+					 }
+		});
+};";
+if( $rejected ) {
+	$onLoad.="
+	    rejectFunction();
+		var thisPanel        = jQuery('#panelVerification".ucfirst($sourceCode)."');
+		SIRAH.loading.on( thisPanel, 'Veuillez patienter, vérification dans la prochaine source...' );
+		var collapsePanel    = thisPanel.find('.panel-collapse').eq(0);
+		collapsePanel.html('');
+		collapsePanel.append(jQuery('<div style=\"text-align:center;\" class=\'panel-body\'> NOM COMMERCIAL REJETE </div>'));";
+}
+
+$jq->addOnLoad($onLoad);
+
+$basePath        = ROOT_PATH.'/myTpl/public';
+
+$jq->addJavascriptFile($basePath ."/scripts/widgets/collapse/collapse.js");
+?>
+
+<div class="panel" id="<?php printf("panelVerification%s", ucfirst($sourceCode)); ?>">
+    <div class="panel-heading" id="panel-heading-id#<?php echo $sourceid; ?>">
+	    <h4 class="panel-title">
+			<a id="accordionToggleId-<?php echo $sourceid; ?>" data-toggle="collapse"  class="accordion-toggle" href="#<?php printf("collapse%s", ucfirst($sourceCode)); ?>">
+				<?php printf("<b> %d : </b> %s ", $currentStep, $viewTitle); ?>
+			</a>
+		</h4>
+	</div>
+	<div id="<?php printf("collapse%s", ucfirst($sourceCode)); ?>" class="panel-collapse collapse" data-parent="#verificationSources">
+	    <?php echo $this->partial("demandes/similarites.phtml",array("source"=>$source,"sourceid"=>$sourceid,"query"=>$query,"demande"=>$demande,"demandeid"=>$demandeid,"similarites"=>$similarites,"similariteActivities"=>$similariteActivities,"jquery"=>&$jq)); ?> 
+	    <div id="<?php printf("panelFooter%s", ucfirst($sourceCode)); ?>" class="panel-footer">
+	    <?php
+				$verificationsButtonBar = $this->Btnbar(array("id"=>"verificationsButtonBar"), $this->jqueryHandler());
+				$buttonValidate         = $verificationsButtonBar->button("Valider","check");
+				$buttonUnValidate       = $verificationsButtonBar->button("Rejeter","remove");
+				  
+				$buttonValidate->setAttributes(  array("type"=>"submit","class"=>"btn btn-success","title"=>"Valider   la disponibilité"));
+				$buttonUnValidate->setAttributes(array("type"=>"submit","class"=>"btn btn-danger" ,"title"=>"Invalider la disponibilité"));
+				
+				$verificationsButtonBar->add($buttonUnValidate, sprintf("unValidate%sButton", ucfirst($sourceCode)));
+				$verificationsButtonBar->add($buttonValidate  , sprintf("validate%sButton"  , ucfirst($sourceCode)));
+								
+				if( $buttonValidate ) {
+					$buttonValidate->onClick(sprintf("
+						event.preventDefault();
+						var dialogValidate = jQuery('<div> Voulez-vous vraiment valider cette information ? </div>').attr('id','dialogValidate');             		 
+						dialogValidate.dialog2({title:'Attention , confirmer cette action !',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+						
+						dialogValidate.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Non', {primary: false,click:function(event){event.preventDefault();jQuery(this).dialog2('close');}}); 
+						dialogValidate.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click:function(event){event.preventDefault();validateFunction();}}); 						             		
+						dialogValidate.dialog2('open');
+					", $linkValidate, $demandeid, $sourceCode, $sourceCode));
+				}				
+				if( $buttonUnValidate ) {
+					$buttonUnValidate->onClick(sprintf("
+						event.preventDefault();
+						completeVerification(%d);
+						/*
+						var dialogUnValidate = jQuery('<div> Voulez-vous vraiment rejeter le nom commercial ? </div>').attr('id','dialogUnValidate');             		 
+						dialogUnValidate.dialog2({title:'Attention , confirmer cette action !',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+						
+						dialogUnValidate.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Non', {primary: false,click:function(event){event.preventDefault();jQuery(this).dialog2('close');}}); 
+						dialogUnValidate.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click:function(event){event.preventDefault();unValidateFunction();}}); 						             		
+						dialogUnValidate.dialog2('open');*/
+					", $percent , $linkUnValidate, $demandeid, $sourceCode, $sourceCode));
+				}				
+				echo $verificationsButtonBar;
+			?>
+	    </div>
+	</div> 	
+</div>
+<?php 
+    if( $this->isAjax ) {
+		echo $this->headStyle();
+     	echo $this->jQuery();	     
+    }
+?>

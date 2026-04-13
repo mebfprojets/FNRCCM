@@ -1,0 +1,163 @@
+<?php 
+$data                = $this->data;
+$commandes           = $this->commandes;
+$commande            = $this->commande;
+$commandeid          = $this->commandeid;
+$numCommande         = ( $commande ) ? $commande->ref : null;
+$formSubmit          = $this->url(array("controller" =>"apaiements", "action" => "create"), "default" );
+$backList            = $linkCancel =  $this->url(array("controller" =>"apaiements", "action" => "list"   ), "default" );
+$linkSearchCommande  = $this->url(array("controller" => "ajaxres","action" => "acommandeslist", "parentform" => "createPaiement") , "default");
+
+$linkVirement        = $this->url(array("controller" =>"apaiements", "action" => "createvirement"), "default" );
+$linkCheque          = $this->url(array("controller" =>"apaiements", "action" => "createcheque"), "default" );
+$linkBon             = $this->url(array("controller" =>"apaiements", "action" => "createbon"), "default" );
+
+$modesPaiement       = array(0 => "Selectionnez un mode de paiement",1 => "En Espèces",2=>"Chèque", 3 => "Virement");
+
+$basePath            = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$jq     = $this->jQuery();  
+$onLoad = "
+jQuery('#mode').change(function( event ){
+	var mode                   = parseInt(jQuery(this).val());
+	if( mode> 1 ) {
+		var commandeid         = parseInt(jQuery('#createPaiement').find('#commandeid').val() );
+	    document.location.href = '".$formSubmit."/commandeid/'+commandeid+'/mode/'+mode;
+	}	   
+});
+jQuery('#montantval').mask('000 000 000 000 000', {placeholder: '--- --- --- ---',reverse: true});
+jQuery('#montantval').change(function(event){
+	var montantValue = parseFloat(jQuery(this).val().replace(/[^\d\.]/g, ''));
+	var maxamount    = parseFloat(jQuery('#maxamount').val());
+	if( montantValue > maxamount ) {
+		jQuery('#montantval').val(maxamount);
+		montantValue = maxamount;
+		jQuery('#montant').val(maxamount);
+		SIRAH.error.raise('createPaiement', 'Vous ne pouvez pas payer plus que : '+maxamount);
+		return;
+	}
+	jQuery('#montant').val(montantValue);
+});
+jQuery('#selectCommande').bind('chooseThis' , function(event, param1 ) {
+    event.preventDefault();
+    var commandeid  = parseInt(jQuery('#createPaiement').find('#commandeid').val() );
+    var mode        = parseInt(jQuery('#createPaiement').find('#mode').val() );
+    if(!commandeid && param1 ) {
+		commandeid =  param1;
+		jQuery('#createPaiement').find('#commandeid').val(param1)
+    }	   
+    if( commandeid && mode ) {
+	    document.location.href = '".$formSubmit."/commandeid/'+commandeid+'/mode/'+mode;
+    } 	         
+}); 
+jQuery('.searchCommande').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListCommandes').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une commande fournisseur',content: '".$linkSearchCommande."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});";
+$jq->addOnLoad( $onLoad );
+$jq->addJavascriptFile( $basePath ."/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath ."/js/editors/tinymce/tinymce.min.js");
+?>
+<form method="post" id="createPaiement" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>">
+    <div class="panel panel-default">
+        <ul class="list-group">			
+			<li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-sm-2  col-md-2 control-label"> La commande*: </label>
+				    <div   class="col-sm-10 col-md-10"> 
+						<div class="input-group">
+							<input type="text" name="commande" id="commande" class="form-control disabled" placeholder="Selectionnez une commande" value="<?php echo $numCommande; ?>" /> 
+							<div class="input-group-btn"><button title="Selectionnez une commande" type="submit" class="btn btn-primary searchCommande"><span class="glyph-icon icon-search"></span> Selectionner une commande </button></div> 
+						</div>
+				    </div>		                     
+				   <input type="hidden" name="commandeid"     id="commandeid" value="<?php echo intval($this->commandeid); ?>" />
+				   <input type="hidden" name="selectCommande" id="selectCommande"  />
+				</div>
+			</li>
+			<li class="list-group-item">
+				<div  class="form-group">
+				    <label class="col-sm-2  col-md-2 control-label">Mode paiement*: </label>
+				    <div   class="col-sm-10 col-md-10"> <?php echo $this->formSelect("mode", intval($data["mode"]), array("class" => "form-control"), $modesPaiement); ?>  </div> 
+				</div>
+			</li>
+			<li class="list-group-item">
+				<div  class="form-group">
+				    <label class="col-sm-2  col-md-2 control-label"> Intitulé du paiement: </label>
+				    <div   class="col-sm-10 col-md-10"> <input type="text" name="libelle" id="libelle" class="form-control" placeholder="Intitulé du paiement" value="<?php echo $data["libelle"]; ?>" /> </div>        
+				</div>
+			</li>			                    
+			<li class="list-group-item">
+				<div  class="form-group">
+				    <label class="col-sm-2 col-md-2 control-label">Montant*: </label>
+				    <div   class="col-sm-10 col-md-10"> <input type="text" name="montantval" id="montantval" class="form-control" placeholder="Montant" value="<?php echo $data['montant']; ?>" />  </div> 
+				    <input type="hidden" name="montant"          id="montant"          value="<?php echo $data['montant']; ?>"     />
+					<input type="hidden" name="montant_avance"   id="montant_avance"   value="<?php echo $this->montant_avance; ?>"     />
+					<input type="hidden" name="totalPaid"        id="totalPaid"        value="<?php echo $data['totalPaid']; ?>"   />
+					<input type="hidden" name="totalAPayer"      id="totalAPayer"      value="<?php echo $data['totalAPayer']; ?>" />
+					<input type="hidden" name="livraisonid"      id="livraisonid"      value="<?php echo $data['livraisonid']; ?>" />
+					<input type="hidden" name="montantlivraison" id="montantlivraison" value="<?php echo $this->montantlivraison; ?>"     />
+					<input type="hidden" name="maxamount"        id="maxamount"        value="<?php echo $this->maxamount; ?>"     />
+				</div>
+			</li>        
+		</ul>
+        <?php 
+			$buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+			$toolCreate  = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+			$toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+				  
+			$toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+			$toolCancel->setAttributes(array("type" => "submit"));
+			   
+			$buttonsbar->add($toolCancel ,"cancelCreationButton");   
+			$buttonsbar->add($toolCreate ,"createButton");
+			  
+			$toolCreate->onClick("
+						event.preventDefault();
+						var formSelector    = jQuery('#createPaiement');
+						var commandeid      = parseInt(  formSelector.find('#commandeid').val());
+						var montant         = parseFloat(formSelector.find('#montant').val());
+						var modePaiement    = parseInt(  formSelector.find('#mode').val());
+						var totalAPayer     = parseFloat(formSelector.find('#totalAPayer').val());
+						var totalPaid       = parseFloat(formSelector.find('#totalPaid').val());
+						var cumulLivraisons = parseFloat(formSelector.find('#montantlivraison').val());
+						var montantAvance   = parseFloat(formSelector.find('#montant_avance').val());
+						var maxAmount       = parseFloat(formSelector.find('#maxamount').val());
+						var totalPaiements  = totalPaid + montant;
+						if(!commandeid ) {
+							SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement selectionner une commande');
+							return;
+						}
+						if(!montant ) {
+							SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement saisir un montant');
+							return;
+						}
+						if( montant > maxAmount ) {
+							SIRAH.error.raise('createPaiement', 'Vous ne pouvez pas enregistrer un paiement de plus de : '+maxAmount+' pour cette commande !');
+							return;
+						}
+						if( totalPaiements > totalAPayer ) {
+							SIRAH.error.raise('createPaiement', 'Vous ne pouvez pas enregistrer un cumul de paiement de plus de : '+totalAPayer+' pour cette commande !');
+							return;
+						}						
+						if(!mode ) {
+							SIRAH.error.raise('createPaiement', 'Vous devrez obligatoirement saisir un mode de paiement valide');
+							return;
+						}			
+						formSelector.submit();");
+			$toolCancel->onClick(sprintf("event.preventDefault(); document.location.href='%s';", $linkCancel ));
+			 
+			if( !$this->isAjax ) {
+				echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+			} else {
+				echo $this->jQuery();
+			}
+			?>
+    </div>
+</form>
+ 

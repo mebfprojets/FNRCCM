@@ -1,0 +1,88 @@
+<?php
+  $baseUrl            = $this->baseUrl();
+  $tplPath            = VIEW_BASE_PATH;
+  $frontendPath       = ROOT_PATH."/myTpl/frontend";
+  $basePath           = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."application"  , APPLICATION_DATA_PATH );
+  
+  $user               = Sirah_Fabric::getUser();
+  $layout             = Zend_Layout::getMvcInstance();
+  $view               = $layout->getView();    
+  
+  $defaultSession     = new Zend_Session_Namespace();
+  if(!isset($defaultSession->logoutoken)) {
+  	$defaultSession->logoutoken = Sirah_User_Helper::getToken(15).time();
+  }
+  $logoutoken         = $defaultSession->logoutoken;
+
+  $linkHome           = $view->url(array("controller"=> "index","action" => "index", "module" => "public") , "default");
+ 
+  $linkPresentation   = $view->url(array("controller"=> "project", "action"=> "presentation"  ), "frontend");
+  $linkStructure      = $view->url(array("controller"=> "project", "action"=> "structure"     ), "frontend");
+  
+  $linkDashboard      = $view->url(array("controller"=> "account", "action"=> "dashboard", "module" => "public"), "default");
+  $linkCreateAccount  = $view->url(array("controller"=> "account", "action"=> "create", "module" => "public"), "default");
+  $linkLogin          = $view->url(array("controller"=> "account", "action"=> "login" , "module" => "public"), "default");
+  $linkLogout         = $view->url(array("controller"=> "account", "action"=> "logout"   , "module" => "public", $logoutoken => "1"), "default");
+  $linkRequests       = $view->url(array("controller"=> "account", "action"=> "requetes" , "module" => "public"), "default");
+  $linkSettings       = $view->url(array("controller"=> "account", "action"=> "settings" , "module" => "public"), "default");
+  $linkRequests       = $view->url(array("controller"=> "requetes","action"=> "list", "module" => "public"), "default");
+  $linkCreateRequest  = $view->url(array("controller"=> "requetes","action"=> "create"   , "module" => "public"), "default");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.navbar-inverse .brand, .navbar-inverse .nav > li > a, .navbar-default .nav > li > a,div#navCol > ul.nav > li > a {
+	color:#fff !important;
+	height:45px !important;
+	line-height:45px !important;
+	background:transparent !important;
+	font-size: 1em;
+	padding-top:15px !important;
+	padding-bottom:15px !important;
+}
+<?php $this->headStyle()->captureEnd()   ?>
+ <!-- L'entete fixe de la page -->
+  <div id="headNavigation" class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div id="sirah-page-head" class="container col-md-12" >  
+        <div id="logoCol" class="col-md-2" >
+           <a title="<?php echo 'Le logo de la structure' ?>" href="<?php echo $linkHome; ?>"> 
+             <img align="right" src="<?php echo $frontendPath; ?>/images/logo.png" height="70px" /> 
+           </a>
+        </div>
+        <!-- La colonne du module de recherche -->
+        <div style="text-align:right;" id="searchCol" class="searchbox col-md-7">  <img align="right" src="<?php echo $tplPath; ?>/images/enteteProjet.png" height="65px" />  </div>
+        <!-- Fin de la colonne du module de recherche -->
+        <div id="navCol" class="col-md-3 pull-right">
+          <ul class="nav navbar-nav navbar-right pull-right ">                      		
+			 <?php if(!$user->isLoggedIn()) : ?>			   
+			   <li><a href="<?php echo $linkLogin; ?>" title="Me connecter à mon compte"><i class="glyphicon glyphicon-log-in"></i> Connexion </a></li>
+			   <li><a href="<?php echo $linkCreateAccount; ?>" title="Créer mon compte"><i  class="fa fa-address-book-o"></i> S'inscrire </strong> </a></li>
+              <?php else: ?>
+                <li class="dropdown">
+                 <a data-toggle="dropdown" class="dropdown-toggle" href="#"> <i class="glyphicon glyphicon-cog"></i> Mon compte <b class="caret"></b></a>
+                   <ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dLabel">                   
+                      <li class="dropdown-header"> <?php echo $user->lastname. " " . $user->firstname ; ?> </li>
+                      <li><a href="<?php echo $linkDashboard;  ?>"> <i class="glyphicon glyphicon-dashboard"></i> Tableau de bord</a></li>
+					  <li><a href="#"> <i class="glyphicon glyphicon-shopping-cart myCart"></i> Mon panier </a></li>
+					  <li><a href="<?php echo $linkRequests; ?>"> <i class="glyphicon glyphicon-th-list "> </i> Mes demandes d'accès      </a></li>
+                      <li><a href="<?php echo $linkSettings; ?>"> <i class="glyphicon glyphicon-cog "></i> Mes paramètres</a></li>
+                      <li><a href="<?php echo $linkLogout;   ?>"> <i class="glyphicon glyphicon-log-out "></i> Me déconnecter</a></li>
+                      
+                      <li class="divider"></li> 
+                      
+                      <li><a href="#"> <i class="glyphicon glyphicon-question-sign"></i> Besoin d'aide ? </a></li>
+                      <li><a href="#"> <i class="glyphicon glyphicon-envelope"></i> Contacter l'administrateur </a></li>                                                                                    
+                 </ul>
+              </li>
+            <?php endif; ?>
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+  <!-- Fin de l'entete fixe de la page -->
+<?php
+      $jq  = $view->jQuery();
+	  $jq->addonLoad("jQuery('.goToHome').click(function(event){event.preventDefault();document.location.href = '".$linkHome."';});
+	                  jQuery('.inscriptionBtn').click(function(event){event.preventDefault();document.location.href= '".$linkCreateAccount."';});
+	                  jQuery('.loginBtn').click(function(event){event.preventDefault();document.location.href = '".$linkLogin."';});");
+	echo $this->headStyle();
+?>

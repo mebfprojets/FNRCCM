@@ -1,0 +1,60 @@
+<?php 
+    $demandeur     = $this->demandeur;
+	$identite      = $this->identite; 
+    $identiteType  = $this->identiteType;
+	$countries     = $this->countries();
+	$nationalite   = (isset($countries[$demandeur->nationalite]))?$countries[$demandeur->nationalite] : $demandeur->nationalite;
+	$typePiece     = ( $identiteType )?$identiteType->libelle : "";
+?>
+<ul class="list-group">
+    <?php if($identite): ?>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Pièce d'identité:</b></div> 
+			<div class="col-md-8"><?php printf("%s n° %s du %s établie par %s", $typePiece, $identite->numero, $identite->date_etablissement, $identite->organisme_etablissement); ?></div>
+		</div>
+	</li>
+    <?php endif; ?>	
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Nom & Prénom  :</b></div> 
+			<div class="col-md-8"><?php echo $demandeur->name; ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Sexe:</b></div> 
+			<div class="col-md-8"> <?php echo ( $demandeur) ? (($demandeur->sexe == "M") ? "Homme": "Femme") : ""; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Adresse:</b></div> 
+			<div class="col-md-8"> <?php echo ( $demandeur) ? $demandeur->adresse : ""; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Nationalité:</b></div> 
+			<div class="col-md-8"> <?php echo $nationalite; ?> </div>
+		</div>
+	</li>		   
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Numéro de téléphone:</b></div> 
+			<div class="col-md-8"> <?php echo ( $demandeur) ? $demandeur->telephone : ""; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Adresse email:</b></div> 
+			<div class="col-md-8"> <?php echo ( $demandeur) ? $demandeur->email : ""; ?> </div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Fonction/Profession:</b></div> 
+			<div class="col-md-8"> <?php echo ( $demandeur) ? $demandeur->profession: ""; ?> </div>
+		</div>
+	</li>
+</ul>

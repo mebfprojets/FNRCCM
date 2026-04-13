@@ -1,0 +1,33 @@
+<?php 
+$me          = Sirah_Fabric::getUser();
+$client      = $this->client; 
+$recipients  = $this->recipients;
+$countries   = $this->countries;
+$linkDelete  = $this->url(array("module"=>"public","controller"=>"recipients","action"=>"delete"), "default") ;
+$linkCreate  = $this->url(array("module"=>"public","controller"=>"recipients","action"=>"create"), "default") ;
+$output      = "<table id=\"recipientsList\" class=\"table table-striped table-responsive recipientsList\">
+				    <thead><tr><th width=\"width:2%\">*</th><th width=\"width:60%\"> Noms et Prénoms </th><th width=\"width:38%\"> Adresses </th> </tr></thead>";
+if( count(  $recipients ) ) {
+    foreach($recipients  as $recipient ) {
+			$recipientid    = intval($recipient['recipientid']);
+			$recipientName  = sprintf("%s %s", $recipient["lastname"], $recipient["firstname"]);
+			$adresseStr     = sprintf("%s : %s, Tel : %s, Email:%s",$recipient["country"], $recipient["address"], $recipient["tel1"], $recipient["email"]);
+			$rowBg          = $recipient["statuteColor"];
+			$linkInfos      = $this->url(array("module"=>"public","module"=>"public","controller"=>"recipients","action"=>"infos" ,"recipientid"=>$recipientid),"default");
+			$linkDelete     = $this->url(array("module"=>"public","module"=>"public","controller"=>"recipients","action"=>"delete","recipientid"=>$recipientid),"default");
+			
+			$output        .="<tr id=\"recipientId-".$recipientid ."\" style=\"background-color:".$rowBg."\" class=\"statute-".$rowBg."\"> ";
+				   $output .="   <td style=\"background-color:".$rowBg."\"><span title=\"Supprimer cette expédition\" href=\"#\" id=\"delRecipientId-".$recipientid."\" class=\"glyph-icon icon-remove pull-left delRecipient\"></span> </td>";					
+				   $output .="   <td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de ce bénéficiaire\" href=\"".$linkInfos."\">".$recipientName." </a></td>";
+				   $output .="   <td style=\"background-color:".$rowBg."\"><a title=\"Voir les informations de ce bénéficiaire\" href=\"".$linkInfos."\">".$adresseStr   ." </a></td>";
+			$output        .=" </tr>";
+    }
+} else {
+            $output        .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucun bénéficiaire n'a été retrouvé </td> </tr>";
+}
+$output.= " </tbody></table>";   
+
+echo  $output ;
+
+?>
+             

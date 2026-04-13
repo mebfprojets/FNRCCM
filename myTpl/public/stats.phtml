@@ -1,0 +1,95 @@
+<?php
+    $me               = Sirah_Fabric::getUser();
+	$tplPath          = ROOT_PATH."/myTpl/public";
+	$layout           = Zend_Layout::getMvcInstance();
+	$view             = $layout->getView();	
+	$linkStatistics   = $view->url(array("controller"=>"statistiques","action"=>"list","module"=>"public"),"default",true);
+	$stats            = $this->stats;
+	$totalRCCM        = (isset($stats->total_rccm        ))? number_format($stats->total_rccm,0,"","") : 0;
+	$totalEntreprises = (isset($stats->total_entreprises ))? number_format($stats->total_entreprises,0,"","") : 0;
+	$totalPP          = (isset($stats->total_physiques   ))? number_format($stats->total_physiques,0,"","") : 0;
+	$totalPM          = (isset($stats->total_morales     ))? number_format($stats->total_morales,0,"","") : 0;
+	$totalSuretes     = (isset($stats->total_suretes     ))? number_format($stats->total_suretes,0,"","") : 0;
+	$totalDocuments   = (isset($stats->total_documents_fondossiers))? number_format($stats->total_documents_fondossiers,0,"","") : 0;
+?>
+<?php $view->headStyle()->captureStart() ?>
+.main-header ul.main-nav li, .main-header ul.main-nav li a{overflow:inherit !important;}
+.stats-row-header{color:#FFF !important;margin-bottom:10px !important}
+#statSection .section-hero {position:relative;font-weight:600;font-size:3em;color:#d0dee7;margin:0;line-height:1;padding-bottom:15px;text-align:center}
+#statSection .section-body{font-size:1.5em;text-align:center;color:#d0dee7;padding-top:10px}
+#statSection .section-hero:after {content:"";position:absolute;width:80px;height:4px;left:0;right:0;bottom:0;margin:auto;background-color:#f5c418;}
+.statColumn{text-align:center !important}
+.statBox{padding:15px !important}
+#statSection .counter{font-size:2.5em;font-weight:bold;color:#FFF;margin:35px 0 0 0;padding-bottom:5px;position:relative;}
+#statSection .counter:after {content:"";position:absolute;width:50px;height:3px;left:0;right:0;bottom:0;margin:auto;background-color:#f5c418;}
+#statSection .counter-text{font-size:1em;padding-top:10px;margin-bottom:10px;}
+#statSection{background-color:#146C53;padding:40px;color:#d0dee7;transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;border-top:2px solid #f5c418}
+#statSectionFooter{text-align:center !important;}
+#statSection .btn-warning{font-size:1em;font-weight:bold;background-color:#f5c418;border-color:#b18c09 !important;padding:5px 10px 5px 20px;height:44px}
+<?php $view->headStyle()->captureEnd(); ?>
+<div class="container">
+	<div class="row stats-row section-content">
+		<div class="col-md-12 col-sm-12 col-xs-12 wow bounceInLeft stats-row-header">
+			<h1 class="section-hero">CHIFFRES-CLÉS</h1>				
+			<p  class="section-body"> Des statistiques mises à jour du Fichier National RCCM sur les entreprises immatriculées au Burkina Faso de l'année 2000 à la date d'aujourd'hui ! </p>
+
+		</div>
+		<div class="col-md-3 col-sm-12 col-xs-12 statColumn wow fadeInLeft" data-wow-delay="0.1s">
+		    <div class="statBox"  >
+				<h3 class="counter animated-number"><?php echo $totalEntreprises; ?></h3>	
+				<p class="counter-text"> Entreprises Immatriculées</p>
+			</div>	
+		</div>
+		<div class="col-md-3 col-sm-12 col-xs-12 statColumn statColumn wow fadeInLeft" data-wow-delay="0.2s">
+		    <div class="statBox">
+				<h3 class="counter animated-number"><?php echo $totalPP; ?></h3>	
+				<p class="counter-text"> Personnes Physiques</p>
+			</div>
+		</div>
+		<div class="col-md-3 col-sm-12 col-xs-12 statColumn statColumn wow fadeInLeft" data-wow-delay="0.3s">
+		    <div class="statBox">
+				<h3 class="counter animated-number"><?php echo $totalPM; ?></h3>	
+				<p class="counter-text"> Personnes Morales</p>
+			</div>
+		</div>
+		<div class="col-md-3 col-sm-12 col-xs-12 statColumn wow fadeInLeft" data-wow-delay="0.4s">
+		    <div class="statBox">
+				<h3 class="counter animated-number"><?php echo $totalSuretes; ?></h3>	
+				<p class="counter-text"> Sûrétés </p>
+			</div>
+		</div>
+		<div id="statSectionFooter" class="col-md-12 col-sm-12 col-xs-12 stat-section-footer">
+			<a href="<?php echo $linkStatistics; ?>" class="btn btn-warning"  title="Consulter les données statistiques"> <i class="glyph-icon icon-signal"></i> En savoir plus <i class="glyph-icon icon-chevron-right"></i> </a>
+		</div>
+	</div>
+</div>
+
+<?php
+	$jq     = $view->jQuery();
+	$onLoad = " 
+	    var numberFormat = function (n, sep, decimals) {
+			sep = sep || '.'; // Default to period as decimal separator
+			decimals = decimals || 0; // Default to 2 decimals
+		    if( parseInt(decimals) ) {
+				return n.toLocaleString().split(sep)[0]
+										+ sep
+										+ n.toFixed(decimals).split(sep)[1];
+			} else {
+				return n.toLocaleString().split(sep)[0];
+			}			
+		};
+		jQuery('.counter').each(function () {
+				jQuery(this).prop('Counter',0).animate({
+					Counter: jQuery(this).text()
+				}, {
+					duration: 4000,
+					easing: 'swing',
+					step: function (now) {
+						jQuery(this).text(numberFormat(Math.ceil(now),'.',0));
+					}
+				});
+		});
+	";
+	$jq->addOnLoad($onLoad); 
+	 //echo $view->headStyle();
+?>

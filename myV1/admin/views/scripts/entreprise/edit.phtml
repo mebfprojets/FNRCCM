@@ -1,0 +1,165 @@
+<?php 
+   $entreprise         = $this->entreprise;
+   $data               = $this->data;
+   $countries          = $this->countries();
+   $entrepriseCountry  = (isset($countries[$entreprise->country])) ? $countries[$entreprise->country] : $entreprise->country;
+   
+   $formSubmit         = $this->url(array("controller"=>"entreprise","action"=> "edit" ,"id"=> $entreprise->entrepriseid,"module"=>"admin") , "default" ) ;
+   $linkCancel         = $this->url(array("controller"=>"entreprise","action"=> "infos","id"=> $entreprise->entrepriseid,"module"=>"admin") , "default" ) ;
+    
+   $basePath           = VIEW_BASE_PATH;	
+   $jq                 = $this->jQuery(); 
+   $buttonbar          = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler()); 
+   $buttonSave         = $buttonbar->button("Enregistrer","floppy-save")->setPriority("primary");
+   $buttonCancel       = $buttonbar->button("Annuler","ban-circle");     
+   
+   $buttonbar->add($buttonSave ,"saveButton");
+   $buttonbar->add($buttonCancel ,"cancelButton");
+   
+   $buttonSave->setAttributes(  array("type" => "submit", "class" => "btn btn-success"));
+   $buttonCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonCancel->onClick("event.preventDefault() ; document.location.href= '".$linkCancel."' ;");   
+   $buttonSave->onClick("
+   	event.preventDefault();	
+   	var  formSelector= jQuery('#editEntrepriseForm');
+    var  libelle     = jQuery.trim(jQuery('#libelle').val());
+    var  telephone   = jQuery.trim(jQuery('#phone1').val());
+   	var  email       = jQuery.trim(jQuery('#email').val());
+    var  zip         = jQuery.trim(jQuery('#zip').val());
+   		
+    if(SIRAH.util.isEmpty(libelle)){
+        SIRAH.dialog.alert('Vous devrez saisir obligatoirement la Dénommination de l\'entreprise');
+        return;
+    } 
+    if(SIRAH.util.isEmpty(telephone)){
+       SIRAH.dialog.alert('Vous devrez saisir obligatoirement le numéro de téléphone de l\'entreprise');
+       return;
+    }
+   	if(SIRAH.util.isEmpty(zip)){
+       SIRAH.dialog.alert('Vous devrez saisir obligatoirement le code postal de l\'entreprise');
+       return;
+    }
+   	if(!SIRAH.validators.isEmailAddress(email)){
+       SIRAH.dialog.alert('Vous devrez saisir obligatoirement une adresse email valide de l\'entreprise');
+       return;
+    }                  
+      jQuery('#phone1').val(telephone);
+      jQuery('#libelle').val(libelle);
+   	  jQuery('#email').val(email);
+      formSelector.submit();  ");
+$onLoad = " 
+  jQuery('#phone1,#phone2').mask('(000) 00-00-00-00', {placeholder: '(---) -- -- -- --'});
+  jQuery('#capital').mask('000 000 000 000 000', {placeholder: '--- --- --- ---',reverse: true});
+  tinymce.init({selector:'textarea',language:'fr_FR',plugins:'table,textcolor,colorpicker',menubar:'table',toolbar:'table | styleselect | bold italic |alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | advlist'});
+  jQuery('#logo').filestyle({buttonText:'Chercher le logo',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+  ";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile( $basePath . "/js/editors/tinymce/tinymce.min.js");
+$listOfNbreEmployees        = array(10 => "10", 100 => "100", 200 => "200", 300 => "300", 400 => "400", 500 => "500", 800 => "800" , 1000 => "1000"); 
+?>
+<form method="post" id="editEntrepriseForm" class="form-horizontal" role="form" action="<?php echo $formSubmit; ?>" enctype="multipart/form-data">
+ <div     class="content-box">
+    <h3  class="content-box-header bg-blue-alt"> <i class="glyph-icon icon-building-o"></i> <b> Mise à jour des informations de la société</b> </h3>
+    <div class="mrg10T mrg5L pad20A row">
+	<div class="form-group">              
+            <label class="col-sm-2 control-label"> Logo: </label>
+            <div class="col-sm-8"> <input type="file" name="logo" id="logo"  /> </div>  
+     </div> 
+	 <div class="form-group"> 
+	   <label class="col-sm-2 control-label"> Forme juridique: </label>
+	   <div   class="col-sm-3"> <?php echo $this->formSelect("formid", $data["formid"], array("class" => "form-control"), $this->formes); ?></div>
+       <label class="col-sm-2 control-label"> Raison sociale: </label>
+       <div   class="col-sm-3"><input type="text" name="libelle" id="libelle" class="form-control" placeholder="Dénommination" value="<?php echo $data["libelle"]; ?>" /></div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Numéro IFU: </label>
+       <div   class="col-sm-3"> <input type="text" name="reference" id="reference" class="form-control" placeholder="Numéro IFU" value="<?php echo $data["reference"]; ?>" /> </div>        
+       <label class="col-sm-2 control-label"> Secteur d'activités: </label>
+       <div   class="col-sm-3"> <?php echo $this->formSelect("domaineid",$data["domaineid"], array("class" => "form-control") , $this->domaines); ?> </div>      
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Numéro RC: </label>
+       <div   class="col-sm-3"> <input type="text" name="num_rc" id="num_rc" class="form-control" placeholder="Numéro RCCM" value="<?php echo $data["num_rc"]; ?>" /> </div>        
+       <label class="col-sm-2 control-label"> Immatriculation CNSS: </label>
+       <div   class="col-sm-3"> <input type="text" name="num_securite_social" id="num_securite_social" class="form-control" placeholder="Numéro d'imatriculation CNSS" value="<?php echo $data["num_securite_social"]; ?>" /> </div>        
+	 </div>
+	 <div class="form-group">             
+        <label class="col-sm-2 control-label"> Tranche d'effectifs: </label>
+		<div   class="col-sm-8"> 
+		  <div class="input-group">
+		   <span class="input-group-btn"><?php echo $this->formSelect("nbemployes_min", intval($data["nbemployes_min"]), array("class" => "form-control"), array(0=> "Minimal")+$listOfNbreEmployees ); ?></span>
+		   <span class="input-group-btn"><?php echo $this->formSelect("nbemployes_max", intval($data["nbemployes_max"]), array("class" => "form-control"), array(0=> "Maximal")+$listOfNbreEmployees ); ?></span>
+		   <span class="input-group-addon"> Employés</span>
+		 </div>
+		</div>
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Capital: </label>
+       <div   class="col-sm-8"> 
+	    <div class = "input-group">
+	      <input type="text" name="capital" id="capital" class="form-control" placeholder="Capital" value="<?php echo $data["capital"]; ?>" /> 
+		  <span class="input-group-addon"> F CFA</span>
+		 </div> 
+	   </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Date de création: </label>
+	    <div   class="col-sm-8"> 
+		  <div class="input-group">
+		   <span class="input-group-btn"><?php echo $this->formSelect('datecreation_day'  , $data["datecreation_day"]  ,array("class" => "form-control"),array("00"=>"Jour")+createDatesArray());?></span>
+		   <span class="input-group-btn"><?php echo $this->formSelect('datecreation_month', $data["datecreation_month"],array("class" => "form-control"),array(0 =>"Mois")+$this->months()); ?></span>
+		   <span class="input-group-btn"><?php echo $this->formSelect('datecreation_year' , $data["datecreation_year"] ,array("class" => "form-control"),array(0 =>"Année")+createYearsArray( ( intval(date("Y")) - 40 ), intval(date("Y")) ) );?></span>
+		 </div>
+	   </div>
+	 </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Adresse: </label>
+       <div   class="col-sm-8"><input type="text" name="address" id="address" class="form-control" placeholder="Adresse" value="<?php echo $data["address"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Pays: </label>
+       <div   class="col-sm-4"> <?php echo $this->formSelect("country",$data["country"], array("class" => "form-control") , $this->countries()); ?> </div> 
+       <div   class="col-sm-4"> <input id="ville" type="text" name="ville" title="La ville siège de l'entreprise" class="form-control typeahead" placeholder="La ville siège de l'entreprise" ></div>       
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Adresse email: </label>
+       <div   class="col-sm-8"><input type="text" name="email" id="email" class="form-control" placeholder="Adresse email" value="<?php echo $data["email"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Téléphone: </label>
+	   <div   class="col-sm-4"><input type="text" name="phone1" id="phone1" class="form-control" placeholder="Téléphone fixe"   value="<?php echo $data["phone1"]; ?>" /> </div> 
+       <div   class="col-sm-4"><input type="text" name="phone2" id="phone2" class="form-control" placeholder="Téléphone mobile" value="<?php echo $data["phone2"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Site web: </label>
+       <div   class="col-sm-8"><input type="text" name="siteweb" id="siteweb" class="form-control" placeholder="Site web" value="<?php echo $data["siteweb"]; ?>" /> </div>        
+     </div>
+	 <div class="form-group"> 
+       <label class="col-sm-2 control-label"> Code postal / Fax: </label>
+       <div   class="col-sm-4"><input type="text" name="zip" id="zip" class="form-control" placeholder="Code postal" value="<?php echo $data["zip"]; ?>" /> </div> 
+       <div   class="col-sm-4"><input type="text" name="fax" id="fax" class="form-control" placeholder="Fax" value="<?php echo $data["fax"]; ?>" /> </div>        
+     </div>
+	<div class="form-group"> 
+       <label class="col-sm-2 control-label"> Responsable: </label>
+	   <div   class="col-sm-4"><input type="text" name="responsable"       id="responsable" class="form-control"       placeholder="Nom & Prénom du responsable"  value="<?php echo $data["responsable"]; ?>" /> </div>   
+       <div   class="col-sm-4"><input type="text" name="responsable_email" id="responsable_email" class="form-control" placeholder="Adresse email du responsable" value="<?php echo $data["responsable_email"]; ?>" /> </div>        
+    </div>
+	<div class="form-group"> 
+        <label class="col-sm-2 control-label"> Décrire votre activité: </label>
+       <div class="col-sm-8">
+         <textarea  name="presentation" id="presentation" class="textarea form-control" rows="5" cols="50"><?php echo $data["presentation"]; ?></textarea> 
+       </div>  
+     </div> 
+    </div>	    
+<?php 
+          if(!$this->isAjax) {
+          	  echo $buttonbar;
+          } else {
+          	echo $this->jQuery();
+          }
+?>  
+
+ </div>
+ </form>

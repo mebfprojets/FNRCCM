@@ -1,0 +1,36 @@
+<?php 
+    $commande   = $this->commande;
+    $commandeid = $this->commandeid;
+	$products   = $this->products;
+	
+	$output     = "";
+    $output    .= " <table id=\"commandeProducts\" class=\"table table-hover table-striped\" >
+                        <thead><tr><th width=\"10%\">Codes</th><th width=\"50%\">Désignations</th><th style=\"text-align:left;\" width=\"10%\">Qté</th><th width=\"15%\">Valeur HT</th><th width=\"15%\">Valeur TTC</th></tr></thead>
+						<tbody>";
+    if( count(  $products)) {
+    	foreach($products as $product) {
+				$productid    = intval($product["productid"]);
+                $produitCode  = sprintf("%s",$product["produitCode"]);
+				$produitLib   = sprintf("%s",$product["produit"]);
+				$quantite     = (floatval($product["quantite"]  ))?sprintf("%s", number_format($product["quantite"]  ,0," ", " ")) : 0;
+				$valeurHT     = (floatval($product["valeur_ht"] ))?sprintf("%s", number_format($product["valeur_ht"] ,0," ", " ")) : 0; 
+				$valeurTTC    = (floatval($product["valeur_ttc"]))?sprintf("%s", number_format($product["valeur_ttc"],0," ", " ")) : 0;
+				$linkProduct  = $this->url(array("module"=>"admin","controller"=>"products","action"=>"infos","productid"=>$productid),"default");
+				
+				$output      .= "<tr id=\"productId-".$productid."\">";
+				    $output  .= "   <td style=\"text-align:left;\"> <a class=\"dialogViewInfos\" href=\"".$linkProduct."\" title=\"Consulter les informations de l'élement\">".$produitCode."</a></td>
+					                <td style=\"text-align:left;\"> <a class=\"dialogViewInfos\" href=\"".$linkProduct."\" title=\"Consulter les informations de l'élement\">".$produitLib ."</a></td>
+									<td style=\"text-align:left;\"> <a class=\"dialogViewInfos\" href=\"".$linkProduct."\" title=\"Consulter les informations de l'élement\">".$quantite   ."</a></td>
+									<td style=\"text-align:right;\"><a class=\"dialogViewInfos\" href=\"".$linkProduct."\" title=\"Consulter les informations de l'élement\">".$valeurHT   ."</a></td>
+									<td style=\"text-align:right;\"><a class=\"dialogViewInfos\" href=\"".$linkProduct."\" title=\"Consulter les informations de l'élement\">".$valeurTTC  ."</a></td>
+							    ";
+				$output      .= "</tr>";
+		} 
+    }  else {
+    	        $output .= "<tr id=\"productId-0\"><td colspan=\"5\" style=\"text-align:center !important;\"> AUCUN PRODUIT N'A ETE ASSOCIE A CETTE COMMANDE</td></tr>";
+    }
+    $output     .= "</tbody></table>";
+    
+    echo  $output ;     
+?>
+             

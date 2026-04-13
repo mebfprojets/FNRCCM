@@ -1,0 +1,167 @@
+/*
+    Table styling
+*/
+
+// Zebra-striping
+//
+// Default zebra-stripe styles (alternating gray and transparent backgrounds)
+
+.table-striped {
+    > tbody > tr:nth-child(odd) {
+        > td,
+        > th {
+            background-color: @table-bg-accent;
+        }
+    }
+}
+
+// Vertical striping
+.table-v-striped {
+    > colgroup > col:nth-child(odd) {
+        background-color: @table-bg-accent;
+    }
+}
+
+// Hover effect
+//
+// Placed here since it has to come after the potential zebra striping
+
+.table-hover {
+    > tbody > tr:hover {
+        > td,
+        > th {
+            background-color: @table-bg-hover;
+        }
+    }
+}
+
+
+// Table backgrounds
+//
+// Exact selectors below required to override `.table-striped` and prevent
+// inheritance to nested table.
+
+// Generate the contextual variants
+.table-row-variant(active; @table-bg-active);
+.table-row-variant(success; @state-success-bg);
+.table-row-variant(info; @state-info-bg);
+.table-row-variant(warning; @state-warning-bg);
+.table-row-variant(danger; @state-danger-bg);
+
+
+.table-no-border td {
+    border: 0 !important;
+}
+
+.table-y-border td {
+    border-left: 1px solid #ddd;
+    border-top: 0 !important;
+}
+
+.table-y-border td:first-child {
+    border-left: 0 !important;
+}
+
+.table-no-head {
+    tr:first-child {
+        td {
+            border-top: 0;
+        }
+    }
+}
+
+/*
+    Responsive table
+*/
+@media only screen and (max-width: 768px) {
+    #hide-cols table td:nth-child(4),
+    #hide-cols table th:nth-child(4),
+    #hide-cols table td:nth-child(6),
+    #hide-cols table th:nth-child(6),
+    #hide-cols table td:nth-child(7),
+    #hide-cols table th:nth-child(7),
+    #hide-cols table td:nth-child(8),
+    #hide-cols table th:nth-child(8),
+    #hide-cols table td:nth-child(9),
+    #hide-cols table th:nth-child(9){display: none;}
+}
+
+@media only screen and (max-width: 768px) {
+    
+    .flip-scroll .table-scroll:after { visibility: hidden; display: block; font-size: 0; content: " "; clear: both; height: 0; }
+    .flip-scroll * html .table-scroll { zoom: 1; }
+    .flip-scroll *:first-child+html .table-scroll { zoom: 1; }
+    
+    .flip-scroll table { width: 100%; border-collapse: collapse; border-spacing: 0; }
+ 
+    .flip-scroll th,
+    .flip-scroll td { margin: 0; vertical-align: top; }
+    .flip-scroll th { text-align: left; }
+    
+    .flip-scroll table { display: block; position: relative; width: 100%; }
+    .flip-scroll thead { display: block; float: left; }
+    .flip-scroll tbody { display: block; width: auto; position: relative; overflow-x: auto; white-space: nowrap; }
+    .flip-scroll thead tr { display: block; }
+    .flip-scroll th { display: block; text-align: right; }
+    .flip-scroll tbody tr { display: inline-block; vertical-align: top; }
+    .flip-scroll td { display: block; min-height: 1.25em; text-align: left; }
+ 
+ 
+    /* sort out borders */
+ 
+    .flip-scroll th { border-bottom: 0; border-left: 0; }
+    .flip-scroll td { border-left: 0; border-right: 0; border-bottom: 0; }
+    .flip-scroll tbody tr { border-left: 1px solid #babcbf; }
+    .flip-scroll th:last-child,
+    .flip-scroll td:last-child { border-bottom: 1px solid #babcbf; }
+}
+
+@media only screen and (max-width: 768px) {
+    
+    /* Force table to not be like table anymore */
+    #no-more-table table, 
+    #no-more-table thead, 
+    #no-more-table tbody, 
+    #no-more-table th, 
+    #no-more-table td, 
+    #no-more-table tr { 
+        display: block; 
+    }
+ 
+    /* Hide table headers (but not display: none;, for accessibility) */
+    #no-more-table thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+ 
+    #no-more-table tr { border: 1px solid #ccc; }
+ 
+    #no-more-table td { 
+        /* Behave  like a "row" */
+        border: none;
+        border-bottom: 1px solid #eee; 
+        position: relative;
+        padding-left: 50%; 
+        white-space: normal;
+        text-align:left;
+    }
+ 
+    #no-more-table td:before { 
+        /* Now like a table header */
+        position: absolute;
+        /* Top/left values mimic padding */
+        top: 6px;
+        left: 6px;
+        width: 45%; 
+        padding-right: 10px; 
+        white-space: nowrap;
+        text-align:left;
+        font-weight: bold;
+    }
+ 
+    /*
+    Label the data
+    */
+    #no-more-table td:before { content: attr(data-title); }
+}

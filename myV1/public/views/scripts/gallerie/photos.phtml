@@ -1,0 +1,113 @@
+<?php
+$me          = Sirah_Fabric::getUser(); 
+$galleries   = $this->galleries;
+$filters     = $this->filters;
+$paginator   = $this->paginator;
+
+$blankPhoto  = VIEW_BASE_PATH ."/images/blank.png";
+$jq          = $this->jQuery();
+
+$linkSearch  = $this->url(array("controller" => "gallerie", "action"  => "list", "type" => "photos")  , "default");
+
+$onLoad     ="  
+jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+		  if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+		   var formSelector     = jQuery('#advanced-searchform');
+		   var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		   var pageMaxitems     = formSelector.find('#maxitems').val();
+		   if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		   }
+		   if(jQuery(this).is('.prevPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum - 1);
+		   }
+		var paginationData      = {};
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post('globalformsearch', '".$linkSearch."', 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {},
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                     });
+	  SIRAH.loading.off(false);	});
+jQuery('.thumbnailImg').css('cursor', 'pointer');
+jQuery('.thumbnailImg').click(function(event){var itemLink = jQuery(this).attr('img-link');document.location.href = itemLink;});";
+
+$jq->addOnload( $onLoad );
+
+?>
+<div class="row pagerow">
+<?php $this->headStyle()->captureStart() ?>
+#listOfgalleries{margin-top:10px !important; width:100% !important;}
+a.imageLink{font-size:14px;}
+p.buttons .btn{padding:3px 10px;margin-left:5px;}
+p.buttons .pull-top{top:5px !important;position:absolute;color:#dfe3e8;}
+p.buttons .pull-right{right:5px !important;position:absolute;}
+.thumbnail .caption {height:120px;min-height:120px;}
+.thumbnail{padding:5px;height:250px;}
+.thumbnail img{margin-top:0;}
+.gallery-item-thumb,.col-md-3,.col-md-6{padding-left:5px !important;padding-right:5px !important;}
+<?php $this->headStyle()->captureEnd()   ?>           
+                                                 
+<?php          
+ $output  = "<div id=\"listOfgalleries\" style=\"display:block;width:99%;clear:both;overflow:hidden;\" > 
+                             ";
+                               if( count(   $galleries ) ) {
+                               	            $me                 = Sirah_Fabric::getUser();
+                               	            $modelGallery       = new Model_Gallerie();
+                               	   foreach( $galleries as $gallerie ) {                               	   	        
+                               	   	        $galleryid          = intval( $gallerie["galleryid"] );
+                               	   	        $gallerieLibelle    = substr( $gallerie["libelle"], 0 , 25)."[...]";
+                               	   	        $introduction       = html_entity_decode(substr($this->escape( $gallerie["description"] ) , 0 , 100 ), ENT_QUOTES, "UTF-8" );
+                               	   	        $photos             = $modelGallery->photos( $galleryid );                               	   	        
+                               	   	        $nbrePhotos         = count( $photos );
+                               	   	        if( !$nbrePhotos )
+                               	   	        	continue;
+                               	   	        $photo              = $photos[0]["photo"]; 
+
+                               	   	        $urlLibelle         =  Sirah_Functions_String::cleanUtf8( $gallerie["libelle"]);
+                               	   	        $linkGallery        = $this->url(array("controller"=> "gallerie", "galleryid" => $galleryid, "libelle" => $urlLibelle), "galleriephotos");
+                               	   	        $photoFile          = $blankPhoto;
+                               	   	        if( !empty( $photo ) ) {
+                               	   	        	$photoPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photo );
+                               	   	        	if( Sirah_Filesystem::exists( $photo ) ) {
+                               	   	        		$photoFile  = str_replace( DS, "/", $photoPathname );
+                               	   	        		//$photoFile  = str_replace( "original", "mini", $photoFile );
+                               	   	        	}
+                               	   	        }
+                               	   	        $output  .=" <div id=\"galleryid-".$galleryid."\" class=\"col-xs-18 col-sm-6 col-md-3 gallery-item-thumb\"> ";
+                               	   	                 $output  .=" <div class=\"thumbnail\"> ";
+                               	   	                          $output  .=" <img class=\"img-responsive img-rounded thumbnailImg\"  img-link=\"".$linkGallery."\" align=\"center\" src=\"".$photoFile."\" title=\"Voir le contenu de la gallerie\" alt=\"Photo de garde de la gallerie\" />";
+                               	   	                          $output  .=" <div class=\"caption\"> ";
+                               	   	                                   $output  .="<h4> <a class=\"imageLink\" href=\"".$linkGallery."\"> ".$gallerieLibelle."  </a> </h4>";                        	   	                                                             	   	                                   	                                	   	                                   
+                               	   	                          $output  .=" </div> ";
+                               	   	                 $output  .=" </div> ";
+                               	   	        $output  .=" </div> ";
+                               	   }                              	
+                               }  else {
+                               	$output  .="<div class=\"panel panel-default\"> <div class=\"panel-body\"> AUCUNE GALLERIE PHOTOS N'A ETE RETROUVEE. </div></div> ";
+                               }        
+              $output .= "</div>  ";
+              
+              echo $output;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();
+              
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headScript();             	  
+              	  echo $this->headStyle();
+              }                   
+    ?>
+ </div>

@@ -1,0 +1,66 @@
+<?php
+   $products          = $this->products;
+   $linkSelectProduct = $view->url(array("controller"=>"products","action"=>"infos","module"=>"public"),"default",true);
+   $defaultImgPath    = APPLICATION_TEMPLATES."public/assets/images/product.png";
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " jQuery('.equal-height-panels .panel').matchHeight();
+            jQuery('.selectProduct').click(function( event ){event.preventDefault();
+				var productid  = parseInt(jQuery(this).attr('href').replace('#selectProductId-', ''));
+				document.location.href='".$linkSelectProduct."/productid/'+productid;
+			});";
+$jq->addOnLoad($onLoad);
+$jq->addJavascriptFile($basePath ."/scripts/widgets/matchHeight/jquery.matchHeight-min.js");
+?>
+<div class="container form-container">
+    <div class="row text-center">
+	<?php
+	    $productsOutput  = "";
+		if( count(   $products) ) {
+			foreach( $products as $product ) {
+				     $productid          = $product["catid"];
+					 $productLibelle     = $product["libelle"];
+					 $productDescription = $product["description"];
+					 $coutTTC            = $product["cout_ttc"];
+					 $imagePath          = (!empty($product["image"]))? APPLICATION_DATA_PATH.DS."products".DS."images".DS."mini".DS.$product["image"] : $defaultImgPath;
+				     $imageFile          = null;
+					 if((null !== $imagePath) && file_exists($imagePath)) {
+						$imagePathname   = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $imagePath);
+		                $imageFile       = str_replace( DS , "/" , $imagePathname);
+					}
+					 $productsOutput    .="<div id=\"productId-".$productid."\" class=\"col-xs-6 col-sm-6 col-md-4 equal-height-panels selectProduct\">";
+					 $productsOutput    .="    <div class=\"panel panel-white panel-more-shadow\"> ";
+						$productsOutput .="         <div class=\"panel-body\"><div class=\"panel-desc m-bot0\"> ".$productLibelle."</div></div>";
+						if(!empty($imageFile)) {
+							$productsOutput.="        <div class=\"panel-body panel-body-fw\"> <img class=\"img-responsive\" width=\"100%\" height=\"150px\" src=\"".$imageFile."\" /> </div>";
+						}
+												             
+					 $productsOutput.="<ul class=\"list-group\"> ";
+					 if( floatval($coutTTC) ) {
+						 $productsOutput.=sprintf("<h4> A partir de %s F CFA </h4>",number_format($coutTTC,0,'', ' '));
+					 } else {
+						 $productsOutput.=sprintf("<h4> A partir de %d F CFA </h4>",$coutTTC);
+					 }
+                     if(!empty($productDescription)) {
+						 $productsOutput.="<li class=\"list-group-item\"> ".$productDescription." </li>";
+					 }
+					 $productsOutput.="<li class=\"list-group-item\"><a href=\"#selectProductId-".$productid."\" class=\"btn btn-success btn-block btn-lg selectProduct\">En savoir plus </a></li>";
+					 $productsOutput.="</ul>";
+			         $productsOutput.="</div> 
+					 </div>";
+			}
+		} else {
+			        $productsOutput .="<div id=\"productId-0\" class=\"col-xs-6 col-sm-6 col-md-4 equal-height-panels\">";
+					$productsOutput .="    <div class=\"panel panel-white panel-more-shadow\"> ";
+					$productsOutput .="         <div class=\"panel-body\"><div class=\"panel-desc m-bot0\">  AUCUN PRODUIT N'A ETE TROUVE </div></div>";
+					$productsOutput.="</div> </div>";
+		}
+		echo $productsOutput;
+	?>
+	</div>      
+</div>

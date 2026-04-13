@@ -1,0 +1,99 @@
+<?php 
+   $data                = $this->data;
+   $categories          = $this->categories;
+   $formSubmit          = $this->url(array("module"=>"courriers","controller" => "clients", "action" => "upload" , "clientid" => $this->clientid ) , "default" ) ; 
+   $linkUploadDocuments = $this->url(array("module"=>"courriers","controller" => "clients", "action" => "upload" , "clientid" => $this->clientid ) , "default");
+   $onLoad  = "
+   jQuery('#clientdocument').filestyle({buttonText:'Chercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+   jQuery('#clientdocumentform').fileupload({
+                                      paramName:'clientdocument',
+                                      url      : '".$formSubmit."' ,
+                                      type     : 'POST',
+                                      dataType : 'json',
+                                      add : function(e , data) {
+                                                   var modalButton  = jQuery('.modal-footer').first().find('.btn-primary:first');
+                                                   modalButton.unbind('click');
+                                                   modalButton.bind('click' , function( event ) {
+                                                          event.preventDefault();
+                                                          SIRAH.loading.on( jQuery('.modal-body').first(), 'Patientez , stockage du document...' );
+                                                          var jqXhr    = data.submit();
+                                                          jqXhr.success(function(result , textStatus , jqXHR){
+                                                               if( result.success !== undefined) {
+                                                                   SIRAH.loading.off(false);
+                                                                   SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée : '+result.success , 'success');
+                                                                   var document  = result.document;
+                                                                   if( document != undefined ){
+                                                                       SIRAH.loading.off(false);
+                                                                       /*jQuery('#dialogUploadFile').dialog2('close');  */                                                                    
+                                                                      }
+                                                                  } else if(result.error !== undefined) {
+                                                                      SIRAH.error.raise(jQuery('#dialogUploadFile'), 'Opération terminée : '+result.error , 'error');
+                                                                      SIRAH.loading.off(false);
+                                                                      return true;
+                                                                 }
+                                                              });
+                                                           jqXhr.error(function( result , textStatus, errorThrown) {
+                                                                    SIRAH.error.raise(jQuery('#dialogUploadFile') , 'Opération terminée , aucune erreur valide n\'a été retournée : '+result , 'error');
+                                                                    SIRAH.loading.off(false);
+                                                                    return false;
+                                                      });
+                                         });  },
+                                        messages: {uploadedBytes: 'Le fichier que vous voulez uploader est trop lourd'}
+   });
+   jQuery('#clientdocumentform').bind('fileuploadformsubmit', function (e, data) {var inputs    = jQuery(this).find(':input');data.formData = inputs.serializeArray();});";
+   $jq  = $this->jQuery();
+   //$jq->addOnLoad($onLoad);
+   $basePath    = VIEW_BASE_PATH;
+   $jq->addStyleSheet(    $basePath . "/js/fileupload/css/jquery.fileupload.css");
+   $jq->addStyleSheet(    $basePath . "/js/fileupload/css/jquery.fileupload-ui.css");
+   $jq->addStyleSheet(    $basePath . "/css/sirahfileupload.css");
+   $jq->addJavascriptFile($basePath . "/js/bootstrap/bootstrap-filestyle.js");
+   $jq->addJavascriptFile($basePath . "/assets-minified/js-core/raphael.js");
+   $jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.iframe-transport.js");
+   $jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload.js");
+   $jq->addJavascriptFile($basePath . "/assets-minified/widgets/multi-upload/jquery.fileupload-ui.js");
+   
+   $jq->addOnLoad($onLoad);
+?>
+<?php $this->headStyle()->captureStart() ?>
+     .bar {height: 18px;background: green;}
+     div.bootstrap-filestyle input[type="text"]{width:auto;margin-left:5px;margin-right:5px;margin-bottom:0;}
+     div.bootstrap-filestyle, div.fileUploadRow{margin-bottom:15px;}
+<?php $this->headStyle()->captureEnd()   ?>  
+ <form method="post" action="<?php echo $formSubmit; ?>" align="center" id="clientdocumentform" enctype="multipart/form-data"   role="form"> 
+ <div class="col-md-12" style="text-align:left;">
+    <ul class="list-group">
+      <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="control-label" for="filepath"> Chercher un document : </label> </div>
+            <div class="col-md-8"> <input name="clientdocument" type="file" id="clientdocument" /> </div>
+       </div> 
+     </li> 
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="filename"> <b> Désignation du fichier *:</b> </label></div> 
+            <div class="col-md-8"> <input id="filename" type="text" class="form-control" title="La désignation du fichier" placeholder="Désignation"  name="filename" value="<?php echo $this->escape($data["filename"]); ?>"></div>
+       </div>
+       <p id="filename-validation-message" class="validation-message"></p>  
+     </li>     
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="filemetada"> <b>Les mots clés :</b> </label></div> 
+            <div class="col-md-8"> <input id="filemetadata" type="text" class="form-control"title="Les clés d'indexation du fichier" placeholder="Les clés d'indexation du fichier"  name="filemetadata" value="<?php echo $this->escape($data["filemetadata"]); ?>"> </div>
+       </div>
+     </li>     
+     <li class="list-group-item">     
+        <div class="row col-md-12"> 
+            <div class="col-md-4"> <label class="label" for="filedescription"> <b> Description du fichier : </b> </label> </div> 
+            <div class="col-md-8"> <textarea class="form-control" name="filedescription"  id="filedescription"><?php echo $data["filedescription"]; ?></textarea> 
+           </div>
+       </div>
+   </li>   
+  </ul>
+  </div>  
+   <?php if($this->isAjax) : ?>
+   <?php echo $this->jQuery(); echo $this->headStyle(); ?>
+   <?php endif; ?>
+   
+   <input type="hidden" name="category" id="category" value="3" />
+  </form>     

@@ -1,0 +1,287 @@
+<?php 
+$roles            = $this->roles;
+$priorities       = array("Inconnue","Très Elevée", "Elevée", "Normale", "Basse", "La plus basse");
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+
+$linkSearch       = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "list") , "default");
+$linkCreate       = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "create") , "default");
+$linkEdit         = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "edit") , "default");
+$linkDelete       = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "delete") , "default");
+$linkRights       = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "rights") , "default");
+$linkEditRights   = $this->url(array("module"=>"admin","controller"=>"useroles","action"=> "updaterights") , "default");
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		 
+		searchData.searchQ  = searchData.rolename = jQuery.trim(jQuery('#globalFormSearch').find('#searchRolename').val());
+        var maincontent     = jQuery('#maincontent');		
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+var keyPressedReqhasSent = false;
+var makeRequestTimer     = defaultXHR  = null;
+var charsPressed         = 0;
+jQuery('#searchQ,#searchRolename').on('keypress paste', function( event ){
+       charsPressed++;	
+	   if(event.type=='keyup' && event.keyCode!=8) return;
+	   if( makeRequestTimer) clearTimeout(makeRequestTimer);
+       if( defaultXHR ) defaultXHR.abort();	   
+	   makeRequestTimer = setTimeout(function() {		      
+		      var formSelector       = jQuery('#globalFormSearch');
+			  var maincontent	     = jQuery('#maincontent');
+
+		      var defaultData        = {};
+		      var searchKey          = defaultData.globalfilter = defaultData.searchRolename = jQuery.trim(jQuery('#globalFormSearch').find('#searchRolename').val());
+		      defaultData.page       = 1;
+		      defaultData.showsearch = 0;
+		      defaultData.maxitems   = advancedFormSelector.find('#maxitems').val();
+			  if( searchKey.length >= 14 ) {
+				  SIRAH.loading.on(jQuery('#globalfilterRow'), 'Patientez...');
+		          SIRAH.request.post('globalFormSearch', '".$linkSearch."',{data: defaultData,dataType:'html',async:true,
+		                             beforeSend:function(jqXHR) {defaultXHR = jqXHR;keyPressedReqhasSent=true;},
+		                             error     :function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;},
+	                                 success   :function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;},
+		                             update    :function(data){maincontent.html(data);SIRAH.loading.off(false);jQuery('.dropdown-toggle').dropdown();charsPressed=0;}		
+		                     });
+			  }		      
+		},1000);
+});
+var getCheckedRoleIds= function() {
+		var checkedItems = jQuery('#rolesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds   = []; 
+		if(checkedItems) {
+		   checkedItems.each(function(){var roleid = parseInt(jQuery(this).attr('id').replace('roleids-',''));checkedIds.push(roleid);});
+		}
+		return checkedIds;
+};
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+jQuery('#rolesListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','rightsButton','editButton']);});
+jQuery('#rolesListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','rightsButton','editButton']);});
+jQuery('#rolesListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','rightsButton','editButton']);});
+jQuery('#rolesListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#rolesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','rightsButton','editButton']);
+	}
+});");
+
+$supinaToolsbar = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate     = $supinaToolsbar->tool("Nouveau rôle", "plus");
+$toolEdit       = $supinaToolsbar->tool("Modifier"    , "edit");
+$toolDelete     = $supinaToolsbar->tool("Supprimer"   , "trash-o");
+$toolRights     = $supinaToolsbar->tool("Permissions" , "lock");
+ 
+$supinaToolsbar->add($toolCreate ,"createButton")
+                ->add($toolEdit  ,"editButton")
+				->add($toolRights,"rightsButton")
+				->add($toolDelete,"deleteButton");
+				
+$toolRights->dropdown(array("viewRightsButton"=>"<span class=\"glyph-icon icon-eye\">&nbsp</span>    Visualiser les permissions",
+						    "editRightsButton"=>"<span class=\"glyph-icon icon-pencil\">&nbsp</span> Modifier les permissions"), $this->jqueryHandler());
+$toolCreate->onClick(sprintf("event.preventDefault;document.location.href='%s';" , $linkCreate ));
+$toolEdit->disable();
+$toolEdit->onClick("
+		var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		var checkedItem  = jQuery('#rolesListTable').find('input[type=\'checkbox\'][name=\'roleids[]\']:checked').eq(0);
+		if( isDisabled || !checkedItem ) {
+		    SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		    return;
+        }
+		var roleid       = parseInt(checkedItem.attr('id').replace('roleids-',''));
+		var rolename     = jQuery('#rolename-'+roleid).val();
+		var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit');
+		dialogEdit.dialog2({title:'Mettre à jour les informations du role '+rolename,content:'".$linkEdit."/roleid/'+roleid,modalClass:'modal-wide',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+		dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i>  Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+		dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-save\'></i> Sauvegarder',{primary:true,click:function(){var editForm=jQuery('#dialogEdit').find('form').eq(0);SIRAH.request.post(editForm,'".$linkEdit."/roleid/'+roleid);}});		
+		dialogEdit.dialog2('open');");
+$toolDelete->disable();
+$toolDelete->onClick("
+		var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		var checkedRoles = getCheckedRoleIds();
+		if( isDisabled || SIRAH.util.isEmpty(checkedRoles)) {
+		    SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		    return;
+        }
+		var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les roles selectionnés ? Ces rôles et leurs données dépendantes seront définitivement supprimés du système </div>').attr('id','dialogDelete');
+		dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+		dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i> Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+		dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'></i> Oui',{primary:true,click:
+		                     function(){
+		                      jQuery.ajax({url:'".$linkDelete."',dataType:'json',type:'GET',async:true,data:{'roleids[]' : checkedRoles} ,
+		                                  success:function(data){
+		                                     if(data.error !== undefined) {
+		                                        SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+		                                        return;
+                                              } else if(data.success !== undefined) {
+		                                        var checkedRoles = getCheckedRoleIds();
+		                                        SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+		                                        setTimeout(function(){jQuery.each(checkedRoles,function(key,roleid){jQuery('#rowRole-'+roleid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+                                              }
+                                           }
+                                 });
+        }});		
+		dialogDelete.dialog2('open');");
+$toolRights->disable();
+$viewRightsButton = $toolRights->getDropdownItem("viewRightsButton");
+if( $viewRightsButton ) {
+	$viewRightsButton->onClick("
+		var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		var checkedItem  = jQuery('#rolesListTable').find('input[type=\'checkbox\'][name=\'roleids[]\']:checked').eq(0);
+		if( isDisabled || !checkedItem) {
+			  SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+			  return;
+		}
+		var roleid       = parseInt(checkedItem.attr('id').replace('roleids-',''));
+		var rolename     = jQuery('#rolename-'+roleid).val();
+		var dialogRights = jQuery('<div></div>').attr('id','dialogRights').addClass('scrollable');
+		dialogRights.dialog2({title:'Visualiser les permissions du rôle '+rolename+' sur la plateforme',content:'".$linkRights."/roleid/'+roleid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Patientez , chargement...'});
+		dialogRights.dialog2('addButton','<i class=\'glyph-icon icon-check\'></i> Ok', {primary: true,click : function(){jQuery(this).dialog2('close');}});
+		dialogRights.dialog2('open');");
+}
+$editRightsButton = $toolRights->getDropdownItem("editRightsButton");
+if( $editRightsButton ) {
+	$editRightsButton->onClick("
+		var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		var checkedItem  = jQuery('#rolesListTable').find('input[type=\'checkbox\'][name=\'roleids[]\']:checked').eq(0);
+		if( isDisabled || !checkedItem ) {
+			SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+			return;
+		}
+		var roleid           = parseInt(checkedItem.attr('id').replace('roleids-',''));
+		var rolename         = jQuery('#rolename-'+roleid).val();
+		var dialogEditRights = jQuery('<div></div>').attr('id','dialogEditRights').addClass('scrollable');
+		dialogEditRights.dialog2({title:'Définir des permissions du rôle `'+rolename+'` sur la plateforme',content:'".$linkEditRights."/roleid/'+roleid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Patientez , chargement...'});
+		dialogEditRights.dialog2('addButton','<i class=\'glyph-icon icon-times\'></i> Fermer',{primary:false,click:function(){jQuery(this).dialog2('close');}});
+		dialogEditRights.dialog2('addButton','<i class=\'glyph-icon icon-save\'></i>  Définir des permissions',
+		                         { 
+								    primary:true,
+								    click:function(e){
+									    e.preventDefault();
+									    var rightsForm = formSelector = jQuery('#dialogEditRights').find('form');
+										SIRAH.loading.on(  jQuery('#dialogEditRights'), 'Patientez...' );
+									    SIRAH.request.post(rightsForm,'".$linkEditRights."/roleid/'+roleid,{
+										    success : function(data ) {
+												SIRAH.loading.off(false);
+												jQuery('#patientez').fadeOut('slow');
+												if(!SIRAH.util.isEmpty(data.error)){
+													SIRAH.error.raise(jQuery('#dialogEditRights'),data.error,'error');
+													return data;
+												} else if(!SIRAH.util.isEmpty(data.success)){
+													SIRAH.error.raise(jQuery('#dialogEditRights'), data.success,'success');
+													return data;
+												}	else if(undefined !== data.reload) {
+													var reloadurl          = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+													document.location.href =  reloadurl ;
+												} else {
+													SIRAH.error.raise(jQuery('#dialogEditRights'),'Aucune reponse valide n\'a été retournée par le serveur','error');
+													return data;
+												}	
+											}										   
+									    });
+									}
+		});		
+		dialogEditRights.dialog2('open');   ");
+}
+$this->toolsbar  = $supinaToolsbar;
+?>
+<div id="usersRoleListWrapper"  class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-green">
+		    <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+			    <div class="input-group">				
+					<input value="<?php echo $this->searchRolename; ?>" id="searchRolename" name="searchRolename" type="text" class="form-control" placeholder="Saisir le nom d'un rôle...">			  
+					<span class="input-group-btn ">			   
+					   <button id="simpleSearch" class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+					   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum; ?>" /> 
+                <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;?>" />
+			</form>
+	    </div>
+		<table id="rolesListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+                          <th width="40%"> Désignations            </th> 
+                          <th width="35%"> Hérite du/des role(s)   </th> 
+                          <th width="24%"> Priorités               </th> 
+                     </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                          $output   = "";
+                          if( count( $roles )) {
+                          	foreach( $roles as $roleid => $rolename ) {
+                          		     $accessLevel = Sirah_User_Acl_Table::getAccesslevel($roleid);
+                          		     $parents     = Sirah_User_Acl_Table::getRoleParents($roleid);                        		     
+                          		     $linkInfos   = $this->url(array("module"=>"admin","controller"=>"useroles","action"=>"infos","roleid"=>$roleid));
+                          		                               		     
+                          		     $output .="<tr class=\"".$bgClass."\" id=\"rowRole-".$roleid."\">";
+                          		             $output .= "<td id=\"checkboxCell-".$roleid."\"><input type=\"checkbox\" name=\"roleids[]\" id=\"roleids-".$roleid."\" class=\"roleids\" /> </td>";
+                          		             $output .= "<td id=\"roleName-".$roleid."\">  <a href=\"".$linkInfos."\"> ".$rolename." </a> </td>";
+                          		             if(empty($parents )){
+                          		             	$output .= "<td id=\"parents-".$roleid."\"><a href=\"".$linkInfos."\"> Aucun </a> </td>";
+                          		             } else {
+                          		             	$output .= "<td id=\"parents-".$roleid."\"><a href=\"".$linkInfos."\"> ".implode(', ', $parents)." </a> </td>";
+                          		             }
+                          		             if(!empty($accessLevel) && isset( $priorities[$accessLevel[0]] )) {
+                          		             	$output .= "<td id=\"priorities-".$roleid."\"> <a href=\"".$linkInfos."\"> ".$priorities[$accessLevel[0]]." </a> </td>";
+                          		             }  else {
+                          		             	$output .= "<td id=\"priorities-".$roleid."\"> <a href=\"".$linkInfos."\"> ".$priorities[5]." </a> </td>";
+                          		             }
+                          		     $output .="<input type=\"hidden\" id=\"rolename-".$roleid."\" name=\"rolename-".$roleid."\" value=\"".$rolename."\"  />"  ;
+                          		     $output .="</tr>";
+                          	}                          	
+                          } else {
+                          	         $output .="<tr style=\"text-align:center;\"><td colspan=\"5\"> Aucun role n' a été retrouvé dans le système </td> </tr>";
+                          }
+                                     echo $output;
+                    ?>
+                </tbody>
+        </table>
+	</div>
+</div>

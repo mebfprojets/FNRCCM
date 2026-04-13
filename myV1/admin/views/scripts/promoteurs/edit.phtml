@@ -1,0 +1,233 @@
+<?php 
+$data                 = $this->data;
+
+$formSubmit           = $this->url(array("module"=>"admin","controller"=>"promoteurs","action"=>"edit", "id"=>$this->promoteurid), "default" );
+$backList             = $this->url(array("module"=>"admin","controller"=>"promoteurs","action"=>"list")  , "default" );
+ 
+$basePath             = VIEW_BASE_PATH;
+
+$jq                   = $this->jQuery(); 
+$onLoad               = " 
+jQuery('#country').chosen({allow_single_deselect:true,no_results_text: 'Aucun pays ne correspond à ', width:'100%'}); 
+ 
+jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#editButton').click(function(e){
+	e.preventDefault();      
+	var formSelector       = jQuery('#editPromoteurForm');
+	var lastname           = jQuery.trim(formSelector.find('#lastname').val());
+	var firstname          = jQuery.trim(formSelector.find('#firstname').val());
+	var numero             = jQuery.trim(formSelector.find('#numero').val());
+	var telephone          = jQuery.trim(formSelector.find('#telephone').val());
+	var lieu_etablissement = jQuery.trim(formSelector.find('#lieu_etablissement').val());
+	var organisme_etablissement = jQuery.trim(formSelector.find('#organisme_etablissement').val());
+
+	  
+	if( SIRAH.util.isEmpty( lastname )){
+		jQuery('#lastname').addClass('input-error');
+		jQuery('#name-validation-message').html('');
+		SIRAH.error.raise('name-validation-message', 'Entrez le nom de famille du promoteur');
+		return;
+	} else {
+		jQuery('#lastname').removeClass('input-error');
+		jQuery('#name-validation-message').html('');
+	}
+	if( SIRAH.util.isEmpty( firstname )){
+		jQuery('#firstname').addClass('input-error');
+		jQuery('#name-validation-message').html('');
+		SIRAH.error.raise('name-validation-message', 'Entrez le prénom du promoteur');
+		return;
+	} else {
+		jQuery('#firstname').removeClass('input-error');
+		jQuery('#name-validation-message').html('');
+	} 
+    if( SIRAH.util.isEmpty(telephone)){
+		jQuery('#telephone').addClass('input-error');
+		jQuery('#telephone-validation-message').html('');
+		SIRAH.error.raise('telephone-validation-message', 'Veuillez saisir le numéro de téléphone du demaneur');
+		return;
+	} else {
+		jQuery('#telephone').removeClass('input-error');
+		jQuery('#telephone-validation-message').html('');
+	}	
+	if( SIRAH.util.isEmpty(numero)){
+		jQuery('#numero').addClass('input-error');
+		jQuery('#numero-validation-message').html('');
+		SIRAH.error.raise('numero-validation-message', 'Veuillez saisir le numéro d\'identité');
+		return;
+	} else {
+		jQuery('#numero').removeClass('input-error');
+		jQuery('#numero-validation-message').html('');
+	}
+	if( SIRAH.util.isEmpty(lieu_etablissement)){
+		jQuery('#lieu_etablissement').addClass('input-error');
+		jQuery('#lieu_etablissement-validation-message').html('');
+		SIRAH.error.raise('lieu_etablissement-validation-message', 'Veuillez saisir le lieu d\'établissement de la pièce d\'identité');
+		return;
+	} else {
+		jQuery('#lieu_etablissement').removeClass('input-error');
+		jQuery('#lieu_etablissement-validation-message').html('');
+	}
+	if( SIRAH.util.isEmpty(organisme_etablissement)){
+		jQuery('#organisme_etablissement').addClass('input-error');
+		jQuery('#organisme_etablissement-validation-message').html('');
+		SIRAH.error.raise('organisme_etablissement-validation-message', 'Veuillez saisir l\'organisme d\'établissement de la pièce d\'identité');
+		return;
+	} else {
+		jQuery('#organisme_etablissement').removeClass('input-error');
+		jQuery('#organisme_etablissement-validation-message').html('');
+	}
+    formSelector.submit();
+   }); ";
+$jq->addOnLoad( $onLoad );
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bootstrap-filestyle input{float:left;width:70%;}
+.bootstrap-filestyle label{float:left;width:30%;}
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single    .chosen-single{height:35px;line-height:35px;}
+#periode_start_year_chosen  .chosen-single,.birthday_month .chosen-single{border-top-right-radius:0px !important;border-bottom-right-radius:0px !important}
+#periode_end_year_chosen    .chosen-single,.birthday_month .chosen-single{border-top-left-radius:0px !important;border-bottom-left-radius:0px !important}
+.period-chosen              .chosen-single,#birthday_month .chosen-single{border-radius:0px !important;}
+#periode_start_day_chosen   .chosen-single,#birthday_day  .chosen_single{border-top-left-radius:5px !important;border-bottom-left-radius:5px !important;}
+#periode_end_year_chosen    .chosen-single,#birthday_year .chosen_single{border-top-right-radius:5px !important;border-bottom-right-radius:5px !important;}
+<?php $this->headStyle()->captureEnd()   ?>     
+<form method="post" action="<?php echo $formSubmit; ?>" id="editPromoteurForm" role="form" class="form-horizontal">
+    <div class="panel panel-default" >
+	    <div class="panel-heading"> Informations du promoteur</div>
+		<ul class="list-group">
+			<li class="list-group-item">  
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label">  <b> Nom & Prénom(s)*:</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group">
+							<input id="lastname"  type="text" maxlength="150" class="form-control typeahead" title="Nom de famille" placeholder="Nom de famille" name="lastname"  value="<?php echo $data['lastname'];?>">
+							<span class="input-group-btn" style="width:0px;"></span>
+							<input id="firstname" type="text" maxlength="300" class="form-control typeahead" title="Prénom(s)"      placeholder="Prénom(s)"      name="firstname" value="<?php echo $data['firstname'];?>">                                             
+						</div> 
+					</div>
+					<p id="name-validation-message" class="validation-message"></p>    
+				</div> 
+			</li>    
+			<li class="list-group-item">       
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label" for="email"> Adresse mail: </label>    
+					<div   class="col-md-10 col-sm-10"><input id="email"   name="email"   type="text" maxlength="200" title="Adresse électronique" placeholder="Adresse électronique" value="<?php echo $data['email']; ?>" class="form-control"></div> 
+					<p id="email-validation-message"   class="validation-message"></p>  			
+				</div>  
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-md-2  col-sm-2 control-label"> Téléphone*: </label> 
+					<div   class="col-md-10 col-sm-10">
+						<div class="input-group">
+						   <input id="telephone"  name="telephone" type="text" maxlength="30" class="form-control" title="Numéro de téléphone" placeholder="Numéro de téléphone"  value="<?php echo $data['telephone']; ?>">							  
+						</div>					
+					</div>
+					<p id="telephone-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>			 
+			<li class="list-group-item">       
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label"> Adresse: </label>
+					<div   class="col-md-10 col-sm-10"><input id="adresse" name="adresse" type="text" maxlength="200" title="Adresse" placeholder="Adresse" class="form-control" value="<?php echo $data['adresse']; ?>"></div> 
+					<p id="adresse-validation-message" class="validation-message"></p> 
+				</div>  
+			</li> 
+			<li class="list-group-item">       
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label"> Nationalité: </label>
+					<div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("country", $data["country"], array("class"=>"form-control countries"), $this->countries); ?>    </div>  			   
+					<p id="country-validation-message" class="validation-message"></p> 
+				</div>  
+			</li>
+			<li class="list-group-item">       
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2 control-label"> Profession: </label>
+					<div   class="col-md-10 col-sm-10"><input id="profession" name="profession" type="text" maxlength="200" title="Profession" placeholder="Profession" class="form-control" value="<?php echo $data['profession']; ?>"></div> 
+					<p id="profession-validation-message" class="validation-message"></p> 
+				</div>  
+			</li>		
+			<li class="list-group-item">      
+				<div class="form-group">    
+					<label class="col-md-2  col-sm-2  control-label"> Sexe*: </label>
+					<div   class="col-md-10 col-sm-10">
+						<label class="radio-inline pull-right"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"]=="M") echo "checked"; ?>> Homme </label>          
+						<label class="radio-inline pull-right"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"]=="F") echo "checked"; ?>> Femme </label>
+					</div>
+				</div>
+			</li>	
+		</ul>  
+		<div class="panel-heading"> Pièce d'identité </div>
+		<ul class="list-group">
+		    <li class="list-group-item">      
+				<div class="form-group">    
+					<label class="col-md-2  col-sm-2  control-label"> Type de pièce*: </label>
+					<div   class="col-md-10 col-sm-10">
+						<label class="radio-inline pull-right"><input type="radio" name="identitetype" id="identitetype-1" value="1" <?php if($data["identitetype"]=="1") echo "checked"; ?>> CNIB     </label>          
+						<label class="radio-inline pull-right"><input type="radio" name="identitetype" id="identitetype-2" value="2" <?php if($data["identitetype"]=="2") echo "checked"; ?>> PASSPORT </label>
+					    <label class="radio-inline pull-right"><input type="radio" name="identitetype" id="identitetype-3" value="3" <?php if($data["identitetype"]=="3") echo "checked"; ?>> CARTE CONSULAIRE </label>
+					    <label class="radio-inline pull-right"><input type="radio" name="identitetype" id="identitetype-4" value="4" <?php if($data["identitetype"]=="4") echo "checked"; ?>> CARTE PROFESSIONNELLE </label>
+					</div>
+				</div>
+			</li>
+			<li class="list-group-item">  
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label">  <b> Numéro d'identité*:</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group"><input id="Numéro d'identité" type="text" maxlength="150" class="form-control" title="Numéro d'identité" placeholder="Numéro d'identité" name="numero"  value="<?php echo $data['numero'];?>">                                          </div> 
+					</div>
+					<p id="numero-validation-message" class="validation-message"></p>    
+				</div> 
+			</li>
+			<li class="list-group-item">  
+				<div class="form-group">            
+					<label class="col-sm-2  col-md-2 control-label"><b> Organisme d'étalissement:*</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class="input-group"><input id="organisme_etablissement" type="text" maxlength="150" class="form-control" title="Organisme d'étalissement" placeholder="Organisme d'étalissement" name="organisme_etablissement"  value="<?php echo $data['organisme_etablissement'];?>"> </div> 
+					</div>
+					<p id="organisme_etablissement-validation-message" class="validation-message"></p>    
+				</div> 
+			</li>
+            <li class="list-group-item"> 			
+				<div class="form-group">    
+					<label class="col-sm-2  col-md-2 control-label"><b> Date & lieu d'étalissement:*</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class = "input-group">
+						   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect("date_etablissement_day"  , $data["date_etablissement_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?></span>
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_etablissement_month', $data["date_etablissement_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?> </span>
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_etablissement_year' , $data["date_etablissement_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?></span>
+						   <span class="input-group-btn" style="width:0px;"></span>
+						   <input style="height:40px;" type="text" name="lieu_etablissement" id="lieu_etablissement" class="form-control" value="<?php echo $data["lieu_etablissement"]; ?>" placeholder="Lieu d'établissement" title="Lieu d'établissement de la pièce" />
+						</div>
+					</div> 
+                    <p id="lieu_etablissement-validation-message" class="validation-message"></p> 					
+			    </div>
+			</li>
+		</ul>
+
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type"=> "submit"));
+   $toolCancel->setAttributes(array("type"=> "submit"));
+   
+   $buttonsbar->add( $toolCreate , "editButton");
+   $buttonsbar->add( $toolCancel , "cancelButton");
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+</div> 
+ <input type="hidden" name="promoteurid" id="promoteurid" value="<?php echo $this->promoteurid; ?>" />
+</form>

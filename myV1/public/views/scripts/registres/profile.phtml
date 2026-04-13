@@ -1,0 +1,68 @@
+<?php 
+$client      = $this->client;
+$clientid    = $this->clientid;
+
+$basePath    = VIEW_BASE_PATH;
+$jq          = $this->jQuery();
+$birthDate   = "00/00/0000";
+if( $client->birthday ) {
+    $zendBirthDate = new Zend_Date( $client->birthday, Zend_Date::DATETIME );
+    $birthDate     = ($zendBirthDate)?$zendBirthDate->toString("dd MMMM yyyy") : "Pas renseigné";
+}
+?>
+<ul  class="list-group">
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Code client :</b></div> 
+			<div class="col-md-8"><?php echo $client->code; ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> N° Passport:</b></div> 
+			<div class="col-md-8"><?php echo $client->passport; ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Nom  :</b></div> 
+			<div class="col-md-8"><?php printf("%s %s", $client->lastname, $client->firstname ); ?></div>
+		</div>
+	</li> 
+    <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <b> Né(e) le:</b></div> 
+            <div class="col-md-8"><?php  printf("%s à %s", $birthDate,$client->birthaddress); ?></div>
+        </div>
+    </li>	
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Sexe :</b></div> 
+			<div class="col-md-8"><?php echo $client->sexe; ?></div>
+		</div>
+	</li>
+    <li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Adresse:</b></div> 
+			<div class="col-md-8"><?php echo $client->address; ?></div>
+		</div>
+    </li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Adresse email:</b></div> 
+			<div class="col-md-8"><?php echo $client->email; ?></div>
+		</div>
+	</li>
+	<li class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Téléphone:</b></div> 
+			<div class="col-md-8"><?php printf("%s %s", $client->tel1, $client->tel2); ?></div>
+		</div>
+	</li>                          
+</ul>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

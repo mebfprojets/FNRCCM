@@ -1,0 +1,47 @@
+<?php 
+    $jq  = $this->jQuery();
+    
+    $onLoad  = "jQuery('.mdp').bsdatepicker({orientation:'auto',format:'yyyy-mm-dd'});";
+    
+    $jq->addOnLoad( $onLoad );
+    
+    $basePath    = VIEW_BASE_PATH;
+    $jq->addJavascriptFile($basePath . "/assets-minified/widgets/datepicker/datepicker.js");
+    $jq->addStyleSheet(    $basePath . "/assets-minified/widgets/datepicker/datepicker.css");
+    
+   echo $this->jQuery();
+
+?>
+<div class="panel panel-default">
+   <div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Mode de paiement par virement </h4></div>   
+   <ul class="list-group">
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="numerovirement"> <b> Numéro du virement :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_numero" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du virement" placeholder="Numéro du virement"  name="mode_paiement_numero" class="form-control" /></div>
+         </div>     
+      </li>          
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="datevirement"> <b> Date virement :</b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->datePick("mode_paiement_date" , date("Y-m-d"), array(), array("class" => "form-control mdp")); ?></div>
+         </div>     
+      </li>      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="virement_numcompte_debiteur"> <b> Compte source :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_comptsrc" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du compte source" placeholder="Numéro du compte source"  name="mode_paiement_comptsrc" class="form-control" /></div>
+         </div>     
+      </li>
+      
+      <li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="virement_numcompte_reception"> <b> Compte destination :</b> </label></div> 
+            <div class="col-md-8"> <input id="mode_paiement_comptdest" type="text" maxlength="220" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                          title="Numéro du compte destination" placeholder="Numéro du compte destination"  name="mode_paiement_comptdest" class="form-control" /></div>
+         </div>     
+      </li>
+  </ul>
+ </div>

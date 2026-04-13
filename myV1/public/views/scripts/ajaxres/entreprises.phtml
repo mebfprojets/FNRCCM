@@ -1,0 +1,324 @@
+<?php 
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$groupes           = $this->groupes;
+$entreprises       = $this->entreprises;
+$parentform        = $this->parentform;
+$selectedKey       = $this->selectedKey;
+$selectedVal       = $this->selectedVal;
+$selectedCmdKey    = $this->selectedCmdKey;
+
+$basePath          = VIEW_BASE_PATH;
+$logoDefaultFile   = $basePath."/images/default_company_logo.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller"   => "ajaxres","action" => "entrepriseslist", "parentform"=> $parentform,
+                                      "selectCmdKey" => $selectedCmdKey, "selectedKey" => $selectedKey, "selectedVal" => $selectedVal) , "default");
+
+$jq->addOnload("var selectEntreprise = selectedEntrepriseKey = selectedEntrepriseVal =null;");
+if( !empty($selectedCmdKey)) {
+	$jq->addOnload(sprintf("var selectEntreprise   = jQuery('#%s');", $selectedCmdKey ));
+}
+if( !empty( $selectedKey )) {
+	$jq->addOnload(sprintf("var selectedEntrepriseKey = jQuery('#%s');", $selectedKey));
+}
+if( !empty( $selectedVal )) {
+	$jq->addOnload(sprintf("var selectedEntrepriseVal = jQuery('#%s');", $selectedVal));
+}									  
+$jq->addOnload("
+var parentformSelector  = jQuery('#".$parentform."');
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var entrepriseid  = parseInt(jQuery(this).attr('href').replace('#entrepriseid-', ''));
+	   if(entrepriseid && parentformSelector ) {
+		  var entrepriseLibelle       = jQuery('#libelle-'+entrepriseid).val();
+		  var entrepriseEmail         = jQuery('#email-'+entrepriseid).val();
+		  var entreprisePhone1        = jQuery('#phone1-'+entrepriseid).val();
+		  var entreprisePhone2        = jQuery('#phone2-'+entrepriseid).val();
+		  var entrepriseCode          = jQuery('#reference-'+entrepriseid).val();
+		  
+		  var parentEntrepriseKey     = (SIRAH.util.isset(selectedEntrepriseKey)) ? selectedEntrepriseKey : parentformSelector.find('input[name=\'entrepriseid\']');
+		  var parentEntrepriseVal     = (SIRAH.util.isset(selectedEntrepriseVal)) ? selectedEntrepriseVal : parentformSelector.find('input[name=\'entreprise\']');
+		  var parentEmailSelector     = parentformSelector.find('input[name=\'email\']');
+		  var parentReferenceSelector = parentformSelector.find('input[name=\'code\']');
+		  var parentPhoneSelector1    = parentformSelector.find('input[name=\'phone1\']');
+		  var parentPhoneSelector2    = parentformSelector.find('input[name=\'phone2\']');
+		
+		  if( parentEntrepriseKey   ) {
+		      parentEntrepriseKey.val(entrepriseid );
+		  }
+		  if( parentEntrepriseVal   ) {
+		      parentEntrepriseVal.val( entrepriseLibelle);
+		  }		  
+		} else {
+		    return false;
+	    }
+		if(!SIRAH.util.isset(selectEntreprise))
+		    selectEntreprise  = parentformSelector.find('#selectEntreprise');
+		if(selectEntreprise)	{
+		   selectEntreprise.trigger('select-item', [entrepriseid] );
+		   selectEntreprise.trigger('chooseThis' , [entrepriseid] );
+		   selectEntreprise.trigger('selectThis' , [entrepriseid] );
+		} 
+		jQuery('#filterListEntreprises').dialog2('close');
+		jQuery('#filterListEntreprises,.modal,.modal-backdrop').remove(true);
+	    jQuery('body').removeClass('modal-open');
+});
+jQuery('.entrepriseCard').css('cursor','pointer');
+jQuery('.entrepriseCard').click(function(event ){
+	    event.preventDefault();
+		var entrepriseid  = parseInt(jQuery(this).attr('id').replace('entrepriseCard-', ''));
+		jQuery('a[href=\'#entrepriseid-'+entrepriseid+'\']').trigger('click');		
+});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('#entreprisesListSearchForm').toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var modalBox        = jQuery('.modal-body.opened').first();				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		var libelleText     = jQuery.trim(jQuery('#globalFormSearch').find('#libelle').val());
+		 
+		searchData.libelle  = libelleText;
+        var modalBox        = jQuery('.modal-body.opened').first();	
+		SIRAH.loading.on( modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('#searchEntreprises,.searchEntreprises').click(function( event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#entreprisesListSearchForm') ;
+		var searchData      = {};
+		var pageNum         = parseInt(formSelector.find('#page').val());
+		
+		searchData.page     = pageNum;
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());	
+		searchData.domaineid= parseInt(formSelector.find('#domaineid').val());
+		searchData.formid   = parseInt(formSelector.find('#formid').val());
+	
+		searchData.libelle  = jQuery.trim(formSelector.find('#libelle').val());
+		searchData.email    = jQuery.trim(formSelector.find('#email').val());
+		searchData.phone    = jQuery.trim(formSelector.find('#phone').val());
+		searchData.address  = jQuery.trim(formSelector.find('#address').val());
+		 
+        var modalBox        = jQuery('.modal-body.opened').first();	
+		SIRAH.loading.on( modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#entreprisesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum              = parseInt( currentBtnNum - 1);
+		}
+		var paginationData       = {};
+		paginationData.page      = pageNum;
+		paginationData.maxitems  = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.domaineid = parseInt(formSelector.find('#domaineid').val());
+		paginationData.formid    = parseInt(formSelector.find('#formid').val());
+	
+		paginationData.libelle   = jQuery.trim(formSelector.find('#libelle').val());
+		paginationData.email     = jQuery.trim(formSelector.find('#email').val());
+		paginationData.phone     = jQuery.trim(formSelector.find('#phone').val());
+		paginationData.address   = jQuery.trim(formSelector.find('#address').val());
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var modalBox             = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+");
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+?>
+<div id="entreprisesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	   <div  class="panel-heading bg-blue-alt">
+		   <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		    <div class="input-group">
+		     <input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Recherchez une entreprise, saisir des mots clés...">
+		     <span class="input-group-btn ">
+               <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn" class="btn btn-defaultadvancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+               <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		   </div>
+		     <input type="hidden" name="domaineid" id="domaineid" value="<?php echo intval($filters["domaineid"]); ?>" /> 
+			 <input type="hidden" name="formid"    id="formid"    value="<?php echo intval($filters["formid"]);    ?>" /> 
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />	
+		  </form>
+    	</div>
+		 <form id="entreprisesListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >		
+          <ul class="list-group">
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Raison sociale:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Saisir des mots clés..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Adresse:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['address']; ?>" id="address" name="address"  type="text" class="form-control" placeholder="L'adresse de l'entreprise..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Adresse email:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['email']; ?>" id="email" name="email" type="text" class="form-control" placeholder="L'adresse email de l'entreprise..."> </div> 
+               </div> 			   
+			</li>
+            <li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Numéro de téléphone:</b> </label> 
+				   <div   class="col-sm-9"><input value="<?php echo $filters['phone']; ?>" id="phone" name="phone" type="text" class="form-control" placeholder="Le numéro de téléphone de l'entreprise..."> </div> 
+               </div> 			   
+			</li>			
+			<li class="list-group-item"> 
+			   <div class="row">
+			       <label class="col-sm-3 control-label">  <b> Secteur d'activités :</b> </label> 
+				   <div   class="col-sm-3"> <?php echo $this->formSelect("domaineid",$filters["domaineid"], array("class" => "form-control"), $this->domaines); ?>  </div> 
+				   <label class="col-sm-3 control-label">  <b> Forme Juridique:</b> </label> 
+				   <div   class="col-md-3"> <?php echo $this->formSelect("formid"   , $filters["formid"],array("class" => "form-control"), $this->formes); ?>  </div> 
+               </div> 			   
+			</li>
+		</ul>		 		
+		<div class="panel-footer"> 
+		   <button id="searchEntreprises" class="btn btn-primary searchEntreprise advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+           <button class="btn btn-danger  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+	  </form>
+	  
+	  <table id="entreprisesListTable" class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable">
+            <thead>
+                <tr>			
+                    <th width="20%"> Ref                  </th>                          						  
+                    <th width="50%"> Raisons sociales     </th> 
+                    <th width="30%"> Secteurs d'activités </th>
+                </tr>
+            </thead>
+            <tbody>	
+			   <?php 
+                      $output = "";
+					  if( count(   $entreprises ) ) {
+						  foreach( $entreprises as $entreprise ) {
+							       $entrepriseid      = $entreprise["entrepriseid"]; 
+							       $entrepriseLib     = $entreprise["libelle"];
+								   $entrepriseRef     = $entreprise["reference"];
+								   $entrepriseAdresse = $entreprise["address"];
+								   $entrepriseEmail   = $entreprise["email"];
+								   $entrepriseDomaine = $entreprise["domaine"];
+								   $entrepriseLogo    = $entreprise["logo"];
+								   $entreprisePhone   = sprintf("%s / %s", $entreprise["phone1"], $entreprise["phone2"]);
+								   
+								   $logoFile          = $logoDefaultFile;
+             	                   if(!empty( $entrepriseLogo ) && file_exists($entrepriseLogo)) {			  
+             	   	  	              $logoPathname   = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $entrepriseLogo);
+             	   	  	              $logoFile       = str_replace( DS , "/" , $logoPathname);
+             	                    }
+								   
+								   $linkInfos         = $this->url(array("module"=>"public","controller" => "entreprises", "action" => "infos", "entrepriseid" => $entrepriseid) , "default");
+								   
+								   $entrepriseHtml    = "<li title=\"Voir les informations de ce dossier\" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+             	                        <div class=\"row\" style=\"padding:0px !important;\">
+             	                          <div class=\"col-md-4\"> <img src=\"".$logoFile."\" class=\"img-thumbnail\" /> </div>
+             	                          <div class=\"col-md-8\"> 
+             	                             <h4 style=\"text-align:left;\" class=\"list-group-item-heading\"><u><a title=\"Voir les informations de cette entreprise\" href=\"".$linkInfos."\"> ".$entrepriseLib." </a></u></h4>
+             	                             <p class=\"list-group-item-text\"> <strong> <u> Adresse  : </u> </strong> ".$entrepriseAdresse."</p>
+             	                             <p class=\"list-group-item-text\"> <strong> <u> Telephone: </u></strong>  ".$entreprisePhone  ."</p>
+             	                          </div>
+             	                        </div>
+             	                     </li>";
+									 
+									$output .= "<tr id=\"entrepriseRowId-".$entrepriseid."\">";
+             	                             $output .= "<td style=\"text-align:center;\"> <a href=\"#entrepriseid-".$entrepriseid."\" class=\"selectClick\"> ".$entrepriseRef." </a> </td>";
+             	                             $output .= "<td id=\"entrepriseCard-".$entrepriseid."\" style=\"padding:4px !important;\" class=\"list-group entrepriseCard\">  ".$entrepriseHtml."  </td>";             	            
+             	                             $output .= "<td style=\"text-align:center;\"> <a href=\"#entrepriseid-".$entrepriseid."\" class=\"selectClick\"> ".$entrepriseDomaine ." </a> </td>";
+             	                    $output .= "</tr>";
+									$output .= "<input type=\"hidden\" name=\"libelle-".$entrepriseid."\"   id=\"libelle-".$entrepriseid."\"   value=\"".$entrepriseLib."\" />";
+                              	  	$output .= "<input type=\"hidden\" name=\"email-".$entrepriseid."\"     id=\"email-".$entrepriseid."\"     value=\"".$entrepriseEmail."\" />" ;
+                              	  	$output .= "<input type=\"hidden\" name=\"reference-".$entrepriseid."\" id=\"reference-".$entrepriseid."\" value=\"".$this->escape($entrepriseRef)."\"  />" ;
+                              	  	$output .= "<input type=\"hidden\" name=\"phone-".$entrepriseid."\"     id=\"phone-".$entrepriseid."\"     value=\"".$this->escape($entreprisePhone)."\" />" ;
+						  }
+					  } else {
+             	                    $output .= "<tr>";
+             	                            $output .= "<td style=\"text-align:center;\" colspan=\"6\"> Aucune ligne valide n'a été retrouvée , réessayez avec d'autres critères de recherche </td>";
+             	                    $output .= "</tr>";
+                      }
+					  
+					  echo $output;
+					  
+			   ?>
+            </tbody>				
+		</table>
+	    <?php echo $pagination->render(); ?>
+    </div>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

@@ -1,0 +1,231 @@
+<?php
+$rows             = $this->rows;
+$annees           = $this->annees;
+$localites        = $this->localites;
+$checkedLocalites = $this->checkedLocalites;
+$tableauDate      = date("d/m/Y");
+$zendDate         = new Zend_Date(array("year" => date("Y"), "month" => date("m"), "day" => date("d")));
+$type             = $this->category;
+
+if( $zendDate )  {
+	$tableauDate = $zendDate->toString("d MMM yyyy");
+}
+$output        = "";
+$output       .="<table cellspacing=\"2\" cellpadding=\"2\" border=\"0\" width='100%' >";
+                $output.="<tr><td width=\"50%\"> </td>
+                              <td style=\"text-align:right;\" width=\"50%\"> Ouagadougou, le ".$tableauDate."<br/> </td>
+                          </tr>";
+				
+$output       .=" </table><br/>";
+$output       .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf('STATISTIQUES DES DOCUMENTS RECUS SUR SIGARD' )." </b></td></tr>";
+$output       .=" </table>";
+$ColWidth      = (count($checkedLocalites)) ? (90 / (count($checkedLocalites))) : 0;
+$firstColWidth = 5;
+$lastColWidth  = 5;
+$totalColspan  = count($checkedLocalites)+2;	
+$output       .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $checkedLocalites )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Périodes </th>";
+				   foreach( $checkedLocalites as $localitecode) { 
+                             $localiteLibelle           = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							 if( null==$localiteLibelle){
+								 $errorMessages[]       = "Localité Invalide";
+								 continue;
+							 }				   
+      	  	                $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> ".$localitecode." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> Total année </th>";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count(   $rows ) && count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> "; 
+                           $anneeTotalPdf      = 0;
+						   $anneeTotalRegistre = 0;
+                           $output     .=" <td style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $totalRegistre =(isset($rows[$localitecode][$annee]["totalRegistres"])) ? $rows[$localitecode][$annee]["totalRegistres"] : "NC";
+										$totalPdf      =(isset($rows[$localitecode][$annee]["totalPDF"]      )) ? $rows[$localitecode][$annee]["totalPDF"]       : "NC";
+										$colVal        = sprintf("%s ", formatNumber($totalPdf));
+      	  	               	   	        $output       .= "<td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td>";
+										
+										$anneeTotalPdf      += $totalPdf;
+										$anneeTotalRegistre += $totalRegistre;
+      	  	               	   }
+      	  	               }
+						   $colAnneeTotal = sprintf("%s",formatNumber($anneeTotalPdf));
+                           $output       .=" <td style=\"text-align:left;\" width=\"".$ColWidth."%\"> ".$colAnneeTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE NA ETE TROUVE </td></tr> ";
+}
+$totalLocaliteRegistre  = 0;
+$totalLocalitePdf       = 0;
+if( count(   $checkedLocalites )) {
+	$output .=" <tr> <td style=\"text-align:left;\" width=\"".$firstColWidth."%\"> Total / Localités </td>";
+	foreach($checkedLocalites as $localitecode ) {
+		    $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+			if( null==$localiteLibelle) {
+				$errorMessages[]        = "Localité Invalide";
+				continue;
+			}
+            $totalRegistre          =(isset($rows[$localitecode]["totalRegistres"])) ? $rows[$localitecode]["totalRegistres"] : "NC";
+			$totalPdf               =(isset($rows[$localitecode]["totalPDF"]      )) ? $rows[$localitecode]["totalPDF"]       : "NC";
+            $totalLocalitePdf      += $totalPdf ;
+			$totalLocaliteRegistre += $totalRegistre;
+            $colVal                 = sprintf("%s",formatNumber( $totalPdf ));			
+      	  	$output       .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td> "; 
+ 			
+    }
+	$output .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".sprintf('%s',formatNumber( $totalLocalitePdf ))." </td></tr>";
+} 
+$output             .= "   </tbody></table>";
+
+$output     .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> LISTE DES DOCUMENTS  RECUS DE LA BASE DE DONNEES DES RCCM </b></td></tr>";
+$output     .=" </table>";
+$output     .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $checkedLocalites )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Années </th>";
+				   foreach( $checkedLocalites as $localitecode) { 
+                             $localiteLibelle           = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							 if( null==$localiteLibelle){
+								 $errorMessages[]       = "Localité Invalide";
+								 continue;
+							 }				   
+      	  	                $output .="<th style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$localitecode." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .="<th style=\"text-align:center;\" width=\"".$lastColWidth."%\"> Total année </th>";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count(   $rows ) && count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> "; 
+                           $anneeTotal  = 0;
+                           $output     .=" <td valign=\"top\" style=\"text-align:center;vertical-align:top;\" width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $rowTotal  =(isset($rows[$localitecode][$annee]["files"])) ? count($rows[$localitecode][$annee]["files"]) : 0;
+										
+										if( count( $rows[$localitecode][$annee]["files"] )) {
+											$colOutput = "<ul>";
+											foreach( $rows[$localitecode][$annee]["files"] as $filename ) {
+												     $colOutput.= "<li> ".$filename." </li>";
+											}
+											$colOutput.= "</ul>";
+										} else {
+											$colOutput = "N.C";
+										}											
+      	  	               	   	        $output.= "<td valign=\"top\" style=\"text-align:left;vertical-align:top;\" width=\"".$ColWidth."%\"> ".$colOutput." </td>";
+										
+										$anneeTotal+= $rowTotal;
+      	  	               	   }
+      	  	               }
+						   $colAnneeTotal = sprintf("%s",formatNumber($anneeTotal));
+                           $output       .=" <td style=\"text-align:center;\" width=\"".$lastColWidth."%\"> ".$colAnneeTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE  NA ETE TROUVE </td></tr> ";
+}
+
+$output     .= " </tbody></table><br/><br/>";
+
+
+/*
+$output       .=" <table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;\" >";
+                    $output.="<tr><td width=\"100%\" style=\"font-size:13pt; text-align:center;background-color:#E5E5E5\" align=\"center\"><b> ".sprintf('STATISTIQUES DES DOCUMENTS MANQUANTS DE TYPE %s', $categoryLibelle )." </b></td></tr>";
+$output       .=" </table>";
+$ColWidth      = (count($checkedLocalites)) ? (90 / (count($checkedLocalites))) : 0;
+$firstColWidth = 5;
+$lastColWidth  = 5;
+$totalColspan  = count($checkedLocalites)+2;	
+$output       .= "<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\" align=\"center\"><thead><tr>";
+               if( count(   $checkedLocalites )) {
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> Périodes </th>";
+				   foreach( $checkedLocalites as $localitecode) { 
+                             $localiteLibelle           = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							 if( null==$localiteLibelle){
+								 $errorMessages[]       = "Localité Invalide";
+								 continue;
+							 }				   
+      	  	                $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> ".$localitecode." </th> ";      	  	                     	  	                   	  	       
+      	           }
+				            $output .=" <th style=\"text-align:center;\"  width=\"".$ColWidth."%\"> Total année </th>";
+			   } 		   
+$output       .= "</tr> </thead><tbody>";
+
+if( count(   $rows ) && count($localites) && count($annees)) {
+      	  foreach( $annees as $annee ) {
+      	  	       $output .=" <tr> "; 
+                           $anneeTotalPdf      = 0;
+						   $anneeTotalRegistre = 0;
+						   $sumColTotal        = 0;
+                           $output     .=" <td style=\"text-align:center;\"  width=\"".$firstColWidth."%\"> ".$annee." </td> "; 						   
+      	  	               if( count(   $checkedLocalites )) {
+      	  	               	   foreach( $checkedLocalites as $localitecode ) {
+								        $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+							            if( null==$localiteLibelle) {
+								            $errorMessages[]        = "Localité Invalide";
+								            continue;
+							            }
+      	  	               	   	        $totalRegistre = (isset($rows[$localitecode][$annee]["totalRegistres"])) ? $rows[$localitecode][$annee]["totalRegistres"] : "NC";
+										$totalPdf      = (isset($rows[$localitecode][$annee]["totalPDF"]      )) ? $rows[$localitecode][$annee]["totalPDF"]       : "NC";
+										$colTotal      = (is_numeric( $totalRegistre )) ? (intval( $totalRegistre ) - intval( $totalPdf )) : "NC";
+										$colVal        = sprintf("%s ", formatNumber( $colTotal ));
+      	  	               	   	        $output       .= "<td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td>";
+										
+										$anneeTotalPdf      += $totalPdf;
+										$anneeTotalRegistre += $totalRegistre;
+										$sumColTotal        += $colTotal;
+      	  	               	   }
+      	  	               }
+						   $colAnneeTotal = sprintf("%s",formatNumber( $sumColTotal ));
+                           $output       .=" <td style=\"text-align:left;\" width=\"".$ColWidth."%\"> ".$colAnneeTotal." </td> "; 						   
+      	  	       $output .=" </tr> ";
+      	  }
+}  else {
+	               $output .="<tr><td width=\"100%\" style=\"text-align:center;\" colspan=\"".$totalColspan."\"> AUCUN REGISTRE MANQUANT NA ETE TROUVE </td></tr> ";
+}
+$totalLocaliteRegistre  = 0;
+$totalLocalitePdf       = 0;
+$sumTotalLocaliteCol    = 0;
+if( count(   $checkedLocalites )) {
+	$output .=" <tr> <td style=\"text-align:left;\" width=\"".$firstColWidth."%\"> Total / Localités </td>";
+	foreach($checkedLocalites as $localitecode ) {
+		    $localiteLibelle            = (isset($localites[$localitecode])) ? $localites[$localitecode] : null;
+			if( null==$localiteLibelle) {
+				$errorMessages[]        = "Localité Invalide";
+				continue;
+			}
+            $totalRegistre          = (isset($rows[$localitecode]["totalRegistres"])) ? $rows[$localitecode]["totalRegistres"] : "NC";
+			$totalPdf               = (isset($rows[$localitecode]["totalPDF"]      )) ? $rows[$localitecode]["totalPDF"]       : "NC";
+			$colTotal               = (is_numeric( $totalRegistre )) ? (intval( $totalRegistre ) - intval( $totalPdf )) : "NC";
+            $totalLocalitePdf      += $totalPdf ;
+			$totalLocaliteRegistre += $totalRegistre;	
+            $sumTotalLocaliteCol   += $colTotal;			
+            $colVal                 = sprintf("%s",formatNumber( $colTotal ));			
+      	  	$output                .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".$colVal." </td> "; 
+ 			
+    }
+	$output .=" <td style=\"text-align:center;\" width=\"".$ColWidth."%\"> ".sprintf('%s',formatNumber( $sumTotalLocaliteCol ))." </td></tr>";
+} 
+$output             .= "   </tbody></table>";*/
+
+echo $output; die();
+

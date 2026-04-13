@@ -1,0 +1,124 @@
+<?php 
+$registre    = $this->registre;
+$registreid  = $this->registreid;
+$domaine     = $this->domaine;
+$localite    = $this->localite;
+$forme       = $this->forme;
+$entreprise  = $this->entreprise;
+$address     = $this->address;
+$registreType= $registre->type;
+$categories  = array(0=>"Non renseigné",1=>"Personne Physique",2=>"Personne Morale");
+$creationDate= "00/00/0000";
+$updateDate  = "00/00/0000";
+$registreDate= "00/00/0000";
+$creator     = Sirah_Fabric::getUser( $registre->creatorid     );
+if( $registre->date ) {
+    $zendRegistreDate = new Zend_Date( $registre->date, Zend_Date::TIMESTAMP );
+    $registreDate     = $zendRegistreDate->toString("dd MMMM yyyy");
+}
+?>
+<ul  class="list-group">
+    <?php if(isset($categories[$registreType]) && intval($registreType)): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Type d'entreprise:</b></div> 
+			<div class="col-md-8"><?php echo $categories[$registreType]; ?></div>
+		</div>
+	</a> 
+	<?php endif; ?>
+	<?php if( $forme ): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Forme juridique:</b></div> 
+			<div class="col-md-8"><?php echo $forme->libelle; ?></div>
+		</div>
+	</a> 
+	<?php endif; ?>
+	<?php if($registre->date) : ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			 <div class="col-md-4"> <b>Date d'immatriculation:</b></div> 
+			 <div class="col-md-8"> <?php echo $registreDate; ?> </div>
+		</div>
+	</a>
+	<?php endif; ?>
+	<?php if( $localite): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Juridiction :</b></div> 
+			<div class="col-md-8"><?php echo ( $localite ) ? $localite->libelle : ""; ?></div>
+		</div>
+	</a>
+	<?php endif; ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b> Numéro RCCM:</b></div> 
+			<div class="col-md-8"><?php echo $registre->numero; ?></div>
+		</div>
+	</a> 
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b> Numéro IFU:</b></div> 
+			<div class="col-md-8"><?php echo $registre->numifu; ?></div>
+		</div>
+	</a>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Numéro CNSS:</b></div> 
+			<div class="col-md-8"><?php echo $registre->numcnss; ?></div>
+		</div>
+	</a> 						
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"><b>Nom commercial:</b></div> 
+			<div class="col-md-8"><?php echo $registre->libelle; ?></div>
+		</div>
+	</a>
+	<?php if(floatval($registre->capital)): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Capital:</b></div> 
+			<div class="col-md-8"><?php printf("%s F CFA",number_format($registre->capital,0," ",".")); ?></div>
+		</div>
+	</a> 
+	<?php endif; ?>
+	<?php if($entreprise && floatval($entreprise->chiffre_affaire)): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Chiffre d'affaire:</b></div> 
+			<div class="col-md-8"><?php printf("%s F CFA",number_format($entreprise->chiffre_affaire,0," ",".")); ?></div>
+		</div>
+	</a>
+	<?php endif; ?>
+	<?php if( $address): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Siège social:</b></div> 
+			<div class="col-md-8"><?php echo $address->description; ?></div>
+		</div>
+	</a> 
+	<?php endif; ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Numéro de téléphone:</b></div> 
+			<div class="col-md-8"><?php echo $registre->telephone; ?></div>
+		</div>
+	</a> 	
+	<?php if( $domaine): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Secteur d'activité:</b></div> 
+			<div class="col-md-8"><?php echo $domaine->libelle ; ?></div>
+		</div>
+	</a>
+	<?php endif; ?>	
+	<?php if( $registre->description ): ?>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-4"> <b>Activité déclarée:</b></div> 
+			<div class="col-md-8"> <?php echo $this->escape($registre->description); ?> </div>
+		</div>
+	</a>
+	<?php endif; ?>
+	
+</ul>

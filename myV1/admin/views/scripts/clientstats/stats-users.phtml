@@ -1,0 +1,42 @@
+<?php
+    $nbreClientsByShopUser  = $this->rows;
+?>
+<table  class="table table-bordered table-hover">
+          <thead>
+                <tr>
+                     <th width="80%"> Commerciaux  </th>
+                     <th width="20%"> Nombre       </th>
+                </tr>         
+          </thead>
+          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $total       = 0;
+                     if( count(   $nbreClientsByShopUser )) {
+                     	 foreach( $nbreClientsByShopUser as $statUser ) {
+							      $userName= sprintf("%s %s", $statUser["lastname"], $statUser["firstname"]);
+                     	 	      if( empty( $statUser['userid'] ) || empty( $userName ))
+                     	 	      	  continue;
+                     	 	     $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+                     	 	     $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output.="<td> ".$userName          ." </td>";
+                     	 	            $output.="<td> ".$statUser['nombre']." </td>";
+                     	 	     $output.="</tr>";
+                     	 	     $total += $statUser['nombre'];
+                     	 }
+                         $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();						 
+                     	 $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	        $output.="<td> NOMBRE TOTAL DE clients:    </td>";
+                     	        $output.="<td> ".number_format($total, 0,' ', ' ')." </td>";
+                     	 $output.="</tr>";
+                     }  else {
+						 $rowBg  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+						 $output.="<tr style=\"background-color:".$rowBg."\"><td colspan=\"3\"> AUCUN CLIENT N'A ETE ENREGISTRE DANS LA BASE DE DONNEES </td></tr>";
+					 }
+
+                     echo $output;
+              ?>
+          
+          </tbody>         
+   </table>

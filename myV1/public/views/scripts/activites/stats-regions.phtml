@@ -1,0 +1,34 @@
+<?php $this->headStyle()->captureStart() ?>
+table th, table td{text-align:center !important;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<?php 
+   $rows      = $this->rows;
+
+   $table     = $this->table(array("id" => "rowsListTable", "class" => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable"), "style" => "text-align:center;"));
+   $header    = $table->row();  
+   $header->add("Régions"           , array("width" => "70%"))
+          ->add("Chiffres", array("width" => "30%"));
+   
+   $table->setHeader( $header );
+   $i      = 0;
+    if(count(      $rows)) {
+    	  foreach( $rows as $row) {
+    	  	       $region         = $row["region"];
+    	  	       $chiffre        = $row["nombre"];
+    	  	       
+    	  	       $rowStat    = $table->row(array("id" => "rowStatId-" . $i ));
+    	  	       
+    	  	       $rowStat->add(" ".$region )->add(" ".$chiffre );
+    	  	       $table->add( $rowStat  );
+    	  	       $i++;
+    	  }
+    }  else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add(" Aucune information statistique valide n'a pu etre trouvée", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }
+    
+    echo  $table;
+        
+ ?>

@@ -1,0 +1,143 @@
+<?php 
+$me                = Sirah_Fabric::getUser();
+$produit           = $product   = $this->produit;
+$produitid         = $productid = $this->productid;
+$categorie         = $this->categorie;
+$documentcategorie = $this->documentcategorie;
+$registre          = $this->registre;
+ 
+$me                = Sirah_Fabric::getUser();
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkCancel   = $this->url(array("module"=>"admin","controller"=>"products","action"=>"list"  ),"default",true);
+$linkCreate   = $this->url(array("module"=>"admin","controller"=>"products","action"=>"create"),"default",true);
+$linkEdit     = $this->url(array("module"=>"admin","controller"=>"products","action"=>"edit"   ,"id"=>$produitid),"default",true);
+$linkPhoto    = $this->url(array("module"=>"admin","controller"=>"products","action"=>"photo"  ,"produitid"=>$produitid),"default",true);
+$linkDelete   = $this->url(array("module"=>"admin","controller"=>"products","action"=>"delete" ,"ids"=>$produitid),"default",true);
+
+$jq->addOnload(" ");
+$buttonBar    = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Nouveau", "plus");
+$buttonEdit   = $buttonBar->button("Mettre à jour"         , "edit");
+$buttonDelete = $buttonBar->button("Supprimer"             , "trash-o");
+$buttonCancel = $buttonBar->button("Revenir sur la liste"  , "chevron-left");
+
+$buttonEdit->setAttributes(array("class" => "active glyph-icon icon-edit"));
+
+$buttonBar->add( $buttonCancel , "cancelButton");
+$buttonBar->add( $buttonCreate , "createButton");
+$buttonBar->add( $buttonEdit   , "editButton");
+$buttonBar->add( $buttonDelete , "deleteButton");
+
+
+$buttonCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+$buttonEdit->setAttributes(  array("type" => "submit", "class" => "btn btn-primary"));
+$buttonDelete->setAttributes(array("type" => "submit", "class" => "btn alert-danger"));
+$buttonCancel->setAttributes(array("type" => "submit"));
+
+$buttonCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate));
+$buttonEdit->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkEdit  ));
+$buttonDelete->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkDelete));
+$buttonCancel->onClick( sprintf("event.preventDefault(); document.location.href='%s';" , $linkCancel));
+
+$photoFile      = str_replace(DS , "/", str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , APPLICATION_DATA_PATH . "/produits/photos/original/default.jpg"));
+if( !empty( $produit->photo ) ) {
+	$photoPath      = APPLICATION_DATA_PATH . DS . "produits" . DS . "photos" . DS . "mini" . DS . $produit->photo;
+	if( file_exists( $photoPath ) ) {
+		$photoPathname= str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1" , $photoPath );
+		$photoFile    = str_replace( DS , "/" , $photoPathname);
+	}
+}
+$creationDate         = $updateDate = "00/00/0000";
+$creator              = Sirah_Fabric::getUser($produit->creatorid);
+$updatedUser          = Sirah_Fabric::getUser($produit->updateduserid);
+if( $produit->creationdate ) {
+	$zendCreationdate = new Zend_Date( $produit->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("dd MMM Y");
+}
+if( $produit->updatedate ) {
+	$zendUpdatedate   = new Zend_Date( $produit->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate       = $zendUpdatedate->toString("dd MMM Y");
+}
+$this->toolsbar       = $buttonBar;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd() ?>
+<div class="panel panel-default">
+	<ul class="list-group">
+		<li class="list-group-item">
+		   <div class="row"> 
+			 <div class="col-md-3"> <b> Référence :</b></div> 
+			 <div class="col-md-9"><?php echo $produit->code; ?></div>
+		   </div>
+		</li>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b> Désignation:</b></div> 
+				<div class="col-md-9"><?php echo $produit->libelle; ?></div>
+			</div>
+		</li>
+		<?php if( $categorie ): ?>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b> Catégorie :</b></div> 
+				<div class="col-md-9"><?php echo $categorie->libelle; ?></div>
+			</div>
+		</li>  
+		<?php endif; ?>
+		<?php if( $documentcategorie ): ?>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b> Type de document:</b></div> 
+				<div class="col-md-9"><?php echo $documentcategorie->libelle; ?></div>
+			</div>
+		</li>  
+		<?php endif; ?>
+		<?php if( $registre): ?>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b> RCCM:</b></div> 
+				<div class="col-md-9"><?php echo sprintf("%s:%s",$registre->numero,$registre->libelle); ?></div>
+			</div>
+		</li>  
+		<?php endif; ?>
+		<li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b>Cout HT:</b></div> 
+				<div class="col-md-9"><?php echo (floatval($product->cout_ht))?sprintf("%s F CFA",number_format($produit->cout_ht,0," "," ")) : $product->cout_ht; ?></div>
+			</div>
+		</li>
+        <li class="list-group-item">
+			<div class="row"> 
+				<div class="col-md-3"> <b>Cout TTC:</b></div> 
+				<div class="col-md-9"><?php echo (floatval($product->cout_ttc))?sprintf("%s F CFA",number_format($produit->cout_ttc,0," "," ")) : $product->cout_ht; ?></div>
+			</div>
+		</li>		
+		<?php if( $produit->creatorid ): ?>
+			<li class="list-group-item">
+				<div class="row"> 
+				   <div class="col-md-3"> <b> Enregistré le:</b></div> 
+				   <div class="col-md-9"><?php printf("%s par %s %s", $creationDate , $creator->lastname, $creator->firstname ); ?></div>
+				</div>
+			</li>
+		<?php endif; ?>
+		<?php if( $produit->updateduserid ): ?>
+		<li class="list-group-item">
+				<div class="row"> 
+				 <div class="col-md-3"> <b> Mis à jour le:</b> </div> 
+				 <div class="col-md-9"><?php printf("%s par %s %s", $updateDate, $updatedUser->lastname, $updatedUser->firstname ); ?></div>
+				</div>
+		</li>
+		<?php endif; ?> 
+	</ul> 
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+ 

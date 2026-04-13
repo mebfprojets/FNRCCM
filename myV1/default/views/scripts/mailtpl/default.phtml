@@ -1,0 +1,68 @@
+<?php
+$messageSubject  = $this->subject;
+$message         = $this->message;
+$enteteImg       = $this->enteteImg;
+$logoImg         = APPLICATION_STRUCTURE_LOGO;
+$replyToEmail    = $this->replyToEmail;
+$replyToName     = $this->replyToName;
+$replyToTel      = $this->replyToTel;
+$replyToSiteWeb  = $this->replyToSiteWeb;
+
+$toName          = $this->toName;
+$toEmail         = $this->toEmail;
+
+$imagePathName   = SERVER_IMAGES_PATHNAME;
+?>
+<html>
+	<head>	    
+	    <?php
+		    $scriptPath = $this->getScriptPath("mailtpl");
+			$cssPath    = $scriptPath."/default.css.phtml" ;
+			if( file_exists($cssPath) ) {
+				echo "<style rel=\"stylesheet\" type=\"text/css\"><br/>".$this->partial("mailtpl/default.css.phtml",array())."</style>";
+			} else {
+				echo "<link href=\"//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\">";
+			}
+		?>
+	</head>	
+	<body>
+	     <?php
+		    $scriptPath = $this->getScriptPath("mailtpl");
+			$cssPath    = $scriptPath."/default.css.phtml" ;
+			if( file_exists($cssPath) ) {
+				echo "<style rel=\"stylesheet\" type=\"text/css\"><br/>".$this->partial("mailtpl/default.css.phtml",array())."</style>";
+			}
+		?>
+		<div style="background:#fff <?php echo 'url('.$imagePathName."body_bg.png".') '; ?> repeat-x; width:100%; height:auto; font-size: 11px; font-family:Arial,Times,Tahoma,Geneva,Kalimati,sans-serif; text-align: center;"><br /> 
+			<table style="width:620px; margin: auto; text-align: center; height: auto;" border="0" cellspacing="2" cellpadding="2">
+				<tbody>
+					<tr>
+						<td style="background-color:#fff; border:1px solid #AAD3EE;-moz-border-radius:4px;-webkit-border-radius:4px;" colspan="2">
+							<table style="width: 100%; height: 100%;" border="0">
+								<!--Entete du contenu--> 
+								<tbody>
+									<tr>
+										<td style="text-align:left;" height="80"><img src="<?php echo $imagePathName."entete.png";  ?>" border="0" /><br /></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td style="height: auto; padding: 5px; text-align: left; color: #46260f;">       
+											<div><h2 style="background:#26860C;color:#fff;font-size:12px;font-weight:bold;text-align:left;padding:5px;width:98%;height:25px;"><?php echo $messageSubject;?><br /></h2></div>
+										</td>
+									</tr>
+									<tr>
+										<td style="color: black; font-size: 11px; text-align: justify; height: auto;" valign="top">
+											<?php echo stripslashes($message);  ?>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
+
+

@@ -1,0 +1,73 @@
+<?php 
+   $model       = new Model_Document();
+   $documents   = $this->documents;  
+   $linkDelete  = $this->url(array("controller"  => "userdocuments"  ,"action" => "delete") , "default") ;
+   $output      = "";
+   $output      = "<ul class=\"list-group documentList\">";
+    if(count($documents)) {
+    	  foreach($documents as $document) {
+    	  	$documentid   = intval($document["documentid"]);
+    	  	$documentRow  = $model->findRow( $documentid , "documentid" , null , false );
+    	  	if( !$documentRow ) {
+    	  		continue;
+    	  	}
+    	  	$libelle      = $model->filterIndex( $documentRow->filename , $documentRow->userid  );
+    	  	$linkView     = $this->url(array("controller"  => "userdocuments" , "action" => "infos" , "id" => $documentid ) , "default");    	  	
+    	  	$output .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+                              <div class=\"row\"> 
+                                 <div class=\"col-md-1\"><span title=\"Supprimer le document\" href=\"#\" id=\"closeId-".$documentid."\" class=\"glyphicon glyphicon-remove pull-left deleteDocument \"></span></div>
+                                 <div class=\"col-md-11\">
+                                       <a title=\"Les details du document \" class='dialogViewInfos' href='".$linkView."'>". $libelle ."</a>
+                                 </div>
+                              </div>
+                          </li> ";
+    	  }    	
+    } 
+    $output     .= "</ul>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+       jQuery('.deleteDocument').css('cursor','pointer');
+       jQuery('.deleteDocument').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer ce document ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer l\'action',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'documentid' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){
+             		             		                               jQuery('#documentId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       }); ";    
+    $jq->addOnLoad($onLoad);
+?>
+             

@@ -1,0 +1,73 @@
+<html lang="en">
+
+<?php 
+    //On initialise les variables nécessaires
+    $baseUrl   = $this->baseUrl();
+    $rootPath  = ROOT_PATH;
+    $tplPath   = ROOT_PATH."/myTpl/default";
+?>
+
+<head>
+<title><?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8"/> 
+<?php echo $this->headMeta() ?>
+<link rel="stylesheet"  href="<?php echo $tplPath.'/css/system.css'; ?>"      />
+<link rel ="stylesheet" href="<?php echo $tplPath.'/css/bootstrap/css/bootstrap.min.css'; ?>"    />
+<link rel="stylesheet" href="<?php  echo $tplPath; ?>/css/contenu.css"    />
+<link rel="stylesheet" href="<?php  echo $tplPath; ?>/css/template.css"    />
+<link rel="stylesheet" href="<?php  echo $tplPath; ?>/css/sirahviews.css"  />
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+<?php
+           echo $this->headStyle() ;
+           echo $this->headLink() ;
+           echo "<script type=\"text/javascript\">
+                      window.SIRAH ||(window.SIRAH={});
+                      SIRAH.basePath = \"".$tplPath."/js/\";
+                 </script>";
+ ?>
+</head>
+<body>
+  <!--Entete principale du site-->
+   <?php //echo $this->render("pagehead.phtml");   ?>
+  <!--Fin entete principale du site-->
+     
+  <!--Le corps du site-->
+   <div id="loginPage" class="" >  
+       <div id="sirahloginBox"  >  
+                    <!--Envellope de la page principale-->
+                      <div id="sirah-page-mainblock-wrapper-br" class="sirah-page-blend-corner-br" >
+                         <div id="sirah-page-mainblock-wrapper-bl" class="sirah-page-blend-corner-bl" >
+                            <div id="sirah-page-mainblock-wrapper-tr" class="sirah-page-blend-corner-tr" >
+                                <div id="sirah-page-mainblock-wrapper-tl" class="sirah-page-blend-corner-tl" >
+                                    <!--Le contenu principal la page du site-->
+                                    <div id="sirah-page-mainblock" class="loginMainBlock"  >
+                                          <div id="sirah-title" class="sirah-title sirah-title-colored" >
+                                               <div class="sirah-title-content">  <?php echo strtoupper($this->title); ?> </div>
+                                          </div>                            
+                                          <div id="sirah-page-content" class="loginMainBlock row-fluid" >
+                                               <div id="maincontent" class="well layoutcontent maincontent"> <?php echo $this->layout()->content ?> </div>                                               
+                                          </div>
+                                    </div>
+                              </div>
+                        </div>
+                  </div>
+           </div>
+      </div>                   
+  </div> 
+  <!--Fin corps du site-->        
+     
+  <!--Pied de page du site-->
+   <?php echo $this->render("pagefooter.phtml")   ?>  
+  <!--Fin pied de page du site-->   
+  
+  <?php
+           echo $this->headScript();
+           echo $this->jQuery();
+ ?> 
+</body>
+</html>

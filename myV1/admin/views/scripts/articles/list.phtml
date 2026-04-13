@@ -1,0 +1,360 @@
+<?php 
+$me          = Sirah_Fabric::getUser();
+$articles    = $this->articles;
+$categories  = $this->categories;
+$filters     = $this->filters;
+$params      = $this->params;
+$paginator   = $this->paginator;
+
+$basePath    = VIEW_BASE_PATH;
+$myDataPath  = $me->getDatapath();
+$jq          = $this->jQuery();
+
+$linkSearch  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"list")  , "default",true);
+$linkCreate  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"create"), "default",true);
+$linkEdit    = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"edit"  ), "default",true);
+$linkDelete  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"delete"), "default",true);
+$linkCopy    = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"copy")  , "default",true); 
+ 
+$jq->addOnload("
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.createArticle').click(function(){  event.preventDefault();document.location.href='".$linkCreate."';});
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href ='".$linkSearch."'; });
+jQuery('.resetSearch,.resetPage').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector         = jQuery('#globalFormSearch') ;
+	var advancedFormSelector = jQuery('#articlesListSearchForm') ;
+	var searchData           = {};	
+	searchData.maxitems      = parseInt(advancedFormSelector.find('#maxitems').val());				 
+	searchData.libelle       = '';
+	searchData.catid         = 0;
+	searchData.reset         = 1;
+	var maincontent	         = jQuery('#maincontent');				
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });				
+});	
+jQuery('.simpleSearch,#simpleSearch').click(function(event){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector           = jQuery('#globalFormSearch') ;
+	var advancedFormSelector   = jQuery('#articlesListSearchForm') ;	
+	var searchData             = {};	
+	searchData.maxitems        = parseInt(advancedFormSelector.find('#maxitems').val());				 
+	searchData.libelle         = searchData.generalfilter = formSelector.find('#libelle').val();
+	searchData.catid           = parseInt(formSelector.find('#catid').val());
+	searchData.published       = null;
+	searchData.reset           = 1;
+	var maincontent	           = jQuery('#maincontent');				
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });
+});	
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		    return false;
+		}
+		var formSelector              = jQuery('#articlesListSearchForm') ;
+		var pageNum                   = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems              = formSelector.find('#maxitems').val();
+	    if( jQuery(this).is('.nextPage')) {
+		    var currentBtnNum         = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                   = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum         = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                   = parseInt( currentBtnNum - 1);
+		}
+		var publishedState            = null;
+	    if( formSelector.find('input[id=\'published\'][checked=\'checked\']').attr('id') !== undefined ) {
+		   publishedState             = 1;
+	    } else if( formSelector.find('input[id=\'non-published\'][checked=\'checked\']').attr('id') !== undefined  ) {
+		   publishedState             = 0;
+	    }
+		var paginationData            = {};
+		paginationData.page           = pageNum;
+		paginationData.maxitems       = parseInt(formSelector.find('#maxitems').val());	
+	
+		paginationData.libelle        = jQuery.trim(jQuery('#articlesListSearchForm').find('#libelle').val());
+		paginationData.catid          = parseInt(formSelector.find('#catid').val());		
+		paginationData.published      = publishedState;
+		paginationData.page           = pageNum;
+		
+		var maincontent               = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});	
+jQuery('#searchArticles,.searchArticles').click(function( event ){
+		event.preventDefault();
+		var formSelector          = jQuery('#articlesListSearchForm') ;
+		var publishedState        = null;
+	    if( formSelector.find('input[id=\'published\'][checked=\'checked\']').attr('id') !== undefined ) {
+		   publishedState         = 1;
+	    } else if( formSelector.find('input[id=\'non-published\'][checked=\'checked\']').attr('id') !== undefined  ) {
+		   publishedState         = 0;
+	    }	
+		var searchData            = {};
+		searchData.maxitems       = parseInt(formSelector.find('#maxitems').val());
+		searchData.libelle        = jQuery.trim(jQuery('#articlesListSearchForm').find('#libelle').val());
+		searchData.catid          = parseInt(formSelector.find('#catid').val());
+		searchData.published      = publishedState;
+		searchData.reset          = 1;
+        var maincontent	          = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedArticlesId = function() {
+	var checkedItems = jQuery('#articlesListTable').find('input[type=\'checkbox\'][name!=\'checkAll\']:checked');
+	var checkedIds   = []; 
+	if( checkedItems) {
+		checkedItems.each(function() {
+			var articleid = parseInt(jQuery(this).attr('id').replace('articleids',''));
+			checkedIds.push(articleid);
+		});
+	}
+	return checkedIds;
+};
+jQuery('#articlesListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#articlesListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#articlesListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#articlesListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#articlesListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','copyButton','editButton']);
+	}
+});");
+$onLoad = "";
+
+$jq->addOnload($onLoad);				
+   
+$toolbar    = $this->supinaToolsbar(array(), $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouvel article", "plus");
+$toolEdit   = $toolbar->tool("Modifier"    , "edit");
+$toolCopy   = $toolbar->tool("Dupliquer"   , "copy");
+$toolDelete = $toolbar->tool("Supprimer"   , "trash-o");
+
+if( $me->isAllowed("articles",  "create") ) {
+	$toolbar->add( $toolCreate,  "createButton");
+	$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+}
+if( $me->isAllowed("articles","edit") ) {
+	$toolbar->add( $toolEdit  , "editButton");
+	$toolEdit->disable();
+    $toolEdit->onClick("
+		            event.preventDefault();
+		            var isDisabled  = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem = jQuery('#articlesListTable').find('input[type=\'checkbox\'][name=\'articleids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var articleid         = parseInt(checkedItem.attr('id').replace('articleids',''));
+					document.location.href = '".$linkEdit."/articleid/'+articleid;");
+}
+if( $me->isAllowed("articles","copy")) {
+	$toolbar->add( $toolCopy  ,"copyButton");
+	$toolCopy->disable();
+	$toolCopy->onClick("
+	                var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+					var checkedArticles = getCheckedArticlesId();
+					if( SIRAH.util.isEmpty( checkedArticles ) || isDisabled) {
+						SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+						return;
+					}
+					var formSelector     = jQuery('<form></form>').attr('id','copyForm').attr('method','post').attr('action','".$linkCopy."');
+					jQuery.each( checkedArticles, function(index,inputValue){
+								 var checkedInput = jQuery('<input />').attr('type','hidden').attr('name','articleids[]').attr('value', inputValue);
+								 formSelector.append(checkedInput);
+					});
+					jQuery(document.body).append(formSelector);
+					formSelector.submit();");
+}
+if( $me->isAllowed("articles", "delete")) {
+	$toolbar->add( $toolDelete, "deleteButton");
+	$toolDelete->disable();					 
+    $toolDelete->onClick(" 
+			    var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+			    var checkedArticles = getCheckedArticlesId();
+			    if( SIRAH.util.isEmpty( checkedArticles )) {
+				    SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+				    return;
+			    }
+			    var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les articles selectionnés ? </div>').attr('id','dialogDelete');             		 
+			    dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen: false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...' });        		
+			    dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{
+								     primary:true,click : 
+									 function(){
+												jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'articleids[]': checkedArticles},type:'GET' ,
+															 success:function(data) {
+																	jQuery('#dialogDelete').html('');
+																	if(data.error !== undefined) {
+																	   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																	   return;
+																	} else if(data.success !== undefined) {
+																	   var checkedArticles = getCheckedArticlesId ();  	            		
+																	  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																	  setTimeout(function(){jQuery.each(checkedArticles,function(key,articleid){jQuery('#articleRowId-'+articleid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+																	}
+																}
+												});     		
+									 }
+				}); 
+			   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+			   dialogDelete.dialog2('open');");
+}
+$this->toolsbar = $toolbar;
+//$pagination     = $this->supinaPagination(array(), "Jumping" , "#"); 
+$pagination     = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;"));    
+$basePath       = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9{pdding-left:5px;padding-right:5px;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div id="articlesListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+	    <div  class="panel-heading bg-blue-alt">
+		    <form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+			    <div class="input-group">
+					<span class="input-group-btn selectBtn"><?php echo $this->formSelect("catid", intval($filters["catid"]),array("class"=>"form-control"), $this->categories);?></span>
+					<input value="<?php echo $filters['libelle'];?>" id="libelle" name="libelle" type="text" class="form-control" placeholder="Recherchez une réalisation, saisir des mots clés...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"      class="btn btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span>Filtrer</button>
+					   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Avancée</button>
+					   <button class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> </button>
+					</span>
+				</div>
+				 
+				 <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;?>" /> 
+				 <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize?>" />
+			</form>
+		</div>
+		<form id="articlesListSearchForm" class="form-horizontal advancedSearchForm" method="post" action="<?php echo $linkSearch; ?>" style="display:none;" >
+		    <ul class="list-group">
+			    <li class="list-group-item"> 
+				    <div class="form-group">
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Catégorie :</b> </label> 
+					   <div   class="col-sm-4 col-md-4"> <?php echo $this->formSelect("catid",intval($filters["catid"]), array("class" => "form-control"), $this->categories); ?>  </div> 
+					   <label class="col-sm-2 col-md-2 control-label">  <b> Mots clés:</b> </label> 
+					   <div   class="col-sm-4 col-md-4"><input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Saisir des mots clés..."> </div> 
+				    </div> 			   
+				</li>								 
+                <li class="list-group-item">
+					<div  class="form-group">
+					    <label class="col-sm-2 col-md-2 control-label">  <b>Publié: </b> </label> 
+					    <div   class="col-sm-4 col-md-4"> 
+						    <label class="radio-inline"><input type="radio" name="published" id="published"     value="1" <?php if($filters["published"] == "1") echo "checked"; ?>> Oui    </label>          
+						    <label class="radio-inline"><input type="radio" name="published" id="non-published" value="0" <?php if($filters["published"] == "0") echo "checked"; ?>> Non  </label>
+					    </div>							  
+					</div>
+				</li>
+                <li class="list-group-item">
+					<div class="form-group"> 						
+						<label class="col-sm-2  col-md-2 control-label">  <b> Afficher:</b> </label> 
+						<div   class="col-sm-10 col-md-10">
+						    <div class = "input-group input-group-chosen">			 
+							  <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control chosen"), array("10"=>10,"20"=>20,"25"=>25,"50"=>50,"100"=>100,"500"=>500, "1000"=>1000,"2000"=>2000,"5000"=>5000,"100000000"=>"Tout")); ?> 
+							  <span class="input-group-addon chosen-grp-addon bg-primary"> Elements/Page </span>
+						    </div>
+						</div>
+					</div>
+				</li>				
+			</ul>
+			<div class="panel-footer"> 
+			   <button id="searchArticles" class="btn btn-primary searchArticles advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+			   <button id="resetSearch"     class="btn btn-danger  resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+			</div>
+		</form>
+		<table class="table table-hover  sirah-ui-table scrollable fixedTable articlesListTable" id="articlesListTable" style="width:100%">
+			<thead>
+				<th width="5%"> <input type="checkbox" name="checkAll" id="checkAll" class="checkAll" /> </th>	
+                <th width="25%"> Catégories </th> 				
+				<th width="50%"> Intitulés  </th> 
+				<th width="10%"> Dates      </th> 				
+				<th width="10%"> Statuts    </th> 
+			</thead>
+			<tbody>
+			<?php
+				$output = "";
+				if( count(   $articles ) ) {
+					foreach( $articles as $article ) {
+						     $articleid        = $article["articleid"];
+							 $articleCode      = $article["code"];
+							 $articleTitle     = $article["title"];
+							 $articleCategorie = $article["categorie"];
+							 $articlePeriod    = (isset($article["date_article"]))?$article["date_article"] : date("d/m/Y", $article["date"]);
+							 $articleStatute   = "Dépublié";
+							 
+							 $articleDate      = "-";
+							 $linkInfos        = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"infos","articleid"=>$articleid) , "default");
+							 $bgColor          = "";
+							 if(!intval($article["published"]) ) {
+								 $articleStatute= "Publié";
+								 $bgColor       = "alert danger publishedRow";
+							 }
+							 
+							 $output          .= "<tr   class=\"".$bgColor."\" id=\"articleRowId-".$articleid."\">";
+							        $output   .= "  <td class=\"".$bgColor."\" style=\"text-align:left;\"><input type=\"checkbox\" name=\"articleids[]\" id=\"articleids".$articleid."\" class=\"articleids\" /> </td>";
+									$output   .= "  <td class=\"".$bgColor."\" style=\"text-align:left;\"><a title=\"Accéder aux informations de l'article\" href=\"".$linkInfos."\">".$articleCategorie." </a> </td>";
+									$output   .= "  <td class=\"".$bgColor."\" style=\"text-align:left;\"><a title=\"Accéder aux informations de l'article\" href=\"".$linkInfos."\">".$articleTitle    ." </a> </td>";
+									$output   .= "  <td class=\"".$bgColor."\" style=\"text-align:left;\"><a title=\"Accéder aux informations de l'article\" href=\"".$linkInfos."\">".$articlePeriod   ." </a> </td>";									
+									$output   .= "  <td class=\"".$bgColor."\" style=\"text-align:left;\"><a title=\"Accéder aux informations de l'article\" href=\"".$linkInfos."\">".$articleStatute  ." </a> </td>";
+							 $output          .= "</tr>";
+							 $output          .= "<input type=\"hidden\" name=\"libelle-".$articleid."\" id=\"libelle-".$articleid."\" value=\"".$articleTitle."\" />";
+							 $output          .= "<input type=\"hidden\" name=\"code-".$articleid."\"    id=\"code-".$articleid."\"    value=\"".$articleCode."\"  />";
+					}
+				} else {
+					         $output          .="<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"6\"> AUCUN ARTICLE N'A ETE TROUVEE EN RAPPORT AVEC LA REVUE SELECTIONNEE. </td></tr>";
+				}
+				
+				echo $output;
+			?>
+			</tbody>
+		</table>
+		<?php echo $pagination->render(); ?>
+    </div>
+</div>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>   

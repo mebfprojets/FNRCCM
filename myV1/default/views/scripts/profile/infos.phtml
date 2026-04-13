@@ -1,0 +1,243 @@
+<?php
+$me                  = Sirah_Fabric::getUser();
+$myuserid            = $this->myuserid;
+$profile             = $this->profile;
+$coordonnees         = $this->coordonnees;
+$avatar              = $this->avatar;
+$documents           = $this->documents;
+$formations          = $this->formations;
+$carreers            = $this->carreers;
+$languages           = $this->languages;
+$domaines            = $this->domaines;
+$projects            = $this->projects;
+$competences         = $this->competences;
+$certifications      = $this->certifications;
+$cvdocs              = $this->cvdocs;
+$letterdocs          = $this->letterdocs;
+$tags                = $this->tags;
+$linkCarreers        = $this->url(array("controller" => "carreer"  , "action" => "list") , "default");
+$linkFormations      = $this->url(array("controller" => "formation", "action" => "list") , "default");
+
+$basePath            = VIEW_BASE_PATH;
+$avatarFile          = $basePath."/images/login_avatar.png";
+if( $avatar ) {
+	$avatarPath      = APPLICATION_DATA_USER_PATH . "avatars" . DS . "mini" . DS . $avatar->filename;
+	$avatarPathname  = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1"  , $avatarPath );
+	if( Sirah_Filesystem::exists( $avatarPath ) ) {
+		$avatarFile  = str_replace( DS , "/" , $avatarPathname );
+	}	
+}
+$jq             = $this->jQuery();
+$jq->addJavascriptFile( $basePath .'/js/chosen/ajaxchosen.min.js');
+$jq->addStyleSheet( $basePath ."/css/typeahead.css");
+$onLoad         = "
+   jQuery('.carreerList   li').find('.closeItemCarreer').hide();
+   jQuery('.carreerList   li').hover(function(){jQuery(this).find('.closeItemCarreer').show();},function(){jQuery(this).find('.closeItemCarreer').hide();});
+   jQuery('.formationList li').find('.closeItemFormation').hide();
+   jQuery('.formationList li').hover(function(){jQuery(this).find('.closeItemFormation').show();},function(){jQuery(this).find('.closeItemFormation').hide();});
+   jQuery('.documentList  li').find('.deleteDocument').hide();
+   jQuery('.documentList  li').hover(function(){jQuery(this).find('.deleteDocument').show();}, function(){jQuery(this).find('.deleteDocument').hide();});
+   jQuery('a.list-group-item').click(function(event){event.preventDefault();return;});
+   jQuery('h4.list-group-item-heading,p.list-group-item-text').click(function(event){event.preventDefault(); });
+   
+  jQuery('.viewCarreers').click(function( event ){event.preventDefault();document.location.href = '".$linkCarreers."';});
+  jQuery('.viewFormations').click(function( event ) {event.preventDefault();document.location.href = '".$linkFormations."';});
+  jQuery('.profile-presentation').shorten({showChars:300}); 
+  jQuery('body').attr('data-spy','scroll').attr('data-target', '#userProfileMenu').attr('data-offset','100');
+  ";
+$jq->addOnLoad($onLoad);
+
+$jq->addStyleSheet( $basePath ."/css/userprofile.css");
+
+if(  $profile->birthday ) {
+	 $birthday      = new Zend_Date($profile->birthday , Zend_Date::TIMESTAMP);
+	 $dateNaissance = $birthday->toString("dd MMMM yyyy");
+} else {
+	 $dateNaissance = "00/00/0000";
+}
+?>
+<?php $this->headStyle()->captureStart() ?>
+body{padding-top:1px !important;}
+.only-left div.three-columns .col1 #sirah-page-content{width:800px !important; padding:0 !important;}
+div#sirah-page-mainblock-wrapper,#sirah-page-content,#maincontent{margin:0 !important; padding:0 !important;}
+div#sirah-page-leftblock-wrapper{margin-top:220px !important;position:fixed;}
+.panel-body {padding:15px 15px 5px 15px;}
+.panel-footer {background-color: #f5f5f5;border-bottom-left-radius: 3px;border-bottom-right-radius: 3px;border-top: 1px solid #ddd;padding:5px 10px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div class="nopaddings nomargins container" style="margin:0 !important;padding:0 !important;">
+<!-- Première section : les informations générales du profil de l'utilisateur -->
+ <div id="general" class="container nopaddings" style="padding-top:55px !important;">
+  <div class="panel panel-default" >  
+   <div class="panel-body">
+       <div  class="col-md-3"> 
+           <div id="avatarRow" class="row avatar-row">
+               <img id="myavatarThumbnail" src="<?php echo $avatarFile; ?>"; align="center" class="img-rounded img-thumbnail"  />
+          </div>
+       </div>
+       <div  class="col-md-9">
+                <div id="profileMainRow" class="row profile-main-row">
+                    <h2 class="profile-main-header"><?php printf(" %s %s" , $this->escape($profile->lastname) , $this->escape($profile->firstname)); ?></h2>
+                    <h3> <?php echo $this->escape($profile->professionalstate); ?> </h3>
+                    <div class="row profile-main-body myPresentation">                       
+                         <p class="profile-presentation"> <?php echo $profile->presentation; ?> </p>
+                    </div>                  
+                </div>
+         </div>
+     </div>
+     <div class="panel-footer">
+          <div class="controls">
+               <ul class="nav nav-pills"></ul>
+          </div>
+     </div>    
+  </div>
+  <div class="row profile-panel nopaddings" >
+     <div class="col-md-7 nopaddings" >
+     <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.infos")): ?>
+         <div class="col-md-12 nopaddings-left" >
+             <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class="glyphicon glyphicon-user"></span> Informations personnelles </h4></div>              
+                  <?php echo $this->partial("profile/infosprofile.phtml", array("profile" => $profile)); ?>
+             </div>           
+         </div>
+     <?php endif; ?>
+     <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.infos") ): ?>
+         <div class="col-md-12 nopaddings-left" >
+              <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='icon-bubbles'> </span> Langues parlées </h4></div>              
+                 <?php echo $this->partial("languages/list.phtml", array("languages" => $languages, "hideRemove" => true )); ?>
+               </div>  
+          </div>
+     <?php endif; ?>
+     </div>
+     <div class="col-md-5 col-md-pull-right nopaddings" >
+     <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.coordonnees")): ?>
+         <div class="col-md-12 nopaddings-right" >       
+            <div class="panel panel-default">
+               <div class="panel-heading"><h4 class="panel-title"> <span class='glyphicon glyphicon-phone-alt'></span> Coordonnées </h4></div>
+                   <?php echo ( $coordonnees ) ? $this->partial("profile/infoscontact.phtml" , array("coordonnees" => $coordonnees, "hideRemove" => true)) : "<div class=\"panel-body\"> Les informations des coordonnées ne sont pas renseignées </div>"; ?>
+               </div>  
+          </div>
+     <?php endif; ?>
+     <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.infos")): ?>         
+          <div class="col-md-12 nopaddings-right" >
+              <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-tags'> </span> Mots clés:les tags de mon profil </h4></div>
+                 <div class="panel-body"> <?php echo $this->partial("profile/listags.phtml", array("tags"  => $tags , "hideRemove" => true )); ?> </div>              
+              </div>  
+          </div>
+    <?php endif; ?> 
+     </div>    
+  </div>
+</div>
+<!-- Fin de la première section -->
+
+<!-- Deuxième section : les expériences professionnelles de l'utilisateur -->
+<div id="experiences" class="row profile-panel nopaddings profile-sections"  style="padding-top:55px !important;">
+   <div class="row nopaddings profile-sections-head">
+        <div class="page-header nopaddings nomargins"> <h3> <span class='icon-suitcase'></span> Expériences professionnelles </h3></div>
+        <div class="profile-sections-head-b"> </div>
+   </div>
+ <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.experiences")): ?>
+   <div class="row no-paddings profile-sections-body">
+     <div class="col-md-7 nopaddings" >        
+           <div class="col-md-12 nopaddings-left" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-briefcase'></span> Parcours professionel </h4></div>              
+                  <?php echo $this->partial("carreer/list.phtml" , array("carreers"  => $carreers , "hideRemove" => true )); ?>                 
+              </div>  
+           </div>
+           <div class="col-md-12 nopaddings-left" >
+            <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='icon-briefcase2'></span> Ses references : travaux et projets réalisés </h4></div>              
+                 <?php echo $this->partial("project/list.phtml", array("projects" => $projects , "hideRemove" => true )); ?>
+               </div>  
+         </div>
+    </div>
+    <div class="col-md-5 col-md-pull-right nopaddings" >
+      <div class="col-md-12 nopaddings-right" >
+            <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-tasks'></span> Secteurs d'activités </h4></div>              
+                 <div class="panel-body"> <?php echo $this->partial("profile/listdomaines.phtml", array("domaines" => $domaines , "hideRemove" => true )); ?> </div>
+              </div>  
+       </div>
+       <div class="col-md-12 nopaddings-right" >
+            <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='icon-lightning'></span> Compétences </h4></div>              
+                 <?php echo $this->partial("profile/listcompetences.phtml", array("competences" => $competences, "hideRemove" => true )); ?>
+            </div>  
+       </div>           
+    </div>
+  </div>
+  <?php else: ?>
+    <div class="row no-paddings profile-sections-body">
+        <div class="panel panel-default">
+            <div class="panel-body"> Vous n'etes pas autorisé à accéder à ces informations </div>
+        </div>
+    </div>
+  <?php endif;?>
+</div>
+
+<!-- Fin de la deuxième section -->
+<!-- Troisième section : les formations suivies par l'utilisateur -->
+<div id="competences" class="row profile-panel nopaddings profile-sections" style="padding-top:55px !important;">
+  <div class="row nopaddings profile-sections-head">
+        <div class="page-header nopaddings nomargins"> <h3> <span class='icon-graduation'></span>  Formations suivies </h3></div>
+        <div class="profile-sections-head-b"> </div>
+   </div>
+  <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid , "view.profile.formations")): ?>
+   <div class="row no-paddings profile-sections-body">
+     <div class="col-md-7 nopaddings" >
+         <div class="col-md-12 nopaddings-left" >
+            <div class="panel panel-default">
+               <div class="panel-heading"> <h4 class="panel-title"> <span class='icon-study'></span> Mon parcours de formations </h4></div>              
+                   <?php echo $this->partial("formation/list.phtml", array("formations" => $formations , "hideRemove" => true)); ?>
+               </div>  
+         </div>                                    
+    </div>
+    <div class="col-md-5 col-md-pull-right nopaddings"  >
+       <div class="col-md-12 nopaddings-right" >
+            <div class="panel panel-default">
+                 <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-certificate'></span> Ses certifications </h4></div>              
+                  <?php echo $this->partial("certifications/list.phtml", array("certifications" => $certifications , "hideRemove" => true )); ?>
+            </div>  
+       </div>                    
+    </div>
+  </div>
+ <?php else: ?>
+    <div class="row no-paddings profile-sections-body">
+        <div class="panel panel-default">
+            <div class="panel-body"> Vous n'etes pas autorisé à accéder à ces informations </div>
+        </div>
+    </div>
+  <?php endif;?>
+</div>
+<!-- Fin de la troisième section -->
+<!-- Quatrième section : les documents stockés par l'utilisateur -->
+<div id="documents" class="row profile-panel nopaddings" style="padding-top:55px !important;">
+   <div class="row nopaddings profile-sections-head">
+        <div class="page-header nopaddings nomargins"> <h3> <span class='icon-docs'></span>  Curriculum vitae </h3></div>
+        <div class="profile-sections-head-b"> </div>
+   </div>
+   <?php if( $me->isAllowed("profile", "infos") || $profile->isAllowed( $myuserid, "view.profile.formations")): ?>
+   <div class="row no-paddings profile-sections-body">   
+       <div class="col-md-7 nopaddings" >        
+         <div class="col-md-12 nopaddings-right" >
+            <div class="panel panel-default">
+                <div class="panel-heading"> <h4 class="panel-title"> <span class='icon-compose'></span> Les versions de mon curriculum vitae</h4></div>
+                 <?php echo $this->partial("mycv/list.phtml", array("documents" => $cvdocs , "hideRemove" => true )); ?>                           
+            </div>  
+          </div>                
+       </div>
+     <div class="col-md-5 col-md-pull-right nopaddings" >                                                                      
+    </div>
+  </div>
+  <?php else: ?>
+    <div class="row no-paddings profile-sections-body">
+        <div class="panel panel-default">
+            <div class="panel-body"> Vous n'etes pas autorisé à accéder à ces informations </div>
+        </div>
+    </div>
+  <?php endif;?>
+</div>
+<!-- Fin de la quatrième section -->
+</div>

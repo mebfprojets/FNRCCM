@@ -1,0 +1,9 @@
+[27-Dec-2022 21:29:52 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Zend_Session_Namespace' not found in /home/rs2021453/public_html/myV1/public/views/scripts/ordercart/articles.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/ordercart/articles.phtml on line 2
+[27-Dec-2022 21:29:56 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Sirah_Fabric' not found in /home/rs2021453/public_html/myV1/public/views/scripts/ordercart/details.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/ordercart/details.phtml on line 2
+[27-Dec-2022 21:29:59 Europe/Paris] PHP Parse error:  syntax error, unexpected '.=' (T_CONCAT_EQUAL) in /home/rs2021453/public_html/myV1/public/views/scripts/ordercart/infos.phtml on line 108

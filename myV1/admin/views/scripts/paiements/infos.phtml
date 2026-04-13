@@ -1,0 +1,182 @@
+<?php   
+   $me             = Sirah_Fabric::getUser();
+   $paiement       = $this->paiement;
+   $paiementid     = $this->paiementid;
+   $commande       = $this->commande;
+   $commandeid     = $this->commandeid;
+   $documents      = $this->documents;
+   $cheque         = $this->cheque;
+   $virement       = $this->virement;
+   $member         = $this->member;   
+ 
+   $modesPaiement       = array(0 => "Selectionnez un mode de paiement", 1 => "En Espèces", 2 => "Chèque", 3 => "Virement");
+   
+   $jq                  = $this->jQuery();
+   $me                  = Sirah_Fabric::getUser();
+   $creator             = Sirah_Fabric::getUser( $paiement->creatorid );
+   $creatorName         = sprintf("%s %s", $creator->lastname , $creator->firstname );
+   $datePaiement        = "00/00/0000";
+   
+   if($paiement->date ) {
+   	  $zendDatePaiement = new Zend_Date($paiement->date, Zend_Date::TIMESTAMP );
+   	  $datePaiement     = $zendDatePaiement->toString("d MMMM yyyy à H:m");
+   }
+   
+   $linkCreate          = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"create","commandeid"=>$commandeid),"default",true);
+   $linkGet             = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"get" ,  "paiementid"=>$paiementid),"default",true);
+   $linkDelete          = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"delete","paiementid"=>$paiementid,"ids"=>$paiementid),"default",true);
+   $linkCancel          = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"list") ,"default",true);
+   $linkUploadDocuments = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"upload","paiementid"=>$paiementid),"default",true);
+   $linkUserdocuments   = $this->url(array("module"=>"admin","controller"=>"userdocuments","action"=> "infos","paiementid"=>$paiementid),"default",true); 
+   
+   $buttonBar           = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $buttonCreate        = $buttonBar->button("Nouveau"             , "plus");
+   $buttonCancel        = $buttonBar->button("Revenir sur la liste","chevron-left")->setPriority("primary");
+   $buttonDownload      = $buttonBar->button("Générer la quittance", "download");
+   $buttonDelete        = $buttonBar->button("Supprimer"           , "trash-o");
+    
+   $buttonBar->add( $buttonCancel  , "cancelButton");
+   $buttonBar->add( $buttonDownload, "downloadButton");
+   $buttonBar->add( $buttonDelete  , "deleteButton");
+    
+   $buttonCancel->onClick("event.preventDefault(); document.location.href = '".$linkCancel."' ;");
+   
+   $buttonCreate->setAttributes(   array("type" => "submit", "class" => "btn btn-success"));
+   $buttonDownload->setAttributes( array("type" => "submit", "class" => "btn alert-warning"));
+   $buttonDelete->setAttributes(   array("type" => "submit", "class" => "btn alert-danger"));
+   $buttonCancel->setAttributes(   array("type" => "submit"));
+    
+   $buttonDelete->onClick(sprintf("
+		event.preventDefault(); 
+		var dialogDeleteDemande = jQuery('<div> Etes-vous sur de supprimer ce paiement ? </div>').attr('id','dialogDeleteDemande');
+        dialogDeleteDemande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteDemande.dialog2('addButton','Oui', {primary: true ,click:function(){ document.location.href ='%s';}}); 
+        dialogDeleteDemande.dialog2('addButton','Non', {primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteDemande.dialog2('open');", $linkDelete));
+		
+   $myDataPath       = $me->getDatapath();  
+   $paiementFilename = "quittance".sprintf("%06d", $paiementid ).".pdf";
+   $docUrl           = $myDataPath.$paiementFilename;
+   $buttonDownload->onClick("
+        event.preventDefault();
+	    SIRAH.request.get(jQuery('#maincontent'),'".$linkGet."',{
+						success:function( data ){
+							var mainContentSelector = jQuery('#maincontent');
+							jQuery('#patientez').fadeOut('slow');
+                            jQuery('#sirah-page-message').fadeOut('slow');
+							if( undefined !== data.error){
+                                SIRAH.error.raise(mainContentSelector,data.error,'error');
+                                return data;
+                            } else if((undefined !== data.success) && (undefined !== data.tmpDocument)){
+								SIRAH.loading.off(false);
+                                var paiementDocUrl = '".urlencode($docUrl)."';
+								var dialogTitle   = encodeURIComponent('Quittance de paiement numero ".$paiement->numero."');
+								var linkViewDoc   = '".$linkUserdocuments."?doc='+paiementDocUrl+'&dialogTitle='+dialogTitle;
+ 
+								var documentDialog= jQuery('<div></div>').attr('id','documentDialog'); 
+			                    documentDialog.dialog2({title:'Création de la quittance de paiement...',content:linkViewDoc,autoOpen:false,modalClass:'pdfDialog',removeOnClose:true,closeOnEscape:true,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement du document, patientez...' });         		            		
+                                documentDialog.dialog2('open');
+                            }	else if( undefined !== data.reload ) {
+                                var reloadurl  = (SIRAH.util.isEmpty(data.newurl) || (SIRAH.util.isUndefined(data.newurl))) ? url : data.newurl;
+                                document.location.href  =  reloadurl ;
+                            } else {
+                                SIRAH.error.raise(mainContentSelector,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                                return data;
+                            }
+						}
+	    });");
+   $buttonCreate->onClick(   sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate   ));
+   $this->toolsbar  = $buttonBar;
+   
+   $onLoad  = " jQuery('.uploadFile').click(function( event ) {
+                    event.preventDefault();
+                    var dialogUploadFile   = jQuery('<div></div>').attr('id','dialogUploadFile');
+                    dialogUploadFile.dialog2({ title:'Enregistrer un document',content:'".$linkUploadDocuments."',autoOpen:false,modalClass:'modal-wide',removeOnClose: true,closeOnEscape: true,closeOnOverlayClick:false,showCloseHandle:true,initialLoadText: 'Chargement de la page, patientez...' });
+                    dialogUploadFile.dialog2('addButton','<span =\'glyph-icon icon-upload\'></span> Charger ' ,{primary:true,click:function(){alert('Veuillez fournir un document valide');}});
+                    dialogUploadFile.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});
+                    dialogUploadFile.dialog2('open');});";  
+   $jq->addOnLoad( $onLoad );
+?>
+<div id="commandeInfosWrapper" class="row"> 
+    <div  class="col-md-7 col-sm-7">
+		<div  class="content-box">
+			<h3  class="content-box-header bg-orange"> <b> Les informations du paiement</b>  </h3>
+			<div class="divider"> </div>
+			<div class="content-box-wrapper ">
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="commande"> <b> Commande :</b> </label></div> 
+							<div class="col-md-8"> <?php echo ($commande)?sprintf("<a title=\"Voir les détails de cette commande\" href='%s'> %s </a>" , $this->url(array("module"=>"admin","controller"=>"commandes","action"=>"infos","commandeid"=>$commandeid),"default",true) ,$commande->ref) : "Aucune commande n'est associée à ce paiement, veuillez informer l'administrateur";  ?> </div>
+						</div>
+					</li> 
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="member"> <b> Le client: </b> </label></div> 
+							<div class="col-md-8"> <?php echo ($member) ? sprintf("%s %s",$member->lastname,$member->firstname) : "Aucun client n'est associé à ce paiement, veuillez informer l'administrateur";  ?> </div>
+						</div>
+					</li> 
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="numero"> <b> Numéro du paiement :</b> </label></div> 
+							<div class="col-md-8"> <?php echo $this->escape($paiement->numero);  ?> </div>
+						</div>
+					</li> 
+					<li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-md-4"> <label class="label" for="date"> <b> Date du paiement :</b> </label></div> 
+							<div class="col-md-8"> <?php echo $datePaiement;  ?> </div>
+					    </div>
+					</li>					     
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="montant"> <b> Montant versé :</b> </label></div> 
+							<div class="col-md-8"> <?php echo number_format($paiement->montant , 0 , "," , " ");  ?> F CFA  </div>
+						</div>
+					</li> 
+					<?php if(floatval($paiement->totalAPayer)) : ?>					
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="total"> <b> Total à payer:</b> </label></div> 
+							<div class="col-md-8"> <?php echo number_format($paiement->totalAPayer, 0 , "," , " ");  ?> F CFA </div>
+						</div>
+					</li>
+					<?php endif; ?> 
+					<?php if(floatval($paiement->totalPaid) && (0==1)) : ?>						
+					<li class="list-group-item">
+						<div class="row"> 
+							<div class="col-md-4"> <label class="label" for="total"> <b> Cumul payé:</b> </label></div> 
+							<div class="col-md-8"> <?php echo number_format($paiement->totalPaid, 0 , "," , " ");  ?> F CFA </div>
+						</div>
+					</li>
+					<?php endif; ?>
+					<?php if(floatval($paiement->reste)) : ?>
+					<li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-md-4"> <label class="label" for="solde"><b> Solde:</b> </label></div> 
+							<div class="col-md-8"> <?php echo number_format($paiement->reste , 0 , "," , " ");  ?> F CFA </div>
+					    </div>
+					</li>    
+					<?php endif; ?>					
+					<li class="list-group-item">
+					    <div class="row"> 
+							<div class="col-md-4"> <label class="label" for="userid"> <b> Enregistré le:</b> </label></div> 
+							<div class="col-md-8"> <?php printf("%s par %s", date("d/m/Y à H:i:s", $paiement->creationdate), $creatorName );  ?> </div>
+					    </div>
+					</li>             
+				</ul>
+			</div>  
+		</div>
+	</div>
+    <div  class="col-sm-5 col-md-5">
+		<div class="panel panel-default"></div>  
+    </div>
+</div>  
+    <?php 
+        if(!$this->isAjax) {
+          	echo $buttonbar;
+        } else {
+          	echo $this->jQuery();
+          	echo $this->headStyle();
+        }
+    ?>   

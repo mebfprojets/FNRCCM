@@ -1,0 +1,73 @@
+<?php
+  $tplPath    = ROOT_PATH."/myTpl/frontend";   
+  $me         = Sirah_Fabric::getUser();
+  $layout     = Zend_Layout::getMvcInstance();
+  $view       = $layout->getView(); 
+  $basePath   = str_replace(APPLICATION_PATH , ROOT_PATH . DS ."application"  , APPLICATION_DATA_PATH );  
+     
+  
+  $jq         = $view->jQuery();
+  $onLoad     = " 
+                   new Carousel(document.querySelector('#newsItems'), {slidesVisible:3,slidesToScroll:3,pagination: true,loop: true});
+                   ";
+  
+  $jq->addOnLoad( $onLoad );
+  $jq->addJavascriptFile( $tplPath . "/js/carousel/carousel.js");
+  $jq->addStyleSheet(     $tplPath . "/js/carousel/carousel.css");
+?>
+<?php $view->headStyle()->captureStart() ?>
+.item {margin:10px !important;background-color:#fff;box-shadow:0 15px 35px #3232321a, 0 5px 15px #0000001a;transition: transform 0.3s;
+   transform: translate3d(0, -1px, 0);box-shadow: 0 1px 4px hsla(0,0%,73%,.5);border-radius: 5px;}
+div#newsmod{padding:5px !important;}
+.mb-4 {margin-bottom: 1rem;}
+.title-small {font-size: 21px;}
+.newsmod-title{color:#202020;display: block;font-family: "avenir-regular", Helvetica, Arial, sans-serif;font-size: 19px;font-weight:700;margin-bottom: 8px;line-height: 1.2;margin-bottom:0.5rem;}
+.item__title {color:#202020;display: block;font-family: "avenir-regular", Helvetica, Arial, sans-serif;font-size: 19px;font-weight:700;}
+<?php $view->headStyle()->captureEnd(); ?>
+<div class="panel panel-default">
+    <div class="panel-heading"> <h2 class="panel-title">  <strong> DERNIERES NOUVELLES </strong> </h2> </div>
+	<div class="panel-body">
+	    <div id="newsItems">
+      <div class="item">
+        <div class="item__image">
+          <img src="<?php echo $tplPath; ?>/images/carousel/album1.jpg" alt="">
+        </div>
+        <div class="item__body">
+          <div class="item__title"> <a href="#"> Actualité 1 </a> </div>
+          <div class="item__description">
+            Contenu d'introduction de l'actualité affichée
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item__image">
+          <img src="<?php echo $tplPath; ?>/images/carousel/album2.jpg" alt="">
+        </div>
+        <div class="item__body">
+          <div class="item__title"><a href="#"> Actualité 2 </a> </div>
+          <div class="item__description">
+            Contenu d'introduction de l'actualité affichée
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item__image">
+          <img src="<?php echo $tplPath; ?>/images/carousel/album3.jpg" alt="">
+        </div>
+        <div class="item__body">
+           <div class="item__title"><a href="#"> Actualité 3 </a> </div>
+          <div class="item__description">
+            Contenu d'introduction de l'actualité affichée
+          </div>
+        </div>
+      </div>
+</div>
+	</div>
+</div>
+
+
+<?php 
+    echo $view->headStyle();
+?>

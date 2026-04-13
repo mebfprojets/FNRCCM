@@ -1,0 +1,135 @@
+<?php 
+$me              = Sirah_Fabric::getUser();
+$member          = $this->member;
+$articles        = $this->articles;
+$documents       = $this->documents;
+$basePath        = VIEW_BASE_PATH;
+$jq              = $this->jQuery();
+
+$linkCreateOrder = $this->url(array("controller"=>"orders"   ,"action"=>"create","module"=>"public"),"default", true);
+$linkDelete      = $this->url(array("controller"=>"ordercart","action"=>"delete","module"=>"public"),"default", true);
+$linkRegistres   = $this->url(array("controller"=>"registres","action"=>"search","module"=>"public"),"default", true);
+
+$buttonBar       = $buttonbar = $this->buttonsbar(array(), $this->jqueryHandler());
+$btnCreateOrder  = $buttonBar->button("Procéder à la commande"  ,"chevron-right");
+$btnDelete       = $buttonBar->button("Vider le panier"         ,"trash-o");
+$btnCancel       = $buttonBar->button("Revenir sur la recherche","chevron-left");
+
+$buttonBar->add($btnCancel     , "cancelButton");
+$buttonBar->add($btnDelete     , "deleteButton");
+$buttonBar->add($btnCreateOrder, "createOrderButton");
+
+$btnDelete->setAttributes(     array("type"=>"submit", "class"=>"btn btn-danger"));
+$btnCreateOrder->setAttributes(array("type"=>"submit", "class"=>"btn btn-success"));
+$btnCancel->setAttributes(     array("type"=>"submit"));
+
+$btnCreateOrder->onClick(sprintf("event.preventDefault();document.location.href='%s';",$linkCreateOrder));
+$btnDelete->onClick(     sprintf("event.preventDefault();document.location.href='%s';",$linkDelete));
+$btnCancel->onClick(     sprintf("event.preventDefault();document.location.href='%s';",$linkRegistres));
+
+$jq->addOnLoad("
+    jQuery('.delProduct').click(function(event){
+		event.preventDefault();
+		var productid = parseInt(jQuery(this).attr('id').replace('delProductId-',''));
+		jQuery('#dialogDeleteProduct').remove();
+		var dialogDeleteProduct = jQuery('<div> Etes-vous sur de supprimer cet élement du panier ? </div>').attr('id','dialogDeleteProduct');
+		dialogDeleteProduct.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick: true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+		dialogDeleteProduct.dialog2('addButton','<span class=\'glyph-icon icon-trash\'></span> Rétirer un article du panier',{primary : true , click :
+								function(){
+									jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',type:'GET',data:{'productids[]':[productid],'productid':productid},            		                                                               
+												success:function(data) {
+													if( data.error !== undefined) {
+														SIRAH.error.raise(jQuery('#dialogDeleteProduct') , data.error);
+														return;
+													} else if(data.success !== undefined) {
+														jQuery('#cardUpdateBtn').trigger('addProduct');
+														SIRAH.error.raise(    jQuery('#dialogDeleteProduct'),data.success , 'success');
+														setTimeout(function(){jQuery('#dialogDeleteProduct').dialog2('close');
+														jQuery('#cardProductId-'+productid).remove();},1000);
+													}
+												}
+									});
+								}
+		});
+		dialogDeleteProduct.dialog2('addButton','Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');jQuery(this).remove();}});
+		dialogDeleteProduct.dialog2('open');
+	});		
+");
+?>
+<div id="information-section" class="topadding information-section section">
+    <div class="container">
+		<div class="row section-content">
+			<div class="panel panel-primary">
+				<div  class="panel-heading"> <h4> Les détails de votre panier </h4> </div>
+				<?php 	    
+					$output = "";
+					$output.=" 
+								<table class=\"table\" cellspacing=\"2\" cellpadding=\"2\" border=\"0\" width='100%' >";              
+								$output.="<tr>";
+									$output.="  <td width=\"50%\" align=\"left\" style=\"text-align:left;\"> </td>";
+									$output.="  <td width=\"50%\">
+													<table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\" border=\"0\">
+														<tr><td width=\"20%\" style=\"font-size:12;vertical-align:top;\"><u><b>DOIT:</b></u></td>
+																<td width=\"80%\" style=\"font-size:12\">
+																   <p>".sprintf("%s %s", strtoupper($member->lastname), strtoupper($member->firstname))."</p>
+																</td>
+														</tr>
+													</table>
+												</td>";                                         
+									
+									$output.="</tr>";                                               
+					$output.="  </table>";
+					$output.="  <table class=\"table table-bordered table-striped \" width=\"100%\" border=\"1\" >";                  
+								$output.="  <tr>
+												<th style=\"text-align:left;\"   width=\"10%\"><b>QTE </b></th>
+												<th style=\"text-align:left;\"   width=\"40%\"><b>SERVICES/ARTICLES</b></th>
+												<th style=\"text-align:left;\"   width=\"30%\"><b>DETAILS</b></th>
+												<th style=\"text-align:right;\"  width=\"15%\"><b>TARIFS HT </b></th>
+												<th style=\"text-align:center;\" width=\"5%\">*</th>
+											</tr>";
+								if( count(   $articles ) ) {
+									$montantTotal = $montantTotalTTC = 0;
+									foreach( $articles as $article ) {
+											 $productid          = $article["productid"];
+											 $registreid         = $article["registreid"];
+											 $documentid         = $article["documentid"];
+											 $productLibelle     = $article["libelle"];
+											 $productDescription = $article["description"];
+											 $montant            = $article["cout_ht"];
+											 $montantTotal      += $article["cout_ht"];
+											 $montantTotalTTC   += $article["cout_ttc"];
+											 
+											 $linkDeleteItem     = $this->url(array("controller"=>"ordercart","action"=>"delete","documentid"=>$documentid,"registreid"=>$registreid,"productid"=>$productid,"module"=>"public"),"default",true);
+											 $bgColorClass       = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+											 $output .=" <tr id=\"cardProductId".$productid."\" style=\"background-color:".$bgColorClass."\>";
+													$output .=" <td style=\"text-align:left;background-color:".$bgColorClass."\"> 1 </td>";
+													$output .=" <td style=\"text-align:left;background-color:".$bgColorClass."\"> ".$productLibelle." </td>";
+													$output .=" <td style=\"text-align:left;background-color:".$bgColorClass."\" >".$productDescription." </td>";
+													$output .=" <td style=\"text-align:right;background-color:".$bgColorClass."\">".number_format($montant, 0,' ', ' ')." F CFA </td>";
+													output .="
+																<td width=\"5%\" style=\"text-align:left;background-color:".$bgColorClass."\"> 
+																	<div class=\"btn-group\" role=\"group\">
+																		<button type=\"button\" class=\"btn btn-danger pull-right delProduct\" title=\"Supprimer cet élément\" id=\"delProductId-".$productid."\"><span class=\"glyph-icon icon-trash-o\"></span> </button>										    
+																	</div>
+																</td>";
+											 $output .=" </tr>";
+									}				 										 
+									$output .=" <tr><td style=\"text-align:right;background-color:".$bgColorClass."\" colspan=\"3\"><b> MONTANT HT</b></td><td style=\"text-align:right;\">".number_format($montantTotal,0,' ', ' ')." F CFA</td>  </tr>";
+									$output .=" <tr><td style=\"text-align:right;background-color:".$bgColorClass."\" colspan=\"3\"><b> TOTAL TTC </b></td><td style=\"text-align:right;\">".number_format($montantTotalTTC,0,' ', ' ')." F CFA </td>  </tr>";	 
+								}					                 
+							 
+					$output       .=" </table>";
+					echo $output;	
+				?>
+				<div class="panel-footer"><?php echo $buttonBar; ?></div>
+			</div>
+		</div>
+	</div>
+</div>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+ 

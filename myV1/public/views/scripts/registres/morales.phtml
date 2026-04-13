@@ -1,0 +1,159 @@
+<?php
+  $tplPath   = VIEW_BASE_PATH;
+  
+  $registres = $this->registres;
+  $domaines  = $this->domaines;
+  $localites = $this->localites;
+  $filters   = $this->filters;
+  $paginator = $this->paginator;
+  $linkSearch= $this->url(array("controller"=>"registres","action" =>"list","typeid"=> 2,"typelib"=>"morales"),"registrelist",true);
+  if( null != $paginator ) {
+  	  //On crée et affiche la pagination
+  	  $pagination  = $this->pagination(array(), "Elastic" , "#", array(), array("class"=>"panel-footer paginationControl", "style" => "text-align:center;"));	  
+  }
+   $linkPhysiques  = $this->url(array("controller"=> "registres","action" => "list","typeid" => 1, "localiteid" => intval( $filters["localiteid"] ), "module" => "public"), "default");
+   $jq             = $this->jQuery();
+   $onLoad         = "
+                jQuery('.sirahPaginationBtn').click(function(event){
+      		        event.preventDefault();
+      		        if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+      		            var formSelector     = jQuery('#maincontent');
+      		            var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+      		            var pageMaxitems     = formSelector.find('#maxitems').val();
+      		            if( jQuery(this).is('.nextPage')) {
+      		                var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+      		                pageNum           = parseInt( currentBtnNum +1);
+                        }
+      		            if( jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+      		                var paginationData        = {};
+      		                paginationData.maxitems   = pageMaxitems;
+      		                paginationData.page       = pageNum;
+      		                paginationData.numero     = formSelector.find('#numero').val();
+		                    paginationData.libelle    = formSelector.find('#libelle').val();
+		                    paginationData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		                    paginationData.localiteid = parseInt(formSelector.find('#localiteid').val());    
+		                    paginationData.search     = 1; 
+      		                var maincontent	          = jQuery('#maincontent');
+      		                SIRAH.loading.on( maincontent , 'Chargement des données...' );
+      		                SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:paginationData,beforeSend:function(){},
+		                                       error  : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+	                                           success: function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+		                                       update : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);}		
+		                    });
+	                         SIRAH.loading.off(false);
+                });
+                jQuery('.search').click(function( event ){
+                       event.preventDefault();		            
+		               var formSelector     = jQuery('#maincontent'); 
+		               var searchData       = {};
+		               searchData.numero    = formSelector.find('#numero').val();
+		               searchData.libelle   = formSelector.find('#libelle').val();
+		               searchData.domaineid = parseInt(formSelector.find('#domaineid').val());
+		               searchData.localiteid= parseInt(formSelector.find('#localiteid').val());
+		               searchData.search    = 1; 
+                       var maincontent	    = jQuery('#maincontent');	
+		               SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		               SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+		                                  error  : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+	                                      success: function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+		                                  update : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);}		
+		              });
+	                   SIRAH.loading.off(false);		                
+                });
+                jQuery('.reset').click(function( event ){ event.preventDefault(); document.location.href = '".$linkSearch."'; });";
+   
+   $jq->addOnLoad( $onLoad );
+?>
+<ul class="list-group">
+   <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-3"> <label class="label" for="numero"> <b>  Numéro du registre:</b> </label></div> 
+            <div class="col-md-9"> <input id="numero" type="text" maxlength="14" autocomplete="off" autocapitalize="off" autocorrect="off" name="numero"
+                                          title="Numéro du registre" placeholder="Numéro du registre" style="text-transform:uppercase" value="<?php echo $filters["numero"]; ?>"></div>
+       </div> 
+    </li>
+    <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-3"> <label class="label" for="libelle"> <b> Dénommination:</b> </label></div> 
+            <div class="col-md-9"> <input id="libelle" type="text"  autocomplete="off" autocapitalize="off" autocorrect="off" name="libelle"
+                                          title="Dénommination" placeholder="Dénommination" value="<?php echo $filters["libelle"]; ?>"></div>
+       </div> 
+    </li>
+    <li  class="list-group-item"> 
+       <div  class="row">      
+         <div class="col-md-3"> <label class="label" for="localiteid"> <b> Localité* :</b> </label></div> 
+         <div class="col-md-5"> <?php echo $this->formSelect("localiteid", intval( $filters["localiteid"] ) , array() , $localites ); ?></div>
+         <?php if( intval( $filters["localiteid"] )): ?>
+            <div class="col-md-4"> <a href="<?php echo $linkPhysiques; ?>"> Personnes physiques dans cette localité </a>  </div> 
+         <?php else: ?>
+            <div class="col-md-4">  </div> 
+         <?php endif; ?>
+       </div>    
+    </li>
+    <li  class="list-group-item"> 
+       <div  class="row">      
+         <div class="col-md-3"> <label class="label" for="domaineid"> <b> Domaine d'activité* :</b> </label></div> 
+         <div class="col-md-9"> <?php echo $this->formSelect("domaineid", intval( $filters["domaineid"] ) , array() , $domaines ); ?></div>
+       </div>    
+    </li>
+    <li  class="list-group-item"> 
+       <div  class="row">      
+         <div class="col-md-6">  
+             <div class="btn-buttonbar sirah-ui-buttonbar"> 
+               <div class="btn-buttonbar sirah-ui-buttonbar"> 
+                <div class="btn-group"> <button type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search"></span> Rechercher </button> </div>   
+                <div class="btn-group"> <button type="submit" class="btn btn-danger  reset" ><span class="glyphicon glyphicon-remove"></span> Réinitialiser </button> </div>             
+               </div>                
+             </div> 
+         </div> 
+         <div class="col-md-6"> &nbsp; </div>
+       </div>  
+    </li>
+</ul>
+<?php if( count( $registres )) : ?>
+<div class="panel-heading"> <h4> Les résultats de la recherche </h4> </div>
+<div class="list-group">
+     <?php 
+            $output        = "";
+            $model         = new Model_Registre();
+            $modelDocument = new Model_Document();
+                foreach( $registres as $registre ) {
+                         $registreid  = intval($registre['registreid']);
+                         $libelle     = $registre["libelle"] ;
+                         $numero      = $registre["numero"] ;
+                         $description = $registre["description"] ;
+                         $localite    = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+                         $annee       = $registre["annee"]; 
+                         $urlLibelle  = Sirah_Functions_String::cleanUtf8( $numero );
+                         $linkInfos   = $this->url(array("registreid"=> $registreid,"registrelib" => $urlLibelle,"type" => "morales"), "registre");   
+                         $documents   = $model->documents( $registreid , 0 );    
+                         $linkDownload= "";
+                         if( count( $documents )) {
+                         	 $document     = $documents[0];
+                         	 $documentid   = $document["documentid"];
+                         	 $filextension = strtolower($document["filextension"]);
+                         	 $filename     = $document["filename"];
+                         	 $documentLib  = $modelDocument->filterIndex( $filename, $document["userid"] );
+                         	 $urlDocument  = Sirah_Functions_String::cleanUtf8( $documentLib );
+                         	 $linkDownload = $this->url(array( "documentid" => $documentid, "libelle" => $urlDocument), "documentheque");
+                         }                      	  	      
+                         $output .= "<a title=\"Accéder aux informations de cette entreprise\" href=\"".$linkInfos."\" class=\"list-group-item list-group-item-action flex-column align-items-start\" id=\"registreid-".$registreid."\"> "; 
+                            $output .= "<div class=\"d-flex w-100 justify-content-between\"><h4 class=\"list-group-item-heading mb-1\"><u> ".$libelle."</u></h4></div>";
+                            $output .= "<p class=\"mb-1\"> ".$description." </p>";
+                            $output .= "<span class=\"text-muted\"> Numéro RC :".$numero  ." </span>";
+                            $output .= "<span class=\"text-muted\"> Localité  :".$localite." </span>";								
+                         $output .= "</a>";                              	                              	
+                 }                               
+                         echo $output;                      
+                       ?>                              
+</div>
+<?php  echo $pagination->render(); ?>
+<?php  endif; ?>
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

@@ -1,0 +1,41 @@
+<?php
+	$keywords            = $this->keywords;
+	$errorMessages       = $this->errorMessages;
+	$infoMessages        = $this->infoMessages;
+	$available           = $this->available;
+	$similarites         = $this->similarites;
+	$activities          = $this->activities;
+	$registres           = $this->registres;
+	$params              = $this->params;
+	$totalResults        = count($similarites);
+    $defaultErrorMessage = $this->errormessage();
+	$linkSearch          = $formSubmit = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"reservation","reset"=>1) , "default");
+	 
+	$jq = $this->jQuery();
+	$jq->addOnLoad("
+		jQuery('#verifyBtn').click(function(event){event.preventDefault();jQuery('#verifyEnterprises').submit();});
+		jQuery('.resetBtn,.resetButton').click(function(event){event.preventDefault();document.location.href='".$linkSearch."';}); 
+		jQuery('#resetSearchBtn').click(function(event){event.preventDefault();jQuery('#keywords').val('');});");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.jumbotron h1{font-size:24px !important}
+.lead{text-align:justify !important;}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {margin-bottom:1rem !important;}
+<?php $this->headStyle()->captureEnd();  ?>
+ 
+<div class="search-data-list topadding section" id="search-data-list">
+	<div class="container">
+	    <div class="pageContentContainer maincontent" id="maincontent">
+		    <div class="jumbotron">
+		        <h1 class="display-4"> Fonctionnalité en cours d'implémentation. Bientôt disponible!</h1>
+				<p class="lead" style="text-align:justify"> 
+				    La procédure consiste à interroger la base de données du Fichier National RCCM à travers le Système Intégré des Guichets Uniques (SIGU) et eRCCM en vue de s’assurer de la disponibilité (non existence dans les deux bases) d’une DS ou d’un NC qu’un nouveau créateur souhaite attribuer à son entreprise et de procéder à sa réservation. 
+Si la dénomination sociale est différente du nom commercial, il y’a lieu de tenir compte des deux dans la vérification.
+ 
+
+				</p>
+			</div>
+		</div>
+    </div>
+</div>
+ 

@@ -1,0 +1,377 @@
+<?php 
+$messages           = $this->messages;
+$token              = $this->token;
+$data               = $this->data;
+$defaultCountry     = (isset($data["country"]) && !empty($data["country"])) ? $data["country"] : "BF";
+
+$formSubmit         = $this->url(array("controller" =>"accounts", "action" => "edit") , "default" );
+$backList           = $this->url(array("controller" =>"accounts", "action" => "list") , "default" );
+$registerDoneUri    = $this->registerDoneUri;
+$basePath           = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.coltoolsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{height : 35px;line-height: 30px;font-size: 1.3em;}
+div.coltools{width:60%;}
+.rowtools{text-align:left;}
+.radio{color: #333333;font-size: 18px;font-weight: normal;padding:20px;}
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('#lastname').bind('blur change',function(e){
+      e.preventDefault();
+      var lastname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(lastname)){
+        jQuery('#lastname').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      } else {
+        jQuery('#lastname').addClass('input-error');
+        return;
+      }
+  });  
+  jQuery('#firstname').bind('blur change',function(e){
+      e.preventDefault();
+      var firstname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(firstname)){
+        jQuery('#firstname').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      }  else {
+        jQuery('#firstname').addClass('input-error');
+         return;
+      }
+  });
+  
+  jQuery('#username').bind('blur change',function(e){
+      e.preventDefault();
+      var username = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(username)){
+        jQuery('#username').removeClass('input-error');
+        jQuery('#username-validation-message').html('');
+      } else {      
+        jQuery('#username').addClass('input-error');
+         return;     
+      }
+  });
+  
+  jQuery('#email').bind('blur change',function(e){
+      e.preventDefault();
+      var email = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').addClass('input-error');
+        jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+      }  else {
+         jQuery('#email').removeClass('input-error');
+         jQuery('#email-validation-message').html('');
+      }    
+  });   
+  
+  jQuery('#password').bind('blur change',function(e){
+      e.preventDefault();
+      var credential = jQuery.trim(jQuery(this).val());
+      if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+        jQuery('#password').addClass('input-error');
+        jQuery('#password-validation-message').html('');
+         SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+         return;
+      }  else {
+         jQuery('#password').removeClass('input-error');
+         jQuery('#password-validation-message').html('');
+      }    
+  });
+  
+  jQuery('#confirmedpassword').bind('blur change',function(e){
+      e.preventDefault();
+      var credential   = jQuery.trim(jQuery('#password').val());
+      var credential2  = jQuery.trim(jQuery(this).val());
+      if(credential2 !== credential){
+         jQuery('#confirmedpassword').addClass('input-error');
+         jQuery('#confirmedpassword-validation-message').html('');
+         SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+         return;
+      } else {
+        jQuery('#confirmedpassword').removeClass('input-error');
+        jQuery('#confirmedpassword-validation-message').html('');
+      }      
+  });
+  
+  jQuery('#phone1').bind('blur change',function(e){
+      e.preventDefault();
+      var phone1 = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(phone1)){
+        jQuery('#phone1').removeClass('input-error');
+        jQuery('#phone-validation-message').html('');
+      }  else {      
+        jQuery('#phone1').addClass('input-error');
+         return;     
+      }
+  });
+  
+  jQuery('#cancelAccountUpdateButton').click(function(e)
+  {
+    e.preventDefault();
+    document.location.href='".$backList."';
+   });
+  
+  jQuery('#saveAccountButton').click(function(e)
+  {
+      e.preventDefault();      
+      var  formSelector= jQuery('#editaccount-form');
+      var  firstname   = jQuery.trim(jQuery('#firstname').val());
+      var  lastname    = jQuery.trim(jQuery('#lastname').val());
+      var  email       = jQuery.trim(jQuery('#email').val());
+      var  username    = jQuery.trim(jQuery('#username').val());
+      var  credential  = jQuery.trim(jQuery('#password').val());
+      var  credential2 = jQuery.trim(jQuery('#confirmedpassword').val());
+      var  phone1      = jQuery.trim(jQuery('#phone1').val());
+      
+      if(SIRAH.util.isEmpty(lastname)){
+         jQuery('#lastname').addClass('input-error');
+         jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+      } else {
+         jQuery('#lastname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(firstname)){
+        jQuery('#firstname').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+         return;
+      }  else {
+         jQuery('#firstname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }    
+      if(SIRAH.util.isEmpty(username)){
+        jQuery('#username').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('username-validation-message','Entrez un nom d\'utilisateur valide');
+         return;
+      }  else {
+         jQuery('#username').removeClass('input-error');
+         jQuery('#name-validation-message').html('');
+      }
+       if(SIRAH.util.isEmpty(phone1)){
+        jQuery('#phone1').addClass('input-error');
+        jQuery('#phone-validation-message').html('');
+         SIRAH.error.raise('phone-validation-message','Entrez un numéro de téléphone valide');
+         return;
+      }  else {
+         jQuery('#phone1').removeClass('input-error');
+         jQuery('#phone-validation-message').html('');
+      }
+      if(!SIRAH.validators.isEmailAddress(email)){
+        jQuery('#email').addClass('input-error');
+        jQuery('#email-validation-message').html('');
+         SIRAH.error.raise('email-validation-message','Entrez un email valide');
+         return;
+      }  else {
+         jQuery('#email').removeClass('input-error');
+         jQuery('#email-validation-message').html('');
+      }     
+      if(SIRAH.util.isEmpty(credential) || (parseInt(credential.length) < 4)){
+         jQuery('#password').addClass('input-error');
+         jQuery('#password-validation-message').html('');
+         SIRAH.error.raise('password-validation-message','Entrez un mot de passe valide');
+         return;
+      } else {
+         jQuery('#credential').removeClass('input-error');
+         jQuery('#password-validation-message').html('');
+      }      
+     if(credential2 !== credential){
+         jQuery('#confirmedpassword').addClass('input-error');
+         jQuery('#confirmedpassword-validation-message').html('');
+         SIRAH.error.raise('confirmedpassword-validation-message','Les mots de passe sont differents');
+         return;
+      } else {
+        jQuery('#confirmedpassword').removeClass('input-error');
+        jQuery('#confirmedpassword-validation-message').html('');
+      }
+
+      jQuery('#lastname').val(lastname);
+      jQuery('#firstname').val(firstname);
+      jQuery('#username').val(username);
+      jQuery('#email').val(email);
+      jQuery('#phone1').val(phone1);
+      jQuery('#password').val(credential);
+      jQuery('#confirmedpassword').val(credential2);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editaccount-form"   role="form">
+<div class="container col-md-12" style="text-align:left;">
+<ul class="list-group">
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-2"> <label class="label" for="firstname"> <b> Prénom*: </b> </label> </div>
+         <div class="col-md-3">
+               <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control" 
+                      title="Son prénom" placeholder="Son prénom"  name="firstname" value="<?php echo $data['firstname']; ?>">
+         </div>
+         <div class="col-md-2"> <label class="label" for="lastname"> <b> Nom famille*: </b> </label> </div>
+         <div class="col-md-3">
+               <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son nom de famille" placeholder="Son nom de famille"  name="lastname" value="<?php echo $data['lastname']; ?>">
+         </div>
+         <p id="name-validation-message" class="validation-message"></p>    
+     </div>  
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="username"> <b>Nom d'utilisateur*: </b> </label> </div>
+         <div class="col-md-9">
+               <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son nom d'utilisateur" placeholder="Son nom d'utilisateur"  name="username" value="<?php echo $data['username']; ?>">
+         </div>  
+         <p id="username-validation-message" class="validation-message"></p>      
+     </div>  
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="email"> <b>Adresse email*: </b> </label> </div>
+         <div class="col-md-9">
+               <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son adresse email" placeholder="Son adresse email"  name="email" value="<?php echo $data['email']; ?>">
+         </div>  
+         <p id="email-validation-message" class="validation-message"></p>      
+     </div>  
+   </li>
+   
+    <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="password"> <b> Mot de passe*: </b> </label> </div>
+         <div class="col-md-9">
+               <input id="password" type="password"  maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Son mot de passe par défaut" placeholder="Son mot de passe par défaut" name="password" class="form-control"  />
+         </div>  
+         <p id="password-validation-message" class="validation-message"></p>      
+     </div>  
+   </li>
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="confirmedpassword"> <b> Confirmez* : </b> </label> </div>
+         <div class="col-md-9">
+              <input id="confirmedpassword" type="password" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                     title="Confirmez le mot de passe" placeholder="Confirmez le mot de passe" value="" name="confirmedpassword" class="form-control">
+         </div>  
+         <p id="confirmedpassword-validation-message" class="validation-message"></p>      
+     </div>  
+   </li>
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="phone1"> <b> Téléphone mobile*: </b> </label> </div>
+         <div class="col-md-9">
+              <input id="phone1" type="text"  maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Son téléphone principal" placeholder="Son téléphone principal" name="phone1" value="<?php echo $data['phone1']; ?>">
+         </div>  
+          <p id="phone-validation-message" class="validation-message"></p>   
+     </div>  
+   </li>
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="phone1"> <b> Téléphone mobile 2 : </b> </label> </div>
+         <div class="col-md-9">
+             <input id="phone2" type="text" maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off"  class="form-control"
+                      title="Son mobile secondaire" placeholder="Téléphone secondaire" name="phone2" value="<?php echo $data['phone2']; ?>" />
+         </div>    
+     </div>  
+   </li>
+   
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="phone1"> <b> Sexe*: </b> </label> </div>
+         <div class="col-md-3"> 
+          <label class="radio-inline">
+              <input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>>
+                Homme
+          </label>
+          
+          <label class="radio-inline">
+               <input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>>
+                  Femme
+         </label>
+         </div>
+         <div class="col-md-3">
+            &nbsp;
+         </div>    
+     </div>  
+   </li>
+   
+   <li class="list-group-item">
+     <div class="row">
+        <div class="col-md-3"><label class="checkbox"><?php echo $this->formCheckbox("activated", $data["activated"],null,array("1","0"));?> Compte activé</label></div>
+        <div class="col-md-3"><label class="checkbox"><?php echo $this->formCheckbox("locked"   , $data["locked"]   , null , array("1","0")); ?> Compte verrouillé</label></div>
+        <div class="col-md-3"><label class="checkbox"><?php echo $this->formCheckbox("blocked"  , $data["blocked"]  , null , array("1","0")); ?> Compte bloqué</label>
+         </div>
+     </div>  
+   </li>      
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-9"> 
+              <label class="checkbox">
+                <?php echo $this->formCheckbox("sendmail" , 1 , null , array("1" , "0")); ?> Lui notifier la mise à jour de son compte
+              </label>
+         </div>
+         <div class="col-md-3">
+             &nbsp;
+         </div>    
+     </div>  
+   </li>     
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-9"> 
+              <label class="checkbox">
+                  <?php echo $this->formCheckbox("sendparams",1,null,array("1","0")); ?> Lui transmettre les paramètres de son compte (Il réinitialisera son mot de passe)
+              </label>
+         </div>
+         <div class="col-md-3">&nbsp;</div>    
+     </div>  
+   </li>  
+ </ul>  
+<?php     
+   $supinaToolsbar   = $this->btnbar(array() , $this->jqueryHandler());
+   $toolCreate       = $supinaToolsbar->button("Mettre à jour les informations ","disk");
+   $toolCancel       = $supinaToolsbar->button("Annuler","ban-circle");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $supinaToolsbar->add( $toolCreate ,"saveAccountButton");
+   $supinaToolsbar->add( $toolCancel ,"cancelAccountUpdateButton");
+
+   if(!$this->isAjax) {
+   	   echo $supinaToolsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   
+   <input id="t"       type="hidden" name="t"       value="<?php echo $token; ?>" /> 
+   <input id="city"    type="hidden" name="city"    value="" /> 
+   <input id="userid"  type="hidden" name="userid"  value="<?php echo $data['userid']; ?>" /> 
+   <input id="country" type="hidden" name="country" value="<?php echo $defaultCountry ; ?>" /> 
+</form>
+

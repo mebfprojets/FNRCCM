@@ -1,0 +1,92 @@
+<?php 
+$documents  = $this->documents;
+$paginator  = $this->paginator;
+$filters    = $this->filters;     
+$linkSearch = $this->url(array("controller"=>"documentheque","action" => "list","module" => "public"), "default");
+if( null != $paginator ) {
+  	$pagination  = $this->pagination(array(), "Elastic", $this->url(array("controller"=>"documentheque","action" =>"list","module" => "public"),"default"), array(), array("class" => "panel-footer paginationControl"));  	  
+}     
+$jq         = $this->jQuery();      
+$jq->addOnload("           	   
+      		jQuery('.sirahPaginationBtn').click(function(event){
+      		         event.preventDefault();
+      		         if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) { return false;}
+      		             var formSelector     = jQuery('#maincontent');
+      		             var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+      		             var pageMaxitems     = formSelector.find('#maxitems').val();
+      		             if( jQuery(this).is('.nextPage')) {
+      		                 var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+      		                 pageNum           = parseInt( currentBtnNum +1);
+                         }
+      		             if(jQuery(this).is('.prevPage')) {var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-', ''));pageNum =parseInt( currentBtnNum - 1);}
+      		                var paginationData      = {};
+      		                paginationData.maxitems = pageMaxitems;
+      		                paginationData.page     = pageNum;   
+      		                var maincontent	        = jQuery('#maincontent');
+      		                SIRAH.loading.on( maincontent , 'Chargement des données...' );
+      		                SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:paginationData,beforeSend:function(){},
+		                                       error  : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+	                                           success: function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+		                                       update : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);}		
+		                    });
+      		                SIRAH.loading.off(false);
+            }); ");     
+?>
+<input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+<?php 
+   $model       = new Model_Document();
+   //On crée et affiche le tableau
+  $output  = "<table id=\"documentsListTable\" class=\"table table-hover table-bordered table-stripped sirah-ui-table scrollable\" style=\"text-align:left !important;\">
+                           <thead><tr>"  ;
+                                  $output .= "<th width=\"60%\"> Titres  </th>";
+                                  $output .= "<th width=\"20%\"> Tailles </th>";
+                                  $output .= "<th width=\"20%\"> Actions </th>";
+            $output .= "</tr></thead>";
+            $lastCategorie = null;  
+            $modelDocument = new Model_Document();
+             if(count(   $documents ) ) {    
+             	foreach( $documents as $document ) {             		
+             	         $documentid   = intval($document['documentid']);             	        
+             	         $categorie    = ( $lastCategorie == $document["categorie"] ) ? "" : $document["categorie"];
+             	         $filextension = strtolower($document["filextension"]);
+    	  	             $filesize     = ( isset( $document["filepath"] ) && file_exists( $document["filepath"] ) ) ? filesize( $document["filepath"] ) : $document["filesize"] ;
+    	  	             $filename     = $document["filename"];
+             	         $libelle      = $modelDocument->filterIndex(   $filename, $document["userid"] );
+             	         $icone        = $modelDocument->getFileIcon(   $filextension );
+             	         $sizeKo       = Sirah_Functions::toByteString( $filesize, "" , 3 );
+            	         
+             	         if( empty( $libelle ) ) {
+             	         	  $libelle = $filename;
+             	         }
+             	         $urlLibelle   = Sirah_Functions_String::cleanUtf8( $libelle );
+             	         $linkInfos    = $this->url(array( "documentid" => $documentid, "libelle" => $urlLibelle ), "documentheque");
+             	   $output .= "<tr id=\"documentRowId-".$documentid."\">";
+             	            $output .= "<td style=\"text-align:center;\"> <span class=\"".$icone."\"></span> <a title=\"Télécharger ce document \"  href=\"".$linkInfos."\"> ".$libelle." </a> </td>";
+             	            $output .= "<td >   ".$sizeKo."  </td>";
+             	            $output .= "<td >  <span class=\"glyphicon glyphicon-download\"></span> <a title=\"Télécharger ce document \"  href=\"".$linkInfos."\"> Télécharger </a>  </td>";
+             	   $output .= "</tr>";
+             	   
+             	   $lastCategorie = $document["categorie"];
+             	}
+             }  else {
+             	  $output .= "<tr>";
+             	           $output .= "<td style=\"text-align:center;\" colspan=\"8\"> Aucun document de ce type n'a été retrouvé </td>";
+             	  $output .= "</tr>";
+             }   
+              $output .="</table>";
+              // On affiche le tableau
+              echo $output;
+              
+            
+              echo $pagination->render();
+        
+    
+              if( $this->isAjax ) {
+              	echo $this->jQuery();
+              	echo $this->headStyle();
+              }
+ 
+?>
+
+
+             

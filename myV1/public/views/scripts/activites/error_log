@@ -1,0 +1,56 @@
+[27-Dec-2022 21:24:25 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/activite.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/activite.phtml on line 2
+[27-Dec-2022 21:24:30 Europe/Paris] PHP Fatal error:  Uncaught Error: Class 'Model_Document' not found in /home/rs2021453/public_html/myV1/public/views/scripts/activites/documents.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/documents.phtml on line 2
+[27-Dec-2022 21:24:34 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/dynamiczone.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/dynamiczone.phtml on line 2
+[27-Dec-2022 21:24:41 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/gallerie.phtml:3
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/gallerie.phtml on line 3
+[27-Dec-2022 21:24:46 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/infos.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/infos.phtml on line 2
+[27-Dec-2022 21:24:50 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/list.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/list.phtml on line 2
+[27-Dec-2022 21:24:55 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/resultats.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/resultats.phtml on line 1
+[27-Dec-2022 21:25:01 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/simplelist.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/simplelist.phtml on line 2
+[27-Dec-2022 21:25:05 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/statistiques.phtml:2
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/statistiques.phtml on line 2
+[27-Dec-2022 21:25:08 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-beneficiaires.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-beneficiaires.phtml on line 1
+[27-Dec-2022 21:25:12 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-domaines.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-domaines.phtml on line 1
+[27-Dec-2022 21:25:15 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-partenaires.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-partenaires.phtml on line 1
+[27-Dec-2022 21:25:19 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-regions.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-regions.phtml on line 1
+[27-Dec-2022 21:25:23 Europe/Paris] PHP Fatal error:  Uncaught Error: Using $this when not in object context in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-resultats.phtml:1
+Stack trace:
+#0 {main}
+  thrown in /home/rs2021453/public_html/myV1/public/views/scripts/activites/stats-resultats.phtml on line 1

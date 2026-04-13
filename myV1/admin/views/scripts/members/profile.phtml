@@ -1,0 +1,91 @@
+<?php 
+$member      = $this->member;
+$memberid    = $this->memberid;
+$groupe      = $this->groupe;
+
+$situations  = array("Célibataire"=>"Célibataire","Marié(e)"=> "Marié(e)","Divorcé(e)"=> "Divorcé(e)","Veuf(ve)"=> "Veuf(ve)");
+$civilites   = array("Mr"=>"Monsieur","Mme"=>"Madame", "Mle" => "Mademoiselle", "Excellence"=>"Son excellence","Maître" => "Maître","Dr" => "Docteur","Pr" => "Professeur");
+
+$situation   = (isset( $situations[$member->matrimonial]))? $situations[$member->matrimonial] : "";
+$civilite    = (isset( $civilites[$member->civilite]    ))? $civilites[$member->civilite]     : "";
+ 
+$basePath    = VIEW_BASE_PATH;
+$jq          = $this->jQuery();
+
+$creationDate         = $updateDate = "00/00/0000";
+$creator              = Sirah_Fabric::getUser($member->creatorid);
+$updatedUser          = Sirah_Fabric::getUser($member->updateduserid);
+if( $member->creationdate ) {
+	$zendCreationdate = new Zend_Date( $member->creationdate , Zend_Date::TIMESTAMP );
+	$creationDate     = $zendCreationdate->toString("d MMM Y");
+}
+if( $member->updatedate ) {
+	$zendUpdatedate   = new Zend_Date( $member->updatedate , Zend_Date::TIMESTAMP );
+	$updateDate       = $zendUpdatedate->toString("d MMM Y");
+}
+
+$link  = $this->url(array("module"=>"admin","controller"=>"members","action"=>"infos","memberid"=>$memberid),"default",true);
+?>
+ <div class="list-group">
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b>Identifiant:</b></div> 
+			<div class="col-md-7"><?php echo $member->code; ?></div>
+		</div>
+	</a>
+	<a class="list-group-item">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Passport:</b></div> 
+			<div class="col-md-7"><?php echo $member->passport; ?></div>
+		</div>
+	</a>
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Nom  :</b></div> 
+			<div class="col-md-7"><?php printf("%s %s %s", $civilite, $member->lastname, $member->firstname ); ?></div>
+		</div>
+	</a>                
+ 
+	<?php if( $groupe ): ?>
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Groupe :</b></div> 
+			<div class="col-md-7"><?php echo $groupe->libelle; ?></div>
+		</div>
+	</a>
+	<?php endif; ?>
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Sexe :</b></div> 
+			<div class="col-md-7"><?php echo $member->sexe; ?></div>
+		</div>
+	</a>
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Situation matrimoniale:</b></div> 
+			<div class="col-md-7"><?php echo $situation; ?></div>
+		</div>
+	</a>
+	<?php if( $member->creatorid ): ?>
+	<a class="list-group-item" href="<?php echo $link; ?>" title="Accéder aux informations de ce compte">
+		<div class="row"> 
+			<div class="col-md-5"> <b> Créé le:</b></div> 
+			<div class="col-md-7"><?php printf("%s par %s %s", $creationDate , $creator->lastname, $creator->firstname ); ?></div>
+	</div>
+	</a>
+	<?php endif; ?>
+	<?php if( $member->updateduserid ): ?>
+	   <a class="list-group-item">
+		 <div class="row"> 
+				   <div class="col-md-5"> <b> Mis à jour le:</b> </div> 
+				   <div class="col-md-7"><?php printf("%s par %s %s", $updateDate, $updatedUser->lastname, $updatedUser->firstname ); ?></div>
+		 </div>
+	   </a>
+    <?php endif; ?>                     
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

@@ -1,0 +1,105 @@
+<?php 
+$me               = Sirah_Fabric::getUser();
+$member           = $this->member;
+$demandeur        = $this->demandeur;
+$paiements        = $this->paiements;
+$commandes        = $this->commandes;
+$demandes         = $this->demandes;
+$invoices         = $factures = $this->invoices;
+$ordercart        = $this->ordercart;
+$documents        = $this->documents;
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+
+$linkCreate       = $this->url(array("module"=>"public","controller"=>"requetes" ,"action"=>"reservation" ),"default",true);
+$linkDemandes     = $this->url(array("module"=>"public","controller"=>"requetes" ,"action"=>"list"  ),"default",true);
+$linkOrders       = $this->url(array("module"=>"public","controller"=>"orders"   ,"action"=>"list"  ),"default",true);
+$linkInvoices     = $this->url(array("module"=>"public","controller"=>"invoices" ,"action"=>"list"  ),"default",true);
+$linkPayments     = $this->url(array("module"=>"public","controller"=>"payments" ,"action"=>"list"  ),"default",true);
+$linkEdit         = $this->url(array("module"=>"public","controller"=>"members"  ,"action"=>"edit"  ),"default",true);
+$linkEditSettings = $this->url(array("module"=>"public","controller"=>"members"  ,"action"=>"settings"),"default",true);
+$linkCancel       = $this->url(array("module"=>"public","controller"=>"registres","action"=>"search"),"default",true);
+$linkEditPWD      = $this->url(array("module"=>"public","controller"=>"members"  ,"action"=>"editpwd"),"default",true);
+$linkCreateRequest= $this->url(array("module"=>"public","controller"=>"requetes" ,"action"=>"reservation"),"default",true);
+
+$jq->addOnload("
+    jQuery('#createRequest,.createRequest').click(function(event){ event.preventDefault();document.location.href='".$linkCreate."';});
+	jQuery('#editAccount').click(function(event){  event.preventDefault();document.location.href='".$linkEdit    ."';});
+	jQuery('#editPWD').click(function(event){      event.preventDefault();document.location.href='".$linkEditPWD ."';});
+	jQuery('.requestsList').click(function(event){ event.preventDefault();document.location.href='".$linkDemandes."';});
+	jQuery('#requestCreate').click(function(event){event.preventDefault();document.location.href='".$linkCreateRequest."';});
+	jQuery('.ordersList').click(function(event){   event.preventDefault();document.location.href='".$linkOrders  ."';});
+	jQuery('.invoicesList').click(function(event){ event.preventDefault();document.location.href='".$linkInvoices."';});
+	jQuery('.paymentsList').click(function(event){ event.preventDefault();document.location.href='".$linkPayments."';});
+	");
+?>
+<div class="row">
+    <div class="col-md-4 hidden-sm hidden-xs">
+	    <div class="panel panel-primary">
+		    <div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-user"></span> Mon compte </h4> </div>
+		    <?php echo $this->partial("members/profile.phtml", array("demandeur"=>$demandeur,"member"=>$member,"memberid"=>$memberid)); ?>
+	        <div class="panel-footer">
+			    <div class="controls">
+				    <button id="editAccount" type="submit" class="btn btn-primary editAccount"><span class="glyph-icon icon-edit"></span> Modifier </button>
+				    <button id="editPWD"     type="submit" class="btn btn-danger editPWD">     <span class="glyph-icon icon-cogs"></span> Changer mot de passe</button>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-file-zip-o'></span> Archive des documents</h4> </div>
+ 			<?php echo $this->partial("members/documents.phtml",array("member"=>$member,"memberid"=>$memberid,"documents"=>$documents,"jquery"=>&$jq)); ?>	
+		</div>
+	</div>
+	<div class="col-md-8 col-sm-12">
+	    <div class="panel panel-success">
+			<div class="panel-heading">
+			    <h4 class="panel-title float-left"><span class='glyph-icon icon-tasks'></span> Mes dernières demandes </h4> 
+			    <div class="panel-header-buttons pull-right float-right">
+					<button title="Créer une nouvelle demande de réservation" id="createRequest" type="button" class="btn btn-primary btn-sm createRequest"><span class='glyph-icon icon-plus'></span> Nouveau </button>       
+                </div>
+				<div class="clearfix"></div>
+			</div>
+ 			<?php echo $this->partial("members/demandes.phtml", array("member"=>$member,"ordercart"=>$ordercart,"demandes"=>$demandes,"memberid"=>$memberid )); ?>	
+		    <div class="panel-footer">
+			    <div class="controls">
+				    <button id="requestsList"  type="submit" class="btn btn-primary glyph-icon icon-th-list requestsList">  Voir toutes mes demandes </button>
+					<button id="requestCreate" type="submit" class="btn btn-success glyph-icon icon-plus    requestCreate"> Nouvelle demande </button>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-warning">
+			<div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-shopping-cart'></span> Mes dernières commandes</h4> </div>
+ 	        <?php echo $this->partial("members/commandes.phtml", array("member"=>$member,"commandes"=>$commandes,"memberid"=>$memberid)); ?>			
+		    <div class="panel-footer">
+			    <div class="controls">
+				    <button id="ordersList" type="submit" class="btn btn-primary glyph-icon icon-th-large ordersList"> Voir toutes mes commandes</button>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-info">
+			<div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Mes dernières factures </h4> </div>
+ 	        <?php echo $this->partial("members/invoices.phtml", array("member"=>$member,"invoices"=>$invoices,"factures"=>$factures,"memberid"=>$memberid)); ?>			
+		    <div class="panel-footer">
+			    <div class="controls">
+				    <button id="invoicesList" type="submit" class="btn btn-primary glyph-icon icon-list-alt invoicesList"> Voir toutes mes factures</button>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-danger">
+			<div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-history'></span> Historique des paiements</h4> </div>
+ 	        <?php echo $this->partial("members/paiements.phtml", array("member"=>$member,"paiements"=>$paiements,"memberid"=>$memberid)); ?>			
+		    <div class="panel-footer">
+			    <div class="controls">
+				    <button id="paiementsList" type="submit" class="btn btn-primary glyph-icon icon-list-alt paiementsList"> Voir tous mes paiements </button>
+				</div>
+			</div>
+		</div>		
+	</div>
+</div>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+ 

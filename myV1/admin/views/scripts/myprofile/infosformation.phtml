@@ -1,0 +1,55 @@
+<?php 
+    $formation  = $this->row;
+    $countries  = $this->countries();
+    $country    = (isset($countries[$formation->country])) ? $countries[$formation->country] : $formation->country;
+?>
+         <div class="row">
+                  <ul class="list-group">
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> L'année de formation :</b></div> 
+                             <div class="col-md-6"><?php echo intval($formation->annee); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> La structure de formation :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($formation->universite); ?></div>
+                           </div>
+                       </li>
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> L'intitulé de formation :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($formation->intitule); ?></div>
+                           </div>
+                       </li>  
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> Le pays de formation :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($country); ?></div>
+                           </div>
+                       </li>                       
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b> La ville de formation :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($formation->ville); ?></div>
+                           </div>
+                       </li>                        
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-6"> <b>Diplome obtenu :</b></div> 
+                             <div class="col-md-6"><?php echo $this->escape($formation->diplome); ?></div>
+                           </div>
+                       </li>                         
+                       <li class="list-group-item">
+                           <div class="row"> 
+                             <div class="col-md-12"> <b>Description:</b></div>
+                           </div>
+                           <div class="row">  
+                             <div class="col-md-12">
+                                 <p><?php echo $this->escape($formation->description); ?></p>
+                             </div>
+                           </div>
+                       </li>                                                      
+                  </ul>
+          </div>

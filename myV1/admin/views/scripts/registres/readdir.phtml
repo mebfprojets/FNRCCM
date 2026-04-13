@@ -1,0 +1,78 @@
+<?php 
+$data        = $this->data;
+$formSubmit  = $this->url(array("controller"=>"registres","action" => "readdir", "module" => "admin"), "default" );
+$backList    = $this->url(array("controller"=>"registres","action" => "list", "module" => "admin"), "default" );
+$localites   = $this->localites;
+$annees      = $this->annees;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#copyButton').click(function(e){e.preventDefault();var formSelector = jQuery('#copyRCForm');formSelector.submit();}); ";
+  
+$jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <form action="<?php echo $formSubmit; ?>" method="post"  id="copyRCForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">   	      
+		<div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité concernée* : </label>
+           <div  class="col-sm-6 col-md-6"> <?php echo $this->formSelect("localite", $data["localite"] , array("class"=>"form-control"), $localites); ?> </div>   
+        </div> 
+		<div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Année* : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("annee", $data["annee"], array("class"=>"form-control chosen"), $this->annees); ?> </div>           
+        </div>
+		<div class="form-group"> 
+			<label class="col-sm-3 control-label"> Dossier source* : </label>
+			<div   class="col-sm-6"> <input type="text" name="srcpath" id="srcpath" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["srcpath"]; ?>" /></div>        
+		</div>
+		<div class="form-group"> 
+			<label class="col-sm-3 control-label"> Dossier de destination* : </label>
+			<div   class="col-sm-6"> <input type="text" name="destpath" id="destpath" class="form-control" placeholder="Dossier de destination des documents" value="<?php echo $data["destpath"]; ?>" /></div>        
+		</div>
+        <div class="form-group"> 
+			<label class="col-sm-3 control-label"> Dossier de retraitement* : </label>
+			<div   class="col-sm-6"> <input type="text" name="processingpath" id="processingpath" class="form-control" placeholder="Dossier des retraitements" value="<?php echo $data["processingpath"]; ?>" /></div>        
+		</div>
+		<div class="form-group"> 
+			<label class="col-sm-3 control-label"> Dossier d'indexation* : </label>
+			<div   class="col-sm-6"> <input type="text" name="indexingpath" id="indexingpath" class="form-control" placeholder="Dossier des indexations" value="<?php echo $data["indexingpath"]; ?>" /></div>        
+		</div>
+        <div class="form-group"> 
+           <label class="col-sm-3 control-label"> Tout copier?: </label>
+           <div   class="col-sm-6" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="copyall" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["copyall"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+        </div>
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Copier les documents","copy")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"copyButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

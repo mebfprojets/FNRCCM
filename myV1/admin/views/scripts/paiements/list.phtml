@@ -1,0 +1,373 @@
+<?php 
+$paiements          = $this->paiements;
+$commandes          = $this->commandes;
+$clients            = $this->clients;
+$statuts            = $this->statuts;
+$filters            = $this->filters;
+$paginator          = $this->paginator;
+$modesPaiements     = array(0=>"Selectionnez un mode de paiement",1=>"En Espèces",2=>"Chèque",3=>"Virement");
+
+$basePath           = VIEW_BASE_PATH;
+$jq                 = $this->jQuery();
+
+$linkSearch         = $this->url(array("module"=>"admin","controller"=>"paiements", "action"=> "list"  ), "default",true);
+$linkCreate         = $this->url(array("module"=>"admin","controller"=>"paiements", "action"=> "create"), "default",true);
+$linkDelete         = $this->url(array("module"=>"admin","controller"=>"paiements", "action"=> "delete"), "default",true);
+$linkExport         = $this->url(array("module"=>"admin","controller"=>"paiements", "action"=> "export"), "default",true);
+$linkSearchCommande = $this->url(array("module"=>"admin","controller"=>"ajaxres"  , "action"=> "commandeslist","parentform" => "paiementsListSearchForm","selectedKey"=> "commandeid", "selectedVal" => "commande"),"default");
+$jq->addOnload("
+
+jQuery('.removeCommande,#removeCommande').click(function(event){event.preventDefault();jQuery('#paiementsListSearchForm').find('#commande').val('');jQuery('#paiementsListSearchForm').find('#commandeid').val(0);});
+jQuery('.selectCommande,#selectCommande').click(function(event){
+	event.preventDefault();
+	var filterListDialog = jQuery('<div></div>').attr('id','filterListCommandes').addClass('modal-medium');             		 
+    filterListDialog.dialog2({title:'Rechercher une commande',content: '".$linkSearchCommande."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+    filterListDialog.dialog2('open'); 
+});
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."'; });
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+
+jQuery('#simpleSearch').click(function( event ){
+	event.preventDefault();
+	if( jQuery(this).hasClass('disabled') ) {
+		return;
+	}
+	var formSelector        = jQuery('#globalFormSearch') ;
+	var searchData          = {};
+	var pageNum             = parseInt(formSelector.find('#page').val());
+	
+	searchData.page         = pageNum;
+	searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());	
+	 
+	searchData.searchQ      = jQuery.trim(jQuery('#globalFormSearch').find('#searchQ').val());
+	searchData.commandeid   = parseInt(jQuery('#globalFormSearch').find('#commandeid').val());
+	searchData.statutid     = parseInt(jQuery('#globalFormSearch').find('#statutid').val());
+	searchData.productcatid = parseInt(jQuery('#globalFormSearch').find('#productcatid').val());
+	var maincontent         = jQuery('#maincontent');		
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });						
+});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	event.preventDefault();
+	var formSelector = jQuery('#globalFormSearch') ;
+	var searchData   = {};			
+	var maincontent	 = jQuery('#maincontent');				
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : {},
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });				
+});	
+jQuery('.searchPaiements,#searchPaiements').click(function(event){
+	event.preventDefault();
+	var formSelector               = jQuery('#paiementsListSearchForm') ;
+	var searchData                 = {};		
+	searchData.page                = parseInt(formSelector.find('#page').val());
+	searchData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+	searchData.name                = formSelector.find('#name').val();		
+	searchData.memberid            = parseInt(formSelector.find('#memberid').val());
+	searchData.modepaiement        = parseInt(formSelector.find('#modepaiement').val());
+	searchData.commandeid          = parseInt(formSelector.find('#commandeid').val());
+	searchData.productcatid        = parseInt(formSelector.find('#productcatid').val());
+	searchData.documentcatid       = parseInt(formSelector.find('#documentcatid').val()); 
+	searchData.statutid            = parseInt(formSelector.find('#statutid').val()); 
+	searchData.date_year           = parseInt(formSelector.find('#date_year').val());
+	searchData.date_month          = parseInt(formSelector.find('#date_month').val());
+	searchData.date_day            = parseInt(formSelector.find('#date_day').val());
+	searchData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	searchData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	searchData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	searchData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	searchData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	searchData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());		
+	var maincontent	               = jQuery('#maincontent');	
+	SIRAH.loading.on( maincontent , 'Chargement des données...' );
+	formSelector.attr('action', '".$linkSearch."');
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : searchData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+					  });
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+	event.preventDefault();
+	if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		 return false;
+	}
+	var formSelector        = jQuery('.advancedSearchForm').eq(0) ;
+	var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+	var pageMaxitems        = formSelector.find('#maxitems').val();
+	if( jQuery(this).is('.nextPage')) {
+		var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum             = parseInt( currentBtnNum +1);
+	}
+	if( jQuery(this).is('.prevPage')) {
+		var currentBtnNum    = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		pageNum              = parseInt( currentBtnNum - 1);
+	}
+	var paginationData                 = {};
+	paginationData.page                = pageNum;
+	paginationData.maxitems            = parseInt(formSelector.find('#maxitems').val());
+	paginationData.name                = formSelector.find('#name').val();		
+	paginationData.memberid            = parseInt(formSelector.find('#memberid').val());;
+	paginationData.modepaiement        = parseInt(formSelector.find('#modepaiement').val());
+	paginationData.documentcatid       = parseInt(formSelector.find('#documentcatid').val());
+	paginationData.documentid          = parseInt(formSelector.find('#documentid').val());	
+	paginationData.registreid          = parseInt(formSelector.find('#registreid').val());		
+	paginationData.productid           = parseInt(formSelector.find('#productid').val());
+	paginationData.productcatid        = parseInt(formSelector.find('#productcatid').val());
+	paginationData.commandeid          = parseInt(formSelector.find('#commandeid').val());	
+	paginationData.statutid            = parseInt(formSelector.find('#statutid').val());
+	paginationData.date_year           = parseInt(formSelector.find('#date_year').val());
+	paginationData.date_month          = parseInt(formSelector.find('#date_month').val());
+	paginationData.date_day            = parseInt(formSelector.find('#date_day').val());
+	paginationData.periode_start_year  = parseInt(formSelector.find('#periode_start_year').val());
+	paginationData.periode_end_year    = parseInt(formSelector.find('#periode_end_year').val());
+	paginationData.periode_start_month = parseInt(formSelector.find('#periode_start_month').val());
+	paginationData.periode_end_month   = parseInt(formSelector.find('#periode_end_month').val());
+	paginationData.periode_start_day   = parseInt(formSelector.find('#periode_start_day').val());
+	paginationData.periode_end_day     = parseInt(formSelector.find('#periode_end_day').val());		
+	var maincontent                    = jQuery('#maincontent');			
+	SIRAH.loading.on(maincontent, 'Chargement des données...' );
+	SIRAH.request.post(formSelector, '".$linkSearch."' , 
+					   {  dataType   :'html' ,
+						  async      : true,
+						  data       : paginationData,
+						  beforeSend : function() { },
+						  error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+						  update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+	});		
+});
+
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedPaiementsId = function() {
+	var checkedItems = jQuery('#paiementsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	var checkedIds   = []; 
+	if( checkedItems) {
+		checkedItems.each(function() {
+			var paiementid = parseInt(jQuery(this).attr('id').replace('paiementids',''));
+			checkedIds.push(paiementid);
+	   });
+	}
+	return checkedIds;
+};
+jQuery('#paiementsListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#paiementsListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#paiementsListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['deleteButton','exportButton','copyButton','editButton']);});
+jQuery('#paiementsListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#paiementsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['deleteButton','exportButton','copyButton','editButton']);
+	}
+});");
+
+$toolbar    = $this->supinaToolsbar(array()   , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouveau paiement", "plus");
+$toolDelete = $toolbar->tool("Supprimer", "icon-trash-o");
+$toolExport = $toolbar->tool("Exporter" , "download");
+
+$toolbar->add( $toolCreate , "createButton");
+$toolbar->add( $toolDelete , "deleteButton");
+$toolbar->add( $toolExport , "exportButton");
+
+$toolCreate->onClick( sprintf("event.preventDefault(); document.location.href='%s';", $linkCreate));
+$toolDelete->onClick( sprintf("
+		             event.preventDefault(); 
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#paiementsListTable').find('input[type=\'checkbox\'][name=\'paiementids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var paiementid         = parseInt(checkedItem.attr('id').replace('paiementids',''));
+		             document.location.href = '%s/paiementid/'+paiementid;", $linkDelete));
+$toolExport->onClick( sprintf("event.preventDefault();", $linkExport));
+
+$this->toolsbar = $toolbar;
+$pagination     = $this->pagination(array(), "Elastic", "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div  id="paiementsListWrapper" class="row">
+    <div  class="panel panel-default listPanel">
+        <div  class="panel-heading bg-blue-alt">
+			<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+				<div class="input-group">
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("statutid", intval($filters["statutid"]),array("class" => "form-control statutid"), $this->statuts); ?></span>
+				    <span class="input-group-btn selectBtn"><?php echo $this->formSelect("documentcatid" , intval($filters["documentcatid"]) ,array("class" => "form-control productid" ), $this->documentypes ); ?></span>
+					<input value="<?php echo $filters['searchQ']; ?>" id="searchQ" name="searchQ"  type="text" class="form-control" placeholder="Recherchez une commande, saisir un numéro...">
+					<span class="input-group-btn ">
+					   <button id="simpleSearch"      class="btn btn-primary simpleSearch"      type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+					   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"><span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+					   <button id="resetSearch"       class="btn btn-danger  resetSearch"       type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+					</span>
+				</div>
+				<input type="hidden" name="page"         id="page"         value="<?php echo $this->pageNum;    ?>"             /> 
+				<input type="hidden" name="maxitems"     id="maxitems"     value="<?php echo $this->pageSize;   ?>"             />		
+				<input type="hidden" name="documentid"   id="documentid"   value="<?php echo intval($filters["documentid"]);?>" />
+				<input type="hidden" name="commandeid"   id="commandeid"   value="<?php echo intval($filters["commandeid"]);?>" /> 
+                <input type="hidden" name="registreid"   id="registreid"   value="<?php echo intval($filters["registreid"]);?>" />	
+                <input type="hidden" name="productid"    id="productid"    value="<?php echo intval($filters["productid"]);?>"  />	
+                <input type="hidden" name="productcatid" id="productcatid" value="<?php echo intval($filters["productcatid"]);?>"  />				
+			</form>
+        </div>
+	    <form id="paiementsListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		    <ul class="list-group">
+			    <li class="list-group-item"> 
+				    <div class="form-group">
+					    <label class="col-md-2 col-sm-2 control-label"> <b> Type de produits:</b> </label> 
+					    <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("productcatid", intval($filters["productcatid"]),array("class"=> "form-control productcatid"), $this->productcategories); ?> </div> 
+				    
+					    <label class="col-md-2 col-sm-2 control-label"><b> Type de documents:</b> </label> 
+				        <div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("documentcatid", intval($filters["documentcatid"]),array("class" => "form-control documentcatid"), $this->documentypes); ?> </div>
+					</div> 			   
+				</li>			 
+                <li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-sm-2 col-md-2 control-label"><b>Client:</b> </label> 
+						<div   class="col-sm-4 col-md-4"><input value="<?php echo $filters['name'];?>" type="text" name="name" id="name" class="form-control" placeholder="Nom et/ou prénom du client" /></div>
+						<label class="col-md-2 col-sm-2 control-label">  <b> Mode paiement:</b> </label> 
+						<div   class="col-md-4 col-sm-4"><?php echo $this->formSelect("mode", intval($filters["mode"]), array("class" => "form-control"), $modesPaiements);?></div> 
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-md-2  col-sm-2 control-label">  <b> La commande:</b> </label> 
+						<div   class="col-sm-10 col-md-10">
+							<div class="input-group">
+								   <input type="text" name="commande" id="commande" value="<?php echo $this->numCommande; ?>" class="form-control" placeholder="Selectionnez une commande"  />
+								   <div class="input-group-btn">
+									   <button id="selectCommande" class="btn btn-primary" tabindex="-1"> <i class="glyph-icon icon-search selectCommande"> </i> Selectionner </button>
+									   <button id="removeCommande" class="btn btn-danger"  tabindex="-1"> <i class="glyph-icon icon-remove removeCommande"> </i> Effacer </button>
+								   </div>
+							 </div>
+						</div>
+					</div>
+				</li>
+				<li class="list-group-item"> 
+					<div class="form-group"> 
+					  <label class="col-md-2 col-sm-2 control-label"> Date : </label>
+					  <div   class="col-md-3"><?php echo $this->formSelect("date_day"  , $filters["date_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+					  <div   class="col-md-3"><?php echo $this->formSelect("date_month", $filters["date_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+					  <div   class="col-md-3"><?php echo $this->formSelect("date_year" , $filters["date_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>                 
+				   </div>
+				</li>
+				<li class="list-group-item">
+					<div class="form-group">
+						<label class="col-md-2 col-sm-2 control-label">  <b> Période initiale:</b> </label> 
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_start_day"  , $filters["periode_start_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_start_month", $filters["periode_start_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_start_year" , $filters["periode_start_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					</div>
+				</li>
+				<li class="list-group-item">
+					<div  class="form-group">
+						<label class="col-md-2 col-sm-2 control-label">  <b> Période finale:</b> </label> 
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_end_day"  , $filters["periode_end_day"]  , array("class" => "form-control"),array("00"  =>"Jour")+createDatesArray());?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_end_month", $filters["periode_end_month"], array("class" => "form-control"),array("00"  =>"Mois")+$this->months()); ?></div>
+						<div   class="col-md-3 col-sm-3"><?php echo $this->formSelect("periode_end_year" , $filters["periode_end_year"] , array("class" => "form-control"),array("0000"=> "Année")+createYearsArray(DEFAULT_START_YEAR, (date("Y")+1) ));?></div>
+					</div>
+				</li>
+                <li class="list-group-item">
+					<div class="form-group"> 
+						<label class="col-md-2  col-sm-2 control-label">  <b> Limiter le nbre d'élements à:</b> </label> 
+						<div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("maxitems",$this->maxitems, array("class"=>"form-control"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=> 5000, "100000000" => "Tout")); ?> </div>
+					</div>
+				</li>				
+		    </ul>
+		    <div class="panel-footer"> 
+		      <button id="searchPaiements" class="btn btn-primary searchPaiements" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+              <button id="resetSearch"     class="btn btn-danger  resetSearch"     type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		    </div>
+		    <input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum;    ?>"             />
+		    <input type="hidden" name="documentid" id="documentid" value="<?php echo intval($filters["documentid"]);?>" />
+			<input type="hidden" name="commandeid" id="commandeid" value="<?php echo intval($filters["commandeid"]);?>" /> 
+			<input type="hidden" name="registreid" id="registreid" value="<?php echo intval($filters["registreid"]);?>" />	
+			<input type="hidden" name="productid"  id="productid"  value="<?php echo intval($filters["productid"]);?>"  />
+		</form>
+		<table id="paiementsListTable"  class="table table-hover table-bordered text-center">
+            <thead>
+				<tr>
+					<th width="3%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+					<th width='10%'> N° transaction   </th>
+					<th width='10%'> Dates     </th>
+					<th width='20%'> Clients   </th>
+					<th width='15%'> Commandes </th>
+					<th width='15%'> Montants  </th>
+					<th width='15%'> Statuts   </th>
+				</tr>
+			</thead>                
+			<tbody>
+            <?php 
+			    $output   = "";
+			    if( count(   $paiements )) {
+				    foreach( $paiements as $paiement ) {
+						     $paiementid = $paiement["paiementid"];
+						     $client     = sprintf("%s %s",$paiement["lastname"],$paiement["firstname"]);
+						     $numPaiement= $paiement["numero"];
+						     $numCommande= $paiement["numcommande"];
+							 $transid    = $paiement["transid"];
+							 $statut     = $paiement["statut"];
+						     $montant    = (floatval($paiement["montant"]))?number_format($paiement["montant"], 0 , ", "," ") : 0;
+ 
+						     $date       = $paiement["date_paiement"];
+						     $linkInfos  = $this->url(array("module"=>"admin","controller"=>"paiements","action"=>"infos","paiementid"=>$paiementid), "default");
+						     $bgColor    = $this->cycle(array("#F0F0F0", "#F5F5F5"))->next();
+						     if(!intval($paiement["validated"]) ) {
+								 $bgColor= "alert danger publishedRow";
+							 }
+						     $output    .="<tr id=\"paiementId-".$paiementid."\" style=\"background-color:".$bgColor."\" class=\"paiementIds\">";
+								$output .="      <td class=\"".$bgColor."\"> <input type=\"checkbox\" name=\"paiementids[]\" id=\"paiementids".$paiementid."\" class=\"paiementids\" /></td>";
+								$output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$transid." </a></td>";
+								$output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$date       ." </a></td>";
+								$output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$client." </a></td>";
+								$output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$numCommande." </a></td>";
+								$output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$montant    ." </a></td>";
+						        $output .="      <td class=\"".$bgColor."\"><a title=\"Voir les détails du paiement\" href=\"".$linkInfos."\"> ".$statut     ." </a></td>";
+							 $output    .= "</tr>";                      	  	       
+				    }
+			    } else {
+						   $output      .= "<tr><td style=\"text-align:center !important;\" align=\"center\" colspan=\"7\"> AUCUN PAIEMENT N'A ETE TROUVE </td> </tr>";
+			    }
+			    echo $output;
+                 ?>
+                </tbody>
+           </table>
+		   <?php echo $pagination->render(); ?>
+    </div>
+</div>
+
+
+<?php 
+    if( $this->isAjax ) {     	 
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+    

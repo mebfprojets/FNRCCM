@@ -1,0 +1,171 @@
+<?php 
+$data         = $this->data;
+$user         = $this->user;
+$entreprises  = $this->entreprises;
+$professions  = $this->professions;
+$formSubmit   = $this->url(array("controller" =>"profile" , "action" => "insertcarreer" , "userid" => $user->userid ) , "default");
+$backList     = $this->url(array("controller" =>"profile" , "action" => "infos" , "userid" => $user->userid ) , "default");
+
+$basePath     = ROOT_PATH."/templates/sirah";
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.colbuttonsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+
+textarea, input[type="text" class="input"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input
+{
+  height : 45px;
+  line-height: 30px;
+  font-size: 1.3em;
+}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio
+{
+    color: #333333;
+    font-size: 18px;
+    font-weight: normal;
+    padding:20px;
+    }
+
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+
+  jQuery('#entreprise').bind('autocompleteselect',function(event , ui)
+  {
+     jQuery('#fk_id_entreprise').val(ui.item.id);
+     });
+  jQuery('#profession').bind('autocompleteselect',function(event , ui)
+  {
+     jQuery('#fk_id_profession').val(ui.item.id);
+     });
+
+  jQuery('.cancel').click(function(e)
+  {
+    e.preventDefault();
+    document.location.href='".$backList."';
+   });
+  
+
+  jQuery('.insertCarreer').click(function(e)
+  {
+      e.preventDefault();      
+     
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+  
+  $entreprise               = (isset($data["entreprise"]))      ? $this->escape($data["entreprise"]) : null;
+  $profession               = (isset($data["profession"]))      ? $this->escape($data["profession"]) : null;  
+  $data["date_debut_day"]   = (isset($data["date_debut_day"]))  ? $data["date_debut_day"] : "00";
+  $data["date_debut_month"] = (isset($data["date_debut_month"]))? $data["date_debut_month"] : "00";
+  $data["date_debut_year"]  = (isset($data["date_debut_year"])) ? $data["date_debut_year"]: "0000";  
+  $data["date_fin_day"]     = (isset($data["date_fin_day"]))    ? $data["date_fin_day"] : "00";
+  $data["date_fin_month"]   = (isset($data["date_fin_month"]))  ? $data["date_fin_month"] : "00";
+  $data["date_fin_year"]    = (isset($data["date_fin_year"]))   ? $data["date_fin_year"]: "0000";
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="insertcarreer-form"   role="form">
+<div class="container">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" > <b> Entreprise : </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->autoComplete("entreprise" , $this->escape($entreprise) , array("source" => $entreprises)); ?></div>
+     </div> 
+      <div class="row">              
+         <div class="col-md-4"> <label class="label" for="departement"> <b> Dans le département: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="departement" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="departement" placeholder="Le département de l'entreprise" name="departement" value="<?php echo $this->escape($data['departement']); ?>">
+          </div> 
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="secteur"> <b> Secteur d'activités: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="secteur" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="secteur" placeholder="Secteur d'activités" name="secteur" value="<?php echo $this->escape($data['secteur']); ?>">
+          </div> 
+     </div>    
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="profession"> <b> Votre profession: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->autoComplete("profession" , $this->escape($profession) , array("source" => $professions ) , array("placeholder" => "L'intitulé de la fonction")); ?></div>
+     </div>    
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="country"> <b> Le pays de la fonction: </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect("country" , $this->escape($data["country"]) , array() , $this->countries()); ?></div>
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="secteur"> <b> La ville de la fonction: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="ville" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="ville" placeholder="La ville de la fonction" name="ville" value="<?php echo $this->escape($data['ville']); ?>">
+          </div> 
+     </div>       
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="secteur"> <b> Adresse email professionnelle : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="email" type="text" class="input" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="email" placeholder="Votre adresse email dans l'entreprise" name="email" value="<?php echo $this->escape($data['email']); ?>">
+          </div> 
+     </div>                
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="date_debut"> <b> Date debut d'exercice: </b>  </label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect("date_debut_day",$data["date_debut_day"],array(),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("date_debut_month",$data["date_debut_month"],array(),array("00"=>"Mois")+$this->months()); ?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("date_debut_year",$data["date_debut_year"],array(),array("0000"=>"Année")+createYearsArray(1980, 2020));?></div>        
+    </div>
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="date_fin"> <b> Date de fin d'exercice: </b>  </label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect("date_fin_day",$data["date_fin_day"],array(),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("date_fin_month",$data["date_fin_month"],array(),array("00"=>"Mois")+$this->months()); ?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("date_fin_year",$data["date_fin_year"],array(),array("0000"=>"Année")+createYearsArray(1980, 2020));?></div>        
+    </div>                             
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="sexe"> <b> Est ce sa profession actuelle ?: </b> </label> </div>
+         <div class="col-md-8">
+           <label class="radio inline">
+              <input type="radio" name="current" id="current-yes" value="1" <?php if($data["current"] == "1") echo "checked"; ?>>
+                Oui
+          </label>
+          
+          <label class="radio inline">
+               <input type="radio" name="current" id="current-no" value="0" <?php if($data["current"] == "0") echo "checked"; ?>>
+                 Non
+         </label>
+         </div>
+    </div>     
+     <div class="row">
+               <div class="col-md-4"> <label class="label" for="sexe"> <b> Décrire son expérience: </b> </label> </div>
+               <div class="col-md-8">
+                   <textarea  name="description" id="description" class="textarea" rows="10" cols="55">
+                       <?php echo $data["description"]; ?>
+                   </textarea> 
+               </div>  
+     </div>  
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                       <button type="submit" class="btn btn-default btn-primary insertCarreer"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancel">Annuler</button>         
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+<input type="hidden" name="profileid"           id="profileid"           value="<?php echo $data["profileid"]; ?>" />
+<input type="hidden" name="fk_id_entreprise"    id="fk_id_entreprise"    value="<?php echo $data["fk_id_entreprise"]; ?>" />
+<input type="hidden" name="fk_id_profession"    id="fk_id_profession"    value="<?php echo $data["fk_id_profession"]; ?>" />
+</form>

@@ -1,0 +1,72 @@
+<?php
+  $baseUrl              = $this->baseUrl();
+  $tplPath              = VIEW_BASE_PATH;
+
+  $front                = Zend_Controller_Front::getInstance();
+  $layout               = Zend_Layout::getMvcInstance();
+  $view                 = $layout->getView();    
+  
+  $modelLocalite        = new Model_Localite();
+  
+  $localites            = $modelLocalite->getList(array(), 1 ,10, array("RAND()"));
+  $request              = $front->getRequest();
+  $controllerName       = $view->activeController;
+  $requestLocaliteid    = intval( $request->getParam("localiteid", 0 ));
+  
+  $linkRegistrePhysique = $this->url(array("controller"=> "registres", "action" => "list","typeid" => 1,"typelib" => "physiques"), "registrelist");
+  $linkRegistreMorale   = $this->url(array("controller"=> "registres", "action" => "list","typeid" => 2,"typelib" => "morales"  ), "registrelist");
+  
+  $linkFormalites       = $this->url(array("controller"=> "documentheque", "action" => "formalites","module" =>"public") , "frontend");
+  $linkFormulaires      = $this->url(array("controller"=> "documentheque", "action" => "formulaires","module" =>"public"), "frontend"); 
+
+?>
+<?php $view->headStyle()->captureStart() ?>
+.rightMenuPanel ul, .rightMenuPanel > ul > li {margin:0 !important;}
+.rightMenuPanel > .list-group-item.active, .rightMenuPanel > .list-group-item.active:hover, 
+.rightMenuPanel > .list-group-item.active:focus {background-color:red !important; background-image:none;}
+.rightMenuPanel > .active > a, .list-group > .active > a:hover, .list-group > .active > a:focus {color: #ffffff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);}
+.list-group > .active > a {order: 0 none;box-shadow:0;padding:0;position: relative;text-shadow: 0;z-index: 2;}
+<?php $view->headStyle()->captureEnd(); ?>
+<div  class="panel panel-default">
+  <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-search"></span> Recherchez des entreprises </h4></div>
+    <ul class="list-group leftModMenu">
+        <li class="list-group-item <?php echo ($controllerName=="registrephysique") ? 'active':''; ?>"><a href="<?php echo $linkRegistrePhysique; ?>"><i class="glyphicon glyphicon-user"></i> <i class="glyphicon glyphicon-chevron-right"></i> Personnes physiques </a></li>
+		<li class="list-group-item <?php echo ($controllerName=="registremorale"  ) ? 'active':''; ?>"><a href="<?php echo $linkRegistreMorale;   ?>"><i class="glyphicon glyphicon-list-alt"></i> <i class="glyphicon glyphicon-chevron-right"></i> Personnes morales </a></li>                 
+    </ul>
+</div>
+<div  class="panel panel-default">
+  <div class="panel-heading greenpanel"><h4 class="panel-title"> <span class="glyphicon glyphicon-briefcase"></span> Création d'entreprises </h4></div>
+     <ul class="list-group leftModMenu">
+        <li class="list-group-item"><a href="<?php echo $linkFormalites; ?>"> <i class="glyphicon glyphicon-book"></i> <i class="glyphicon glyphicon-chevron-right"></i> Guide de formalités </a></li>
+	    <!--  <li class="list-group-item"><a href="#"> <i class="glyphicon glyphicon-list"></i> <i class="glyphicon glyphicon-chevron-right"></i> Liste des tribunaux </a></li> -->
+        <li class="list-group-item"><a href="<?php echo $linkFormulaires;?>"> <i class="glyphicon glyphicon-download"></i> </i> <i class="glyphicon glyphicon-chevron-right"></i> Formulaires </a></li>                  
+     </ul>
+</div>
+<?php if( count( $localites ) ): ?>
+   <div class="panel panel-default rightMenuPanel">
+        <div class="panel-heading greenpanel"> <h4 class="panel-title"> <span class='glyphicon glyphicon-globe'></span> Recherchez par localité </h4></div> 
+        <?php 
+           $localiteOutput = "<ul class=\"list-group leftModMenu localitesList\">";
+              foreach( $localites as $localite ) {
+              	       $localiteid    = intval($localite["localiteid"]);
+              	       $libelle       = $localite["libelle"];
+              	       $urlLibelle    = Sirah_Functions_String::cleanUtf8( $libelle );
+              	       
+              	       $activeClass   = "";
+              	       if( $requestLocaliteid == $localiteid  ) {
+              	       	   $activeClass= " active";
+              	       } 
+              	       if( $controllerName == "registrephysique" )   {
+              	       	   $linkLocalite = $view->url(array("controller" => "registres", "action" => "list", "typeid" => 1,"localiteid" => $localiteid, "module" => "public"), "default");
+              	       } else {
+              	       	   $linkLocalite = $view->url(array("controller" => "registres", "action" => "list", "typeid" => 2,"localiteid" => $localiteid, "module" => "public"), "default");
+              	       }        	                   	 
+             	       
+              	       $localiteOutput.= "<li id=\"localiteId-".$localiteid."\" class=\"list-group-item ".$activeClass." \"> <a title='Voir les registres de cette localité' href='".$linkLocalite."'> <span> ". $libelle ."</span><i class=\"glyphicon glyphicon-chevron-right\"></i> </a></li> ";
+              } 
+           $localiteOutput.= "</ul>";
+           
+           echo $localiteOutput;
+        ?> 
+   </div>
+<?php endif; ?>

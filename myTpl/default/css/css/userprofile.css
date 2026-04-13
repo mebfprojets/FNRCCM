@@ -1,0 +1,40 @@
+.profile-main-header
+{
+    border-bottom: 1px solid #EEEEEE;
+    padding:5px;
+	background:url(../images/sirah-ui-page-title.png) bottom center repeat-x;
+	color:#46260f;
+	text-align:left;
+}
+
+.profile-main-body,.profile-main-body h4
+{
+  text-align:left;
+  font-size:16px;
+  padding:5px;
+  text-decoration:underline;
+}
+
+.profile-main-body h3
+{
+  font-size:18px;
+  padding:5px;
+  text-decoration:underline;
+}
+
+.profile-main-body p,
+{
+  text-decoration:none;
+}
+
+.profile-panel
+{
+  margin:10px 0 0 0;
+}
+
+div.profile-main-row , div#profileMainRow
+{
+  padding :15px;
+}
+
+

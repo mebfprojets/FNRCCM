@@ -1,0 +1,407 @@
+<?php 
+$registres         = $this->registres;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$localites         = $this->localites;
+$domaines          = $this->domaines;
+
+$basePath          = VIEW_BASE_PATH;
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("controller" => "registremoral" , "action"  => "list")  , "default");
+$linkCreate        = $this->url(array("controller" => "registremoral" , "action"  => "create"), "default");
+$linkEdit          = $this->url(array("controller" => "registremoral" , "action"  => "edit")  , "default");
+$linkDelete        = $this->url(array("controller" => "registremoral" , "action"  => "delete"));
+$linkExport        = $this->url(array("controller" => "registremoral" , "action"  => "export"));
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."'; });
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});		
+jQuery('#paginationBtnNext').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector   = jQuery('#registresListSearchForm') ;
+		var searchData     = {};
+		var pageNum        = parseInt(formSelector.find('#page').val());
+		pageNum++;
+		
+		searchData.page       = pageNum;
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());			 
+		searchData.numero     = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+		searchData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		searchData.localiteid = parseInt(formSelector.find('#localiteid').val());			
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#paginationBtnPrev').click(function(  event ){
+		event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector      = jQuery('#registresListSearchForm') ;
+		var searchData        = {};
+		var pageNum           = parseInt(formSelector.find('#page').val());
+		pageNum--;
+		
+		searchData.page       = pageNum;
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());		 
+		searchData.numero     = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+		searchData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		searchData.localiteid = parseInt(formSelector.find('#localiteid').val());			
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});
+jQuery('#filterListFromLibelle').click(function( event ){
+		event.preventDefault();
+		var formSelector      = jQuery('#registresListSearchForm') ;
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.numero     = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+		searchData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		searchData.localiteid = parseInt(formSelector.find('#localiteid').val());
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.paginationCountItem').click(function( event ){
+		event.preventDefault();
+		var paginationMaxitem  = parseInt(jQuery(this).attr('id').replace('paginationMaxitem-',''));	
+		if( !paginationMaxitem ) {
+		    return;
+		}	
+		var formSelector      = jQuery('#registresListSearchForm') ;
+		formSelector.find('#maxitems').val( paginationMaxitem );
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		searchData.localiteid = parseInt(formSelector.find('#localiteid').val());
+		searchData.numero   = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+		
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+		
+});
+ 
+jQuery('.searchRegistreByDomaine').click(function(    event ){
+		event.preventDefault();
+		var dropdownDomaineId   = parseInt(jQuery(this).attr('id').replace('dropdownDomaineId-',''));
+		var formSelector      = jQuery('#registresListSearchForm') ;					
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.domaineid  = dropdownDomaineId;
+		searchData.localiteid = parseInt(formSelector.find('#localiteid').val());
+		searchData.numero     = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+ 
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#registresListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#registresListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.searchRegistreByLocalite').click(function(    event ){
+		event.preventDefault();
+		var dropdownLocaliteId  = parseInt(jQuery(this).attr('id').replace('dropdownLocaliteId-',''));
+		var formSelector      = jQuery('#registresListSearchForm') ;					
+		var searchData        = {};
+		searchData.maxitems   = parseInt(formSelector.find('#maxitems').val());
+		searchData.localiteid = dropdownLocaliteId;
+		searchData.domaineid  = parseInt(formSelector.find('#domaineid').val());
+		searchData.numero     = jQuery.trim(jQuery('#registresListSearchForm').find('#keywords').val());
+ 
+        var maincontent	      = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		jQuery('#registresListSearchFormWrapper').css({display:'block'});
+		SIRAH.request.post(jQuery('#registresListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('input:checkbox').uniform({checkboxClass:'checkbox-primary'});
+var getCheckedRegistresId = function() {
+		var checkedItems  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds    = []; 
+		if(checkedItems) {
+		   checkedItems.each(function() {
+             	var registreid   = parseInt(jQuery(this).attr('id').replace('registreids',''));
+             	checkedIds.push(registreid);
+           });
+		}
+		return checkedIds;
+  };
+jQuery('#registresListTable').find('input[type=\'checkbox\']').click(function(e){
+		 var checkedItems  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+		 if(jQuery(this).attr('id') == 'checkAll') {
+		    if(!jQuery(this).is(':checked')) {
+		       checknone(jQuery('#registresListTable'));
+		       if(checkedItems) {
+		           disableButtons(['editButton','exportButton','deleteButton']);
+		       }
+		    } else {
+		      checkall(jQuery('#registresListTable'));
+		      enableButtons(['editButton','exportButton','deleteButton']);
+		    }
+		 } else {
+		  if(jQuery(this).is(':checked')) {
+		     enableButtons(['editButton','actionButton','exportButton','deleteButton']);
+		  } else {
+		      if( SIRAH.util.isEmpty(checkedItems)) {
+		          disableButtons(['editButton','deleteButton','exportButton']);
+		       }
+		  }
+		}
+   });
+		");
+$toolbar    = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate = $toolbar->tool("Nouveau registre moral", "plus");
+$toolEdit   = $toolbar->tool("Modifier" , "edit");
+$toolDelete = $toolbar->tool("Supprimer", "trash-o");
+$toolExport = $toolbar->tool("Exporter" , "download");
+
+$toolCreate->setAttributes(array("class" => "active glyph-icon icon-plus"));
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolExport, "exportButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+
+$toolEdit->disable();
+$toolEdit->onClick("
+		             event.preventDefault();
+		             var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		             var checkedItem  = jQuery('#registresListTable').find('input[type=\'checkbox\'][name=\'registreids[]\']:checked').eq(0);
+		             if( isDisabled || !checkedItem) {
+		                 SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                 return;
+                     }
+		             var registreid         = parseInt(checkedItem.attr('id').replace('registreids',''));
+		             document.location.href = '".$linkEdit."/registreid/'+registreid;");
+$toolDelete->disable();
+$toolDelete->onClick(" 
+		               var isDisabled       = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		               var checkedRegistres = getCheckedRegistresId();
+		               if( isDisabled || SIRAH.util.isEmpty( checkedRegistres )) {
+		                   SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                   return;
+                       }
+		               var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les registres selectionnés ? Ces registres seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+             		   dialogDelete.dialog2({
+             		                          title : 'Attention , confirmer cette action !!',
+             		                          autoOpen: false,
+             		                          removeOnClose: true,
+             		                          closeOnEscape: false, 
+                                              closeOnOverlayClick: true,
+             		                          showCloseHandle:true,
+             		                          initialLoadText: 'Chargement...' });        		
+             		   dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+             		                            function(){
+             		                                        jQuery.ajax({
+             		                                             url      :'".$linkDelete."',
+             		                                             async    : false,
+			                                                     dataType :'json',
+             		                                             data     : {'registreids[]': checkedRegistres},
+             		                                             type     : 'GET' ,
+             		                                             success  : function(data) {
+             		                                                if(data.error !== undefined) {
+             		                                                   SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+             		                                                   return;
+             		                                                } else if(data.success !== undefined) {
+             		                                                   var checkedRegistres = getCheckedRegistresId();  	            		
+             		                                                  SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+             		                                                setTimeout(function(){
+             		             		                              jQuery.each(checkedRegistres, function(key , registreid) {
+             		                                                          jQuery('#registreRowId-'+registreid).remove();
+             		                                                    });
+             		                                                   jQuery('#dialogDelete').dialog2('close');
+             		                                                  },2500);
+             		                                               }
+             		                                             }
+             		                                           });     		
+                                                           }}); 
+             		      dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-ban\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+             		      dialogDelete.dialog2('open'); 
+
+		");
+
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->supinaPagination(array(), "Jumping" , "#");
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+ .form-row,.row {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;margin-right:-25px;margin-left: -25px;}
+ p{margin-bottom:10px !important;}
+ td .list-group-item {padding:10px 0px !important;}
+ td .row{margin-left:0 !important;margin-right:0 !important;}
+ .col-md-2,.col-sm-2,.col-sm-10,.col-md-10{padding-right:5px !important;padding-left:5px !important;}
+<?php $this->headStyle()->captureEnd() ?>
+
+<div    id="registresListListWrapper"  class="row">
+  <form id="registresListSearchForm"   method="post" role="form">
+    <div  class="col-sm-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">                           
+              <div class="float-left col-md-4 pad0A">
+                  <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo (isset($domaines[$filters["domaineid"]])) ? $domaines[$filters["domaineid"]] : "Selectionnez un domaine"; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $domaines ) ) {
+                               	   foreach( $domaines as $domaineid => $domaineLibelle ) {
+                               	   	        $activeClass = ( $filters["domaineid"] == $domaineid ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"dropdownDomaineId-".$domaineid."\" class=\"searchRegistreByDomaine dropdownDomaineId-".$domaineid."\" href=\"#\"> ".$domaineLibelle." </a></li>";
+                               	   }
+                               }
+                          ?>
+                     </ul>
+                  </div>
+               </div>
+               <div class="float-left col-md-4 pad0A">
+                  <div class="btn-group">
+                     <a href="#" data-toggle="dropdown" class="btn btn-default btn-small dropdown-toggle" aria-expanded="false">
+                         <i class="glyph-icon icon-list opacity-80"></i>
+                         <span> <?php echo (isset($localites[intval($filters["localiteid"])])) ? $localites[intval($filters["localiteid"])] : "Selectionnez une localité"; ?></span>
+                         <i class="glyph-icon icon-chevron-down">   </i>
+                     </a>
+                     <ul class="dropdown-menu">
+                          <?php 
+                               if( count(   $localites ) ) {
+                               	   foreach( $localites as $localiteid => $localiteLibelle ) {
+                               	   	        $activeClass = ( $filters["localiteid"] == $localiteid ) ? " class='active' " : "";
+                               	   	        echo "<li ".$activeClass." > <a id=\"dropdownLocaliteId-".$localiteid."\" class=\"searchRegistreByLocalite dropdownLocaliteId-".intval($localiteid)."\" href=\"#\"> ".$localiteLibelle." </a></li>";
+                               	   }
+                               }
+                          ?>
+                     </ul>
+                  </div>
+               </div>              
+               <div class="float-right col-md-4 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters["numero"]; ?>" name="keywords" id="keywords" placeholder="Numéro de registre" style="text-transform:uppercase" maxlength="13" >
+                        <div class="input-group-btn">
+                            <button id="filterListFromLibelle" type="button" class="btn btn-default" tabindex="-1"><i class="glyph-icon icon-search"></i> Recherche</button>
+                            <button  type="button" class="btn alert-danger resetPage" tabindex="-1"><i class="glyph-icon icon-remove"></i> Effacer  </button>
+                        </div>
+                    </div>
+               </div>
+           </div>                                                                  
+           <div class="mail-toolbar clearfix"> 
+              <div class="float-right " style="text-align:right;"> <?php  echo $pagination->render(); ?> </div>
+           </div>
+           <table id="registresListTable"  class="table table-hover table-bordered text-center">
+                <thead>
+                     <tr> 
+                          <th width="1%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>   
+                          <th width="9%" >  Numéros        </th>    
+                          <th width="10%" > Années         </th>    
+                          <th width="15%" > Localités      </th>              
+                          <th width="30%">  Dénommination  </th> 
+                          <th width="20%">  Gérants        </th> 
+                          <th width="15%">  Domaines       </th> 
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $registres ) ) {
+                              	  foreach( $registres as $registre ) {
+                              	  	       $registreid     = intval($registre['registreid']);
+                              	  	       $libelle        = $registre["libelle"] ;
+                              	  	       $numero         = $registre["numero"] ;
+                              	  	       $description    = $registre["description"] ;
+                              	  	       $administrateur = $registre["administrateur"] ;
+                              	  	       $domaine        = (!empty( $registre["domaine"] )) ? $registre["domaine"]  : "";
+                              	  	       $localite       = (!empty( $registre["localite"])) ? $registre["localite"] : "";
+                              	  	       $annee          = $registre["annee"]; 
+                              	  	       $linkInfos      = $this->url(array("controller"=> "registremoral", "action"=> "infos","id"=> $registreid), "default");                             	  	      
+                              	  	       $output .= "<tr id=\"registreRowId-".$registreid."\"> ";
+                              	  	                $output .= "<td> <input type=\"checkbox\" name=\"registreids[]\" id=\"registreids".$registreid."\" class=\"registreids\" /> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$numero   ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$annee    ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$localite ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$libelle  ." </a> </td>"; 
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$administrateur ." </a> </td>";
+                              	  	                $output .= "<td> <a href=\"".$linkInfos."\"> ".$domaine  ." </a> </td>";
+                              	  	       $output .= "</tr>";
+                              	  }                              	
+                              }  else {
+                              	           $output .= "<tr  id=\"registreRowId-0\"> <td colspan=\"8\"> AUCUN REGISTRE DE TYPE PERSONNE MORALE N'A ETE RETROUVE  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+       </div>    
+    </div>
+    <input type="hidden" name="domaineid"  id="domaineid"  value="<?php echo intval($filters["domaineid"]);  ?>" /> 
+    <input type="hidden" name="localiteid" id="localiteid" value="<?php echo intval($filters["localiteid"]); ?>" /> 
+    <input type="hidden" name="page"       id="page"       value="<?php echo $this->pageNum;        ?>"          /> 
+    <input type="hidden" name="maxitems"   id="maxitems"   value="<?php echo $this->pageSize;       ?>"          />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>
+    

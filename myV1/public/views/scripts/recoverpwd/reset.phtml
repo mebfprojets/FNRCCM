@@ -1,0 +1,44 @@
+<?php 
+$formtoken  = $this->formtoken;
+$formSubmit = $this->url(array("module"=>"public","controller"=>"recoverpwd","action"=>"reset", "module"=>"public"),"default",true);
+$linkCancel = $this->url(array("module"=>"public","controller"=>"account"   ,"action"=>"login", "module"=>"public"),"default",true);
+$basePath   = VIEW_BASE_PATH;
+
+$jq     = $this->jQuery();  
+$onLoad = "  
+    jQuery('body').keydown(function(e) {if (e.keyCode===13) {jQuery('#resetPasswordForm').find('#changePwdBtn').trigger('click');}});
+	jQuery('#cancelBtn').click(function(e){e.preventDefault(); document.location.href='".$linkCancel."';});
+	jQuery('#changePwdBtn').click(function(e){
+		e.preventDefault();     
+		var password          = jQuery.trim(jQuery('#password').val());
+		var confirmedpassword = jQuery.trim(jQuery('#confirmedpassword').val());
+		  
+		if( SIRAH.util.isEmpty(password)){
+			SIRAH.error.raise('resetPasswordForm','Entrez un mot de passe valide');
+			return;
+		}  
+		if( SIRAH.util.isEmpty(confirmedpassword) || (confirmedpassword!=password)){
+			SIRAH.error.raise('resetPasswordForm','La valeur de confirmation est différente du mot de passe');
+			return;
+		}  
+	    jQuery('#resetPasswordForm').submit();
+		  
+	}); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+<div class="col-xs-12 col-sm-4 col-md-4 center-margin">
+	<div class="panel panel-default panel-more-shadow">
+		<div class="panel-body">
+			<div class="panel-desc"><h1 class="section-hero"><?php echo $this->title; ?></h1></div> <hr>
+            <form id="resetPasswordForm" method="post" action="<?php echo $formSubmit; ?>" role="form">                      
+                <div class="form-group"> <?php echo $this->errormessage(); ?></div>       
+                <div style="margin-bottom:25px;" class="input-group"><span class="input-group-addon"><i class="glyph-icon icon-lock"></i></span><input class="form-control" type="password" name="password"          id="password" placeholder="Entrez le nouveau mot de passe" ></div>
+                <div style="margin-bottom:25px;" class="input-group"><span class="input-group-addon"><i class="glyph-icon icon-lock"></i></span><input class="form-control" type="password" name="confirmedpassword" id="confirmedpassword" placeholder="Confirmez le nouveau mot de passe" ></div>               
+                <button type="submit" class="btn btn-success btn-lg btn-block changePwd" id="changePwdBtn"><i class="glyph-icon icon-edit"></i> CHANGER </button>
+                <button type="submit" class="btn btn-danger  btn-lg btn-block cancel"    id="cancelBtn">   <i class="glyph-icon icon-chevron-left"></i> ANNULER </button>
+                <input id="formtoken" type="hidden" name="<?php echo $formtoken ; ?>" value="formtoken" />  
+            </form>      
+        </div>   
+    </div>
+</div>

@@ -1,0 +1,92 @@
+<?php 
+$moyenPaiementsIcon = ROOT_PATH."/myTpl/public/assets/images/MoyensPaiementIcon.png";
+$iconImage          = ROOT_PATH."/myTpl/public/assets/images/PaiementIcon.png";
+$acceptedImage      = ROOT_PATH."/myTpl/public/assets/images/AcceptedPaiements.png";
+$mobileMoneyImage   = ROOT_PATH."/myTpl/public/assets/images/MobileMoneyIcon.png";
+$visaCardImage      = ROOT_PATH."/myTpl/public/assets/images/CarteVisaIcon.png";
+$linkCart           = $this->url(array("controller"=>"orders" ,"action"=>"checkout" ,"module"=>"public"),"default",true);
+$linkDashboard      = $this->url(array("controller"=>"members","action"=>"dashboard","module"=>"public"),"default",true);
+$basePath           = VIEW_BASE_PATH;
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+
+$jq     = $this->jQuery();  
+$jq->addOnLoad("
+    jQuery('#cartButton').click(function(event){ event.preventDefault();document.location.href='".$linkCart."';});
+	jQuery('#dashboardButton').click(function(event){event.preventDefault();document.location.href='".$linkDashboard."';});
+"); 
+ 
+?>
+<div class="container">
+    <div class="row">
+		<div class="col-xs-12 col-sm-9 col-md-9 ">
+			<div class="panel panel-default panel-more-shadow">
+				<div class="list-group list-items-rows" id="items-rows"> 
+				    <div class="list-group-item list-group-item-action flex-column align-items-start"> 
+					    <div class="d-flex">
+						    <div class="flex-shrink-0 col-md-4" style="padding-right:5px;padding-left:5px;"> <img width="100%" class="img-fluid sppb-img-responsive swiper-lazy" src="<?php echo $moyenPaiementsIcon; ?>"> </div>	
+                            <div class="flex-grow-1 col-md-8 ms-auto" style="padding-right:5px;padding-left:5px;">
+							    <h5 class="list-group-item-heading mb-1"><u> Nos Moyens de paiements</u></h5>
+								<p class="mb-1 sidusapp-introtext"> 
+								    Afin de faciliter l'accès aux services en ligne, nous mettons à votre disposition une plateforme de paiements sûre et sécurisée  entièrement adaptée à vos besoins.									
+									 
+								</p>
+							</div>	
+                        </div>						
+					</div> 
+					<div class="list-group-item list-group-item-action flex-column align-items-start"> 
+					    <div class="d-flex">
+						    <div class="flex-shrink-0 col-md-4" style="padding-right:5px;padding-left:5px;"><img width="100%" class="img-fluid sppb-img-responsive swiper-lazy" src="<?php echo $mobileMoneyImage; ?>"> </div>	
+                            <div class="flex-grow-1 col-md-8 ms-auto" style="padding-right:5px;padding-left:5px;">
+							    <h5 class="list-group-item-heading mb-1"><u> Des Paiements  Mobile Money</u></h5>
+								<p class="mb-1 sidusapp-introtext"> 
+									 Nous acceptons des paiements mobile money de plusieurs pays d'Afrique Francophone. Notamment les pays suivants :
+									<ul>
+									    <li> Burkina Faso avec Orange Money BF </li>
+										<li> Burkina Faso avec Moov Money BF   </li>
+									    <li> Côte d'Ivoire avec Orange Money CI </li> 
+										<li> Côte d'Ivoire avec Mtn Mobile Money CI </li>
+										<li> Côte d'Ivoire avec Moov Money CI </li>
+										<li> Mali avec Orange Money ML </li>
+										<li> Mali avec Moov Money ML   </li>
+										<li> Senegal avec Wave SN </li>
+										<li> Senegal avec Orange Money SN </li>
+										<li> Senegal avec Free Money SN </li>
+										<li> Bénin avec Free Money SN </li>
+									</ul>
+								</p>
+							</div>	
+                        </div>						
+					</div>
+					<div class="list-group-item list-group-item-action flex-column align-items-start"> 
+					    <div class="d-flex">
+						    <div class="flex-shrink-0 col-md-4" style="padding-right:5px;padding-left:5px;"><img width="100%" class="img-fluid sppb-img-responsive swiper-lazy" src="<?php echo $visaCardImage; ?>"> </div>	
+                            <div class="flex-grow-1 col-md-8 ms-auto" style="padding-right:5px;padding-left:5px;">
+							    <h5 class="list-group-item-heading mb-1"><u> Des Paiements par carte visa</u></h5>
+								<p class="mb-1 sidusapp-introtext"> 
+									Les paiements par carte représentent plus de 40 % des paiements en ligne mondiaux.Nous vous proposons la possibilité d’effectuer des paiements dans plus de 195 pays et profitez des devises internationales.
+								</p>
+								<ul>
+									<li> VISA </li>
+									<li> MasterCard</li>
+									<li> Maestro </li> 
+									<li> Union Pay </li>
+									<li> American Express </li>
+								</ul>
+							</div>	
+                        </div>						
+					</div>
+				</div>  
+			</div>      
+		</div>
+        <div class="col-xs-12 col-sm-3 col-md-3">
+			<div class="panel panel-danger">
+				<div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-credit-card"></span> Mon Panier </h4> </div>
+				<?php echo $this->partial("orders/articles.phtml", array()); ?>
+			</div>
+		</div>		
+    </div>      
+</div>

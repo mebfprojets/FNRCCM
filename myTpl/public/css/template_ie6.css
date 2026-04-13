@@ -1,0 +1,328 @@
+@charset "utf-8";
+/* CSS Document */
+img
+{
+border:none;
+}
+td
+{
+ vertical-align:top;
+ text-align:center;
+}
+
+p
+{
+text-align:justify;
+margin:0;
+}
+
+body
+{
+height:100%;
+text-align:center;
+margin:0;
+margin-bottom:10px;
+padding:0;
+font-family: Arial,Helvetica,Times,sans-serif;
+color:#444;
+font-size:12px;
+}
+
+/* Les styles du cadre du site : squelette */
+
+#global
+{
+width:100%;
+height:100%;
+float:none;
+clear:both;
+padding:0 !important;
+margin:0 !important;
+}
+
+.global-table,.table-ligne
+{
+width:100%;
+float:none;
+overflow:none;
+}
+
+.col-left,.col-right
+{
+width:12%;
+height:auto;
+float:left;
+}
+
+.col-center
+{
+width:75%;
+height:auto;
+float:left;
+}
+
+.col-entete
+{
+  height : 125px !important;
+}
+
+.col-navigation
+{
+  height :50px !important;
+}
+
+.col-contenu
+{
+  min-height : 300px !important;
+  height:auto !important;
+}
+
+.col-footer
+{
+  height : 200px !important;
+}
+
+.table-cellule
+{
+ float:left;
+ height:auto;
+}
+
+/* Les styles des différentes colonnes ou cases */
+#navigation-centre
+{
+text-align:center;
+background:url(../images/navigation_bar.png) center right repeat-x transparent;
+}
+#navigation-left,#navigation-right
+{
+background:url(../images/navigation_bar.png) center left repeat-x;
+}
+
+
+#logo-bloc
+{
+width:20%;
+}
+
+#after-logo-bloc
+{
+width:35%;
+}
+
+#entete-bloc-menu
+{
+width:44%;
+}
+
+
+/* Les styles du TOPMENU */
+#navigation-menubar
+{
+float:left;
+overflow:none;
+width:72%;
+height:auto;
+}
+ul.navigation-menu, ul.topmenu
+{
+width:100%;
+height:50px;
+margin:0;
+padding:0;
+}
+
+li.navigation-menu-li
+{
+width:130px;
+height:43px;
+float:left;
+list-style:none;
+background:url(../images/menu_li_bg.png) repeat-x bottom;
+border-right: 1px solid #12380C;
+border-left: 1px solid #226017;
+font-size: 1.330em;
+}
+
+li.navigation-menu-li a
+{
+color:#fff;
+display:inline; 
+line-height:2.5em;
+text-decoration:none;
+text-align:center;
+font-family: georgia;
+}
+
+li.first-li,li.last-li
+{
+width:120px !important;
+}
+
+li.first-li
+{
+background:url(../images/menu_li_left.png) no-repeat bottom !important;
+border-left:none !important;
+padding-left:15px;
+}
+
+li.last-li 
+{
+background:url(../images/menu_li_right.png) no-repeat bottom !important;
+border-right:none !important;
+padding-right:15px;
+}
+
+li.navigation-menu-li a:hover
+{
+text-decoration:underline;
+}
+
+/* Les styles du MENU DE L'ENTETE */
+ul.entete-menu
+{
+width:auto;
+height:auto;
+margin: 0.7em 0;
+padding:0;
+}
+
+ul.entete-menu li
+{
+width:auto;
+padding:3px;
+margin:0;
+float:left;
+list-style:none;
+margin: 0 0 0 1em;
+padding: 0.65em 0;
+}
+
+ul.entete-menu li a
+{
+color: #387D2D;
+font-family: Verdana,Arial,Helvetica,sans-serif;
+text-decoration:none;
+font-size: 100%;
+ border-left: 1px solid #A59E82;
+padding-left: 1em;
+}
+
+ul.entete-menu li.first-entete-li a
+{
+border:medium none;
+}
+
+
+/* Les styles du SEARCH BAR */
+#navigation-searchbar
+{
+float:left;
+overflow:none;
+width:27%;
+height:35px;
+margin-top:10px;
+}
+
+#searchbar-left,#searchbar-submit,#searchbar-middle
+{
+float:left;
+height:30px;
+}
+
+#searchbar-left
+{
+background: url(../images/input_bg_left.png) no-repeat scroll left center transparent;
+width:15px;
+}
+
+#searchbar-submit
+{
+background: url(../images/input_bg_submit.png) no-repeat scroll right center transparent;
+width:25px;
+cursor:pointer;
+}
+
+#searchbar-middle
+{
+background: url(../images/input_bg_middle.png) no-repeat scroll left center transparent;
+width:150px;
+}
+
+.search-input
+{
+height:15px;
+border:0;
+width:140px;
+border:none;
+margin-top:6px;
+}
+
+/* Les styles de la structure du contenu */
+#composant
+{
+width:71%;
+height:auto;
+float:left;
+}
+
+
+#composant-top
+{
+    margin-bottom: 10px;
+	padding: 0;
+	float: left;
+	clear: both;
+	width: 100%;
+	background:url(../images/component_corner_bottom_right.png) no-repeat right bottom;
+    bottom:0;
+}
+
+#composant-left
+{
+  padding: 0;
+  background:url(../images/component_corner_bottom_left.png) no-repeat left bottom;
+}
+
+#composant-right
+{
+  padding: 0;
+  background:url(../images/component_corner_top_right.png) no-repeat right top;
+}
+
+
+#composant-bottom
+{
+  padding:10px; 
+  background:url(../images/component_corner_top_left.png) no-repeat left top;
+}
+
+
+#modulebar
+{
+width:27%;
+height:auto;
+float:right;
+overflow:none;
+}
+
+#modulebloc
+{
+width:100%;
+height:auto;
+clear:both;
+overflow:none;
+}
+
+.modulebloc-header
+{
+width:100%;
+height:45px;
+line-height:25px;
+background:url(../images/module_menu_bg.png) no-repeat scroll top left;
+text-align:left;
+color:white;
+margin:0;
+font-size:13px;
+padding-left:15px;
+}

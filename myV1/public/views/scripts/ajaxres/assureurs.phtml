@@ -1,0 +1,162 @@
+<?php 
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$assureurs         = $this->assureurs;
+$parentform        = $this->parentform;
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller" => "ajaxres", "action" => "assureurslist", "parentform" => $parentform, "module" => "public"), "default");
+
+$jq->addOnload("
+var parentformSelector  = jQuery('#".$parentform."');
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var assureurid  = parseInt(jQuery(this).attr('href').replace('#assureurid-', ''));
+	   if(assureurid && parentformSelector ) {
+		  var assureurLibelle         = jQuery('#libelle-'+assureurid).val();
+		  
+		  var parentAssureuridInput   = parentformSelector.find('input[name=\'assureurid\']');
+		  var parentLibelleSelector   = parentformSelector.find('input[name=\'assureur\']');
+		  var parentEmailSelector     = parentformSelector.find('input[name=\'email\']');
+		  var parentReferenceSelector = parentformSelector.find('input[name=\'code\']');
+		  var parentPhoneSelector1    = parentformSelector.find('input[name=\'tel1\']');
+		  var parentPhoneSelector2    = parentformSelector.find('input[name=\'tel2\']');
+		
+		  if( parentAssureuridInput   ) {
+		      parentAssureuridInput.val(assureurid );
+		  }
+		  if( parentLibelleSelector   ) {
+		      parentLibelleSelector.val( assureurLibelle);
+		  }	
+		} else {
+		    return false;
+	    }
+		selectAssureur  = parentformSelector.find('#selectAssureur');
+		if(selectAssureur)	{
+		   selectAssureur.trigger('select-item', [assureurid] );
+		} 
+		jQuery('#filterListAssureurs').dialog2('close');
+		jQuery('#filterListAssureurs,.modal,.modal-backdrop').remove(true);
+});
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#entreprisesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+		var paginationData      = {};
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		paginationData.libelle  = formSelector.find('#libelle').val();
+		paginationData.maxitems = pageMaxitems;
+		paginationData.page     = pageNum;
+		
+		var modalBox            = jQuery('.modal').find('.modal-body');			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#assureursListSearchForm') ;
+		var searchData      = {};
+		searchData.libelle  = formSelector.find('#libelle').val();
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+");
+
+
+$pagination = $this->pagination(array() , "Elastic" , "#");
+
+?>
+<div id="assureursListListWrapper"  class="row">
+  <form id="assureursListSearchForm" class="" method="post" role="form">
+    <div  class="col-md-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">                                 
+               <div class="float-right col-md12 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters["libelle"]; ?>" name="libelle" id="libelle" placeholder="Saisir la désignation de l'assureur...">
+                        <div class="input-group-btn">
+						<button id="simpleSearch" type="button" class="btn btn-primary tabindex="-1">
+						<i class="glyph-icon icon-search"></i> Filtrer</button></div>
+                    </div>
+               </div>
+           </div>
+           <table id="assureursListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="20%"> Codes          </th>  
+                          <th width="80%"> Assureurs      </th>                             
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $assureurs ) ) {
+                              	  foreach( $assureurs as $assureur ) {
+                              	  	       $assureurid       = intval($assureur['assureurid']);
+                              	  	       $assureurLibelle  = $assureur["libelle"];           
+                              	  	       $assureurCode     = $assureur["code"];
+                              	  	      
+                              	  	       $output .= "<tr   id=\"assureurRowId-".$assureurid."\"> ";
+                              	  	               $output.="<td><a href=\"#assureurid-".$assureurid."\" class=\"selectClick\" title=\"Selectionnez cet assureur\"> ".$assureurCode     ." </a> </td>";
+                              	  	               $output.="<td><a href=\"#assureurid-".$assureurid."\" class=\"selectClick\" title=\"Selectionnez cet assureur\"> ".$assureurLibelle  ." </a> </td>";
+                              	  	                
+                              	  	       $output .= "</tr>";
+                              	  	       echo "<input type='hidden' name='libelle-".$assureurid."' id='libelle-".$assureurid."' value='".$this->escape($assureurLibelle)  ."'  />" ;
+
+                              	  }                              	
+                              }  else {
+                              	            $output .= "<tr  id=\"assureurRowId-0\"> <td colspan=\"8\"> AUCUN ASSUREUR NA ETE TROUVE DANS VOTRE SYSTEME  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+		   <?php  echo $pagination->render(); ?> 
+       </div>    
+    </div>
+    <input type="hidden" name="page"       id="page"      value="<?php echo $this->pageNum;  ?>"                 /> 
+    <input type="hidden" name="maxitems"   id="maxitems"  value="<?php echo $this->pageSize; ?>"                 />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

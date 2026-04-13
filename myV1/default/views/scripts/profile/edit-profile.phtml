@@ -1,0 +1,195 @@
+<?php
+$user          = $this->user; 
+$data          = $this->data;
+$formSubmit    = $this->url(array("controller" =>"profile" , "action" => "editprofile" , "userid" => $user->userid ) , "default");
+$backList      = $this->url(array("controller" =>"profile" , "action" => "infos" , "userid" => $user->userid ) , "default");
+
+$situations    = array("Célibataire"  => "Célibataire", 
+		               "Marié(e)"     => "Marié(e)", 
+		               "Divorcé(e)"   => "Divorcé(e)", 
+		               "Veuf(ve)"     => "Veuf(ve)");
+
+$basePath    = ROOT_PATH."/templates/sirah";
+$this->headScript()->appendFile($basePath.'/js/sirah-1.0.js');
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+form{width:90%; margin:auto;}
+div.firstname,div.email,div.phone1,div.password,div.colbuttonsright{width:50%;}
+div.lastname,div.username,div.phone2,div.confirmedpassword{width:48%;}
+div.lastname-margin,div.username-margin{margin-left:1%;}
+
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input
+{
+  height      : 45px;
+  line-height : 30px;
+  font-size   : 1.3em;
+}
+div.colbuttons{width:60%;}
+.rowbuttons{text-align:left;}
+.radio
+{
+    color: #333333;
+    font-size: 18px;
+    font-weight: normal;
+    padding:20px;
+    }
+
+.placeholder{font-size: 1.3em;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+  jQuery('#lastname').bind('blur change',function(e){
+      e.preventDefault();
+      var lastname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(lastname)){
+        jQuery('#lastname').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      } else {
+        jQuery('#lastname').addClass('input-error');
+        return;
+      }
+  });  
+  jQuery('#firstname').bind('blur change',function(e){
+      e.preventDefault();
+      var firstname = jQuery.trim(jQuery(this).val());
+      if(!SIRAH.util.isEmpty(firstname)){
+        jQuery('#firstname').removeClass('input-error');
+        jQuery('#name-validation-message').html('');
+      }  else {
+        jQuery('#firstname').addClass('input-error');
+         return;
+      }
+  });
+     
+ jQuery('.cancel').click(function(e)
+ {
+    e.preventDefault();
+    document.location.href='".$backList."';
+ });
+  
+  jQuery('.create').click(function(e)
+  {
+      e.preventDefault();      
+      var  formSelector= jQuery('#editprofile-form');
+      var  firstname   = jQuery.trim(jQuery('#firstname').val());
+      var  lastname    = jQuery.trim(jQuery('#lastname').val());
+      
+      if(SIRAH.util.isEmpty(lastname)){
+         jQuery('#lastname').addClass('input-error');
+         jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un nom de famille valide');
+         return;
+      } else {
+         jQuery('#lastname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(firstname)){
+        jQuery('#firstname').addClass('input-error');
+        jQuery('#name-validation-message').html('');
+         SIRAH.error.raise('name-validation-message','Entrez un prénom valide');
+         return;
+      }  else {
+         jQuery('#firstname').removeClass('input-error');
+          jQuery('#name-validation-message').html('');
+      }         
+      jQuery('#lastname').val(lastname);
+      jQuery('#firstname').val(firstname);
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center"   id="editprofile-form"   role="form">
+<div class="container">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="firstname"> <b> Prénom: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Son prénom" placeholder="Son prénom"  name="firstname" value="<?php echo $data['firstname']; ?>">
+         </div>
+     </div>    
+     <div class="row">              
+         <div class="col-md-4"> <label class="label" for="firstname"> <b> Nom de famille : </b> </label> </div>
+         <div class="col-md-8">
+               <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Son nom de famille" placeholder="Son nom de famille" name="lastname" value="<?php echo $data['lastname']; ?>">
+          </div> 
+          <p id="name-validation-message" class="validation-message"></p>    
+     </div>    
+     <div class="row">    
+         <div class="col-md-4"> <label class="label" for="birthday"><b> Date de naissance : </b></label> </div>
+         <div class="col-md-2"><?php echo $this->formSelect("birthday_day",$data["birthday_day"],array(),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("birthday_month",$data["birthday_month"],array(),array("00"=>"Mois")+$this->months()); ?></div>
+         <div class="col-md-3"><?php echo $this->formSelect("birthday_year",$data["birthday_year"],array(),array("0000"=>"Année")+createYearsArray(1950, 2010));?></div>        
+    </div>         
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="birthaddress"> <b> Lieu de naissance : </b> </label> </div>
+         <div class="col-md-8">
+             <input id="birthaddress" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Votre lieu de naissance" placeholder="Votre lieu de naissance" name="birthaddress" value="<?php echo $data['birthaddress']; ?>">
+         </div>
+   </div>                       
+   <div class="row">    
+         <div class="col-md-4"> <label class="label" for="professionalstate"> <b> Statut professionnel: </b> </label> </div>
+         <div class="col-md-8">
+             <input id="professionalstate" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                      title="Votre statut professionnel" placeholder="Votre statut professionnel" name="professionalstate" value="<?php echo $data['professionalstate']; ?>">
+         </div>
+    </div>        
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="socialstate"><b> Situation matrimoniale: </b> </label> </div>
+         <div class="col-md-8">
+             <?php echo $this->formSelect("socialstate" , $data["socialstate"] , array() , $situations); ?>
+         </div>
+    </div>     
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="language"> <b> Langue parlée: </b> </label> </div>
+         <div class="col-md-8">
+             <?php echo $this->formSelect("language" , $data["language"] , array() , $this->languages()); ?>
+         </div>
+    </div>    
+    <div class="row">    
+         <div class="col-md-4"> <label class="label" for="sexe"> <b> Sexe : </b> </label> </div>
+         <div class="col-md-8">
+           <label class="radio-inline">
+              <input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>>
+                Homme
+          </label>
+          
+          <label class="radio-inline">
+               <input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>>
+                  Femme
+         </label>
+         </div>
+    </div>     
+     <div class="row">
+        <div class="col-md-4"><label class="label" for="sexe"><b> Vous décrire : </b></label></div>
+        <div class="col-md-8">
+          <textarea  name="presentation" id="presentation" class="textarea">
+               <?php echo $data["presentation"]; ?>
+          </textarea> 
+       </div>  
+  </div>   
+  <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="column colbuttons">
+                       <button type="submit" class="btn btn-default btn-primary saveProfile"> Enregistrer </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php endif; ?>
+   </div>
+</form>

@@ -1,0 +1,130 @@
+<?php 
+$data         = $this->data;
+$categories   = $this->categories;
+$formSubmit   = $this->url(array("module" => "admin","controller" => "userdocuments", "action"=> "create"), "default") ; 
+$backList     = $this->url(array("module" => "admin","controller" => "userdocuments", "action"=> "list"  ), "default") ;
+$jq           = $this->jQuery();
+$basePath     = VIEW_BASE_PATH;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#projetdoc').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+var _validFileExtensions = [\".jpg\", \".jpeg\", \".bmp\", \".gif\", \".png\", \".doc\", \".docx\", \".pdf\", \".xls\"];    
+                     function Validate(oForm) {
+                              var arrInputs = oForm.getElementsByTagName('input');
+                              for (var i = 0; i < arrInputs.length; i++) {
+                                   var oInput = arrInputs[i];
+                                   if (oInput.type == 'file') {
+                                         var sFileName= oInput.value;
+                                     if (sFileName.length > 0) {
+                                         var blnValid = false;
+                                         for (var j = 0; j < _validFileExtensions.length; j++) {
+                                              var sCurExtension = _validFileExtensions[j];
+                                              if ( sFileName.substr(sFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() == sCurExtension.toLowerCase()) {
+                                                   blnValid = true;
+                                                   break;
+                                               }
+                                        }                
+                                        if (!blnValid) {
+                                           alert('Désolé, ' + sFileName + ' est invalide, les extensions autorisées sont: ' + _validFileExtensions.join(', ') );
+                                           return false;
+                                        }
+                                  }
+                              }
+                          }  
+                 return true;
+                }
+  
+   ";
+  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center" id="createdocument-form" role="form" enctype="multipart/form-data" >
+ <div class="container col-md-12" style="text-align:left;">
+  <ul class="list-group">
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="filename"> <b> Chercher le document*: </b> </label> </div>
+         <div class="col-md-8"> <input type="file" name="projetdoc"  id="projetdoc" />  </div>                 
+     </div> 
+     <p id="filename-validation-message" class="validation-message"></p>    
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="filename"> <b>Désignation du fichier*: </b> </label> </div>
+         <div class="col-md-8">
+               <input id="filename" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                      title="Désignation du document" placeholder="Désignation du document"  name="filename" value="<?php echo $data['filename']; ?>">
+         </div>                 
+     </div> 
+     <p id="filename-validation-message" class="validation-message"></p>    
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="category"> <b> Ranger dans le dossier* : </b> </label> </div>
+         <div class="col-md-8"> <?php echo $this->formSelect("category", $data["category"] , array("class" => "form-control") , $categories ); ?> </div>                 
+     </div>   
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-4"> <label class="label" for="description"> <b> Description  : </b> </label> </div>
+         <div class="col-md-8"><textarea name="filedescription" id="filedescription" class="form-control textarea-sm"><?php echo $data["filedescription"]; ?></textarea></div>              
+     </div>  
+   </li>
+   <li class="list-group-item">
+          <div class="row"> 
+            <div class="col-md-6"> 
+               <label class="checkbox">
+                  <?php echo $this->formCheckbox("access", $data["access"], array('checked' => true), array("1", "0")); ?> Autoriser l'accès aux visiteurs
+               </label>
+            </div>
+            <div class="col-md-6">&nbsp;</div>    
+          </div>
+        </li>
+  
+ </ul>  
+<?php     
+   $buttonsbar      = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate      = $buttonsbar->button("Enregistrer","upload")->setPriority("primary");
+   $toolCancel      = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add($toolCreate ,"createButton");
+   $buttonsbar->add($toolCancel ,"cancelCreationButton");
+   
+   $toolCreate->onClick("  event.preventDefault();
+   		                   var  formSelector = jQuery('#createdocument-form');
+   		                   var  category     = parseInt( formSelector.find('#category').val());
+   		                   var  filename     = formSelector.find('#filename').val();
+   		                   if( !category ){
+   		                       SIRAH.error.raise('createdocument-form','Selectionnez une catégorie valide');
+   		                       return;
+                            } 
+   		                    if( !filename ){
+   		                       SIRAH.error.raise('createdocument-form','Veuillez entrer une désignation valide du fichier');
+   		                       return;
+                            }  
+   		                     formSelector.submit();
+   		");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   
+   <input type="hidden" name="registreid" id="registreid"  value="<?php echo $data["registreid"]; ?>" />
+</form>

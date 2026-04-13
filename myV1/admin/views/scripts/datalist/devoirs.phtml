@@ -1,0 +1,283 @@
+<?php 
+$devoirs     = $this->devoirs;
+$filters     = $this->filters;
+$paginator   = $this->paginator;
+$basePath    = ROOT_PATH."/templates/sirah";
+$jq          = $this->jQuery();
+$parentform  = $this->parentform;
+$linkSearch  = $this->url(array("module" => "admin","controller" => "datalist", "action"  => "devoirslist" , "parentform"  => $parentform ) , "default");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var devoirid  = parseInt(jQuery(this).attr('href').replace('#devoirid-', ''));
+	if( devoirid && parentformSelector ) {		
+		  var parentDevoirIdInput = parentformSelector.find('input[name=\'devoirid\']');
+		  var parentDevoirInput   = parentformSelector.find('input[name=\'devoir\']');
+		  var parentDevoirLib     = jQuery('#devoirlib-'+devoirid).val();
+		
+		  if( parentDevoirIdInput   ) {
+		      parentDevoirIdInput.val( devoirid );
+		  }	
+		  if( parentDevoirInput   ) {
+		      parentDevoirInput.val( parentDevoirLib );
+		  }	 
+	  } else {
+		 return false;
+	  }
+		devoirSelect  = parentformSelector.find('#selectDevoir');
+		if( devoirSelect )	{
+		    devoirSelect.trigger('select-item' , [devoirid] );
+		} 
+		jQuery('#filterListDevoirs').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').hide();
+   });
+   jQuery('#show-advanced-searchform').click(function(){
+		   jQuery('#advanced-searchform-wrapper').show();
+   });
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector     = jQuery('#advanced-devoirsearchform');
+		var modalBox         = jQuery('.modal').first();
+		var modalBody        = jQuery('.modal-body').first();
+		
+		var pageNum          = formSelector.find('#page').val();
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+		
+		var defaultData      = {};
+		defaultData.libelle  = formSelector.find('#libelle').val();
+		defaultData.cohortid = formSelector.find('#cohortid').val();
+		defaultData.courseid = formSelector.find('#courseid').val();
+		defaultData.date     = formSelector.find('#date').val();
+		defaultData.page     = pageNum;
+		defaultData.maxitems = pageMaxitems;
+		
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données...');
+		SIRAH.request.post('advanced-devoirsearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-devoirsearchform');
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();
+		
+		var pageNum             = advancedFormSelector.find('#page').val();
+		var pageMaxitems        = advancedFormSelector.find('#maxitems').val();
+		
+		var defaultData         = {};
+		defaultData.libelle     = formSelector.find('#libelle').val();
+		defaultData.page        = pageNum;
+		defaultData.maxitems    = pageMaxitems;
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false)
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event)
+  {		
+		event.preventDefault();
+	    var formSelector     = jQuery('#advanced-devoirsearchform');
+	    if( jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		
+		var paginationData      = {};
+		paginationData.page     = pageNum;
+		paginationData.maxitems = pageMaxitems;
+		paginationData.cohortid = formSelector.find('#cohortid').val();
+		paginationData.courseid = formSelector.find('#courseid').val();
+		paginationData.date     = formSelector.find('#date').val();
+		paginationData.libelle  = formSelector.find('#libelle').val();
+		
+		var modalBox            = jQuery('.modal').first();
+		var modalBody           = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+      <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+            ?>      
+                  <div class="row" >
+                      <div class="col-md-8"><?php echo $buttonbar; ?></div>
+                      <div class="col-md-4"> 
+                          <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                             <div class="input-group pull-right">
+                                <input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle" style="width:190px;" type="text" class="form-control input-medium" placeholder="Filtrer la liste">
+                                <span class="input-group-btn ">
+                                   <button class="btn btn-default default-search" type="button"><span class="glyphicon glyphicon-search"></span> Filtrer</button>
+                                   <button id="show-advanced-searchform" class="btn btn-default" type="button">Recherche avancée</button>
+                                </span>
+                            </div>
+                          </form>
+                      </div>
+                  </div> 
+                   <div style="display:none;" id="advanced-searchform-wrapper"  class="row simplerow" >
+                      <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-searchform"   role="form">
+                         <div class="row simplerow-search-form-header">
+                            <a id="close-advanced-searchform" class="close"> Fermer</a>
+                            <h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3>
+                         </div>
+                          <div class="row">
+                            <div class="column col-md-2"> <label  for="libelle"> Désignation :  </label> </div>
+                            <div class="column col-md-4">                                
+                                <input id="libelle" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                       title="Désignation du devoir" placeholder="Désignation du devoir"  name="libelle" value="<?php echo $filters['libelle']; ?>">
+                            </div>            
+                           <div class="column col-md-2"> <label  for="cohorte"> Formation:  </label> </div>
+                           <div class="column col-md-4">
+                              <?php echo $this->formSelect("cohortid" , $filters["cohortid"] , array() , $this->cohortes ); ?>
+                          </div>   
+                        </div>
+                        <div class="row">
+                           <div class="column col-md-2"> <label  for="course"> Module de cours:  </label> </div>
+                           <div class="column col-md-4">
+                              <?php echo $this->formSelect("courseid" , $filters["courseid"] , array() , $this->courses ); ?>
+                           </div>  
+                           <div class="column col-md-2"> <label  for="date"> Date :  </label> </div>        
+                           <div class="column col-md-4"> <?php echo $this->datePick("date" , date("Y-m-d")); ?> </div> 
+                        </div>
+                        <div>
+                             <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                             <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000 ,
+                                		                                                                     "100000000" => "Tout")); ?>
+                            </div> 
+                            <div class="column col-md-6"> &nbsp; </div>
+                        </div>
+                        <div class="row">
+                          <div class="column  col-md-2">
+                            <button type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search icon-white"></span > Rechercher </button>  
+                          </div>                      
+                           <div class="column  span10"></div>     
+                      </div> 
+                      <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  />
+                    </form>
+               </div>                                  
+            <?php
+              $modelHonoraire = new Model_Coursehonoraire();
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "devoirsListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("Désignations" , array("width" => "25%"))
+                    ->add("Formations"   , array("width" => "25%"))
+                    ->add("Modules"      , array("width" => "25%"))
+                    ->add("Intervalles de temps" , array("width" => "25%"));         
+             $table->setHeader($header);             
+             if(count($devoirs)){
+             	foreach($devoirs as $devoir){             		
+             	   $devoirid    = intval( $devoir['devoirid'] );
+             	   $honoraireid = intval( $devoir["honoraireid"] );
+             	   $libelle     = $devoir["libelle"] ;
+             	   $course      = $devoir["course"];
+             	   $cohortes    = $modelHonoraire->getCohortes( $honoraireid );
+             	   $cohorteCell = ( !empty( $cohortes ) ) ? implode(", " , $cohortes ) : "Aucune formation valide";
+             	   $intervalle  = sprintf("%s - %s" , $devoir["startdate"] , $devoir["endate"]);
+
+             	   $devoirRow   = $table->row(array("id"  => "devoirRowId-" . $devoirid ));
+             	   
+             	   $devoirRow->add("<a href=\"#devoirid-".$devoirid."\" class=\"selectClick\" >" . $libelle     . "</a>" , array("id" => "libelle-" . $devoirid ))
+             	             ->add("<a href=\"#devoirid-".$devoirid."\" class=\"selectClick\" >" . $cohorteCell . "</a>" , array("id" => "formationId-" . $devoirid ))   
+             	             ->add("<a href=\"#devoirid-".$devoirid."\" class=\"selectClick\" >" . $course      . "</a>" , array("id" => "courseId-" . $devoirid ))
+             		         ->add("<a href=\"#devoirid-".$devoirid."\" class=\"selectClick\" >" . $intervalle  . "</a>" , array("id" => "dateDebutId-". $devoirid ));
+             	   $table->add($devoirRow);
+             	   echo "<input type='hidden'  name='devoirlib-".$devoirid."'  id='devoirlib-".$devoirid."'  value='".$libelle."'  />" ;
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche", array("colspan"  => 7));
+             	$table->add($unfoundRow);
+             }   
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>
+ </div>

@@ -1,0 +1,72 @@
+<?php 
+    $rights      = $this->rights;
+    $roles       = $this->roles;
+    $roleid      = $this->roleid;
+    $role        = $this->role;
+    
+    $linkEdit    = $this->url(array("controller" => "userights", "action" => "edit", "roleid" => $roleid ));
+    $linkLoad    = $this->url(array("controller" => "userights", "action" => "list" ));
+
+    $buttonbar     = $this->Btnbar(array() , $this->jqueryHandler());
+    $buttonLoad    = $buttonbar->button("Visualiser les permissions", "refresh")->setPriority("primary");
+    $buttonEdit    = $buttonbar->button("Changer les permissions"   , "edit");
+     
+    $buttonbar->add( $buttonLoad, "loadButton");
+    $buttonbar->add( $buttonEdit, "editButton");
+     
+    $buttonEdit->onClick("event.preventDefault(); document.location.href= '".$linkEdit."' ;");
+    $buttonLoad->onClick("event.preventDefault(); var formSelector = jQuery('#rolerights-form'); formSelector.submit();");
+?>
+<form method="post" action="<?php echo $linkLoad; ?>" align="center"   id="rolerights-form"   role="form"> 
+<div class="row">
+   <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="roles"> <b> Selectionnez un role: </b> </label></div> 
+            <div class="col-md-8"> <?php echo $this->formSelect("roleid", $roleid , array("class" => "form-control") , array("Selectionnez un role")+$roles );  ?></div>
+       </div>
+    </li>
+ </ul>
+</div>
+<div class="row pad5A">
+<?php
+   $table  = $this->table(array("id" => "rolesListTable","class"  => array("table table-bordered table-stripped table-responsive sirah-ui-table")));
+   $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+   $header = $table->row();
+   $header->add("Ressources")->add("Objets")->add("Descriptions des taches")->add("Droits affectés");
+    $table->setHeader($header);    
+    $resourcename = null;
+    
+    if(count($rights)) {
+    	foreach($rights as $right) {    		
+    		$rightType = ($right["allow"] == 1) ? "Autorisé" : "Non autorisé";
+    		$rightRow  = $table->row();    		
+    		if( $resourcename != $right["resourcename"] ) {
+    			$resourceText  = $right["resourcename"];
+    			$rightRow->add($resourceText);
+    		} else {
+    			$rightRow->add(" ");
+    		}
+    		$rightRow->add($right["objectname"]);
+    		$rightRow->add($right["description"]);
+    		$rightRow->add($rightType);
+    		$table->add($rightRow);    		
+    		$resourcename  = $right["resourcename"];
+    	}
+    } else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add("Veuillez selectionner un role pour visualiser ses permissions", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }    
+     echo $table;    
+    ?>     
+ </div>
+  <?php 
+          if(!$this->isAjax) {
+          	 echo " <div class=\"row mrg10T\"> ".$buttonbar." </div>";
+          } else {
+          	  echo $this->jQuery();
+          	  echo $this->headStyle();
+          }
+      ?>
+ </form>

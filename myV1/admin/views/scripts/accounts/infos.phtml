@@ -1,0 +1,51 @@
+<?php 
+     $user        = $this->user;
+     $linkEdit    = $this->url(array("module"=>"admin","controller"=>"accounts","action"=>"edit","userid" => $user->userid), "default");
+     $linkCancel  = $this->url(array("module"=>"admin","controller"=>"accounts","action"=>"list"), "default");
+     $jq          = $this->jQuery();
+     
+     $jq->addOnLoad("jQuery('.editInfos').click(function(event){event.preventDefault();document.location.href='".$linkEdit."'; });
+     		         jQuery('.cancel').click(function(event){   event.preventDefault();document.location.href='".$linkCancel."';});");
+?>
+<div class="panel panel-default">
+    <ul class="list-group">
+           <li class="list-group-item"> 
+              <div class="row">
+                  <div class="col-md-2"> <label class="label" for="lastname"> <b> Nom</b> </label> </div>
+                  <div class="col-md-10"> <?php echo $user->lastname; ?> </div>
+               </div>  
+           </li>
+            <li class="list-group-item"> 
+              <div class="row">
+                  <div class="col-md-2"> <label class="label" for="firstname"> <b> Prénom</b> </label> </div>
+                  <div class="col-md-10"> <?php echo $user->firstname; ?> </div>
+               </div>  
+            </li>
+            <li class="list-group-item"> 
+              <div class="row">
+                  <div class="col-md-2"> <label class="label" for="username"> <b> Identifiant</b> </label> </div>
+                  <div class="col-md-10"> <?php echo $user->username; ?> </div>
+               </div>  
+            </li>
+            <li class="list-group-item"> 
+              <div class="row">
+                  <div class="col-md-2"> <label class="label" for="email"> <b> E-mail :</b> </label> </div>
+                  <div class="col-md-10"> <?php echo $user->email; ?> </div>
+               </div>  
+            </li>
+            <li class="list-group-item"> 
+                <div class="row">
+                    <div class="col-md-2"> <label class="label" for="phone"> <b> Téléphone:</b> </label> </div>
+                    <div class="col-md-10"> <?php printf("%s / %s", $user->phone1, $user->phone2); ?> </div>
+                </div>  
+            </li>      
+    </ul>
+    <div class="panel-footer">
+            <div class="controls">
+		        <button type="submit" class="btn btn-primary editInfos"> <i class="glyph-icon icon-edit"></i> Mettre à jour </button>
+				<button type="submit" class="btn btn-default"> Revenir sur la liste</button> 
+			</div>
+    </div>
+</div>
+
+

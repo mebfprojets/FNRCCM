@@ -1,0 +1,384 @@
+<?php 
+$demandeurs        = $this->demandeurs;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+ 
+$parentForm        = $this->parentForm;
+$selectedKey       = $this->selectedKey;
+$selectedVal       = $this->selectedVal;
+$selectCmdKey      = $this->selectCmdKey;
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$logoDefaultFile   = $basePath."/images/default_company_logo.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"demandeurslist","parentForm"=>$parentForm,"selectCmdKey"=>$selectCmdKey,"selectedKey"=>$selectedKey,"selectedVal" => $selectedVal) , "default");
+									  
+$jq->addOnload("var selectDemandeur    = selectedDemandeurKey = selectedDemandeurVal =null;");
+$jq->addOnload("var parentFormSelector = jQuery('#".$parentForm."');");
+if( !empty($selectCmdKey)) {
+	$jq->addOnload(sprintf("var selectDemandeur      = parentFormSelector.find('#%s');", $selectCmdKey ));
+}
+if( !empty( $selectedKey )) {
+	$jq->addOnload(sprintf("var selectedDemandeurKey = parentFormSelector.find('#%s');", $selectedKey));
+}
+if( !empty( $selectedVal )) {
+	$jq->addOnload(sprintf("var selectedDemandeurVal = parentFormSelector.find('#%s');", $selectedVal));
+}
+$jq->addOnload("
+ 
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var demandeurid  = parseInt(jQuery(this).attr('href').replace('#demandeurid-', ''));
+	   var row        = {};
+	   if(demandeurid && parentFormSelector ) {
+		  row.demandeurid               = demandeurid;
+		  var demandeurIdentityId       = row.identityid   = jQuery('#demandeursListTable').find('#identityid-'+demandeurid).val();
+		  var demandeurNumIdentite      = row.numidentite  = jQuery('#demandeursListTable').find('#numidentite-'+demandeurid).val();
+		  var demandeurFirstname        = row.firstname    = jQuery('#demandeursListTable').find('#firstname-'+demandeurid).val();
+		  var demandeurLastname         = row.lastname     = jQuery('#demandeursListTable').find('#lastname-'+demandeurid).val();
+		  var demandeurName             = row.name         = jQuery('#demandeursListTable').find('#name-'+demandeurid).val();
+		  var demandeurEmail            = row.email        = jQuery('#demandeursListTable').find('#email-'+demandeurid).val();
+		  var demandeurTelephone        = row.telephone    = jQuery('#demandeursListTable').find('#telephone-'+demandeurid).val();
+		  var demandeurAdresse          = row.adresse      = jQuery('#demandeursListTable').find('#adresse-'+demandeurid).val();
+		  var demandeurProfession       = row.profession   = jQuery('#demandeursListTable').find('#profession-'+demandeurid).val();
+          var demandeurCode             = demandeurNumIdentite;
+		  
+		  var parentDemandeurKey        = (SIRAH.util.isset(selectedDemandeurKey))? selectedDemandeurKey : parentFormSelector.find('input[name=\'demandeurid\']');
+		  var parentDemandeurVal        = (SIRAH.util.isset(selectedDemandeurVal))? selectedDemandeurVal : parentFormSelector.find('input[name=\'demandeur\']');
+		  var parentFirstnameSelector   = parentFormSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector    = parentFormSelector.find('input[name=\'lastname\']');
+		  var parentNameSelector        = parentFormSelector.find('input[name=\'name\']');
+		  var parentEmailSelector       = parentFormSelector.find('input[name=\'email\']');
+		  var parentAdresseSelector     = parentFormSelector.find('input[name=\'adresse\']');
+		  var parentProfessionSelector  = parentFormSelector.find('input[name=\'profession\']');
+		  var parentCodeSelector        = parentFormSelector.find('input[name=\'code\']');
+		  var parentNumIdentiteSelector = parentFormSelector.find('input[name=\'numidentite\']');
+		  var parentPhoneSelector       = parentFormSelector.find('input[name=\'telephone\']');
+
+		
+		  if( parentDemandeurKey   ) {
+		      parentDemandeurKey.val(demandeurid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val( demandeurFirstname  );
+		  }
+		  if( parentLastnameSelector) {
+		      parentLastnameSelector.val(demandeurLastname);
+		  }
+		  if( parentDemandeurVal ) {
+		      var demandeurName    = demandeurLastname+' '+demandeurFirstname;
+		      parentDemandeurVal.val(demandeurName);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(demandeurEmail );
+		  }
+		  if( parentPhoneSelector ) {
+		      parentPhoneSelector.val(demandeurTelephone);
+		  }
+		  if( parentProfessionSelector ) {
+		      parentProfessionSelector.val(demandeurProfession);
+		  }
+		  if( parentAdresseSelector ) {
+		      parentAdresseSelector.val(demandeurAdresse);
+		  }
+		  if( parentCodeSelector  ) {
+		      parentCodeSelector.val( demandeurCode );
+		  }
+		  if( parentNumIdentiteSelector) {
+			  parentNumIdentiteSelector.val( demandeurCode );
+		  }
+		  if( parentNameSelector  ) {
+			  parentNameSelector.val( demandeurName );
+			  if( parentDemandeurName = parentFormSelector.find('input[name=\'demandeurname\']')) {
+				  parentDemandeurName.val( demandeurName );
+			  }
+		  }		
+		} else {
+		    return false;
+	    }
+		if( selectDemandeur.attr('id')===undefined)
+		    selectDemandeur  = parentFormSelector.find('#selectDemandeur');
+		if( selectDemandeur)	{
+		    selectDemandeur.trigger('select-item', row);
+		    selectDemandeur.trigger('chooseThis' , row);
+		    selectDemandeur.trigger('selectThis' , row);
+		}  
+		jQuery('#filterListDemandeurs,.filterListDemandeurs,.filterDemandeurs,#searchDemandeurs,.searchDemandeurs').dialog2('close');
+		jQuery('#filterListDemandeurs,.filterListDemandeurs,.filterDemandeurs,#searchDemandeurs,.searchDemandeurs,.modal,.modal-backdrop').remove(true);
+	    jQuery('body').removeClass('modal-open');
+});
+
+jQuery('.viewInfos').css('cursor','pointer');
+jQuery('.viewInfos').click(function(event){event.preventDefault();document.location.href = jQuery(this).attr('href');});
+jQuery('.resetPage').click(function(){event.preventDefault();document.location.href='".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		if( jQuery(this).hasClass('disabled') ) {
+		    return;
+		}
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('.modal-body.opened').first();					
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });				
+});	
+jQuery('.demandeurCard').css('cursor','pointer');
+jQuery('.demandeurCard').click(function(event ){
+	    event.preventDefault();
+		var demandeurid = parseInt(jQuery(this).attr('id').replace('demandeurCard-', ''));
+		jQuery('a[href=\'#demandeurid-'+demandeurid+'\']').trigger('click');		
+});
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch,#resetSimpleSearch').click(function(event){
+		event.preventDefault();
+		var formSelector    = jQuery('#demandeursListSearchForm') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		searchData.name     = searchData.searchq = '';				 
+        var maincontent	    = jQuery('.modal-body.opened').first();		
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });
+});		
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#demandeursListSearchForm') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		searchData.searchq  = searchData.generalfilter  = jQuery.trim(jQuery('#globalFormSearch').find('#searchq').val());				 
+        var maincontent	    = jQuery('.modal-body.opened').first();		
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.searchDemandeurs,#searchDemandeurs').click(function(    event ){
+		event.preventDefault();
+		var formSelector          = jQuery('#demandeursListSearchForm,.advancedSearchForm:first') ;					
+		var searchData            = {};
+		searchData.page           = parseInt(formSelector.find('#page').val());
+		searchData.maxitems       = parseInt(formSelector.find('#maxitems').val());
+
+		searchData.name           = formSelector.find('#lastname').val();
+		searchData.telephone      = formSelector.find('#telephone').val();
+		searchData.email          = formSelector.find('#email').val();
+		searchData.numidentite    = parseInt(formSelector.find('#numidentite').val());
+		searchData.identitetypeid = parseInt(formSelector.find('#identityid').val());
+		searchData.entrepriseid   = parseInt(formSelector.find('#entrepriseid').val());	
+ 
+        var maincontent	          = jQuery('.modal-body.opened').first();		
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#demandeursListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector            = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum                 = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems            = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum               = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum       = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                 = parseInt( currentBtnNum - 1);
+		} 
+		var paginationData            = {};
+		paginationData.page           = pageNum;
+		paginationData.maxitems       = parseInt(formSelector.find('#maxitems').val());
+
+		paginationData.name           = formSelector.find('#name').val();
+		paginationData.telephone      = formSelector.find('#telephone').val();
+		paginationData.email          = formSelector.find('#email').val();
+		paginationData.numidentite    = parseInt(formSelector.find('#numidentite').val());
+		paginationData.identitetypeid = parseInt(formSelector.find('#identitetypeid').val());
+		paginationData.entrepriseid   = parseInt(formSelector.find('#entrepriseid').val());
+		
+		var maincontent               = jQuery('.modal-body.opened').first();				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });		
+	});
+");
+$pagination  = $this->pagination(array() , "Elastic" , "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 
+
+?>
+<div id="demandeursListListWrapper"  class="row">
+    <div  class="panel panel-default listPanel">
+      <div  class="panel-heading bg-blue-alt">
+		<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+		  <div class="input-group">
+		    <input value="<?php echo $filters['searchQ']; ?>" id="searchq" name="searchq"  type="text" class="form-control" placeholder="Recherchez un demandeur, saisir son nom, prénom ou identifiant...">
+		    <span class="input-group-btn ">
+               <button id="simpleSearch"         class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Recherchez </button>
+               <button id="advancedSearchBtn"    class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+			   <button id="resetSimpleSearchBtn" class="btn btn-danger  resetSimpleSearchBtn resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+			</span>
+		  </div>
+             <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum;    ?>" /> 
+             <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;   ?>" />			 
+		</form>
+    </div>
+	<form id="demandeursListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+	    <ul class="list-group">
+		    <li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Nom du demandeur:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['name']; ?>" type="text" name="name"  id="name" class="form-control" placeholder="Saisir le nom et/ou prénom d'un demandeur" /></div>
+				</div>
+			</li>
+		    <li class="list-group-item">
+			    <div  class="form-group">
+			      <label class="col-sm-2 col-md-2 control-label">  <b> Numéro d'idendité:</b> </label> 
+				    <div class="col-md-4 col-sm-4"><input value="<?php echo $filters['numidentite']; ?>" type="text" name="numidentite" id="numidentite" class="form-control" placeholder="Saisir le numéro d'identité d'un demandeur" /></div>
+					<div class="col-sm-6 col-md-6"><?php echo $this->formSelect("identitetypeid", intval($filters["identitetypeid"]),array("class"=>"form-control"), $this->identiteTypes); ?> </div>
+				</div>
+			</li>			
+			<li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Téléphone:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['telephone'];?>" type="text" name="telephone" id="telephone" class="form-control" placeholder="Saisir un numéro de téléphone" /></div>
+					<label class="col-sm-2 col-md-2 control-label">  <b> Adresse email:</b> </label> 
+					<div   class="col-md-4 col-sm-4"><input value="<?php echo $filters['email'];?>"     type="text" name="email"     id="email"     class="form-control" placeholder="Saisir une adresse email" /></div>
+				</div>
+			</li>
+	        <li class="list-group-item">
+				<div  class="form-group">					
+					<label class="col-sm-2 col-md-2 control-label">  <b> Afficher:</b> </label> 
+					<div   class="col-md-10 col-sm-10">
+						<div class = "input-group">			 
+							<?php echo $this->formSelect("maxitems",$this->maxitems , array("class"=> "form-control chosen"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=>1000,"2000"=>2000,"5000"=>5000,"100000000" => "Tout")); ?> 
+							<span class="input-group-addon chosen-grp-addon bg-primary"> Elements</span>
+						</div>
+					</div>
+				</div>
+		    </li>
+	    </ul>
+	<div class="panel-footer"> 
+		<button id="searchDemandeurs" class="btn btn-primary searchDemandeurs advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+        <button id="resetDemandeurs"  class="btn btn-danger  resetDemandeurs  resetSearch"    type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+	</div>
+	<input type="hidden" name="page"         id="page"         value="<?php echo $this->pageNum;       ?>" />
+	<input type="hidden" name="entrepriseid" id="entrepriseid" value="<?php echo $filters["entrepriseid"];?>" />
+	</form>
+	<table id="demandeursListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+		<thead>
+			<tr> 
+				<th width="25%"> Numéros d'identité </th> 
+                <th width="35%"> Noms et Prénoms    </th>
+				<th width="30%"> Contacts           </th>   
+                <th width="10%"> Professions        </th>  
+					
+			</tr>
+		</thead>                
+		<tbody>
+		<?php 
+			$output   = "";
+			if( count(  $demandeurs ) ) {
+				foreach($demandeurs as $demandeur ) {
+						$demandeurid         = intval($demandeur['demandeurid']);
+						$NumIdentite         = $demandeurCode = $demandeur["numidentite"] ;
+						$demandeurLastName   = $demandeur["lastname"] ;
+						$demandeurFirstName  = $demandeur["firstname"] ;
+						$demandeurName       = $demandeur["name"] ;
+						$demandeurProfession = $demandeur["profession"] ;
+						$demandeurAdresse    = $demandeur["adresse"] ;					 
+						$demandeurPhone      = $demandeur["telephone"];				 							   
+						$demandeurEmail      = $demandeur["email"];
+						$demandeurAddress    = sprintf("Adresse : %s, Tel: %s", $demandeurAdresse, $demandeurPhone);
+						$demandeurNumPiece   = $demandeur["numeroPiece"];
+						$demandeurPieceTypeId= $demandeur["typePieceId"];
+						$demandeurPieceType  = $demandeur["typePiece"];
+						$pieceOrganisme      = $demandeur["organisme_etablissement"];
+						$pieceLieu           = $demandeur["lieu_etablissement"];
+						$pieceDate           = $demandeur["date_etablissement"];
+						   						   
+						$demandeurAddress    = "<li title=\"Voir les informations de ce demandeur\" href=\"".$linkInfos."\" class=\"list-group-item\" style=\"padding:4px !important;\" >
+													<div class=\"row\" style=\"padding:0px !important;\">
+														<div class=\"col-md-12\"> <p class=\"list-group-item-text\">".$demandeurAddress."</p></div>
+													</div>
+												</li>";
+
+						$output.= "<tr id=\"demandeurRowId-".$demandeurid."\"> ";
+								$output.="<td><a class=\"selectClick\" title=\"Sélectionner ce demandeur\" href=\"#demandeurid-".$demandeurid."\"> ".$NumIdentite  ." </a></td>";
+								$output.="<td><a class=\"selectClick\" title=\"Sélectionner ce demandeur\" href=\"#demandeurid-".$demandeurid."\"> ".$demandeurName." </a></td>";
+								$output.="<td    class=\"selectClick\" title=\"Sélectionner ce demandeur\" href=\"#demandeurid-".$demandeurid."\" rel=\"".$linkInfos."\" style=\"padding:4px !important;\" class=\"list-group demandeurCard\">".$demandeurAddress."</td>"; 
+								$output.="<td><a class=\"selectClick\" title=\"Sélectionner ce demandeur\" href=\"#demandeurid-".$demandeurid."\"> ".$demandeurProfession ." </a></td>";                             	  	                
+						$output.= "</tr>";
+							echo "<input type=\"hidden\"  name=\"demandeurid-".$demandeurid."\"     id=\"demandeurid-".$demandeurid."\"     value=\"".$demandeurid."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"name-".$demandeurid."\"            id=\"name-".$demandeurid."\"            value=\"".$this->escape($demandeurName)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"lastname-".$demandeurid."\"        id=\"lastname-".$demandeurid."\"        value=\"".$this->escape($demandeurLastName)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"firstname-".$demandeurid."\"       id=\"firstname-".$demandeurid."\"       value=\"".$this->escape($demandeurFirstName)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"email-".$demandeurid."\"           id=\"email-".$demandeurid."\"           value=\"".$this->escape($demandeurEmail)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"numidentite-".$demandeurid."\"     id=\"numidentite-".$demandeurid."\"     value=\"".$this->escape($demandeurCode)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"identite_numero-".$demandeurid."\" id=\"identite_numero-".$demandeurid."\" value=\"".$this->escape($demandeurNumPiece)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"identitetype-".$demandeurid."\"    id=\"identitetype-".$demandeurid."\"     value=\"".$this->escape($demandeurPieceType)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"identitetypeid-".$demandeurid."\"  id=\"identitetypeid-".$demandeurid."\"   value=\"".$this->escape($demandeurPieceTypeId)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"organisme_etablissement-".$demandeurid."\" id=\"organisme_etablissement-".$demandeurid."\" value=\"".$this->escape($pieceOrganisme)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"date_etablissement-".$demandeurid."\"      id=\"date_etablissement-".$demandeurid."\"      value=\"".$this->escape($pieceDate)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"lieu_etablissement-".$demandeurid."\"      id=\"lieu_etablissement".$demandeurid."\"      value=\"".$this->escape($pieceLieu)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"telephone-".$demandeurid."\"       id=\"telephone-".$demandeurid."\"       value=\"".$this->escape($demandeurPhone)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"adresse-".$demandeurid."\"         id=\"adresse-".$demandeurid."\"         value=\"".$this->escape($demandeurAdresse)."\"  />" ;
+							echo "<input type=\"hidden\"  name=\"profession-".$demandeurid."\"      id=\"profession-".$demandeurid."\"      value=\"".$this->escape($demandeurProfession)."\"  />" ; 
+					}                              	
+				}  else {
+							$output .= "<tr  id=\"demandeurRowId-0\"> <td style=\"text-align:center !important;\" align=\"center\" colspan=\"4\"> AUCUN DEMANDEUR N'A ETE TROUVE  </td> </tr>";
+				}                              
+				echo $output;                      
+		?>						
+		</tbody>           
+    </table>
+	<?php echo $pagination->render(); ?>
+   </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

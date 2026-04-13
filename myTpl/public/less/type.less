@@ -1,0 +1,90 @@
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: @font-family-stats;
+    small {
+        font-weight: 300;
+    }
+}
+a {
+    color: @link-color;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        color: @link-hover-color;
+        text-decoration: underline;
+    }
+
+    &:focus {
+        .tab-focus();
+    }
+}
+.text-primary {
+    .text-emphasis-variant-theme(@brand-primary-darker);
+}
+.text-success {
+    .text-emphasis-variant-theme(@brand-success-darker);
+}
+.text-info {
+    .text-emphasis-variant-theme(@brand-info-darker);
+}
+.text-warning {
+    .text-emphasis-variant-theme(@brand-warning-darker);
+}
+.text-danger {
+    .text-emphasis-variant-theme(@brand-danger-darker);
+}
+.text-dark {
+    .text-emphasis-variant-theme(@gray-dark);
+}
+.text-white {
+    .text-emphasis-variant-theme(@white);
+}
+
+.text-primary-bright {
+    .text-emphasis-variant-theme(@brand-primary-dark);
+}
+.text-success-bright {
+    .text-emphasis-variant-theme(@brand-success-dark);
+}
+.text-info-bright {
+    .text-emphasis-variant-theme(@brand-info-dark);
+}
+.text-warning-bright {
+    .text-emphasis-variant-theme(@brand-warning-dark);
+}
+.text-danger-bright {
+    .text-emphasis-variant-theme(@brand-danger-dark);
+}
+
+.bg-primary {
+  // Given the contrast here, this is the only class to have its color inverted
+  // automatically.
+    color: #fff;
+    .bg-variant-theme(@brand-primary);
+}
+.bg-success {
+    .bg-variant-theme(@state-success-bg);
+}
+.bg-info {
+    .bg-variant-theme(@state-info-bg);
+}
+.bg-warning {
+    .bg-variant-theme(@state-warning-bg);
+}
+.bg-danger {
+    .bg-variant-theme(@state-danger-bg);
+}
+.bg-gray {
+  // Given the contrast here, this is the only class to have its color inverted
+  // automatically.
+    color: #fff;
+    .bg-variant-theme(#666);
+}
+
+// Page header
+// -------------------------
+
+.page-header {
+    border-bottom: 1px solid @gray-lighter;
+}

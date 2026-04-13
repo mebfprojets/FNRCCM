@@ -1,0 +1,119 @@
+<?php
+   $csrfHelper        = Zend_Controller_Action_HelperBroker::getStaticHelper("Csrf"); 
+   $domaines          = $this->domaines;
+   $tokenId           = $csrfHelper->getTokenId();
+   $tokenValue        = $csrfHelper->getToken();
+   $linkDelete        = $this->url(array("module" => "admin", "controller" => "myprofile", "action" => "removedomaine", $tokenId => $tokenValue), "default") ;
+   $linkInsertDomaine = $this->url(array("module" => "admin", "controller" => "myprofile", "action" => "insertdomaine")  , "default");
+   $linkDeleteDomaine = $this->url(array("module" => "admin", "controller" => "myprofile", "action" => "removedomaine", $tokenId => $tokenValue), "default");
+   $output       = "";
+   $output       = "<div class=\"controls\"> <ul id=\"domaineList\" class=\"nav nav-pills list-inline pills-default-bg selectedList domaineList\">";
+    if( count(     $domaines ) ) {
+    	  foreach( $domaines as $domaine ) {
+    	  	$domaineId    = intval(  $domaine["domaineid"]);
+    	  	$domaineLib   = $domaine["domaine"];
+    	  	$linkView     = $this->url(array("controller"=> "myprofile", "action" => "infosdomaine", "id" => $domaineId) , "default");
+    	  	
+    	  	$output .= " <li  id=\"domaineId-".$domaineId."\"> <a href=\"#experiences\">".$domaineLib." <i title=\"Supprimer cet element\" href=\"#\" id=\"closeId-".$domaineId."\" class=\"glyphicon glyphicon-remove closeItemDomaine\"></i> </a> </li> ";
+    	  }    	
+    } else {
+    	$output .= " <li class=\"group-item-list\" id=\"domaineId-0\"> <p> Vous n'avez pas encore enregistré vos domaines de compétences.</p></li> ";
+    }
+    $output     .= "</ul></div>";
+    echo  $output ;
+    
+$jq      =  $this->jQuery();
+$onLoad  = "
+
+jQuery('.insertDomaine').click(function( event ) {
+        event.preventDefault();
+        var dialogDomainesInsert   = jQuery('<div></div>').attr('id','dialogDomainesInsert').addClass('modal-medium');             		 
+        dialogDomainesInsert.dialog2({
+             		               title : 'Enregistrer secteurs d\'activités de votre profil',
+             		               content : '".$linkInsertDomaine."',
+             		               autoOpen: false,
+             		               modalClass     :'modal-wide',
+             		               removeOnClose  : true,
+             		               closeOnEscape  : false, 
+                                   closeOnOverlayClick: true,
+             		               showCloseHandle:true,
+             		               initialLoadText: 'Chargement...'            		                       
+             		             });
+        dialogDomainesInsert.dialog2('addButton','<span class=\'glyphicon glyphicon-plus\'></span> Enregistrer',{ primary:true, 
+             		              click:function( event ) {
+             		                         event.preventDefault();
+             		                         var modalBody = jQuery('.modal').find('.modal-body');
+             		                         var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                         insertBtn.btnLoading({text:'Chargement...',icon:'icon-spinner4'});
+             		                         SIRAH.loading.on( modalBody , 'Patientez...' ); 
+             		                         var domainesForm = jQuery(this).find('form').eq(0);
+             		                         SIRAH.request.post( domainesForm ,'".$linkInsertDomaine."',{
+             		                                            success : function( data ) {
+             		                                                 jQuery('#patientez').fadeOut('slow');
+             		                                                 SIRAH.loading.off(false);            		                                                                                      
+                            	                                     if( !SIRAH.util.isEmpty( data.error ) ) {
+                            		                                      SIRAH.error.raise( dialogDomainesInsert , data.error , 'error');
+                            		                                      insertBtn.btnLoading({on:false});
+                            		                                      return data;
+                            	                                     } else if( !SIRAH.util.isEmpty( data.success ) ) {
+                            		                                      SIRAH.error.raise( dialogDomainesInsert , data.success , 'success');
+                            		                                      setTimeout(function(){
+                            		                                            insertBtn.btnLoading({on:false});
+                            		                                            jQuery('#sirah-page-message').remove();
+                            		                                            SIRAH.MYPROFILE.insertDomaines( data.domaines, '".$linkDeleteDomaine."' );
+                            		                                            dialogDomainesInsert.dialog2('close');} , 2000);
+                            	                                     }	else {
+                            		                                      SIRAH.error.raise( dialogDomainesInsert ,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                      insertBtn.btnLoading({on:false});
+                            		                                      return data;
+                            	                                    }		
+             		                                            }
+             		                         });
+             		               }
+             		             });
+        dialogDomainesInsert.dialog2('addButton','<span class=\'glyphicon glyphicon-ban-circle\'></span> Annuler',{primary: false,click:function(){jQuery(this).dialog2('close');}});              		
+        dialogDomainesInsert.dialog2('open');       	
+  });
+ jQuery('.closeItemDomaine').css('cursor','pointer');
+ jQuery('.closeItemDomaine').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cet element ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer ',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDeleteDomaine."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'domaines[]': itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if ( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#domaineId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#domaineId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });";    
+    $jq->addOnLoad($onLoad);
+?>
+             

@@ -1,0 +1,54 @@
+<?php 
+$formtoken  = $this->formtoken;
+$identity   = $this->identity;
+$formSubmit = $this->url(array("controller"=> "recoverpwd", "action"=> "init") , "default" );
+$linkCancel = $this->url(array("controller"=> "account"   , "action"=> "login") , "default" );
+$basePath   = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+ body{overflow:hidden;}
+ .jqstooltip{position:absolute;left:0px;top:0px;visibility:hidden;background:rgb(0, 0, 0) transparent;background-color:rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$this->headScript()->appendFile(    $basePath . "/assets-minified/widgets/wow/wow.js");
+$this->headScript()->appendScript("wow = new WOW({animateClass:'animated',offset: 100});wow.init();", 'text/javascript');
+
+  $jq     = $this->jQuery();  
+  $onLoad = "   
+  jQuery('.cancel').click(function(e){e.preventDefault(); document.location.href  = '".$linkCancel."';});  
+  jQuery('.send').click(function(e){
+      e.preventDefault();     
+      var  identity    = jQuery('#identity').val();     
+      if(SIRAH.util.isEmpty(identity)){
+         SIRAH.error.raise('resetpasswordform','Entrez un identifiant valide');
+         return;
+      }      
+      jQuery('#resetpasswordform').submit();     
+  }); ";
+  
+  $jq->addOnLoad($onLoad);
+?>
+<form accept-charset="UTF-8"  id="resetpasswordform"  method="post" action="<?php echo $formSubmit; ?>" class="col-md-4 center-margin" data-parsley-validate="">
+  <div class="panel-layout wow bounceInDow animated" style="visibility:visible;animation-name:bounceInDown">
+    <div id="login-form" class="content-box bg-default">
+       <div class="meta-box meta-box-offset">
+             <img src="<?php echo $basePath."/images/login_avatar.png";  ?>" align="center" class="meta-image img-thumbnail img-circle" />
+             <h3  class="meta-heading    font-size-16"> <?php echo $this->title; ?> </h3>
+             <h3  class="meta-subheading font-size-13 font-gray"> <?php echo $this->subtitle; ?> </h3>
+       </div>        
+       <div class="content-box-wrapper pad20A">
+         <div class="form-group"> <?php echo $this->errormessage(); ?></div>
+         <div class="form-group">
+           <div class="input-group input-group-lg">
+             <input type="text" name="identity" id="identity" class="form-control" autocomplete="off" placeholder="Entrez votre adresse email" >
+           </div>
+         </div>         
+         <div   class="form-group"><button type="submit" class="btn btn-block btn-primary send"> ENVOYER </button></div>
+         <div   class="form-group"><button type="submit" class="btn btn-block cancel"> ANNULER </button></div>
+         <input id="formtoken" type="hidden" name="<?php echo $formtoken ; ?>" value="formtoken" />    
+         <input id="myPwdResetToken" type="hidden" name="myPwdResetToken"  value="<?php echo $myPwdResetToken ; ?>" /> 
+         <input id="uid" type="hidden" name="uid"  value="<?php echo $this->userid ; ?>" /> 
+    </div>
+  </div>
+</form>

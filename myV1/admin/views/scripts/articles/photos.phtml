@@ -1,0 +1,99 @@
+<?php 
+    $photos           = $this->photos; 
+	$articleid        = $this->articleid;
+	$galleryid        = $this->galleryid;
+	
+	$linkUpload       = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"upload","articleid"=> $articleid),"default");
+    $linkUploadPhoto  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"addphotos","articleid"=> $articleid,"galleryid"=>$galleryid),"default");
+    $linkDeletePhotos = $this->url(array("module"=>"admin","controller"=>"galleries","action"=>"delphotos","articleid"=> $articleid,"galleryid"=>$galleryid),"default");
+	
+    $jq               = $this->jQuery();
+	
+    $output  = "<div class=\"row\" style=\"padding:4px;\">
+				 <table id=\"photosAlbums\" class='sira-photos-table photosAlbums' width='100%'  cellspacing='2' cellpadding='2'> <tbody> ";                   
+    if( count(   $photos ) ) {
+		$output.="<tr><td><div class='sira-albums-photos'>";
+		$i = 0;
+		$j = 0;
+		foreach( $photos as $photo ) {
+			if( $i==0 || $j==5 ) {
+				if( $i==0 ) {
+					$output .="<table id=\"photosAlbumRow".$j."\" class='sira-albums-photos-liste'><tbody><tr>";
+				} else {
+					$output .="</tr></tbody></table><table id=\"photosAlbumRow".$j."\" class='sira-albums-photos-liste'><tbody><tr>";
+				}
+				$j=0;
+			}
+			$thumSrc        = str_replace("original", "thumbs", $photo["filepath"] );
+			$imgSrcThumb    = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $thumSrc );
+			$imgSrcOriginal = str_replace( APPLICATION_PATH , ROOT_PATH . DS ."myV1", $photo["filepath"] );
+			
+			$imgSrcOriginal = str_replace( DS , "/" , $imgSrcOriginal );
+			$imgSrcThumb    = str_replace( DS , "/" , $imgSrcThumb );
+			$libelle        = $photo["libelle"];
+			$photoid        = $photo["photoid"];
+		
+			$output.="<td id='photo-".$photoid."'  valign='top' width='210px' height='145px' style=\"width:210px !important;height:145px !important\" class='sira-albums-photos-one'>
+						  <table cellspacing='4'  width='100%'>
+							  <tbody>
+									<tr> 
+										<td style=\"padding:4px !important;\" width=\"4%\"  valign='top'><input id=\"photoids".$photoid."\" class=\"checkPhoto\" name='photoids[]' type='checkbox' value='".$photoid."'  /></td>
+										<td style=\"padding:4px !important;\" width=\"96%\" valign='top'><a class='articleImg'  href='{$imgSrcOriginal}'> <img src='{$imgSrcThumb}'/></a></td>
+									</tr>
+							 </tbody>
+						</table>
+					</td>";
+			$i++;
+			$j++;
+		}
+		$output.="</tr></tbody></table></div></td></tr>";
+    } else {
+		$output.= "<tr> <td align=\"center\"> Aucune photo valide n'a été trouvée pour cette article </td> </tr>";
+    }
+    $output .="</tbody></table></div>";
+   
+    echo $output;
+	
+	$onLoad = "
+	            var getCheckedPhotoId = function() {
+					var checkedItems   = jQuery('#photosAlbums').find('input[type=\'checkbox\'][name!=\'photoCheckAll\']:checked');
+					var checkedIds     = []; 
+					if( checkedItems ) {
+						checkedItems.each(function(){var photoid = parseInt(jQuery(this).attr('id').replace('photoids',''));checkedIds.push(photoid);});
+					}
+					return checkedIds;
+				};
+				jQuery('.delPhotos,#delPhotos,#delPhoto,.delPhoto').click(function(){
+					event.preventDefault();
+					var checkedPhotos = getCheckedPhotoId(); 
+					if(SIRAH.util.isEmpty(checkedPhotos)) {
+					  SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+					  return;
+					} 
+					var dialogDeletePhoto = jQuery('<div> Voulez-vous vraiment supprimer les photos selectionnées ? </div>').attr('id','dialogDeletePhoto');             		 
+					dialogDeletePhoto.dialog2({title:'Confirmer cette action',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});        		
+					dialogDeletePhoto.dialog2('addButton','Oui',{primary:true, click : 
+										function(){
+												   jQuery.ajax({url:'".$linkDeletePhotos."',async:false,dataType:'json',type:'POST',data:{'photoids[]':checkedPhotos,'articleid':'".$articleid."'},            		                                             
+														 success  : function(data) {
+															if(data.error !== undefined) {
+															   SIRAH.error.raise(jQuery('#dialogDeletePhoto') , data.error);
+															   return;
+															} else if(data.success !== undefined) {
+															   var checkedPhotos = getCheckedPhotoId();  	            		
+															  SIRAH.error.raise(jQuery('#dialogDeletePhoto'), data.success , 'success');
+															  setTimeout(function(){jQuery.each(checkedPhotos,function(key,photoid){jQuery('#photooirRowId-'+photoid).remove();});jQuery('#dialogDeletePhoto').dialog2('close');},1000);
+														   }
+														 }
+													   });     		
+										}
+					}); 
+				  dialogDeletePhoto.dialog2('addButton','Annuler' ,   {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+				  dialogDeletePhoto.dialog2('open');
+			   });
+			   jQuery('.articleImg').fancybox({openEffect:'elastic',closeEffect: 'elastic'}); 
+			   jQuery('#uploadPhoto').click(function(event){event.preventDefault();document.location.href='".$linkUploadPhoto."';});";
+	
+	$jq->addOnLoad($onLoad);
+?>           
+             

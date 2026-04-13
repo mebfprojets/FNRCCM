@@ -1,0 +1,274 @@
+<?php 
+$me               = Sirah_Fabric::getUser();
+$data             = $this->data;
+$domaines         = $this->domaines;
+$types            = $this->types;
+$localites        = $this->localites;
+$registreid       = $this->registreid;
+$parentid         = $this->parentid;
+$parentNumRc      = $this->parentNum;
+$representantid   = $this->representantid;
+$situations       = array("Célibataire"=>"Célibataire","Marié(e)"=>"Marié(e)", "Divorcé(e)"=>"Divorcé(e)","Veuf(ve)"=> "Veuf(ve)");
+$formSubmit       = $this->url(array("module"=>"admin","controller"=>"registremodifications","action"=>"edit","registreid"=>$registreid),"default");
+$backList         = $this->url(array("module"=>"admin","controller"=>"registremodifications","action"=>"list"),"default");
+$searchUrl        = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"searchrc"  ), "default" );
+$checkLibUrl      = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"checkrclib"), "default" );
+$checkNumUrl      = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"checkrcnum"), "default" );
+$linkSearchParent = $this->url(array("module"=>"admin","controller"=>"ajaxres","action"=>"registreslist","parentform"=>"editRegistreForm","selectCmdKey"=>"selectRegistre","selectedKey"=>"parentid","selectedVal"=>"parentnum"), "default");
+$basePath         = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+.input-document{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline,.form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$jq     = $this->jQuery();  
+$onLoad = "
+jQuery('#parentnum').click(function(event){event.preventDefault();jQuery('.searchRegistre').trigger('click'); });
+jQuery('.searchRegistre').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher un registre de commerce',content: '".$linkSearchParent."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});
+jQuery('#selectRegistre').bind('selectThis' , function(event, param1 ) {
+       event.preventDefault();
+	   var  parentid = parseInt(jQuery('#editRegistreForm').find('#paiementid').val() );
+	   if( !parentid && param1 ) {
+		    parentid =  param1;
+			jQuery('#editRegistreForm').find('#parentid').val(param1)
+	   }
+       document.location.href = '".$formSubmit."/parentid/'+parentid;	   
+});
+jQuery('input:checkbox').bootstrapSwitch();
+jQuery('input:checkbox').on('switchChange.bootstrapSwitch', function(event, state) {
+	if((state == true) && (this.name =='find_documents')) {
+		jQuery('#findDocumentsOptions').removeClass('hide');
+		jQuery('.manualFindDocuments').addClass('hide'); 
+	} 
+	if((state == false) && (this.name =='find_documents')){
+		jQuery('#findDocumentsOptions').addClass('hide');
+		jQuery('.manualFindDocuments').removeClass('hide');
+	}
+});
+jQuery('input:checkbox, input:radio').uniform();
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text: 'Aucun element ne correspond à ', width:'100%'});
+jQuery('input[name=\'find_documents\']').click(function( event ){
+        if(jQuery(this).is(':checked')) {
+             jQuery('#findDocumentsOptions').removeClass('hide');
+			 jQuery('.manualFindDocuments').addClass('hide');
+        } else {
+             jQuery('#findDocumentsOptions').addClass('hide');
+			 jQuery('.manualFindDocuments').removeClass('hide');
+        } 
+});
+jQuery('#docmini').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#docoriginal').filestyle({buttonText:'Rechercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control input-document',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#editButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#editRegistreForm');
+      var  libelle      = jQuery.trim(formSelector.find('#libelle').val());
+      var  numero       = jQuery.trim(formSelector.find('#numero').val());
+
+      if( SIRAH.util.isEmpty( libelle )){
+		  SIRAH.dialog.alert('Entrez un nom commercial valide','Erreur de saisie');
+          return;
+      }
+      if( SIRAH.util.isEmpty( numero ) || numero.length != 14){
+		  SIRAH.dialog.alert('Entrez un numéro de registre valide','Erreur de saisie');
+          return;
+      }       
+      formSelector.submit();
+   }); ";  
+  $jq->addOnLoad($onLoad);
+  $jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/uniform/uniform.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/uniform/uniform.css" );
+  $jq->addJavascriptFile( $basePath . "/assets-minified/widgets/input-switch/inputswitch.js");
+  $jq->addStylesheet(     $basePath . "/assets-minified/widgets/input-switch/inputswitch.css" );
+  
+?>
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default">ETAPE 1 <small> Les informations de la modification </small></h3>
+    <form method="post"  id="editRegistreForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">
+     <input type="hidden" name="registreid"     id="registreid"     value="<?php echo intval($data['registreid']); ?>" />
+     <input type="hidden" name="representantid" id="representantid" value="<?php echo intval($data['representantid']); ?>" />	     
+	 <div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label" title="Le numéro RC doit contenir 16 caractères"> Numéro RC* : </label>
+        <div   class="col-sm-9 col-md-9"> 
+		    <div class="input-group">
+		            <input disabled="disabled" style="text-transform:uppercase" maxlength="16" type="text" name="parentnum" id="parentnum" class="form-control" placeholder="Numéro du Registre INITIAL" value="<?php echo $parentNumRc; ?>" />
+		        <div class="input-group-btn">
+				    <button id="searchRegistre" title="Selectionnez un registre de commerce" type="submit" class="btn btn-primary searchRegistre"><span class="glyph-icon icon-search"></span> Selectionner un registre de commerce </button>
+				</div>
+			</div>
+				<input type="hidden" name="selectRegistre" id="selectRegistre"  /> 
+				<input type="hidden" name="parentid"       id="parentid" value="<?php echo intval($data['parentid']); ?>" />
+		</div>        
+	  </div>	  
+      <div class="form-group"> 
+        <label class="col-sm-3 col-md-3 control-label" title="Le numéro d'inscription doit contenir 16 caractères"> Numéro de la Modification* : </label>
+        <div   class="col-sm-6 col-md-6"><input style="text-transform:uppercase" maxlength="16" type="text" name="numero" id="numero" class="form-control" placeholder="Numéro d'enregistrement de la modification" value="<?php echo $this->escape($data["numero"]); ?>" /></div>
+        <div   class="col-sm-3 col-md-3" id="numRcSearching"> </div>		   
+	  </div>
+     <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Type de modification* : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("type", intval($data["type"]), array("class"=>"form-control chosen"), $types); ?> </div>   
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Nom commercial* : </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="libelle" id="libelle" class="form-control" placeholder="Nouveau nom commercial" value="<?php echo $this->escape($data["libelle"]); ?>" /></div>        
+	  </div>
+      <div class="form-group">    
+            <label class="col-sm-3 col-md-3 control-label"> Date d'enregistrement*: </label>
+            <div   class="col-sm-9 col-md-9">
+			  <div class = "input-group">
+			    <?php echo $this->formSelect("date_day"  , $data["date_day"]  , array("class"=>"form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?> 
+                <span class="input-group-btn" style="width:0px;"></span>
+				<?php echo $this->formSelect('date_month', $data["date_month"], array("class"=>"form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?>
+                <span class="input-group-btn" style="width:0px;"></span>
+				<?php echo $this->formSelect('date_year' , $data["date_year"] , array("class"=>"form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1960, intval(date("Y")) ) );?>             
+              </div>
+			</div>
+	  </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Secteur d'activités*: </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]), array("class" => "form-control chosen"), $domaines ); ?> </div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Activité actuelle : </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="article_actuel" id="article_actuel" class="form-control" value="<?php echo $this->escape($data["article_actuel"]); ?>" placeholder="Indiquez l'activité actuelle" /></div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Activité supprimée: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="article_suppr" id="article_suppr" class="form-control"   value="<?php echo $this->escape($data["article_suppr"]); ?>" placeholder="Indiquez l'activité qui a été supprimée" /></div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Activité ajoutée : </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="article_ajout" id="article_ajout" class="form-control" value="<?php echo $this->escape($data["article_ajout"]); ?>" placeholder="Décrivez l'activité qui a été ajoutée" /></div>       
+      </div>	  
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Nouvelle adresse*: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="adresse" id="adresse" class="form-control" value="<?php echo $this->escape($data["adresse"]); ?>" placeholder="Nouvelle Adresse de la société" /></div>       
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Numéro de téléphone: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="telephone" id="telephone" class="form-control" value="<?php echo $this->escape($data["telephone"]); ?>" placeholder="Nouveau numéro de téléphone" /></div>       
+      </div>
+      <?php if(($me->isAdmin() || $me->isOPS()) && !intval($data["localiteid"])): ?>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Localité* : </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("localiteid", intval($data["localiteid"]  ), array("class"=>"form-control chosen"), $localites); ?> </div>   
+      </div>
+      <?php else: ?> 
+      <input type="hidden" name="localiteid"  id="localiteid" value="<?php echo intval($data['localiteid']); ?>" />
+      <?php endif; ?>          
+      	  
+	  <h3 class="content-box-header content-box-header-alt bg-default mrg10R mrg10L mrg10B">ETAPE 2 <small> Nouveau dirigeant ? </small></h3>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Nom & Prénom*: </label>
+           <div   class="col-sm-9 col-md-9"> 
+		     <div class="input-group">
+		      <input type="text" name="nom"    id="nom"    class="form-control" value="<?php echo $this->escape($data["nom"]);   ?>" placeholder="Nom de famille" />
+              <span class="input-group-btn" style="width:0px;"></span>
+			  <input type="text" name="prenom" id="prenom" class="form-control" value="<?php echo $this->escape($data["prenom"]);?>" placeholder="Prénom" />      
+            </div>
+		 </div>  
+	  </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Adresse*: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="adresse" id="adresse" class="form-control" value="<?php echo $this->escape($data["adresse"]); ?>" placeholder="Adresse" /></div>       
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Numéro de téléphone: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="telephone" id="telephone" class="form-control" value="<?php echo $this->escape($data["telephone"]); ?>" placeholder="Numéro de téléphone" /></div>       
+      </div>	  
+      <div class="form-group">    
+            <label class="col-sm-3 col-md-3 control-label"> Date & lieu de naissance*: </label>
+			<div   class="col-sm-9 col-md-9">
+			   <div class = "input-group">
+			       <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect("date_naissance_day", $data["date_naissance_day"]  , array("class" => "form-control chosen grpChosen"),array("00"=>"Jour")+createDatesArray());?></span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_month', $data["date_naissance_month"], array("class" => "form-control chosen grpChosen"),array(0 =>"Mois")+$this->months()); ?> </span>
+			       <span class="input-group-btn" style="width:0px;"></span>
+				   <span class="input-group-btn" style="width:125px;"><?php echo $this->formSelect('date_naissance_year' , $data["date_naissance_year"] , array("class" => "form-control chosen grpChosen"),array(0 =>"Année")+createYearsArray(1900, intval(date("Y")) ) );?></span>
+				   <span class="input-group-btn" style="width:0px;"></span>
+				   <input style="height:40px;" type="text" name="lieunaissance" id="lieunaissance" class="form-control" value="<?php echo $data["lieunaissance"]; ?>" placeholder="Lieu de naissance" />
+			   </div>
+			</div>    
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Sexe*: </label>
+           <div   class="col-sm-3 radio radio-primary"> 
+		     <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+             <label class="radio-inline pull-left"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>> Femme </label>
+		   </div>        
+      </div>
+	  <div class="form-group">          
+         <label class="col-sm-3 col-md-3 control-label"> Nationalité* : </label>
+         <div class="col-sm-9 col-md-9"> <?php echo $this->formSelect("country", $data['country'], array("class" => "form-control chosen") , $this->countries());?> </div>
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Situation matrimoniale*: </label>
+           <div   class="col-sm-9 col-md-9"> <?php echo $this->formSelect("marital_status", $data["marital_status"], array("class" => "form-control"), $situations); ?> </div>        
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> N° passport ou N°CNIB*: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="passport" id="passport" class="form-control" value="<?php echo $this->escape($data["passport"]); ?>" placeholder="Le numéro d'identité (CNIB ou PASSPORT)" /></div>        
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Profession: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="fonction" id="fonction" class="form-control"  placeholder="La profession du gérant" /></div>        
+      </div>	  
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Adresse email: </label>
+           <div   class="col-sm-9 col-md-9"> <input type="text" name="email" id="email" class="form-control" value="<?php echo $data["email"]; ?>" placeholder="Adresse email" /></div>       
+      </div>
+      <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Indexation automatique: </label>
+           <div   class="col-sm-8 col-md-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="find_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["find_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+      </div>
+	  <div class="form-group"> 
+           <label class="col-sm-3 col-md-3 control-label"> Contrôle qualité: </label>
+           <div   class="col-sm-8 col-md-8" style="height:32px;"> <input type="checkbox" data-on-color="primary" name="check_documents" class="input-switch" data-size="medium" data-on-text="Oui" data-off-text="Non" <?php echo (intval($data["check_documents"]) == 1) ? 'checked' : ''; ?> value="1"></div>
+      </div>
+	  <div id="findDocumentsOptions" class="form-group <?php echo (intval($data["find_documents"]) == 0) ? 'hide' :''; ?> "> 
+	    <label class="col-sm-3 col-md-3 control-label"> Dossier source*: </label>
+		<div   class="col-sm-8 col-md-8"> <input type="text" name="find_documents_src" id="find_documents_src" class="form-control" placeholder="Dossier source de stockage des documents" value="<?php echo $data["find_documents_src"]; ?>" /></div> 
+	  </div>
+	  <div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?> "> 
+           <label class="col-sm-3 col-md-3 control-label"> Le formulaire * : </label>
+           <div   class="col-sm-8 col-md-8"> <input type="file" name="docmini" id="docmini"    /></div>        
+     </div>
+     <div class="form-group manualFindDocuments <?php echo (intval($data["find_documents"]) == 1) ? 'hide' :''; ?>"> 
+           <label class="col-sm-3 col-md-3 control-label"> Le fond de dossier* : </label>
+           <div   class="col-sm-8 col-md-8"> <input type="file" name="docoriginal"  id="docoriginal"    /></div>        
+     </div>	  
+	 <input type="hidden" name="registreid" id="registreid" value="<?php echo $registreid; ?>" />
+    </form>
+ 
+    <?php 
+    $buttonsbar = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate = $buttonsbar->button("Mettre à jour les informations","save")->setPriority("primary");
+    $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"editButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if(!$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

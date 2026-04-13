@@ -1,0 +1,205 @@
+<?php 
+$data       = $this->data;
+$groupes    = $this->groupes;
+$cities     = $this->cities;
+$formSubmit = $this->url(array("controller" =>"members", "action" => "create"), "default" );
+$backList   = $this->url(array("controller" =>"members", "action" => "list")  , "default" );
+$linkSearchEntreprise = $this->url(array("controller"   => "ajaxres","action" => "entrepriseslist","parentform" => "createMemberForm", 
+                                         "selectCmdKey" => "selectEntreprise","selectedKey" => "entrepriseid","selectedVal" => "entreprise"), "default");
+$basePath   = VIEW_BASE_PATH;
+$situations = array("Célibataire" => "Célibataire","Marié(e)"=> "Marié(e)","Divorcé(e)"=> "Divorcé(e)","Veuf(ve)"=> "Veuf(ve)");
+$civilites  = array("Mr" => "Monsieur","Mme" => "Madame", "Mle" => "Mademoiselle", "Excellence"=>"Son excellence","Maître" => "Maître","Dr" => "Docteur","Pr" => "Professeur");
+$entreprises= $this->entreprises;
+
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery(); 
+$jq->addJavascriptFile( $basePath . '/js/editors/tinymce/tinymce.min.js'); 
+$onLoad = " 
+jQuery('.searchEntreprise').click(function(event){
+		event.preventDefault();
+		var filterListDialog  = jQuery('<div></div>').attr('id','filterListEntreprises').addClass('modal-medium');             		 
+        filterListDialog.dialog2({title:'Rechercher une entreprise',content:'".$linkSearchEntreprise."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,
+             		             closeOnEscape: true, closeOnOverlayClick: true,showCloseHandle:true,initialLoadText:'Chargement...'});        		            		
+        filterListDialog.dialog2('open'); 
+});
+tinymce.init({selector:'textarea',language:'fr_FR',plugins:'table,textcolor,colorpicker',menubar:'table',toolbar:'table | styleselect | bold italic |alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | advlist'});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#createMemberForm');
+      var  lastname     = jQuery.trim(formSelector.find('#lastname').val());
+      var  firstname    = jQuery.trim(formSelector.find('#firstname').val());
+      var  email        = jQuery.trim(formSelector.find('#email').val());
+      var  groupid      = parseInt(formSelector.find('#groupid').val());
+      
+      if(  SIRAH.util.isEmpty( lastname )){
+           jQuery('#lastname').addClass('input-error');
+           jQuery('#name-validation-message').html('');
+           SIRAH.error.raise('name-validation-message', 'Entrez le nom de famille du member');
+         return;
+      } else {
+           jQuery('#lastname').removeClass('input-error');
+           jQuery('#name-validation-message').html('');
+      }
+      if(  SIRAH.util.isEmpty( firstname )){
+           jQuery('#firstname').addClass('input-error');
+           jQuery('#name-validation-message').html('');
+           SIRAH.error.raise('name-validation-message', 'Entrez le prénom du member');
+         return;
+      } else {
+           jQuery('#firstname').removeClass('input-error');
+           jQuery('#name-validation-message').html('');
+      }
+      if(  SIRAH.util.isEmpty( groupid )){
+           jQuery('#groupe-validation-message').html('');
+           SIRAH.error.raise('groupe-validation-message','Selectionnez le groupe du member');
+         return;
+      } else {
+           jQuery('#groupe-validation-message').html('');
+      }      
+
+      formSelector.submit();
+   }); ";
+$jq->addOnLoad( $onLoad );
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center" id="createMemberForm" role="form"  enctype="multipart/form-data">
+ <div class="container col-md-12" style="text-align:left;">
+  <ul class="list-group">
+   <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-3"> <label class="label" for="code"> <b> Code member*: </b> </label> </div>
+      <div class="col-md-5"><input id="code" type="text" maxlength="50" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                                   title="Le code d'identification du member" placeholder="Le code d'identification du member" name="code" value="<?php echo $data['code']; ?>">
+      </div> 
+      <div class="col-md-4"><input id="passport" type="text" maxlength="20" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control"
+                                   title="Numéro de passport" placeholder="Numéro de passport" name="passport" value="<?php echo $data['passport']; ?>"    >
+      </div>                
+   </div>     
+  </li>
+  <li class="list-group-item">  
+      <div class="row">              
+         <div class="col-md-3"> <label class="label" for="firstname"> <b> Nom/Prénom * : </b> </label> </div>
+         <div class="col-md-2"> <?php echo $this->formSelect("civilite", $data["civilite"] , array("class" => "form-control") , $civilites); ?> </div>
+         <div class="col-md-3">
+              <input id="lastname" name="lastname" type="text" maxlength="100" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                     title="Nom de famille" placeholder="Nom de famille" value="<?php echo $data['lastname']; ?>" class="form-control">
+         </div>
+         <div class="col-md-4">
+             <input id="firstname" type="text" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control" title="Prénom du member" placeholder="Prénom du member" name="firstname" value="<?php echo $data['firstname']; ?>">
+          </div>                     
+         <p id="name-validation-message" class="validation-message"></p>    
+     </div> 
+   </li>
+   <li class="list-group-item">       
+        <div class="row">
+          <div class="col-md-3"><label class="label" for="famille"><b> Groupe / Famille * : </b></label></div>
+          <div class="col-md-5">  <?php echo $this->formSelect("groupid", $data["groupid"] , array("class" => "form-control") , $groupes); ?>   </div>  
+       
+          <div class="col-md-4"><input id="famille" type="text" maxlength="100" autocomplete="off" autocapitalize="off" autocorrect="off" title="Famille parrainée" placeholder="Famille parainnée" name="famille" class="form-control"></div> 
+          <p id="groupe-validation-message"  class="validation-message"></p>    
+          <p id="famille-validation-message" class="validation-message"></p>  
+        </div>  
+   </li>
+   <li class="list-group-item">
+        <div class="row"> 
+            <label class="col-sm-4 control-label"> Entreprise affiliée: </label>
+            <div   class="col-sm-8"> 
+		         <div class="input-group">
+			         <input type="text" name="entreprise" id="entreprise" class="form-control disabled" placeholder="Selectionnez une entreprise"  /> 
+		             <div class="input-group-btn">
+				        <button title="Selectionnez une entreprise" type="submit" class="btn btn-primary searchEntreprise"><span class="glyph-icon icon-search"></span> Selectionner </button>
+				     </div> 
+			     </div>
+		       </div>		                     
+               <input type="hidden" name="entrepriseid" id="entrepriseid" value="<?php echo $data["entrepriseid"]; ?>" />
+		       <input type="hidden" name="selectEntreprise" id="selectEntreprise"  /> 
+         </div>     
+   </li>
+   <li class="list-group-item">       
+        <div class="row">
+          <div class="col-md-3"><label class="label" for="adresse"><b> Adresse/Email * : </b></label></div>
+          <div class="col-md-5"> <input id="address" name="address" type="text" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                                        title=" Adresse" placeholder="Adresse" value="<?php echo $data['address']; ?>" class="form-control">  </div>  
+       
+      <div class="col-md-4"><input id="email" type="text" maxlength="100" autocomplete="off" autocapitalize="off" autocorrect="off" title=" Adresse électronique" placeholder="Adresse électronique" name="email" value="<?php echo $data['email']; ?>" class="form-control"></div> 
+      <p id="adresse-validation-message" class="validation-message"></p>    
+      <p id="email-validation-message"   class="validation-message"></p>  
+    </div>  
+   </li>
+   <li class="list-group-item">  
+      <div class="row">              
+        <div class="col-md-3"> <label class="label" for="tel1"> <b> Téléphone *: </b> </label> </div>
+        <div class="col-md-5"><input id="tel1" name="tel1" type="text" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" title="Son téléphone mobile " placeholder="Son  téléphone mobile" value="<?php echo $data['tel1']; ?>" class="form-control"></div>
+        <div class="col-md-4"><input id="tel2" type="text" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" title="Second téléphone" placeholder="Second mobile" name="tel2" value="<?php echo $data['tel2']; ?>" class="form-control"></div> 
+         <p id="phone-validation-message" class="validation-message"></p>    
+      </div> 
+   </li>
+   <li class="list-group-item">         
+        <div class="row">    
+          <div class="col-md-3"> <label class="label" for="fonction"><b> Profession / Nationalité: </b> </label> </div>
+          <div class="col-md-5"><input id="fonction" type="text" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" title="Sa profession" placeholder="Sa profession" name="fonction" value="<?php echo $data['fonction']; ?>" class="form-control"></div>
+          <div class="col-md-4"><input id="nationalite" type="text" maxlength="100" autocomplete="off" autocapitalize="off" autocorrect="off" class="form-control" title="Nationalité" placeholder="Nationalité" name="nationalite" value="<?php echo $data['nationalite']; ?>">  </div> 
+       </div> 
+   </li>  
+   <li class="list-group-item">  
+      <div class="row">              
+         <div class="col-md-3"> <label class="label" for="birthday"> <b> Date/Lieu de naissance : </b> </label> </div>
+         <div class="col-md-1"><?php echo $this->formSelect("birthday_day"  , $data["birthday_day"]  , array("class" => "form-control"),array("00"=>"Jour")+createDatesArray());?></div>
+         <div class="col-md-2"><?php echo $this->formSelect("birthday_month", $data["birthday_month"], array("class" => "form-control"),array("00"=>"Mois")+$this->months()); ?></div>
+         <div class="col-md-2"><?php echo $this->formSelect("birthday_year" , $data["birthday_year"] , array("class" => "form-control"),array("0000"=>"Année")+createYearsArray(1920, 2015));?></div>
+         <div class="col-md-4"><input id="birthaddress" type="text" maxlength="200" autocomplete="off" autocapitalize="off" autocorrect="off" title="Lieu de naissance" placeholder="Lieu de naissance" name="birthaddress" value="<?php echo $data['birthaddress']; ?>" class="form-control"></div>                                 
+       </div> 
+  </li>                          
+  <li class="list-group-item">      
+    <div class="row">    
+         <div class="col-md-3"> <label class="label" for="country"> <b> Pays/Ville * : </b> </label> </div>
+         <div class="col-md-5"> <?php echo $this->formSelect("country", $data['country'] , array("class" => "form-control") , $this->countries());?> </div>
+         <div class="col-md-4"><input id="ville" name="ville" type="text" maxlength="100" autocomplete="off" autocapitalize="off" autocorrect="off" title="Ville" placeholder="Ville" value="<?php echo $this->ville; ?>" class="form-control" ></div>
+     </div>
+  </li>        
+  <li class="list-group-item">      
+     <div class="row">    
+        <div class="col-md-3"> <label class="label" for="sexe"> <b> Sexe/Situation matrimoniale : *</b> </label> </div>
+        <div class="col-md-5 controls">
+             <label class="radio-inline pull-right"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($data["sexe"] == "M") echo "checked"; ?>> Homme </label>          
+             <label class="radio-inline pull-right"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($data["sexe"] == "F") echo "checked"; ?>> Femme </label>
+        </div>
+        <div class="col-md-4"> <?php echo $this->formSelect("matrimonial", $data["matrimonial"] , array("class" => "form-control") , $situations); ?></div>
+    </div>
+ </li>
+ <li class="list-group-item">
+          <div class="row">
+             <div class="col-md-3"> <label class="label" for=""> <b> Observations: </b> </label> </div>
+             <div class="col-md-9"> <textarea   name="observations" id="observations" class="form-control textarea-sm"> <?php echo $data["observations"]; ?> </textarea></div>              
+          </div>  
+ </li>  
+ </ul>  
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer le member","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+   
+   $toolCreate->setAttributes(array("type" => "submit"));
+   $toolCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonsbar->add( $toolCreate , "createButton");
+   $buttonsbar->add( $toolCancel , "cancelCreationButton");
+
+   if(!$this->isAjax) {
+   	   echo $buttonsbar;
+   } else {
+   	   echo $this->jQuery();
+   }
+   
+   ?>
+   </div> 
+   
+   <input type="hidden" name="city" id="city" value="<?php echo $data["city"]; ?>" />
+</form>

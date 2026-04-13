@@ -1,0 +1,101 @@
+<?php 
+$messages           = $this->messages;
+$data               = $this->data;
+$typesDocuments     = $this->typesdocuments;
+
+$formSubmit         = $this->url(array("controller"=> "requetes", "action" => "create", "module" => "public"),"default");
+$linkSearch         = $this->url(array("controller"=> "ajaxres" , "action" => "registreslist", "parentform" => "requestCreationForm", "module" => "public") , "default");
+$linkCancel         = $this->url(array("controller"=> "account" , "action" => "dashboard", "module" => "public") , "default");
+$registerDoneUri    = $this->registerDoneUri;
+$basePath           = VIEW_BASE_PATH;
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('.searchItem,.numero,#numero').click(function(event){
+	  event.preventDefault();
+	  var filterListDialog  = jQuery('<div></div>').attr('id','filterListRegistres').addClass('modal-medium');             		 
+      filterListDialog.dialog2({title               : 'Rechercher un registre',
+             		            content             : '".$linkSearch."',
+             		            autoOpen            : false,
+             		            modalClass          :'modal-wide',
+             		            removeOnClose       : true,
+             		            closeOnEscape       : true, 
+                                closeOnOverlayClick : true,
+             		            showCloseHandle     : true,
+             		            initialLoadText     : 'Chargement...'            		                       
+             		                       });        		            		
+             		filterListDialog.dialog2('open');   		
+		         });
+jQuery('.createButton').click(function( event ){
+      event.preventDefault();      
+      var  formSelector= jQuery('#requestCreationForm');
+      var  registreid  = parseInt(formSelector.find('#registreid').val());
+      var  typedocument= jQuery.trim(jQuery('#typedocument').val());
+      
+      if( !registreid ) {
+          jQuery('#numero').addClass('input-error');
+          jQuery('#registre-validation-message').html('');
+          SIRAH.error.raise('registre-validation-message','Selectionnez un numéro de registre valide');
+          return;
+      }else {
+         jQuery('#numero').removeClass('input-error');
+         jQuery('#registre-validation-message').html('');
+      }
+      if(SIRAH.util.isEmpty(typedocument)){
+         jQuery('#typedocument-validation-message').html('');
+         SIRAH.error.raise('typedocument-validation-message','Selectionnez un type de document valide');
+         return;
+      }  else {
+          jQuery('#typedocument-validation-message-validation-message').html('');
+      }
+           
+      formSelector.submit();
+});
+jQuery('.cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';}); ";
+$jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" align="center" id="requestCreationForm"  class="form-horizontal" role="form" >
+ <ul class="list-group">
+    <li class="list-group-item">  
+        <div class="row">              
+            <div class="col-md-3"> <label class="label" for="registre"> <b> Numéro de registre*: </b> </label> </div>
+            <div class="col-md-5">
+                 <input id="numero" type="text" maxlength="13" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                        title="Numéro de registre" placeholder="Numéro de registre" name="numero"  disabled="disabled" >
+            </div>
+            <div class="col-md-4">
+               <div class="btn-group"><button title="Selectionnez un registre dans la liste des registres enregistrés" type="submit" class="btn btn-primary searchItem"><span class="glyphicon glyphicon-search"></span> Selectionnez un registre </button></div>
+            </div>
+            <p id="registre-validation-message" class="validation-message"></p>    
+        </div>
+    </li>
+    <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="typedocument"> <b> Type de document* : </b> </label> </div>
+         <div class="col-md-8">  <?php echo $this->formSelect("typedocument", intval( $data['typedocument']) , array() , $typesDocuments); ?> </div>  
+          <p id="typedocument-validation-message" class="validation-message"></p>   
+     </div>  
+   </li>
+   <li class="list-group-item">
+     <div class="row">
+         <div class="col-md-3"> <label class="label" for="description"> <b> Nature de la demande: </b> </label> </div>
+         <div class="col-md-8"> 
+            <textarea name="description" id="description"><?php echo $data["description"]; ?> </textarea>
+         </div>  
+     </div>  
+   </li>
+ </ul> 
+
+   <input type="hidden" name="t"               id="t"           value="<?php echo $this->token; ?>" /> 
+   <input type="hidden" name="registreid"      id="registreid"  value="<?php echo $data['registreid']; ?>"        />
+   <input type="hidden" name="selectRegistre"  id="selectRegistre"      />
+</form>
+
+<div class="panel-footer">
+     <div class="btn-group"> <button class="btn btn-success createButton"> <i class="glyphicon glyphicon-floppy-disk"> </i> Enregistrer </button> </div>
+     <div class="btn-group"> <button class="btn btn-danger  cancelButton"><i class="glyphicon glyphicon-ban-circle"> </i>  Annuler </button> </div>
+</div>
+
+
+

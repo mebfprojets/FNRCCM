@@ -1,0 +1,79 @@
+<?php 
+$data         = $this->data;
+$formSubmit   = $this->url(array("controller" =>"index", "action" => "importfromcsv", "module" => "admin"), "default" );
+$backList     = $this->url(array("controller" =>"registrephysique", "action" => "list"  , "module" => "admin"), "default" );
+$localites    = $this->localites;
+$annees       = $this->annees;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#importButton').click(function(e){
+      e.preventDefault();      
+      var  formSelector = jQuery('#importForm');
+      var  annee        = parseInt(jQuery.trim(formSelector.find('#annee').val()));
+      var  localiteid   = parseInt(formSelector.find('#localiteid').val());
+
+      if( SIRAH.util.isEmpty( annee )){
+          SIRAH.error.raise('importForm','Entrez une année valide');
+          return;
+      } 
+      if( SIRAH.util.isEmpty( localiteid )){
+          SIRAH.error.raise('importForm','Veuillez selectionner une localité');
+          return;
+      }      
+      formSelector.submit();
+   }); ";
+  
+  $jq->addOnLoad($onLoad);
+
+?>
+
+<div     class="content-box">    
+    <h3 class="content-box-header content-box-header-alt bg-default"> Paramètres des données source </h3>
+    <form method="post"  id="importForm" class="form-horizontal mrg15T row" role="form" enctype="multipart/form-data">        
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Chercher un document : </label>
+           <div  class="col-sm-6"> <input name="registres" id="registres" type="file" />  </div>   
+       </div> 
+       <div class="form-group"> 
+          <label class="col-sm-3 control-label"> Localité concernée* : </label>
+           <div  class="col-sm-6"> <?php echo $this->formSelect("localiteid", $data["localiteid"] , array("class"=>"form-control"), $localites); ?> </div>   
+       </div> 
+       
+       <div class="form-group"> 
+           <label class="col-sm-3 control-label"> L'année concernée* : </label>
+           <div   class="col-sm-6"> <?php echo $this->formSelect("annee", $data["annee"] , array("class"=>"form-control"), $annees); ?> </div>        
+     </div>                
+    </form>
+ 
+    <?php 
+    $buttonsbar  = $this->Btnbar(array("class" => "button-pane") , $this->jqueryHandler());
+    $toolCreate  = $buttonsbar->button("Importer les données","upload")->setPriority("primary");
+    $toolCancel  = $buttonsbar->button("Annuler et revenir sur la liste","ban");
+     
+    $toolCreate->setAttributes(array("type" => "submit", "class" => "btn btn-success"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+     
+    $buttonsbar->add($toolCreate ,"importButton");
+    $buttonsbar->add($toolCancel ,"cancelCreationButton");
+    
+    if( !$this->isAjax )
+        echo $buttonsbar;
+    ?>
+</div>
+
+<?php     
+  
+
+   if( $this->isAjax) {
+   	   echo $this->jQuery();
+   }
+   
+   ?>

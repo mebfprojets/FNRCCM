@@ -1,0 +1,89 @@
+<?php 
+   $demandes    = $this->demandes;
+   $promoteur   = $this->promoteur;  
+   $promoteurid = $this->promoteurid;
+   $linkEdit    = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"edit"  ,"promoteurid"=>$promoteurid), "default") ;
+   $linkDelete  = $this->url(array("module"=>"admin","controller"=>"demandes","action"=>"delete","promoteurid"=>$promoteurid), "default") ;
+   $output      = "";
+   $output     .= "<table id=\"demandesListTable\" class=\"table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable\">
+						<thead> 
+								<tr>
+									<th width=\"15%\"> Dates  </th>
+									<th width=\"70%\"> Objets </th>
+									<th width=\"15%\">*</th>
+								</tr>
+						</thead>";
+    if( count(   $demandes)) {
+    	foreach( $demandes as $demande) {
+				 $demandeid     = intval($demande["demandeid"]);
+				 $objetDemande  = $demande["libelle"];
+				 $dateDemande   = (intval($demande["date"]))?date("d/m/Y",$demande["date"]) : "";
+				 $typeDemande   = $demande["type"];  	  	    	  	
+				 $linkInfos     = $this->url(array("module"=>"admin","controller"=>"demandes","action"=> "infos", "id" => $demandeid ) , "default");    	  	
+				 $bgColorClass  = $this->cycle(array("#FFFFFF","#F5F5F5"))->next();
+
+				 $output       .= "<tr id=\"demandeId-".$demandeid."\" class=\" ".$bgColorClass."\">";
+						$output.= "
+						            <td style=\"text-align:left;\" class=\" ".$bgColorClass."\"><a title=\"Visualiser les informations de cette demande\" href=\"".$linkInfos."\">".$dateDemande ."</a> </td>
+									<td style=\"text-align:left;\" class=\" ".$bgColorClass."\"><a title=\"Visualiser les informations de cette demande\" href=\"".$linkInfos."\">".$objetDemande."</a> </td>
+									<td style=\"text-align:left;\" class=\" ".$bgColorClass."\"> 
+										<div class=\"btn-group\" role=\"group\">
+											<button type=\"button\" class=\"btn btn-success pull-left editDemande\"   title=\"Mettre à jour cette demande\" id=\"editDemandeId-".$demandeid."\">  <span class=\"glyph-icon icon-edit\"> </span> </button>
+											<button type=\"button\" class=\"btn btn-danger  pull-left deleteDemande\" title=\"Supprimer cette demande\"     id=\"removeDemandeId-".$demandeid."\"><span class=\"glyph-icon icon-remove\"> </span> </button>										    
+										</div>
+									</td>";
+				 $output      .= "</tr>";
+				 $output      .=" <input type=\"hidden\" name=\"objet-".$demandeid." id=\"objet-".$demandeid."\" value=\"".$objetDemande."\" />";
+    	  }    	  
+    }  else {
+		$output .= "<tr id=\"demandeId-0\"><td colspan=\"4\" style=\"text-align:center !important;\"> AUCUNE DEMANDE N'EST ASSOCIEE A CE DEMANDEUR </td></tr>";
+    }
+    $output     .= "</table>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+	$onLoad  = "
+	
+	    jQuery('.deleteDemande,.editDemande').css('cursor','pointer');
+	    jQuery('.editDemande').click(function(){ 
+		        event.preventDefault();     
+                var demandeId         = parseInt(jQuery(this).attr('id').replace('editDemandeId-',''));
+				var demandeLib        = jQuery('#objet-'+demandeId).val();
+				var dialogEditDemande = jQuery('<div></div>').attr('id','dialogEditDemande').addClass('modal-medium');             		 
+				dialogEditDemande.dialog2({title:'Mettre à jour les informations du courrier'+numDev,content:'".$linkEdit."/demandeId/'+demandeId,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement des informations de la page , patientez...'});        		
+				dialogEditDemande.dialog2('addButton','<span class=\'glyphicon glyphicon-floppy-disk\'></span> Sauvegarder',{primary : true,click : 
+									      function(){var editForm = jQuery(this).find('form').eq(0);SIRAH.request.post(editForm,'".$linkEdit."/demandeId/'+demandeId);}}); 
+				dialogEditDemande.dialog2('addButton','Annuler',{primary: false,click : function(){jQuery(this).dialog2('close');basicLoadPage();}});              		
+				dialogEditDemande.dialog2('open');
+																					
+        });
+        jQuery('.deleteDemande').click(function(){      
+			var demandeId           = parseInt(jQuery(this).attr('id').replace('removeDemandeId-',''));
+			var dialogDeleteDemande = jQuery('<div> Etes-vous sur de supprimer cette demande ? </div>').attr('id','dialogDeleteDemande');
+			dialogDeleteDemande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose: true,closeOnEscape: false, closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+			dialogDeleteDemande.dialog2('addButton','Oui' , { primary : true , click : 
+									function(){
+										jQuery.ajax({url:'".$linkDelete."',async: false,dataType :'json',data : {'demandeid':demandeId},
+													type     : 'GET' ,
+													success  : function(data) 
+													{
+														if(data.error !== undefined) {
+															SIRAH.error.raise(jQuery('#dialogDeleteDemande') , data.error);
+															return;
+														} else {
+															SIRAH.error.raise(jQuery('#dialogDeleteDemande'), data.success , 'success');
+															setTimeout(function(){
+																		jQuery('#demandeId-'+demandeId).remove();
+																		jQuery('#dialogDeleteDemande').dialog2('close');
+																		},2500);
+														}
+														}
+													});     		
+											}}); 
+			dialogDeleteDemande.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+			dialogDeleteDemande.dialog2('open');                   		             		            		       
+       });";    
+    $jq->addOnLoad($onLoad);
+?>
+             

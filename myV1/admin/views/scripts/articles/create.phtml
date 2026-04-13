@@ -1,0 +1,246 @@
+<?php 
+$data                = $this->data;
+$formSubmit          = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"create"), "default" );
+$backList            = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"list")  , "default" );
+
+
+$jq                  = $this->jQuery(); 
+$onLoad              = " ";
+
+$onLoad      .= "
+var createRow       = function(lastLigneId) {
+    lastLigneId     = parseInt(lastLigneId);
+    if(!lastLigneId ) {
+        lastLigneId = jQuery('#photosTable > tr').last().attr('ligne');  
+    }              
+    var newLigneId  = parseInt(lastLigneId)+1;
+    var newRowId    = newLigneId;
+    if( jQuery('#photosLigne-'+newLigneId).attr('ligne') == newLigneId ) {
+        return false;
+    } 
+    var lineRow =  jQuery('<tr></tr>').attr('id', 'photosLigne-'+newLigneId ).attr('ligne', newLigneId )
+                                      .append(jQuery('<input type=\'hidden\' id=\'photolignes_'+newLigneId+'\'name=\'photolignes[]\' />').val(newLigneId));
+    var supprCol= jQuery('<td/>').attr('col' , '0') 
+                                 .append(jQuery('<span title=\'Supprimer la ligne\' href=\'#\' id=\'removePhotoBtnId-'+newLigneId+'\' class=\'glyphicon glyphicon-remove removeLine \'> &nbsp;</span>')
+                                                   .css('cursor', 'pointer')
+                                                   .bind('click', function(event){event.preventDefault();jQuery('#photosLigne-'+newLigneId).remove();}));
+    var newCol  = jQuery('<td/>').attr('col' , '5')
+                                 .append(jQuery('<span title=\'Ajouter une ligne\' href=\'#\' id=\'addPhotoBtnId-'+newLigneId+'\' class=\'glyphicon glyphicon-plus addLigne \'>+</span>')
+                                                    .css('cursor','pointer')
+                                                    .bind('click', function( event ){event.preventDefault();createRow( newLigneId );})); 
+    var numCol           = jQuery('<td/>').attr('col','1').append(' '+newRowId);                                               
+    var photoTitleCol = jQuery('<td/>').attr('col','2')
+                                          .append(jQuery('<input type=\'text\' name=\'gallery_photos_title'+newLigneId+'\' id=\'gallery_photos_title'+newLigneId+'\' />')
+                                                    .addClass('gallery_photos_titles').addClass('form-control'));                 
+    var photoDescCol  = jQuery('<td/>').attr('col','3')
+                                          .append(jQuery('<input type=\'text\' name=\'gallery_photos_desc'+newLigneId+'\' id=\'gallery_photos_desc'+newLigneId+'\' />')
+                                                  .addClass('gallery_photos_descriptions').addClass('form-control')); 
+    var photoFileCol  = jQuery('<td/>').attr('col','4')
+                                                  .append(jQuery('<input type=\'file\' name=\'gallery_photos'+newLigneId+'\' id=\'gallery_photos'+newLigneId+'\' />')
+                                                          .addClass('gallery_photos_files')); 
+    lineRow.append(supprCol).append(numCol).append(photoTitleCol).append(photoDescCol).append(photoFileCol).append( newCol);                  
+    jQuery('#photosTable').find('tbody').append( lineRow );                                                                                                    
+};
+jQuery('.addPhoto').css('cursor','pointer')
+                   .click(function( event ){
+                           event.preventDefault(); 
+                           var hisLigneId  = parseInt(jQuery(this).attr('id').replace('addPhotoBtnId-',''));                          
+                           createRow( hisLigneId );
+						  });
+   
+jQuery('.removePhoto').css('cursor','pointer')
+                         .click(function( event ) {
+                               event.preventDefault(); 
+                               var hisLigneId  = parseInt(jQuery(this).attr('id').replace('removePhotoBtnId-',''));                              
+                               jQuery('#photosLigne-'+hisLigneId).remove();
+						 });
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text:  'Aucun element ne correspond à ',width:'100%',placeholder_text_single:'Sélectionnez un élement'});
+jQuery('#catid').chosen({allow_single_deselect:true,no_results_text:'Aucune catégorie d\'articles ne correspond à ', width:'100%'});
+  ";
+$onLoad      .= " 
+tinymce.init({selector:'textarea',language:'fr_FR',plugins:[
+'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+'searchreplace wordcount visualblocks visualchars code fullscreen',
+'insertdatetime media nonbreaking save table contextmenu directionality',
+'template paste textcolor colorpicker textpattern imagetools codesample toc help emoticons hr'
+],
+toolbar1: 'formatselect | bold italic  strikethrough  forecolor backcolor | link | alignleft aligncenter alignright alignjustify  | numlist bullist outdent indent  | removeformat',
+image_advtab:true});
+jQuery('#photogarde').filestyle({buttonText:'Chercher une photo',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('#articledoc').filestyle({buttonText:'Chercher un document',classButton:'btn btn-primary',classInput:'input-inline form-control',classIcon:'glyph-icon icon-folder-open',icon: true});
+jQuery('.chosen').chosen({allow_single_deselect:true,no_results_text:'Aucun element ne correspond à ',width:'100%',placeholder_text_single:'Sélectionnez un élement'});
+jQuery('#cancelCreationButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#createButton').click(function(e){
+	e.preventDefault();    
+	var formSelector = jQuery('#createArticleForm');
+	var title        = formSelector.find('#title').val();
+	var catid        = parseInt(formSelector.find('#catid').val());
+	var contenu      = tinymce.get('content').getContent();
+	var introtext    = tinymce.get('introtext').getContent();
+
+	if(SIRAH.util.isEmpty(title)) {
+	   jQuery('#title-validation-message').html('');
+	   SIRAH.error.raise('title-validation-message', 'Saisissez le titre de l\'article');
+	   return;
+	} else {
+	   jQuery('#title-validation-message').html('');
+	}
+	if(!catid) {
+	   jQuery('#categorie-validation-message').html('');
+	   SIRAH.error.raise('categorie-validation-message', 'Sélectionnez la catégorie de l\'article');
+	   return;
+	} else {
+	   jQuery('#categorie-validation-message').html('');
+	}		
+	formSelector.find('#content').val(contenu); 
+	formSelector.find('#introtext').val(introtext); 
+	formSelector.submit();
+}); ";
+$basePath           = VIEW_BASE_PATH;
+$jq->addOnLoad( $onLoad );
+ 
+$jq->addJavascriptFile($basePath."/js/jquery.dynamic-select.min.js");
+$jq->addJavascriptFile($basePath.'/js/chosen/ajaxchosen.min.js');
+$jq->addJavascriptFile($basePath."/js/bootstrap/bootstrap-filestyle.js");
+$jq->addJavascriptFile($basePath."/js/editors/tinymce2/tinymce.min.js");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.bootstrap-filestyle input{float:left;width:70%;}
+.bootstrap-filestyle label{float:left;width:30%;}
+.input-photo{width:250px;display:inline-block;}
+.form-horizontal .checkbox, .form-horizontal .checkbox-inline, .form-horizontal .control-label, .form-horizontal .radio, .form-horizontal .radio-inline {padding-top:0!important}
+.grpChosen{width:100px !important;}
+.input-group-chosen{width:100%;}
+.chosen-container-single .chosen-single{height:35px;line-height:35px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit;?>" id="createArticleForm" role="form" class="form-horizontal createArticleForm" enctype="multipart/form-data">
+    <div class="panel panel-default" >
+		<ul class="list-group">		     
+		    <li class="list-group-item">
+				<div class="form-group">            
+					<label class="col-md-2  col-sm-2 control-label"> Catégorie*: </label> 
+					<div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("catid",intval($data["catid"]), array("class"=>"form-control"), $this->categories); ?>   </div> 				
+				    <p id="categorie-validation-message" class="validation-message"></p> 
+				</div>					
+			</li>			 
+		    <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2 col-sm-2  control-label" for="title"> Titre*: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="title" name="title" type="text" maxlength="220" class="form-control" title="Titre de l'article" placeholder="Titre de l'article" value="<?php echo $data["title"]; ?>"></div> 			   
+				   <p id="title-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>  
+			<li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2 col-sm-2  control-label" for="keywords">Mots clés: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="keywords" name="keywords" type="text" maxlength="220" class="form-control" title="Mots clés de l'article" placeholder="Mots clés de l'article" value="<?php echo $data["keywords"]; ?>"></div> 			   
+				   <p id="keywords-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>	
+            <li class="list-group-item">
+				<div class="form-group">
+				   <label class="col-md-2 col-sm-2  control-label" for="alias">Alias: </label>
+				   <div   class="col-md-10 col-sm-10"><input id="alias" name="alias" type="text" maxlength="220" class="form-control" title="Mots clés de l'article" placeholder="Mots clés de l'article" value="<?php echo $data["alias"]; ?>"></div> 			   
+				   <p id="alias-validation-message" class="validation-message"></p> 
+				</div>     
+			</li>  
+            <li class="list-group-item">
+			    <div class="form-group">              
+					<label class="col-sm-2  col-md-2 control-label">Photo de garde: </label>
+					<div   class="col-sm-10 col-md-10"> <input type="file" name="photogarde" id="photogarde"  /> </div>  
+			    </div>
+			</li>  
+            <li class="list-group-item">
+			    <div class="form-group">              
+					<label class="col-sm-2  col-md-2 control-label"> Pièce Jointe: </label>
+					<div   class="col-sm-10 col-md-10"> <input type="file" name="articledoc" id="articledoc"  /> </div>  
+			    </div>
+			</li>	
+            <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2 col-sm-2 control-label"> Introduction: </label>
+					<div   class="col-md-10 col-sm-10"><textarea rows="5" cols="75" name="introtext" id="introtext" class="form-control textarea-sm"> <?php echo $data["introtext"]; ?> </textarea></div>              
+				</div>  
+			</li>			
+            <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2 col-sm-2 control-label"> Contenu*: </label>
+					<div   class="col-md-10 col-sm-10"><textarea rows="5" cols="75" name="content" id="content" class="form-control textarea-sm"> <?php echo $data["content"]; ?> </textarea></div>              
+				</div>  
+			</li>			
+		</ul>
+		<div class="panel-body"><h2> Galerie Photos</h2></div> 
+		<table id="photosTable" class="table table-hover table-bordered table-stripped sirah-ui-table scrollable">
+            <thead>
+                <tr>
+                    <th width="1%">  #            </th>
+                    <th width="5%">  Lignes       </th>
+                    <th width="30%"> Titres       </th>
+                    <th width="40%"> Descriptions </th>
+                    <th width="20%"> Fichiers     </th>
+                    <th width="4%">  *            </th>
+                </tr>
+            </thead>
+            <tbody> 
+			    <?php
+                    $articlePhotoOutput = "";
+                    $ligneid        = 1;
+                    if( count(   $articlehotos )) {
+                        foreach( $articlePhotos as $articlePhoto ) {
+                                 if( isset( $articlePhoto["docIndex"] )) {
+                                     $ligneid         = $articlePhoto["docIndex"];
+                                 }
+                                 $articlePhotoTitle  = (isset($articlePhoto["gallery_photos_title".$ligneid]))? $articlePhoto["gallery_photos_title".$ligneid] : "";
+                                 $articlePhotoDesc   = (isset($articlePhoto["gallery_photos_desc".$ligneid] ))? $articlePhoto["gallery_photos_desc".$ligneid]  : "";
+                                 $rowBg          = "background-color:".$this->cycle(array('#F0F0F0','#FFFFFF'))->next().";";  
+                                 $articlePhotoOutput.="<tr style=\"".$rowBg."\"  id=\"photosLigne-".$ligneid."\" ligne=\"".$ligneid."\">"; 
+                                 $articlePhotoOutput.="    <td col=\"0\"><a id=\"removePhotoBtnId-".$ligneid."\" title=\"Supprimer cette pièce jointe\" class=\"removePhoto\" href=\"#\"><i class=\"glyphicon glyphicon-remove\"></i></a></td>";
+                                 $articlePhotoOutput.="    <td col=\"1\"> ".$ligneid." </td>";
+                                 $articlePhotoOutput.="    <td col=\"2\"> <input type=\"text\" name=\"gallery_photos_title".$ligneid."\" id=\"gallery_photos_title".$ligneid."\" class=\"gallery_photos_titles form-control\"       value=\"".$articlePhotoTitle."\" /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"3\"> <input type=\"text\" name=\"gallery_photos_desc".$ligneid."\"  id=\"gallery_photos_desc".$ligneid."\"  class=\"gallery_photos_descriptions form-control\" value=\"".$articlePhotoDesc."\"  /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"4\"> <input type=\"file\" name=\"articlePhotos".$ligneid."\"       id=\"articlePhotos".$ligneid."\"  class=\"gallery_photos_files\" title=\"Sélectionnez un fichier\" /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"5\"><a id=\"addPhoto-".$ligneid."\" title=\"Ajouter une pièce jointe\" class=\"addPhoto\"  href=\"#\"><i class=\"glyphicon glyphicon-plus\"></i></a></td>";
+                                 $articlePhotoOutput.="</tr>";
+                                 $articlePhotoOutput.="<input type='hidden' name='lignes[]' id='lignes_".$ligneid."' value='".$ligneid."' />";
+                                 $ligneid++;
+                        }
+                    } else {
+                                 $rowBg          = "background-color:".$this->cycle(array('#F0F0F0','#FFFFFF'))->next().";";  
+                                 $articlePhotoOutput.="<tr style=\"".$rowBg."\"  id=\"photosLigne-".$ligneid."\" ligne=\"".$ligneid."\">"; 
+                                 $articlePhotoOutput.="    <td col=\"0\"><a id=\"removePhotoBtnId-".$ligneid."\" title=\"Supprimer cette pièce jointe\" class=\"removePhoto\" href=\"#\"><i class=\"glyphicon glyphicon-remove\"></i> &nbsp;</a></td>";
+                                 $articlePhotoOutput.="    <td col=\"1\"> ".$ligneid." </td>";
+                                 $articlePhotoOutput.="    <td col=\"2\"> <input type=\"text\" name=\"gallery_photos_title".$ligneid."\" id=\"gallery_photos_title".$ligneid."\" class=\"gallery_photos_titles form-control\"        /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"3\"> <input type=\"text\" name=\"gallery_photos_desc".$ligneid."\"  id=\"gallery_photos_desc".$ligneid."\"  class=\"gallery_photos_descriptions form-control\"   /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"4\"> <input type=\"file\" name=\"articlePhotos".$ligneid."\"       id=\"articlePhotos".$ligneid."\"       class=\"gallery_photos_files\" title=\"Sélectionnez un fichier\" /> </td>";
+                                 $articlePhotoOutput.="    <td col=\"5\"><a id=\"addPhotoBtnId-".$ligneid."\" title=\"Ajouter une pièce jointe\" class=\"addPhoto\"  href=\"#\"><i class=\"glyphicon glyphicon-plus\"></i>+</a></td>";
+                                 $articlePhotoOutput.="</tr>";
+                                 $articlePhotoOutput.="<input type='hidden' name='photolignes[]' id='photolignes_".$ligneid."' value='".$ligneid."' />";
+                                 $ligneid++;
+                    }
+
+                    echo $articlePhotoOutput;
+                ?>
+			</tbody>
+		</table>
+        
+<?php     
+   $buttonsbar = $this->Btnbar(array() , $this->jqueryHandler());
+   $toolCreate = $buttonsbar->button("Enregistrer","save")->setPriority("primary");
+   $toolCancel = $buttonsbar->button("Annuler","chevron-left");
+   
+   $toolCreate->setAttributes(array("type"=> "submit"));
+   $toolCancel->setAttributes(array("type"=> "submit"));
+      
+   $buttonsbar->add( $toolCancel , "cancelCreationButton");
+   $buttonsbar->add( $toolCreate , "createButton");
+
+   if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\"> ".$buttonsbar." </div>";
+   } else {
+   	   echo $this->jQuery();
+	   echo $this->headStyle();
+   }  
+?>
+</div> 
+ 
+</form>

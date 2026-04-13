@@ -1,0 +1,226 @@
+<?php 
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$groupes           = $this->groupes;
+$ophtalmos         = $this->ophtalmologues;
+$parentform        = $this->parentform;
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"public","controller" => "ajaxres", "action" => "ophtalmoslist", "parentform" => $parentform, "module"=>"public") , "default");
+
+$jq->addOnload("
+var parentformSelector  = jQuery('#".$parentform."');
+jQuery('.selectClick').click(function(event){
+       event.preventDefault();
+	   var ophtalmoid  = parseInt(jQuery(this).attr('href').replace('#ophtalmoid-', ''));
+	   if(ophtalmoid && parentformSelector ) {
+		  var ophtalmoName          = jQuery('#name-'+ophtalmoid).val();
+		  
+		  var parentOphtalmoIdInput = parentformSelector.find('input[name=\'ophtalmoid\']');
+		  var parentNameSelector    = parentformSelector.find('input[name=\'ophtalmo\']');
+		
+		  if( parentOphtalmoIdInput   ) {
+		      parentOphtalmoIdInput.val(ophtalmoid );
+		  }
+		  if( parentNameSelector  ) {
+		      parentNameSelector.val( ophtalmoName );
+		  }	
+		} else {
+		    return false;
+	    }
+		selectOphtalmo = parentformSelector.find('#selectOphtalmo');
+		if(selectOphtalmo)	{
+		   selectOphtalmo.trigger('select-item', [ophtalmoid] );
+		} 
+		jQuery('#filterListOphtalmos').dialog2('close');
+});
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault();jQuery('#advancedSearch').toggle();});
+jQuery('.resetSearch').click(function(event){event.preventDefault();document.location.href = '".$linkSearch."';});		
+jQuery('#simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector   = jQuery('#ophtalmoSearchForm') ;
+		var keywordsText   = nameText = jQuery.trim(formSelector.find('#keywords').val());		
+		
+		var searchData     = {};
+		var lastname       = '';
+		var firstname      = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname  = lastname;
+		searchData.firstname = firstname;
+		searchData.maxitems  = parseInt(formSelector.find('#maxitems').val());						 
+
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);SIRAH.loading.off(false);}		
+		                  });								
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector        = jQuery('#entreprisesListSearchForm') ;
+		var pageNum             = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems        = formSelector.find('#maxitems').val();
+		var paginationData      = {};
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var nameText       = jQuery.trim(formSelector.find('#keywords').val());
+		var lastname       = '';
+		var firstname      = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		paginationData.lastname  = lastname;
+		paginationData.firstname = firstname;
+		paginationData.maxitems  = pageMaxitems;
+		paginationData.page      = pageNum;
+		
+		var modalBox             = jQuery('.modal').find('.modal-body');			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.searchOphtalmo').click(function(    event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#ophtalmosListSearchForm') ;					
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		var searchData     = {};
+		var nameText       = jQuery.trim(formSelector.find('#keywords').val());
+		var lastname       = '';
+		var firstname      = '';
+		if( !SIRAH.util.isEmpty( nameText ) ) {
+		    var nameToArray =  nameText.split(/\s+/);
+		    if( nameToArray.length ) {
+		        lastname    = nameToArray[0];
+		        if( nameToArray.length >= 2 ) {
+		            for( var i = 1; i < nameToArray.length; i++) {
+                         firstname += ' '+nameToArray[i];
+		            }
+                }
+		    }
+		}
+		searchData.lastname  = lastname;
+		searchData.firstname = firstname;
+		searchData.page      = pageNum;
+		searchData.maxitems  = parseInt(formSelector.find('#maxitems').val());
+		
+        var modalBox        = jQuery('.modal-body.opened').first();			
+		SIRAH.loading.on(modalBox, 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#ophtalmosListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+	                          success    : function(data){modalBox.html(data);SIRAH.loading.off(false);},
+		                      update     : function(data){modalBox.html(data);SIRAH.loading.off(false);}		
+		                  });		
+});");
+$pagination  = $this->pagination(array() , "Elastic" , "#");
+
+?>
+<div id="ophtalmosListListWrapper"  class="row">
+  <form id="ophtalmosListSearchForm" class="" method="post" role="form">
+    <div  class="col-md-12">
+       <div class="content-box">
+           <div class="mail-header clearfix">                                 
+               <div class="float-right col-md12 pad0A">
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="<?php echo $filters['name']; ?>" name="keywords" id="keywords" placeholder="Vous recherchez un ophtalmologue">
+                        <div class="input-group-btn">
+                          <button id="searchOphtalmo" type="button" class="btn btn-primary" tabindex="-1"><i class="glyph-icon icon-search"></i> Filtrer </button>
+                        </div>
+                    </div>
+               </div>
+           </div>   
+           <table id="ophtalmosListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+                <thead>
+                     <tr> 
+                          <th width="60%"> Ophtalmologues       </th>
+                          <th width="40%"> Structures d'origine </th>  
+                           
+                     </tr>
+                </thead>                
+                <tbody>
+                       <?php 
+                              $output   = "";
+                              if( count(   $ophtalmos ) ) {
+                              	  foreach( $ophtalmos as $ophtalmo ) {
+                              	  	       $ophtalmoid         = intval($ophtalmo['ophtalmoid']);
+                              	  	       $ophtalmoName       = sprintf("%s %s", $ophtalmo["lastname"], $ophtalmo["firstname"] );              
+                              	  	       $ophtalmoEntreprise = $ophtalmo["entreprise"];
+                              	  	      
+                              	  	       $output .= "<tr   id=\"ophtalmoRowId-".$ophtalmoid."\"> ";
+                              	  	               $output.="<td><a href=\"#ophtalmoid-".$ophtalmoid."\" class=\"selectClick\" title=\"Selectionnez cet ophtalmo\"> ".$ophtalmoName      ." </a> </td>";
+                              	  	               $output.="<td><a href=\"#ophtalmoid-".$ophtalmoid."\" class=\"selectClick\" title=\"Selectionnez cet ophtalmo\"> ".$ophtalmoEntreprise." </a> </td>";                             	  	                
+                              	  	       $output .= "</tr>";
+                              	  	       echo "<input type='hidden'  name='name-".$ophtalmoid."'   id='name-".$ophtalmoid."'      value='".$this->escape($ophtalmoName)  ."'  />" ;
+                              	  }                              	
+                              }  else {
+                              	            $output .= "<tr  id=\"ophtalmoRowId-0\"> <td colspan=\"8\"> AUCUN OPHTALMOLOGUE NA ETE TROUVE DANS VOTRE SYSTEME  </td> </tr>";
+                              }                              
+                              echo $output;                      
+                       ?>
+                
+                
+                </tbody>           
+           </table>
+		   <?php  echo $pagination->render(); ?> 
+       </div>    
+    </div>
+    <input type="hidden" name="page"       id="page"      value="<?php echo $this->pageNum;  ?>"  /> 
+    <input type="hidden" name="maxitems"   id="maxitems"  value="<?php echo $this->pageSize; ?>"  />
+  </form>
+</div>
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();
+	     echo $this->headStyle();
+     }
+?>

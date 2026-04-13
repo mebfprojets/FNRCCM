@@ -1,0 +1,123 @@
+<?php
+  $tplPath   = VIEW_BASE_PATH;
+  
+  $filters   = $this->filters;
+  $domaines  = $this->domaines;
+  $linkSearch= $this->url(array("module" => "public", "controller" => "statistiques", "action" => "domaines"), "default");
+  $types     = array( 0 => " ", 1 => "Personnes physiques", 2 => "Personnes morales", 3=> "Surété");
+  $model     = $this->model;
+  
+  $jq        = $this->jQuery();
+  
+  $onLoad    = "
+                jQuery('.search').click(function( event ){
+                         event.preventDefault();
+                         var formSelector = jQuery('#maincontent'); 
+		                 var searchData   = {};
+		                 
+		                 searchData.domaineid = parseInt(formSelector.find('#domaineid').val());
+                         var maincontent	   = jQuery('#maincontent');	
+		                 SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		                 SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+		                                  error  : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+	                                      success: function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+		                                  update : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);}		
+		              });
+	                   SIRAH.loading.off(false);                
+                 });
+                 jQuery('.viewAll').click(function( event ){
+                         event.preventDefault();
+                         var formSelector = jQuery('#maincontent'); 
+		                 var searchData   = {};
+		                 
+		                 searchData.domaineid = 0;
+                         var maincontent	  = jQuery('#maincontent');	
+		                 SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		                 SIRAH.request.post('maincontent','".$linkSearch."', {dataType:'html',data:searchData,beforeSend:function(){},
+		                                  error  : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+	                                      success: function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);},
+		                                  update : function(data){jQuery('#viewBaseTitle').nextAll().remove();maincontent.find('#viewBaseTitle').after(data);SIRAH.loading.off(false);}		
+		              });
+	                   SIRAH.loading.off(false);                 
+                 });
+   ";
+  
+  $jq->addOnLoad( $onLoad );
+?>
+
+<ul class="list-group">
+    <li  class="list-group-item"> 
+       <div  class="row">
+         <div class="col-md-3"> <label class="label" for="domaineid"> <b> Domaine d'activités* :</b> </label></div> 
+         <div class="col-md-4"> <?php echo $this->formSelect("domaineid", intval( $filters["domaineid"] ) , array() , $domaines ); ?></div>
+ 
+         <div class="col-md-5">  
+            <div class="btn-buttonbar sirah-ui-buttonbar"> 
+                <div class="btn-group"> <button type="submit" class="btn btn-primary search"><span class="glyphicon glyphicon-search"></span> Voir ce domaine</button> </div>   
+                <div class="btn-group"> <button type="submit" class="btn btn-danger viewAll" >  Tous les domaines</button> </div>             
+             </div> 
+       
+         </div> 
+       </div>    
+    </li>
+</ul>
+
+   <table style="text-align:left;" class="table tabl-bordered table-hover">
+          <thead>
+                <tr>
+                     <th style="text-align:left;" width="30%"> Domaines  d'activités </th>
+                     <th style="text-align:left;" width="30%"> Personnes Physiques   </th>
+                     <th style="text-align:left;" width="30%"> Personnes Morales     </th>
+                     <th style="text-align:left;" width="10%"> Total                 </th>
+                </tr>         
+          </thead>
+          
+          <tbody>
+              <?php 
+                     $output      = "";
+                     $nbreTotal   = 0;
+                     if( count(  $domaines )) {
+                     	 foreach($domaines as $domaineid => $domaineLibelle ) {
+                     	 	     if( !intval( $domaineid ))
+                     	 	     	 continue;
+                     	 	     $nbrePPArray  = $model->statdomaines( $domaineid , 1);
+                     	 	     $nbrePMArray  = $model->statdomaines( $domaineid , 2);
+                     	 	     $nbrePP       = ( count( $nbrePPArray )) ? $nbrePPArray[0]["nombre"] : 0;
+                     	 	     $nbrePM       = ( count( $nbrePMArray )) ? $nbrePMArray[0]["nombre"] : 0;
+                     	 	     $nbreDomaine = $nbrePP + $nbrePM;
+                     	 	     $rowBg        = $this->cycle(array("#F0F0F0","#FFFFFF"))->next();
+                     	 	     $output.="<tr style=\"background-color:".$rowBg."\">";
+                     	 	            $output.="<td style=\"text-align:left;background-color:".$rowBg."\"> ".$domaineLibelle  ." </td>";
+                     	 	            $output.="<td style=\"text-align:center;background-color:".$rowBg."\"> ".$nbrePP           ." </td>";
+                     	 	            $output.="<td style=\"text-align:center;background-color:".$rowBg."\"> ".$nbrePM           ." </td>";
+                     	 	            $output.="<td style=\"text-align:right;background-color:".$rowBg."\"><b> ".$nbreDomaine ."</b> </td>";
+                     	 	     $output.="</tr>";                    	 	 
+                     	 	     $nbreTotal += $nbreDomaine;
+                     	 }  
+                     	 $rowBg  = $this->cycle(array("#F0F0F0","#FFFFFF"));
+                     	 $output.="<tr style=\"".$rowBg."\">";
+                     	               $output.="<td style=\"text-align:left;background-color:".$rowBg."\"> <b> ENSEMBLE </b> </td>";
+                     	               $output.="<td style=\"text-align:left;background-color:".$rowBg."\">  </td>";
+                     	               $output.="<td style=\"text-align:left;background-color:".$rowBg."\">  </td>";
+                     	               $output.="<td style=\"text-align:right;background-color:".$rowBg."\">
+                     	                        <b> ".number_format( $nbreTotal , 0, " ", " " )." </b> </td>";
+                     	 $output.="</tr>";                    	                   	
+                     }  else {
+                     	$output.="<tr>";
+                     	                $output.="<td align=\"center\" colspan=\"4\"> PAS DE DONNEE STATISTIQUE DANS CETTE CATEGORIE </td>";
+                     	$output.="</tr>";
+                     }
+
+                     echo $output;
+              ?>
+          
+          </tbody>         
+</table>
+<?php 
+if( $this->isAjax ) {
+	echo $this->jQuery();
+	echo $this->headStyle();
+}
+
+?>
+

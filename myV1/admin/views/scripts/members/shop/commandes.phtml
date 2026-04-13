@@ -1,0 +1,55 @@
+<?php 
+   $commandes     = $this->commandes;
+   $member        = $this->member;
+   $me            = Sirah_Fabric::getUser();
+   $modelCommande = new Model_Commande();
+   $statuts       = $modelCommande->getStatuts();
+   $canRemove     = $me->isAllowed("vcommandes", "delete");
+   $linkDelete    = $this->url(array("module" => "public","controller" => "vcommandes", "action" => "delete"), "default") ;
+   $linkCreate    = $this->url(array("module" => "public","controller" => "vcommandes", "action" => "create" , "memberid" => $member->memberid), "default") ;
+   $output        = " <table id=\"commandesList\" class=\"table table-stripped commandesList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:25%\"> Dates    </th>
+                                     <th width=\"width:25%\"> Numéros  </th>                                    
+									 <th width=\"width:25%\"> Statuts  </th>
+									 <th width=\"width:25%\"> Montants </th>
+                              </tr>
+                       </thead>";  
+   if( count(   $commandes ) ) {
+   	            $commandeTotal= 0;
+   	   foreach( $commandes  as $commande ) {
+   	   	        $commandeid    = $commande["commandeid"];
+                $reference     = $commande["ref"];
+                $valeur        = number_format($commande["valeur"], 0 , ", "," ");
+                $date          = (isset($commande["date_commande"])) ? $commande["date_commande"] : date("d/m/Y", $commande["date"]);                     	  	       
+                $statutLib     = (isset( $statuts[$commande["statut"]] )) ? $statuts[$commande["statut"]] : "";
+   	   	        $rowBg         = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+				$commandeTotal+= $commande["valeur"];
+   	   	        $linkCommande  = $this->url(array("module" => "public","controller" => "vcommandes","action"=> "infos", "commandeid" => $commandeid), "default");
+   	   	        
+   	   	        $output      .="  <tr id=\"commandeId-".$commandeid ."\" style=\"background-color:".$rowBg."\"> ";					
+					  $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$dateCommande." </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$numero."  </a> </td>";   	   	              
+   	   	              $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$statutLib."   </a> </td>";
+					  $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$valeur." </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   	   $rowBg               = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   $commandeTotalFormat = number_format( $commandeTotal, 2 , ",", " " );
+   	   $output      .="<tr id=\"commandeId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                        <td colspan=\"3\"> TOTAL : </td>
+   	                        <td> ".$commandeTotalFormat." </td>
+   	                   </tr>";
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucune commande n'a été trouvée pour ce member </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "jQuery('.addCommande').click(function( event ){event.preventDefault();document.location.href = '".$linkCreate."';});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

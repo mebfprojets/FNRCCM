@@ -1,0 +1,39 @@
+<?php
+  $tplPath            = VIEW_BASE_PATH;
+  
+  $user               = Sirah_Fabric::getUser();
+  $layout             = Zend_Layout::getMvcInstance();
+  $view               = $this;
+  $cacheManager       = Sirah_Fabric::getCachemanager();
+  
+  $modelTypeActivites = new Model_Categorie();
+  $modelRegion        = new Model_Region();
+  $modelBeneficiaire  = new Model_Beneficiaire();
+  
+  
+  $categories         = $modelTypeActivites->getList(array(), 1 , 10 );
+  $regions            = $modelRegion->getList(array(), 1 , 10 );
+  $beneficiaires      = $modelBeneficiaire->getList(array(), 1 , 10 );
+
+?>
+
+<?php if( count( $categories ) ): ?>
+   <div class="panel panel-default">
+        <div class="panel-heading"> <h4 class="panel-title"> <span class='glyphicon glyphicon-th-list'></span> Types d'activités </h4></div> 
+        <?php 
+           $catOutput = "<ul class=\"list-group categoriesList\">";
+              foreach( $categories as $categorie ) {
+              	       $catid         = intval($categorie["catid"]);
+              	       $libelle       = $categorie["libelle"];
+              	       $urlLibelle    = Sirah_Functions_String::cleanUtf8( $libelle );
+              	 
+              	       $linkCategorie = $view->url(array("controller" => "categories", "action" => "infos", "catid" => $catid, "libelle" => $urlLibelle), "categories");
+              	       $catOutput    .= "<li id=\"catId-".$catid."\" class=\"list-group-item\"> <a title='Voir les activités menées dans cette catégorie' href='".$linkCategorie."'> ". $libelle ." </a></li> ";
+              } 
+           $catOutput.= "</ul>";
+           
+           echo $catOutput;
+        ?> 
+   </div>
+<?php endif; ?>
+

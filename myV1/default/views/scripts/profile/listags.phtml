@@ -1,0 +1,75 @@
+<?php
+   $csrfHelper    = Zend_Controller_Action_HelperBroker::getStaticHelper("Csrf");
+   $tags          = $this->tags;
+   $tokenId       = $csrfHelper->getTokenId();
+   $tokenValue    = $csrfHelper->getToken();
+   $linkDelete    = $this->url(array("controller" => "myprofile", "action" => "removetag", $tokenId => $tokenValue), "default") ;
+   $linkInsertTags= $this->url(array("controller" => "myprofile", "action" => "tags") , "default");
+   $linkDeleteTag = $this->url(array("controller" => "myprofile", "action" => "removetag", $tokenId => $tokenValue), "default");
+   $hideRemove    = $this->hideRemove;
+   $output       = "";
+   $output       = "<div class=\"controls\"> 
+                         <ul id=\"tagList\" class=\"nav nav-pills list-inline pills-default-bg selectedList tagList\">";
+    if( count(     $tags ) ) {
+    	  foreach( $tags as $tag ) {
+    	  	$tagId    = intval(  $tag["tagid"] );
+    	  	$tagLib   = $tag["keyword"];    	  	
+    	  	$output  .= " <li  id=\"tagId-".$tagId."\"> <a href=\"#general\">".$tagLib;
+    	  	if( !$hideRemove ) {
+    	  		 $output.=" <i title=\"Supprimer cet element\" href=\"#\" id=\"closeId-".$tagId."\" class=\"glyphicon glyphicon-remove closeItemTag\"></i>";
+    	  	}   	  	
+    	  	$output  .="  </a> </li> ";    	  	    	  	
+    	  }    	
+    } else {
+    	$output .= " <li id=\"tagId-0\"> <p class=\"text-muted\"> 
+    	                                 Aucun tag n'est rattaché à votre profil. 
+    	                                 Vous pouvez taguer votre profil par des mots clés à travers lesquels votre profil sera plus visible sur le web.</p></li> ";
+    }
+    $output     .= "</ul></div>";
+    echo  $output ;    
+$jq      =  $this->jQuery();
+$onLoad  = "
+ jQuery('.closeItemTag').css('cursor','pointer');
+ jQuery('.closeItemTag').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer cet element ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer ',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDeleteTag."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'tags[]': itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if ( data.error !== undefined ) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       jQuery('#tagId-'+itemId).remove();
+             		                                        setTimeout(function(){
+             		             		                               jQuery('#tagId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler',{primary:false,click:function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });";
+if( !$hideRemove )    
+    $jq->addOnLoad($onLoad);
+?>
+             

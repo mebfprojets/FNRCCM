@@ -1,0 +1,119 @@
+<?php 
+   $commande    = $this->commande;
+   $paiements   = $this->paiements;
+   $linkDelete  = $this->url(array("controller" => "apaiements", "action" => "delete", "commandeid" => $this->commandeid), "default") ;
+   $linkCreate  = $this->url(array("controller" => "apaiements", "action" => "create", "commandeid" => $this->commandeid), "default") ;
+   $output      = " <table id=\"paiementsList\" class=\"table table-striped table-responsive paiementsList\">
+                       <thead>
+                              <tr>
+                                     <th width=\"width:2%\"> *         </th>
+                                     <th width=\"width:25%\"> Dates    </th>
+                                     <th width=\"width:20%\"> Numéros  </th>
+                                     <th width=\"width:28%\"> Montants </th>
+                                     <th width=\"width:25%\"> Soldes   </th>
+                              </tr>
+                       </thead>";
+   
+   if( count(   $paiements ) ) {
+   	            $paiementTotal= 0;
+   	            $soldeTotal   = 0;
+   	            $lastSolde    = 0;
+   	            $valCommande  = isset($paiements[0]["totalAPayer"] ) ? $paiements[0]["totalAPayer"] : $commande->valeur;
+   	   foreach( $paiements as $paiement ) {
+   	   	        $paiementid   = $paiement["paiementid"];
+   	   	        $numero       = $paiement["numero"];
+   	   	        $datePaiement = $paiement["date_paiement"];
+   	   	        $montant      = number_format( $paiement["montant"], 2, ","," ");
+   	   	        $solde        = number_format( $paiement["reste"]  , 2, ","," ");
+   	   	        $paiementTotal+= $paiement["montant"];
+   	   	        $lastSolde    = $paiement["reste"];
+   	   	        $rowBg        = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   	        
+   	   	        $output      .="  <tr id=\"paiementId-".$paiementid ."\" style=\"background-color:".$rowBg."\"> ";
+   	   	              $output.="     <td> <span title=\"Supprimer ce paiement\" href=\"#\" id=\"delPaiementId-".$paiementid."\" class=\"glyph-icon icon-remove pull-left delPaiement \"></span> </td>";
+   	   	              $output.="     <td> ".$datePaiement." </td>";
+   	   	              $output.="     <td> ".$numero."       </td>";
+   	   	              $output.="     <td> ".$montant."      </td>";
+   	   	              $output.="     <td> ".$solde."    </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   	   $rowBg               = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   $paiementTotalFormat = number_format( $paiementTotal, 2 , ",", " " );
+   	   $totalSolde          = floatval( $valCommande - $paiementTotal );
+   	   $totalSoldeFormat    = number_format($lastSolde, 2 , ",", " " );
+   	   $output      .="<tr id=\"paiementId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                        <td colspan=\"3\"> TOTAL </td>
+   	                        <td> ".$paiementTotalFormat." </td>
+   	                        <td> ".$totalSoldeFormat."    </td>
+   	                   </tr>";
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucun paiement n'a été enregistré pour cette commande </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "
+jQuery('.addPaiement').click(function( event ){
+       event.preventDefault();
+    var dialogNouveauPaiement = jQuery('<div></div>').attr('id','dialogNouveauPaiement');
+    dialogNouveauPaiement.dialog2({title:'Enregistrer une instance de paiement',content:'".$linkCreate."',autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText:'Chargement...'});
+    dialogNouveauPaiement.dialog2('addButton','<span class=\'glyph-icon icon-save\'></span> Enregistrer',{primary : true,click : 
+             		               function(){
+             		                           var modalBody = jQuery('.modal').find('.modal-body');
+             		                           var insertBtn = jQuery('.modal').find('.modal-footer').find('.btn-primary').eq(0);
+             		                           insertBtn.btnLoading({text:'Création...',icon:'icon-spinner4'});
+             		                           SIRAH.loading.on( modalBody , 'Patientez...' );
+             		                           var paiementForm = jQuery(this).find('form').eq(0);             		                          
+             		                           SIRAH.request.post( paiementForm,'".$linkCreate."', { 
+             		                                              success : function( data ) {   
+             		                                                        SIRAH.loading.off(false);    		                                                                                      
+                            	                                         if( !SIRAH.util.isEmpty( data.error ) ) {
+                            	                                              insertBtn.btnLoading({on:false});
+                            		                                          SIRAH.error.raise( dialogNouveauPaiement, data.error , 'error');
+                            		                                          return data;
+                            	                                          } else if(!SIRAH.util.isEmpty(data.success)) {
+                            		                                          SIRAH.error.raise( dialogNouveauPaiement , data.success , 'success');
+                            		                                          setTimeout(function(){jQuery('#sirah-page-message').remove();dialogNouveauPaiement.dialog2('close');},2000);
+                            	                                          } else {
+                            		                                          SIRAH.error.raise( dialogNouveauPaiement,'Aucune reponse valide n\'a été retournée par le serveur','error');
+                            		                                          return data;
+                            	                                          }		
+             		                                              }
+             		                           });
+             		                     }
+             		                 });
+         dialogNouveauPaiement.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogNouveauPaiement.dialog2('open');     
+});
+jQuery('.delPaiement').css('cursor','pointer');
+jQuery('.delPaiement').click(function( event ){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('delPaiementId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer ce paiement ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape: false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({ url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'paiementid': itemId},
+             		                              type     : 'GET',
+             		                              success  : function(data) 
+             		                              {
+             		                                   if( data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){jQuery('#paiementId-'+itemId).remove();jQuery('#dialogDeleteItem').dialog2('close');},2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open'); 
+});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

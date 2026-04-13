@@ -1,0 +1,123 @@
+<?php 
+   $model       = new Model_Document();
+   $documents   = $this->documents;  
+   $linkDelete  = $this->url(array("controller" => "mydocuments", "action" => "delete"), "default") ;
+   $output      = "";
+   $output     .= "<ul class=\"list-group documentList\">";
+   $totalSize   = 0;
+    if(count($documents)) {
+    	  foreach($documents as $document) {
+    	  	$documentid   = intval($document["documentid"]);
+    	  	$filename     = $document["filename"];
+    	  	$filextension = strtolower($document["filextension"]);
+    	  	$filemetadata = $document["filemetadata"];
+    	  	$filesize     = $document["filesize"];
+    	  	$libelle      = $model->filterIndex( $filename, $document["userid"] );
+    	  	$icone        = "glyphicon glyphicon-file";
+    	  	
+    	  	$sizeKo       = Sirah_Functions::toByteString( $filesize );
+    	  	$totalSize   += $filesize;
+    	  	
+    	  	switch( $filextension ) {
+    	  		case "pdf":
+    	  			$icone = "icon-file-pdf";
+    	  			break;
+    	  		case "doc":
+    	  		case "docx":
+    	  			$icone = "icon-file-word";
+    	  			break;
+    	  		case "xml":
+    	  			$icone = "icon-file-xml";
+    	  			break;
+    	  		case "ppt":
+    	  			$icone = "icon-file-powerpoint";
+    	  			break;
+    	  		case "xls":
+    	  		case "xlxs":
+    	  		case "csv":
+    	  			$icone = "icon-file-excel";
+    	  			break;
+    	  		case "png":
+    	  		case "gif":
+    	  		case "jpg":
+    	  		case "jpeg":
+    	  		case "bmp":
+    	  			$icone = "icon-image";
+    	  			break;    	  			
+    	  	}    	  	    	  	
+    	  	$linkView  = $this->url(array("controller" => "mydocuments", "action" => "infos", "id" => $documentid ) , "default");    	  	
+    	  	$output   .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+                              <div class=\"row\">                                 
+                                 <div class=\"col-md-9\">
+                                       <span class=\"".$icone."\"></span>
+                                       <a title=\"Les details du document \" href='".$linkView."'>
+                                          ". $libelle ." 
+                                       </a>
+                                 </div>
+                                 <div class=\"col-md-2\"><p class=\"text-mute\"> ".$sizeKo."</p> </div>
+                                 <div class=\"col-md-1\"><span title=\"Supprimer le document\" href=\"#\" id=\"closeId-".$documentid."\" class=\"glyphicon glyphicon-remove pull-left deleteDocument \"></span></div>
+                              </div>
+                          </li> ";
+    	  }
+    	  $totalSizeKo = Sirah_Functions::toByteString( $totalSize );
+    	  $output   .= " <li id=\"documentId-".$documentid."\" class=\"list-group-item\">
+    	                     <div class=\"row\">
+    	                        <div class=\"col-md-9\"> <p class=\"list-group-item-text\"> Taille totale : </p> </div>
+    	                        <div class=\"col-md-3\"> <p class=\"text-mute\"> ".$totalSizeKo."</p> </div>
+    	                     </div>
+    	                 </li> ";
+    }  else {
+    	$output .= " <li class=\"list-group-item\" id=\"documentId-0\">    	
+    	                <p  class=\"list-group-item-text\"> Aucun document n'a été rattaché à votre profil. </p>
+    	           </li>";
+    }
+    $output     .= "</ul>";
+    
+    echo  $output ;
+        
+    $jq      =  $this->jQuery();
+    $onLoad  = "
+       jQuery('.deleteDocument').css('cursor','pointer');
+       jQuery('.deleteDocument').click(function(){      
+          var itemId           = parseInt(jQuery(this).attr('id').replace('closeId-',''));
+          var dialogDeleteItem = jQuery('<div> Etes-vous sur de supprimer ce document ? </div>').attr('id','dialogDeleteItem');
+          dialogDeleteItem.dialog2({
+             		                title : 'Confirmer l\'action',
+             		                autoOpen: false,
+             		                removeOnClose: true,
+             		                closeOnEscape: false, 
+                                    closeOnOverlayClick: true,
+             		                showCloseHandle:true,
+             		                initialLoadText: 'Chargement...'            		                       
+             		              });   
+          dialogDeleteItem.dialog2('addButton','Oui' , { primary : true , click : 
+             		               function(){
+             		                jQuery.ajax({
+             		                              url      :'".$linkDelete."',
+             		                              async    : false,
+			                                      dataType :'json',
+             		                              data     : {'documentid' : itemId},
+             		                              type     : 'GET' ,
+             		                              success  : function(data) 
+             		                              {
+             		                                   if(data.error !== undefined) {
+                                                           SIRAH.error.raise(jQuery('#dialogDeleteItem') , data.error);
+             		                                       return;
+             		                                   } else {
+             		                                       SIRAH.error.raise(jQuery('#dialogDeleteItem'), data.success , 'success');
+             		                                       setTimeout(function(){
+             		             		                               jQuery('#documentId-'+itemId).remove();
+             		                                                   jQuery('#dialogDeleteItem').dialog2('close');
+             		                                                  },2500);
+             		                                   }
+             		                                 }
+             		                             });     		
+                                         }}); 
+         dialogDeleteItem.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+         dialogDeleteItem.dialog2('open');                   		             		            		       
+       });
+      
+    ";    
+    $jq->addOnLoad($onLoad);
+?>
+             

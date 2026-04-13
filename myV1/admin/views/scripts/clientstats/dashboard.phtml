@@ -1,0 +1,51 @@
+<?php
+   $me                       = Sirah_Fabric::getUser();
+   $appConfigSession         = new Zend_Session_Namespace("AppConfig");   
+   $allowedPanels            = 0;
+            
+   $basePath                 = VIEW_BASE_PATH;
+   $nbreClientsByGroup       = $this->nbreClientsByGroup;
+   $nbreClientsByPrescriptor = $this->nbreClientsByPrescriptor;
+   $nbreClientsByShop        = $this->nbreClientsByShop       ;	
+   $nbreClientsByAge         = $this->nbreClientsByAge        ; 
+   $nbreClientsBySexe        = $this->nbreClientsBySexe       ;   
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-box[class*=' col-xs'] .panel-content {border-width: 1px 1px 1px 1px !important;}
+.panel-content > h3{font-size:16px;}
+<?php $this->headStyle()->captureEnd() ?>
+ 
+<div  class="row">   
+  <div class="col-md-7">
+    <div class="content-box border-top border-green mrg25B dashboardPanel">
+       <h3  class="content-box-header"> Statistiques des visites clients par prescripteur </h3>
+       <div class="content-box-wrapper"><?php echo $this->partial("clientstats/stats-prescripteurs.phtml", array("rows"=>$nbreClientsByPrescriptor));?> </div>
+    </div>
+    
+    <div class="content-box border-top border-yellow mrg25B dashboardPanel">
+      <h3 class="content-box-header"> Statistiques des clients par agence </h3>
+       <div class="content-box-wrapper"> <?php echo $this->partial("clientstats/stats-agences.phtml", array("rows"=> $nbreClientsByShop));?> </div>
+    </div>
+
+    <div class="content-box border-top border-black mrg25B dashboardPanel">
+      <h3 class="content-box-header"> Statistiques des clients par tranche d'âge </h3>
+       <div class="content-box-wrapper"> <?php echo $this->partial("clientstats/stats-ages.phtml", array("rows"=> $nbreClientsByAge));?> </div>
+    </div> 	
+</div>
+     
+  <div class="col-md-5"> 
+    <div class="content-box border-top border-red mrg25B dashboardPanel">
+      <h3 class="content-box-header"> Statistiques des clients par groupe </h3>
+       <div class="content-box-wrapper"><?php echo $this->partial("clientstats/stats-groups.phtml", array("rows"=> $nbreClientsByGroup));?>  </div>
+    </div>
+	<div class="content-box border-top border-blue mrg25B dashboardPanel">
+       <h3 class="content-box-header"> Statistiques des clients par genre </h3>
+       <div class="content-box-wrapper"><?php echo $this->partial("clientstats/stats-sexes.phtml", array("rows"=> $nbreClientsBySexe));?>  </div>
+    </div>
+	
+	
+  </div>                 
+</div>
+
+
+

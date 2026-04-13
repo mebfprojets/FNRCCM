@@ -1,0 +1,114 @@
+<?php 
+$data        = $this->data;
+$categories  = $this->categories;
+$formSubmit  = $this->url(array("module"=>"admin","controller" =>"products","action"=>"edit"), "default" );
+$backList    = $this->url(array("module"=>"admin","controller" =>"products","action"=>"list")  , "default" );
+$basePath    = VIEW_BASE_PATH;
+?>
+<?php $this->headStyle()->captureStart() ?>
+
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+
+$jq     = $this->jQuery();  
+$onLoad = " 
+jQuery('#cancelEditButton').click(function(e){e.preventDefault();document.location.href='".$backList."';});  
+jQuery('#editButton').click(function(e){
+    e.preventDefault();      
+    var formSelector = jQuery('#editProductForm');
+    var libelle      = jQuery.trim(formSelector.find('#libelle').val());
+    var catid        = parseInt(formSelector.find('#catid').val());
+      
+    if( SIRAH.util.isEmpty( libelle )){
+        jQuery('#libelle').addClass('input-error');
+        jQuery('#libelle-validation-message').html('');
+        SIRAH.error.raise('libelle-validation-message','Entrez une désignation valide du produit');
+        return;
+    } else {
+        jQuery('#libelle').removeClass('input-error');
+        jQuery('#libelle-validation-message').html('');
+    }
+    if( SIRAH.util.isEmpty( catid )){
+        jQuery('#category-validation-message').html('');
+        SIRAH.error.raise('category-validation-message','Selectionnez une catégorie');
+        return;
+    } else {
+        jQuery('#category-validation-message').html('');
+    }      
+      jQuery('#libelle').val( libelle );
+      formSelector.submit();
+});";  
+  $jq->addOnLoad($onLoad);
+
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="editProductForm" role="form" enctype="multipart/form-data" class="form-horizontal">
+    <div class="panel panel-default" >
+		<ul class="list-group">			
+		    <li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-md-2 col-sm-2 col-xs-hidden control-label" for="category"> Catégorie*: </label>
+					 <div   class="col-md-10 col-sm-10 col-xs-12"> <?php echo $this->formSelect("catid", intval( $data["catid"]), array("class" => "form-control"),$this->categories ); ?> </div>                
+				</div> 
+				<p id="category-validation-message" class="validation-message"></p>    
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-md-2 col-sm-2 col-xs-hidden control-label" for="documentcatid">Type de document: </label>
+					 <div   class="col-md-10 col-sm-10 col-xs-12"> <?php echo $this->formSelect("documentcatid", intval( $data["documentcatid"]), array("class" => "form-control"), $this->documentypes); ?> </div>                
+				</div> 
+				<p id="documentype-validation-message" class="validation-message"></p>    
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-md-2 col-sm-2 col-xs-hidden control-label" for="code">Code: </label>
+					 <div   class="col-md-10 col-sm-10 col-xs-12">
+						   <input id="code" type="text" maxlength="100" class="form-control" title="Le code" placeholder="Le code de l'élément" name="code" value="<?php echo $data['code']; ?>">
+					 </div>                 
+				 </div>     
+			</li>
+		    <li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2  col-sm-2  col-xs-hidden control-label" for="libelle"> Désignation: </label>
+					<div   class="col-md-10 col-sm-10 col-xs-12">
+						   <input id="libelle" type="text" maxlength="100" class="form-control" title="Désignation du produit" placeholder="Désignation du produit"  name="libelle" value="<?php echo $data['libelle']; ?>">
+					</div>                 
+				</div> 
+				<p id="libelle-validation-message" class="validation-message"></p>    
+		    </li>
+		    <li class="list-group-item">
+			    <div class="form-group">
+				   <label class="col-md-2  col-sm-2 col-xs-hidden control-label" for="prix">Cout HT: </label>
+				   <div   class="col-md-10 col-sm-10 col-xs-12"> <input type="text" name="cout_ht" id="cout_ht" class="form-control" title="Cout unitaire Hors Taxes" placeholder="Cout unitaire Hors Taxes"  value="<?php echo $data["cout_ht"]; ?>" /></div>   
+			    </div>
+		    </li>
+			<li class="list-group-item">
+			    <div class="form-group">
+				   <label class="col-md-2  col-sm-2 col-xs-hidden control-label" for="prix">Cout TTC: </label>
+				   <div   class="col-md-10 col-sm-10 col-xs-12"> <input type="text" name="cout_ttc" id="cout_ttc" class="form-control" title="Cout unitaire TTC" placeholder="Cout unitaire TTC"  value="<?php echo $data["cout_ttc"]; ?>" /></div>   
+			    </div>
+		    </li>  
+		</ul>  
+<?php     
+    $buttonsbar   = $this->Btnbar(array() , $this->jqueryHandler());
+    $toolCreate   = $buttonsbar->button("Mettre à jour","edit")->setPriority("primary");
+    $toolCancel   = $buttonsbar->button("Annuler et revenir sur la liste","chevron-left");
+   
+    $toolCreate->setAttributes(array("type" => "submit"));
+    $toolCancel->setAttributes(array("type" => "submit"));
+   
+    $buttonsbar->add($toolCancel, "cancelEditButton");
+    $buttonsbar->add($toolCreate, "editButton");
+    
+
+    if(!$this->isAjax) {
+   	   echo "<div class=\"panel-footer\">".$buttonsbar."</div>";
+    } else {
+   	   echo $this->jQuery();
+    }
+   
+   ?>
+   </div> 
+   <input type="hidden" name="productid" id="productid" value="<?php echo $data['productid']; ?>" />
+   <input type="hidden" name="id"        id="id"        value="<?php echo $data['productid']; ?>" />
+</form>

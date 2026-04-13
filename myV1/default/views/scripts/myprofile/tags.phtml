@@ -1,0 +1,102 @@
+<?php 
+$formNames   = $this->formNames;
+$basePath    = ROOT_PATH."/myTpl/default";
+$jq          = $this->jQuery();
+$formSubmit  = $this->url(array("controller" => "myprofile", "action" => "tags") , "default");
+$linkSearch  = $this->url(array("controller" => "ajaxres" , "action" => "keywords") , "default" );
+$jq->addOnload("
+    var customTagPrefix = ''; 
+    jQuery('select[class^=\'chzn-color\'], select[class*=\' chzn-color\']').on('liszt:ready', function(){
+            var select = $(this);
+            var cls = this.className.replace(/^.(chzn-color[a-z0-9-_]*)$.*/, '\1');
+            var container = select.next('.chzn-container').find('.chzn-single');
+            container.addClass(cls).attr('rel', 'value_' + select.val());
+            select.on('change click', function(){container.attr('rel', 'value_' + select.val());});
+    }); 
+	jQuery('select').chosen({disable_search_threshold :10,allow_single_deselect:true,width: '95%','height' : '45px'});
+	jQuery('#keywordTags').ajaxChosen({
+		                                type     : 'GET',
+                                        url      : '".$linkSearch."',
+                                        dataType : 'json',
+                                        jsonTermKey: 'q',
+                                        afterTypeDelay:300,
+                                        minTermLength:3
+                                        }, function (data) {
+                                           var results = [];
+                                           jQuery.each(data, function (i, val) {
+                                           results.push({ value: val.label, text: val.value });
+                                           });
+                                             return results;
+                                       });
+    jQuery('#keywordTags_chzn input').keydown(function(event) { 
+		     if (this.value.length >= 3 && (event.which === 13 || event.which === 188 || event.which === 8 )) {
+		         var highlighted = jQuery('#keywordTags_chzn').find('li.active-result.highlighted').first();
+		         if ( event.which === 13 && highlighted.text() !== '') {
+		              var customOptionValue = customTagPrefix + highlighted.text();
+                      jQuery('#keywordTags option').filter(function(){return jQuery(this).val() == customOptionValue; }).remove();
+		              var tagOption = jQuery('#keywordTags option').filter(function(){return jQuery(this).html() == highlighted.text(); });
+                      tagOption.attr('selected','selected');
+		         } else {
+		              var customTag = this.value;
+		              var tagOption = jQuery('#keywordTags option').filter(function(){return jQuery(this).html() == customTag;});
+                      if ( tagOption.text() !== '') {
+                           tagOption.attr('selected', 'selected');
+                      } else {
+                           var option = jQuery('<option>');
+                           option.text(this.value).val(customTagPrefix + this.value);
+                           option.attr('selected','selected');
+                           jQuery('#keywordTags').append(option);
+                      }
+                }
+                 this.value = '';
+                 jQuery('#keywordTags').trigger('liszt:updated');
+                 event.preventDefault();
+		        }		
+	 }); 
+	 
+ ");
+?>
+<?php $this->headStyle()->captureStart() ?>
+.chzn-container-multi .chzn-choices .search-choice {
+    background-clip: padding-box;
+    background-color: #e4e4e4;
+    background-image: -moz-linear-gradient(center bottom , #e4e4e4 0%, #eeeeee 70%);
+    border: 1px solid #b4b4b4;
+    border-radius: 3px;
+    color: #333;
+    font-size:16px;
+    line-height: 15px !important;
+    margin: 3px 0 3px 5px;
+    padding: 3px 19px 3px 6px;
+    position: relative;
+}
+.chzn-container-multi .chzn-choices .search-field input {background: none repeat scroll 0 0 transparent !important;border: 0 none !important;box-shadow: none;color: #666;font-family: sans-serif;font-size: 100%;
+                                                         height:35px !important;margin:1px 0;outline: 0 none;padding: 5px;}
+<?php $this->headStyle()->captureEnd()   ?>
+<div class="row pagerow">           
+   <form method="post" id="tagsInsertForm" name="tagsInsertForm" role="form" >
+      <div class="control-group">    
+         <div class="control-label"> Saisissez des mots clés sous forme de tags et vous faites "Entrée" pour en ajouter d'autres. </div>
+         <div class="controls">
+             <?php echo $this->formSelect("tags[]" , null, array("class" => "inputbox", "id" => "keywordTags", "data-placeholder" => "Saisissez des mots clés et tapez sur Entrée", "style" => "display:none;") , array() ); ?>
+         </div>
+      </div>      
+     <input type="hidden" name="<?php echo $this->csrfTokenId; ?>" id="<?php echo $this->csrfTokenId; ?>"  value="<?php echo $this->csrfTokenValue; ?>" />     
+   </form>
+    <?php if(!$this->isAjax) : ?>   
+     <div class="row">
+               <div class="col-md-4">
+                   <div class="column colbuttons">
+                       <button type="submit" class="btn btn-default btn-primary addTag"> Ajouter </button>  
+                       <button type="submit" class="btn btn-default cancelProfile">Annuler</button> 
+                   </div>               
+               </div>
+               <div class="col-md-8"></div>  
+     </div>
+   <?php else: ?> 
+   <?php echo $this->jQuery(); ?> 
+   <?php echo $this->headStyle(); ?> 
+   <?php endif; ?>
+ </div> 
+ 
+ 

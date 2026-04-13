@@ -1,0 +1,79 @@
+<?php 
+$data                = $this->data;
+$demande             = $this->demande;
+$demandeid           = $demande->demandeid;
+$entrepriseid        = $this->entrepriseid;
+$entreprise          = $this->entreprise;
+$demandeurid         = $demande->demandeurid;
+$demandeur           = $this->demandeur;
+$promoteurid         = $demande->promoteurid;
+$promoteur           = $this->promoteur;
+ 
+$demandeType         = $this->type;
+$typeid              = $demande->typeid;
+$statutid            = $demande->statutid;
+$statut              = $this->statut;
+$state               = $this->state;
+$documentype         = $this->documentype;
+$identite            = $this->identite;
+$identiteType        = $this->identiteType;
+$demandeurIdentite   = $this->demandeurIdentite;
+$domaine             = $this->domaineActivite;
+$forme               = $this->formeJuridique;
+$documents           = $this->documents;
+
+$me                  = Sirah_Fabric::getUser();
+
+$basePath            = VIEW_BASE_PATH;
+$jq                  = $this->jQuery();
+
+$linkCreate          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"create","typeid"=>$typeid), "default",true);
+$linkCancel          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"list") ,"default",true);
+$linkEdit            = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"edit"  ,"demandeid"=>$demandeid) , "default",true);
+$linkDelete          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"delete","ids"=>$demandeid), "default",true);
+
+$linkVerify          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"verify"  ,"demandeid"=>$demandeid),"default",true);
+$linkReserve         = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"reserve" ,"demandeid"=>$demandeid),"default",true);
+$linkReject          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"reject"  ,"demandeid"=>$demandeid),"default",true);
+$linkGetDemande      = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"get"     ,"demandeid"=>$demandeid ,"type"=>$documentype),"default",true);
+$linkValidate        = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"validate","demandeid"=>$demandeid),"default",true);
+$linkUpload          = $this->url(array("module"=>"public","controller"=>"demandes","action"=>"upload"  ,"demandeid"=>$demandeid),"default",true);
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+#information-section,.topadding{padding:100px 0 !important}
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="information-section" class="topadding information-section section">
+    <div class="container" >
+	    <div class="row section-buttons mrg20B mrg5L"> </div>
+	    <div class="row section-content">
+			<div  class="col-sm-12 col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-folder'></span> Les informations de la demande </h4> </div>  
+					<?php echo $this->partial("demandes/demande.phtml",array("localite"=>$localite,"statut"=>$statut,"identiteType"=>$identiteType,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+				</div>
+				<div class="panel panel-warning">
+					<div class="panel-heading"> <h4 class="panel-title"><a title="Visualiser les informations sur les destinataires de la demande" data-parent="#accordionRight" data-toggle="collapse" href="#entrepriseData"><span class="glyph-icon icon-institution"></span> L'entreprise à créer </a></h4></div>  
+					<div id="entrepriseData" class="panel-collapse collapse">
+					   <?php echo $this->partial("demandes/entreprise.phtml",array("domaine"=>$domaine,"forme"=>$forme,"entreprise"=>$entreprise,"entrepriseid"=>$entrepriseid,"demande"=>$demande,"demandeid"=>$demandeid,"jquery"=>&$jq)); ?>
+					</div>
+				</div>
+			</div>	
+			<div  class="col-sm-12 col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-user"></span>Les informations du promoteur </h4></div>              
+					<div id="promoteurData" class="panel-collapse collapse in">
+						<?php echo $this->partial("demandes/promoteur.phtml",array("promoteur"=>$promoteur,"promoteurid"=>$promoteurid,"demande"=>$demande,"jquery"=>&$jq)); ?>
+					</div>	
+				</div>  
+			</div>
+		</div>
+	</div>
+</div>
+
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>

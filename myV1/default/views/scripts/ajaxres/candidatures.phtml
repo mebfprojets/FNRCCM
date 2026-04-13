@@ -1,0 +1,324 @@
+<?php 
+$candidatures     = $this->candidatures;
+$filters          = $this->filters;
+$paginator        = $this->paginator;
+$basePath         = VIEW_BASE_PATH;
+$jq               = $this->jQuery();
+$parentform       = $this->parentform;
+$linkSearch       = $this->url(array("controller" => "ajaxres", "action" => "candidatureslist" , "parentform"  => $parentform ) , "default");
+
+$jq->addOnload("
+   var parentformSelector  = jQuery('#".$parentform."');
+   jQuery('.selectClick').click(function(event){
+	event.preventDefault();
+    var candidatureid  = parseInt(jQuery(this).attr('href').replace('#candidatureid-' , ''));
+	if( candidatureid && parentformSelector ) {
+		  var userFirstname              = jQuery('#firstname-'+candidatureid).val();
+		  var userLastname               = jQuery('#lastname-'+candidatureid).val();
+		  var userEmail                  = jQuery('#email-'+candidatureid).val();
+		  var userNumdossier             = jQuery('#numdossier-'+candidatureid).val();
+		  var userUserid                 = jQuery('#userid-'+candidatureid).val();
+		
+		  var parentCandidatureIdInput   = parentformSelector.find('input[name=\'candidatureid\']');
+		  var parentFirstnameSelector    = parentformSelector.find('input[name=\'firstname\']');
+		  var parentLastnameSelector     = parentformSelector.find('input[name=\'lastname\']');
+		  var parentEmailSelector        = parentformSelector.find('input[name=\'email\']');
+		  var parentNumdossierSelector   = parentformSelector.find('input[name=\'numdossier\']');
+		  var parentUseridSelector       = parentformSelector.find('input[name=\'userid\']');
+		
+		  if( parentCandidatureIdInput   ) {
+		      parentCandidatureIdInput.val( candidatureid );
+		  }
+		  if( parentFirstnameSelector   ) {
+		      parentFirstnameSelector.val(userFirstname);
+		  }
+		  if( parentLastnameSelector ) {
+		      parentLastnameSelector.val(userLastname);
+		  }
+		  if( parentEmailSelector  ) {
+		      parentEmailSelector.val(userEmail);
+		  }
+		  if( parentUseridSelector ) {
+		      parentUseridSelector.val( userUserid );
+		  }
+		 if(  parentNumdossierSelector ) {
+		      parentNumdossierSelector.val( userNumdossier );
+		  }		 
+	  } else {
+		 return false;
+	  }
+	  candidatureSelect  = parentformSelector.find('#selectCandidature');
+	  if( candidatureSelect )	{
+		    candidatureSelect.trigger('select-item' , [candidatureid] );
+	  } 
+	   jQuery('#filterListCandidatures').dialog2('close');
+   });
+   jQuery('#close-advanced-searchform').click(function(){jQuery('#advanced-searchform-wrapper').hide();});
+   jQuery('#show-advanced-searchform').click(function(){jQuery('#advanced-searchform-wrapper').show();});
+  jQuery('.ajaxSearch').click(function(event){
+		event.preventDefault();
+		var formSelector               = jQuery('#advanced-candidaturesearchform');
+		var modalBox                   = jQuery('.modal').first();
+		var modalBody                  = modalBox.find('.modal-body');
+
+		var defaultData                = {};
+		defaultData.cohortid           = parseInt(jQuery('#cohortid').val());
+		defaultData.numdossier         = formSelector.find('#numdossier').val();
+		defaultData.lastname           = formSelector.find('#lastname').val();
+		defaultData.firstname          = formSelector.find('#firstname').val();
+		defaultData.email              = formSelector.find('#email').val();
+		defaultData.username           = formSelector.find('#username').val();
+		defaultData.page               = 1;
+		defaultData.periode_start_year = jQuery('#periode_start_year').val();
+		defaultData.periode_end_year   = jQuery('#periode_end_year').val();
+		defaultData.maxitems           = formSelector.find('#maxitems').val();
+		
+		SIRAH.loading.on( modalBody , 'Chargement des données' );
+		SIRAH.request.post('advanced-inscriptionsearchform' , '".$linkSearch."' , 
+		                   {
+		                      data        : defaultData,
+		                      dataType    : 'html' ,
+		                      beforeSend  : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+		SIRAH.loading.off(false);
+  });
+ jQuery('.defaultSearch').click(function(event){
+		event.preventDefault();
+		var formSelector        = jQuery('#globalformsearch');
+		var advancedFormSelector= jQuery('#advanced-candidaturesearchform');
+		var modalBox            = jQuery('.modal').first();		
+		var modalBody           = modalBox.find('.modal-body:first');
+
+		var defaultData         = {};
+		defaultData.numdossier  = formSelector.find('#global-filter').val(); 
+		defaultData.page        = 1;
+		defaultData.maxitems    = advancedFormSelector.find('#maxitems').val();
+		SIRAH.loading.on( modalBody , 'Patientez, chargement des données...');
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      data       : defaultData,
+		                      dataType   : 'html' ,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	SIRAH.loading.off(false);
+  });		
+  jQuery('.sirahPaginationBtn').click(function(event){
+		  event.preventDefault();
+	    if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector     = jQuery('#advanced-candidaturesearchform');
+		var pageNum          = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems     = formSelector.find('#maxitems').val();
+	    if(jQuery(this).is('.nextPage')) {
+		      var currentBtnNum = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		      pageNum           = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum   = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum             = parseInt( currentBtnNum - 1);
+		}
+		var paginationData                = {};
+		paginationData.maxitems           = pageMaxitems;
+		paginationData.page               = pageNum;
+		paginationData.cohortid           = parseInt(jQuery('#cohortid').val());
+		paginationData.numdossier         = jQuery('#numdossier').val();
+		paginationData.lastname           = jQuery('#lastname').val();
+		paginationData.firstname          = jQuery('#firstname').val();
+		paginationData.email              = jQuery('#email').val();
+		paginationData.username           = jQuery('#username').val();
+		paginationData.annee              = jQuery('#annee').val();
+		paginationData.periode_start_year = jQuery('#periode_start_year').val();
+		paginationData.periode_end_year   = jQuery('#periode_end_year').val();
+		
+		var modalBox              = jQuery('.modal').first();
+		var modalBody             = jQuery('.modal-body').first();		
+		SIRAH.loading.on( modalBody , 'Patientez , chargement des données...' );
+		SIRAH.request.post('globalformsearch' , '".$linkSearch."' , 
+		                   {
+		                      dataType : 'html' ,
+		                      data     : paginationData,
+		                      beforeSend : function() {
+		                       },
+		                      error      : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+	                          success    : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      },
+		                      update     : function(data){
+		                        modalBody.html(data);
+		                        SIRAH.loading.off(false);
+		                      }		
+		                     });
+	  SIRAH.loading.off(false);		
+	}); ");
+?>
+    <div class="row pagerow">
+    <?php
+             $buttonbar     = $this->buttonbar(array() , $this->jqueryHandler());            
+             $buttonSelect  = $buttonbar->button("Récupérer","plus")->setPriority("primary");                                 
+             $buttonbar->add($buttonSelect ,"selectButton");
+             $buttonSelect->disable();
+     ?>            
+    <div class="row" >
+        <div class="col-md-12"> 
+            <form style="margin :10px 0 10px 0;" class="form-horizontal" id="globalformsearch" method="post" action="<?php echo $linkSearch; ?>" >
+                  <div class="input-group pull-right">
+                     <input value="<?php echo $filters['numdossier']; ?>" id="global-filter" name="global-filter" 
+                            style="color: #555555;display: inline-block; font-size: 1.2em; line-height: 25px;padding: 4px 6px;
+                                   vertical-align: middle; height:34px;"  type="text" class="form-control input-medium" placeholder="Numéro du dossier de candidature">
+                     <span class="input-group-btn ">
+                        <button class="btn btn-default defaultSearch" type="button"> <span class="glyphicon glyphicon-search"> </span > Filtrer</button>
+                        <button id="show-advanced-searchform" class="btn btn-default" type="button"> Recherche avancée </button>
+                     </span>
+                   </div>
+            </form>
+        </div>
+      </div> &nbsp;&nbsp;                 
+      <div style="display:none;" id="advanced-candidaturesearchform"  class="row simplerow" >
+         <form method="post" action="<?php echo $linkSearch; ?>" align="left"   id="advanced-candidaturesearchform"   role="form">
+            <div class="row simplerow-search-form-header"><a id="close-advanced-searchform" class="close"> Fermer</a><h3> <span class="icon-search"></span> Les paramètres de recherche avancée :</h3></div>
+            <div class="row">
+               <div class="column col-md-2"> <label  for="numdossier"> Numéro du dossier :  </label> </div>
+               <div class="column col-md-4">                                
+                    <input id="numdossier" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                           title="Numéro du dossier" placeholder="Numéro du dossier"  name="numdossier" value="<?php echo $filters['numdossier']; ?>">
+               </div>            
+               <div class="column col-md-2"> <label   for="cohortid"> Cohorte / Filière :</label> </div>
+               <div class="column col-md-4"> <?php echo $this->formSelect("cohortid" , $filters["cohortid"] , array() , $this->cohortes ); ?> </div>
+            </div>
+            <div class="row"> 
+               <div class="column col-md-2"><label   for="firstname">Prénom : </label></div>                           
+               <div class="column col-md-4">
+                  <input id="firstname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Votre prénom" placeholder="Prénom"  name="firstname" value="<?php echo $filters['firstname']; ?>">
+               </div>
+               <div class="column col-md-2"><label   for="lastname"> Nom : </label></div>
+               <div class="column col-md-4">                              
+                  <input id="lastname" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                         title="Numéro de téléphone" placeholder="Nom de famille" name="lastname" value="<?php echo $filters['lastname']; ?>">
+               </div>  
+            </div>                                                                           
+            <div class="row"> 
+               <div class="column col-md-2"><label for="username"> Identifiant : </label></div>
+               <div class="column col-md-4">                               
+                   <input id="username" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Utilisez l'identifiant pour filtrer" placeholder="Identifiant"  name="username" value="<?php echo $filters['username']; ?>">
+               </div>  
+               <div class="column col-md-2"> <label  for="email"> E-mail: </label> </div>
+               <div class="column col-md-4">
+                   <input id="email" type="text" maxlength="96" autocomplete="off" autocapitalize="off" autocorrect="off" 
+                          title="Filtrez par l'email" placeholder="E-mail" name="email" value="<?php echo $filters['email']; ?>">
+               </div> 
+            </div>
+            <div class="row">
+                <div class="column col-md-2"> <label  for="annee"> Année académique : </label> </div>
+                <div class="column col-md-2"> <?php echo $this->formSelect("periode_start_year", $filters["periode_start_year"], array(), array("0000"=>"Debut année")+createYearsArray((date("Y")-10), (date("Y")+20) ));?></div> 
+                <div class="column col-md-2"> <?php echo $this->formSelect("periode_end_year"  , $filters["periode_end_year"]  , array(), array("0000"=>"Fin année ")+createYearsArray((date("Y")-10), (date("Y")+20) ));?></div>   
+            </div>                                                    
+            <div class="row"  >
+                 <div class="column col-md-2"> <label   for="sexe"> Sexe :</label> </div>  
+                 <div class="column col-md-4">
+                      <label class="radio-inline"><input type="radio" name="sexe" id="sexe-m" value="M" <?php if($filters["sexe"] == "M") echo "checked"; ?>>Homme </label>         
+                      <label class="radio-inline"><input type="radio" name="sexe" id="sexe-f" value="F" <?php if($filters["sexe"] == "F") echo "checked"; ?>>Femme </label>
+                 </div>
+                 <div class="column col-md-2"> <label  for="limit"> Limiter la liste à : </label> </div>                           
+                 <div class="column col-md-4">
+                                <?php echo $this->formSelect("maxitems" , $this->maxitems , array() , array( "10"   => 10 , 
+                                		                                                                     "25"   => 25 , 
+                                		                                                                     "50"   => 50 , 
+                                		                                                                     "100"  => 100, 
+                                		                                                                     "500"  => 500, 
+                                		                                                                     "1000" => 1000, 
+                                		                                                                     "2000" => 2000 , 
+                                		                                                                     "5000" => 5000)); ?>
+                 </div> 
+             </div>                       
+             <div class="row">
+                  <div class="column  col-md-2">
+                       <button type="submit" class="btn btn-primary search ajaxSearch"><span class="glyphicon glyphicon-search"></span > Filtrer </button>  
+                  </div>                      
+                  <div class="column  span10"></div>     
+             </div>
+             <input type="hidden" name="page"     id="page"     value="<?php echo $this->pageNum; ?>"  /> 
+         </form>
+     </div>
+   <?php
+             //On crée et affiche le tableau
+             $table  = $this->table(array("id" => "candidaturesListTable","class"  => array("table table-hover table-bordered table-stripped sirah-ui-table scrollable")));
+             $header = $table->row();             
+             $header->add("Dossiers"   , array("width" => "20%"))
+                    ->add("Etudiants"  , array("width" => "30%"))
+                    ->add("Formations" , array("width" => "25%"))
+                    ->add("Date candidature" , array("width" => "25%"));            
+             $table->setHeader($header);             
+             if(count(   $candidatures ) ) {
+             	foreach( $candidatures as $candidature ) {             		
+             	   $candidatureid    = intval($candidature['candidatureid']);
+             	   $nom              = sprintf(" %s %s " , $this->escape($candidature["lastname"]) , $this->escape($candidature["firstname"]) );
+             	   $numdossier       = $this->escape($candidature["numdossier"]) ;
+             	   $cohorte          = $this->escape($candidature["cohorte"]);
+             	   $annee            = intval($candidature["annee"]);
+             	   $datecandidature  = (intval($candidature["datecandidature"])) ? date("d/m/Y H:i:s" , intval($candidature["datecandidature"])) : "00-00-0000";
+             	   $candidatureRow   = $table->row(array("id"  => "candidatureRowId-" . $candidatureid ));
+             	   $candidatureRow->add("<a href=\"#candidatureid-".$candidatureid."\" class=\"selectClick\" >" . $numdossier . "</a>" , array("id" => "candidatureItemId-" . $candidatureid ))
+             		              ->add("<a href=\"#candidatureid-".$candidatureid."\" class=\"selectClick\" >" . $nom     . "</a>", array("id" => "candidature-" . $candidatureid ))
+             		              ->add("<a href=\"#candidatureid-".$candidatureid."\" class=\"selectClick\" >" . $cohorte . "</a>", array("id" => "cohorteId-" . $candidatureid )) 
+             	                  ->add("<a href=\"#candidatureid-".$candidatureid."\" class=\"selectClick\" >" . $datecandidature . "</a>" , array("id" => "dateCandidatureId-" . $candidatureid ));
+             	   $table->add( $candidatureRow );
+             	   
+             	   echo "<input type='hidden'  name=\"candidatureids[]\"               id=\"candidatureids" . $candidatureid."\" />";
+             	   echo "<input type='hidden'  name='lastname-".$candidatureid."'      id='lastname-".$candidatureid."'   value='".$this->escape($candidature["lastname"])."'  />" ;
+             	   echo "<input type='hidden'  name='firstname-".$candidatureid."'     id='firstname-".$candidatureid."'  value='".$this->escape($candidature["firstname"])."'  />" ;
+             	   echo "<input type='hidden'  name='email-".$candidatureid."'         id='email-".$candidatureid."'      value='".$this->escape($candidature["email"])."'  />" ;
+             	   echo "<input type='hidden'  name='userid-".$candidatureid."'        id='userid-".$candidatureid."'     value='".$candidature["userid"]."'  />" ;
+             	   echo "<input type='hidden'  name='candidatureid-".$candidatureid."' id='userid-".$candidatureid."'     value='".$candidature["candidatureid"]."'  />" ;
+             	   echo "<input type='hidden'  name='numdossier-".$candidatureid."'    id='numdossier-".$candidatureid."' value='".$numdossier."'  />" ;
+             	}
+             }  else {
+             	$unfoundRow  = $table->row(array("style" => 'text-align:center;'));
+             	$unfoundRow->add(" Aucun résultat n'a été retrouvé , réessayez avec d'autres critères de recherche ", array("colspan"  => 9 ));
+             	$table->add($unfoundRow);
+             }    
+              // On affiche le tableau
+              echo $table;
+              
+              //On crée et affiche la pagination
+              $pagination  = $this->pagination(array() , "Elastic" , "#");              
+              echo $pagination->render();  
+
+              if( $this->isAjax ) {
+              	  echo $this->jQuery();
+              	  echo $this->headStyle();
+              }
+    ?>     
+ </div>

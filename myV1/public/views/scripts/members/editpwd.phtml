@@ -1,0 +1,123 @@
+<?php 
+$captcha            = $this->captcha;
+$messages           = $this->messages;
+$token              = $this->token;
+$data               = $this->data;
+ 
+ 
+$formSubmit         = $this->url(array("controller"=>"members","action"=>"editpwd","module"=>"public"),"default",true);
+$linkCancel         = $this->url(array("controller"=>"index"  ,"action"=>"index"        , "module"=> "public"),"default",true);
+$linkCheckUsername  = $this->url(array("controller"=>"ajaxres","action"=>"checkusername", "module"=> "public"),"default",true);
+$linkCheckEmail     = $this->url(array("controller"=>"ajaxres","action"=>"checkemail"   , "module"=> "public"),"default",true);
+ 
+$basePath           = ROOT_PATH.'/myTpl/public';
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel > .list-group .list-group-item{border-width:1px !important;border-top:1px solid #ddd !important}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<?php
+$jq     = $this->jQuery();  
+$onLoad = " 
+var  formSelector= jQuery('#editPwdForm');
+jQuery('#editPwdButton').click(function( event ){
+    event.preventDefault();      
+    var formSelector  = jQuery('#editPwdForm');
+    var password      = jQuery.trim(formSelector.find('#password').val());
+    var newpwd        = jQuery.trim(formSelector.find('#newpwd').val());
+    var newpwdconfirm = jQuery.trim(formSelector.find('#newpwdconfirm').val());
+ 
+      
+    if( SIRAH.util.isEmpty(password)){
+        formSelector.find('#password').addClass('input-error');
+        formSelector.find('#password-validation-message').html('');
+        SIRAH.error.raise('password-validation-message','Entrez un ancien mot de passe valide');
+        return;
+    } else {
+        formSelector.find('#password').removeClass('input-error');
+        formSelector.find('#password-validation-message').html('');
+    }
+    if(SIRAH.util.isEmpty(newpwd)){
+        formSelector.find('#newpwd').addClass('input-error');
+        formSelector.find('#newpwd-validation-message').html('');
+        SIRAH.error.raise('newpwd-validation-message','Entrez un nouveau mot de passe valide');
+        return;
+    }  else {
+        formSelector.find('#newpwd').removeClass('input-error');
+        formSelector.find('#newpwd-validation-message').html('');
+    }    
+    if( SIRAH.util.isEmpty(newpwdconfirm)){
+        formSelector.find('#newpwdconfirm').addClass('input-error');
+        formSelector.find('#newpwdconfirm-validation-message').html('');
+        SIRAH.error.raise('newpwdconfirm-validation-message','Confirmez le nouveau mot de passe');
+        return;
+    }  else {
+        formSelector.find('#newpwdconfirm').removeClass('input-error');
+        formSelector.find('#newpwdconfirm-validation-message').html('');
+    } 
+    if( newpwdconfirm!= newpwd){
+        formSelector.find('#newpwdconfirm').addClass('input-error');
+        formSelector.find('#newpwdconfirm-validation-message').html('');
+        SIRAH.error.raise('newpwdconfirm-validation-message','La confirmation est différente du nouveau');
+        return;
+    }  else {
+        formSelector.find('#newpwdconfirm').removeClass('input-error');
+        formSelector.find('#newpwdconfirm-validation-message').html('');
+    }         
+    formSelector.find('#password').val(password);
+    formSelector.find('#newpwd').val(newpwd);
+    formSelector.find('#newpwdconfirm').val(newpwdconfirm);
+    formSelector.submit();
+});
+ 
+ 
+     
+  
+jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';}); ";
+$jq->addOnLoad($onLoad);
+ 
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="editPwdForm" class="form-horizontal" role="form" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<ul class="list-group">
+		    <li class="list-group-item">
+				<div class="form-group">
+					 <label class="col-sm-2  col-md-2 control-label" for="code">Identifiant*:</label>
+					 <div   class="col-sm-10 col-md-10"><input disabled="disabled" readonly id="code" type="text" maxlength="150"class="form-control" title="Votre nom d'utilisateur" placeholder="Votre identifiant" name="code" value="<?php echo $data['username']; ?>"></div>           
+				</div>
+				     
+		    </li>
+			<li class="list-group-item">
+				<div class="form-group">
+					<label class="col-sm-2  col-md-2 control-label" for="password">Ancien mot de passe*:</label>  
+					<div   class="col-sm-10 col-md-10">
+						  <input id="password" type="password"  class="form-control" title="Votre ancien mot de passe"  placeholder="Votre ancien mot de passe" name="password"  class="form-control" /> 
+					</div>                      
+				</div>
+				<p id="password-validation-message" class="validation-message"></p>  
+		    </li>    
+		    <li class="list-group-item">
+			    <div class="form-group">
+				    <label class="col-sm-2  col-md-2 control-label" for="newpwd">Nouveau mot de passe*:</label>    
+					<div   class="col-sm-10 col-md-10">
+						  <input id="newpwd" type="password" title="Votre nouveau mot de passe" placeholder="Votre nouveau mot de passe" name="newpwd" class="form-control"  /> 
+					</div>                       
+			    </div>
+				<p id="password-validation-message" class="validation-message"></p>
+		    </li>   
+		    <li class="list-group-item">
+			    <div class="form-group">
+					<label class="col-sm-2  col-md-2 control-label" for="newpwdconfirm">Confirmation*: </label>   
+					<div   class="col-sm-10 col-md-10">
+						 <input id="newpwdconfirm" type="password" title="Confirmez le nouveau mot de passe" placeholder="Confirmez le nouveau mot de passe" name="newpwdconfirm" class="form-control"  /> 
+					</div>                       
+			    </div>
+		    </li>			
+	    </ul>  
+   
+	    <div class="panel-footer">
+		    <div class="btn-group"><button id="cancelButton"  class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"></i> Annuler </button> </div>
+			<div class="btn-group"><button id="editPwdButton" class="btn btn-primary editPwdButton">  <i class="glyph-icon icon-floppy-disk"> </i> Enregistrer <i class="glyph-icon icon-chevron-right"> </i></button> </div>			
+	    </div>
+    </div>
+</form>

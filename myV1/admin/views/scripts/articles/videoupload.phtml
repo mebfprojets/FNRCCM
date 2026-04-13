@@ -1,0 +1,95 @@
+<?php
+$data        = $this->data;
+$galleryid   = $this->galleryid;
+$articleid   = $this->articleid;
+   
+$formSubmit  = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"addvideo","galleryid"=>$galleryid,"articleid"=>$articleid), "default" ) ; 
+$backList    = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"infos" ,"galleryid"=>$galleryid,"articleid"=>$articleid), "default");
+$onLoad      = "jQuery('#videosrcfile').filestyle({buttonText:'Selectionner une vidéo',classButton:'btn btn-default',classIcon:'glyph-icon icon-film', icon: true});";
+$jq          = $this->jQuery();
+$jq->addOnLoad($onLoad);
+
+$basePath    = VIEW_BASE_PATH;
+$jq->addJavascriptFile( $basePath . "/js/bootstrap/bootstrap-filestyle.js");
+$jq->addOnLoad( $onLoad );
+   
+   $buttonbar    = $this->Btnbar(array() , $this->jqueryHandler());
+   $buttonCreate = $buttonbar->button(" Enregistrer la vidéo" , "upload")->setPriority("primary");
+   $buttonCancel = $buttonbar->button(" Revenir sur la liste ", "chevron-left");
+    
+   $buttonCreate->setAttributes(array("type" => "submit"));
+   $buttonCancel->setAttributes(array("type" => "submit"));
+   
+   $buttonbar->add( $buttonCancel , "cancelVideoButton");
+   $buttonbar->add( $buttonCreate , "saveVideoButton");
+       
+   $buttonCancel->onClick("event.preventDefault(); document.location.href= '".$backList."' ;");
+    
+   $buttonCreate->onClick("
+   		event.preventDefault();
+   		var formSelector = jQuery('#galleryVideoForm');
+   		var libelle      = formSelector.find('#libelle').val();
+   		if( SIRAH.util.isEmpty( libelle )){
+		    jQuery('#libelle').addClass('input-error');
+		    jQuery('#libelle-validation-message').html('');
+		    SIRAH.error.raise('libelle-validation-message','Renseignez le titre de la vidéo');
+		    return;
+        } else {
+		    jQuery('#libelle').removeClass('input-error');
+		    jQuery('#libelle-validation-message').html('');
+        }
+   		formSelector.submit();");
+?>
+<?php $this->headStyle()->captureStart() ?>
+     .bar {height: 18px;background: green;}
+     div.bootstrap-filestyle input[type="text"]{width:auto;margin-left:5px;margin-right:5px;margin-bottom:0;}
+     div.bootstrap-filestyle, div.fileUploadRow{margin-bottom:15px;}
+<?php $this->headStyle()->captureEnd()   ?>  
+<form method="post" action="<?php echo $formSubmit; ?>" id="galleryVideoForm" enctype="multipart/form-data" class="form-horizontal"  role="form"> 
+    <div class="panel panel-default" >
+		<ul class="list-group">
+			<li class="list-group-item">
+				<div class="form-group">              
+					<label class="col-sm-2  col-md-2 control-label"> Chercher une vidéo locale*: </label>
+					<div   class="col-sm-10 col-md-10"> <input type="file" name="videosrcfile" id="videosrcfile"  /> </div>  
+				</div>
+			</li>
+			<li class="list-group-item">
+				<div class="form-group"> 
+					<label class="col-sm-2  col-md-2 control-label"> Source*: </label> 
+					<div   class="col-sm-10 col-md-10"> <?php echo $this->formSelect("videosrc", $data["videosrc"], array("class"=> "form-control"), $this->videoSources ); ?> </div>
+				</div>
+			</li> 
+			<li class="list-group-item">
+				<div class="form-group"> 
+					<label class="col-sm-2  col-md-2 control-label"> URL de la vidéo*: </label> 
+					<div   class="col-sm-10 col-md-10"><input class="form-control" id="videourl" name="videourl" type="text" title="Copier-Coller l'url de la vidéo" placeholder="L'URL de la vidéo depuis le fournisseur (Youtube,dailymotion,vimeo, etc...)" value="<?php echo $data["videourl"]; ?>"></div>
+				</div>
+			</li> 
+			<li class="list-group-item">
+			   <div class="form-group"> 
+					<label class="col-sm-2  col-md-2 control-label"> Intitulé de la vidéo*: </label>
+					<div   class="col-sm-10 col-md-10"><input class="form-control" id="libelle" name="libelle" type="text" maxlength="226" title="Le titre de la video" placeholder="Le titre de la video" value="<?php echo $data["libelle"]; ?>"></div>
+			   </div>
+			   <p id="libelle-validation-message" class="validation-message"></p>  
+			</li>     
+			<li class="list-group-item">
+				<div class="form-group">
+					<label class="col-md-2 col-sm-2 control-label"> Description: </label>
+					<div   class="col-md-10 col-sm-10"><textarea name="description" id="description" class="form-control textarea-sm"> <?php echo $data["description"]; ?> </textarea></div>              
+				</div>  
+			</li>
+		</ul>
+    <?php     
+
+	    if(!$this->isAjax) {
+		   echo "<div class=\"panel-footer\"> ".$buttonbar." </div>";
+	    } else {
+		   echo $this->jQuery();
+		   echo $this->headStyle();
+	    }  
+	?>
+	</div>  
+  <input type="hidden" name="galleryid" id="galleryid" value="<?php echo $galleryid; ?>" />
+  <input type="hidden" name="articleid" id="articleid" value="<?php echo $articleid; ?>" />
+  </form>     

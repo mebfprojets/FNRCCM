@@ -1,0 +1,65 @@
+<?php  
+    $defaultImgPath = APPLICATION_TEMPLATES."public/assets/images/product.png";
+    $basePath       = ROOT_PATH ."/myTpl/public/";
+    $items          = $this->items;
+    $paginator      = $this->paginator;
+	$pagination     = null;
+	$i              = 0;
+    if( null != $paginator ) {
+  	    $pagination = $this->pagination(array(),"Elastic", "#", array(), array("class" => "panel-footer paginationControl", "style" => "text-align:center;")); 	  
+    }
+ 
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel-collapse .panel-footer{background-color:#E7E9EB !important}
+.panel-card{overflow:hidden !important;background-color: #ffffff;height:auto;padding: 1rem;}
+.btn-primary,.panel-primary{background-color:#0b7700 !important;border-color:#0b7700;}
+.panel-primary > .panel-heading {color:#ffffff;background-color:#0b7700;border-color:#0b7700;}
+.section-content{padding:5px;}
+.section-content .panel-desc a{color:#333333;font-size:18px;font-weight:bold}
+.panel .panel-heading {padding-top:14px;padding-bottom:14px;}
+.panel-more-shadow{word-wrap: break-word;background-color:#fff;background-clip: border-box;border:1px solid rgba(0,0,0,.125);box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%);}
+body{background-color:#f1f1f1;background-image:url(<?php echo $basePath; ?>images/body-bg.png);}
+.item-img{border-radius:0.20rem;padding:4px;border:1px solid rgba(0,0,0,.125) !important;background:#ffffff;box-shadow:0 2px 4px #d8e1e8}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div class="container section-content">
+    <div id="contentItems" class="col-xs-12 col-sm-12 col-md-8 equal-height-panels items-content margin-center">
+	    <div class="panel-group" id="faqAccordion">
+		    <?php if( count(   $items)): ?>
+			    <?php foreach( $items as $item ):?>
+				<?php
+					  $itemId          = intval($item["articleid"]);
+					  $introtext       = strip_tags($item["introtext"]);
+					  $itemTitle       = strip_tags($item["title"]);
+					  $linkInfos       = $this->url(array("controller"=>"articles","action"=>"infos","module"=>"public","title"=>$itemTitle,"itemid"=>$itemId),"default",true);
+				      $collapse        = "";
+					  if( $i== 0 ) {
+						  $collapse    = "in";
+					  }
+					  $i++;
+				?>
+				<div class="panel panel-primary">
+				    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#faqAccordion" data-toggle="collapse" href="#faqItem<?php echo $itemId; ?>"> <?php echo $itemTitle; ?></a></div>
+				    <div id="faqItem<?php echo $itemId; ?>" class="panel-collapse collapse <?php echo $collapse; ?>">
+					    <?php echo $this->partial("articles/faqitem.phtml",array("itemid"=>$itemId,"articleid"=>$itemid,"article"=>$item,"item"=>$item,"title"=>$itemTitle)); ?>
+					    <div class="panel-footer">
+						    <a title="Cliquez pour en savoir plus" class="btn btn-primary" href="<?php echo $linkInfos; ?>"> En savoir plus sur cet élement</a>
+						</div>
+					</div>
+				</div>
+				<?php endforeach; ?>
+			<?php endif; ?>
+		</div>
+		<?php if(  $pagination ): ?>
+		<?php echo $pagination->render(); ?>
+		<?php endif; ?>
+	</div>
+	<div class="col-xs-12 col-sm-4 col-md-4">
+	    <div class="panel panel-danger">
+	        <div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-credit-card"></span> Mon Panier </h4> </div>
+		    <?php echo $this->partial("orders/articles.phtml", array()); ?>
+		</div>
+	</div>
+</div> 
+

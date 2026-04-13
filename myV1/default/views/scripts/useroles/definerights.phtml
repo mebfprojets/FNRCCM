@@ -1,0 +1,172 @@
+<?php 
+$rightobjects   = $this->rightobjects;
+$roleid         = $this->roleid;
+$roleRow        = $this->roleRow;
+$formSubmit     = $this->url(array("controller" => "useroles", "action" => "updaterights" , "roleid" => $roleid) , "default");
+$cancelUrl      = $this->url(array("controller" => "useroles", "action" => "list" ) , "default");
+
+$labelUserAllow = "<a title=\"Tout selectionner\" href=\"#\" id=\"rightsCheckAll\" >".sprintf("%s peut:" , $roleRow['rolename'])."</a>";
+
+$jq = $this->jQuery();
+
+$onLoad  = "
+
+   var setAllPrivilegeData = function(selector) {   
+      if(!SIRAH.util.isEmpty(selector)) { 
+         var classname  = selector.attr('class');
+         if(!SIRAH.util.isEmpty(classname) && selector.is(':checked')) {
+           var resourcename    = classname.replace('resources-','');
+           var resourceObjects = jQuery('input[class=\''+classname+'\']');
+           var checkedObjects  = jQuery('input[class=\''+classname+'\']:checked');
+           var resourceid      = parseInt(jQuery('#resourceId-'+resourcename).val());
+           
+           if(checkedObjects.length == resourceObjects.length){
+              var resourceObjectValues = [];
+              checkedObjects.each(function(){
+                 resourceObjectValues.push(jQuery(this).val());
+               });
+              var resourceObjectValuesStr = resourceObjectValues.join('-');
+              var allValue    = resourceid+'-'+resourceObjectValuesStr;
+              jQuery('#all-'+resourcename).val(allValue);
+           } else {
+              jQuery('#all-'+resourcename).val(resourceid);
+           }
+         }
+      }  else {     
+       jQuery('.resourceAll').each(function(){
+           var resourcename    = jQuery(this).attr('id').replace('all-','');         
+           var resourceObjects = jQuery('input[class=\'resources-'+resourcename+'\']');
+           var checkedObjects  = jQuery('input[class=\'resources-'+resourcename+'\']:checked');
+           var resourceid      = parseInt(jQuery('#resourceId-'+resourcename).val());
+           
+           if(checkedObjects.length == resourceObjects.length){
+              var resourceObjectValues = [];
+              checkedObjects.each(function(){
+                 resourceObjectValues.push(jQuery(this).val());
+               });
+              var resourceObjectValuesStr = resourceObjectValues.join('-');
+              var allValue    = resourceid+'-'+resourceObjectValuesStr;
+              jQuery('#all-'+resourcename).val(allValue);
+           }  else {
+              jQuery('#all-'+resourcename).val(resourceid);
+           }
+        });
+      }
+      return true;
+   };   
+  jQuery('#rightsCheckAll').click(function(e){
+      if(jQuery(this).is('.isChecked')){
+         checknone(jQuery('#rightsListTable'));
+         jQuery(this).removeClass('isChecked');
+      } else {
+        checkall(jQuery('#rightsListTable'));
+        jQuery(this).addClass('isChecked');       
+      }
+     jQuery('.resourceAll').each(function(){
+           var resourcename    = jQuery(this).attr('id').replace('all-' , '');         
+           var resourceObjects = jQuery('input[class=\'resources-'+resourcename+'\']');
+           var checkedObjects  = jQuery('input[class=\'resources-'+resourcename+'\']:checked');
+           var resourceid      = parseInt(jQuery('#resourceId-'+resourcename).val());
+           
+           if(checkedObjects.length == resourceObjects.length){
+              var resourceObjectValues = [];
+              checkedObjects.each(function(){
+                 resourceObjectValues.push(jQuery(this).val());
+               });
+              var resourceObjectValuesStr = resourceObjectValues.join('-');
+              var allValue    = resourceid+'-'+resourceObjectValuesStr;
+              jQuery('#all-'+resourcename).val(allValue);
+           } else {
+              jQuery('#all-'+resourcename).val(resourceid);
+           }
+        });          
+   });
+   jQuery('.cancel').click(function(e){
+       e.preventDefault();
+       document.location.href = '".$cancelUrl."' ;
+   });   
+   jQuery('.assign').click(function(e){
+       e.preventDefault();
+       if(setAllPrivilegeData('')) {
+          jQuery('#defineright-form').submit();
+       }
+   });    
+   jQuery('#rightsListTable').find('input[type=\'checkbox\']').each(function(){
+       jQuery(this).bind('click',function(e) {
+           if(jQuery(this).is(':checked')){
+             setAllPrivilegeData(jQuery(this));
+           }
+       });
+    });    
+   setAllPrivilegeData('');";
+
+$jq->addOnLoad($onLoad);
+
+?>
+ <div class="row row-fluid pagerow">
+ 
+  <form action="<?php echo $formSubmit; ?>" method="post"  id="defineright-form" role="form" >
+<?php
+   $table  = $this->table(array("id" => "rightsListTable","class"  => array("table sirah-ui-table")));
+   $table->isBordered(true)->isStripped(true)->isCondensed(true)->isHover(true);
+   $header = $table->row();
+   $header->add("Ressources")
+          ->add("Objets")
+          ->add("Descriptions des taches")
+          ->add($labelUserAllow);
+    $table->setHeader($header);
+    
+    $tableResourcename   = null;
+    $i = 0;
+    if(count($rightobjects)) {
+    	foreach($rightobjects as $rightobject) {
+    		$resourceid    = intval($rightobject["resourceid"]);
+    		$resourcename  = Sirah_User_Acl_Table::getResourcename($resourceid);
+    		$objectid      = intval($rightobject["objectid"]);
+    		$objectname    = $rightobject["objectname"];
+    		$objectdesc    = $rightobject["description"];
+    		$isAllowed     = Sirah_User_Acl_Table::isAllowed( 0 , $roleid , $resourceid , $objectid) ;
+    		$checked       = ($isAllowed) ? " checked =\"checked\" " : "";
+    		$checkbox      = "<input type=\"checkbox\" name=\"objects[".$objectid."]\" id=\"ligne-".$i."\" class=\"resources-".$resourcename."\" value=\"".$objectid."\" ".$checked."  />";
+    		    		
+    		$rightRow     = $table->row(array("id"  => "row-".$resourceid."-".$objectid));
+    		
+    		if($tableResourcename != $resourcename) {
+    			$rightRow->add($resourcename);
+    			echo "<input type=\"hidden\"  name=\"all[".$i."]\" id=\"all-".$resourcename."\" value=\"".$resourceid."\"  class=\"resourceAll\" />";
+    			echo "<input type=\"hidden\"  id=\"resourceId-".$resourcename."\" value=\"".$resourceid."\" />";
+    		} else {
+    			$rightRow->add(" ");
+    		}   		
+    		$rightRow->add($objectname);
+    		$rightRow->add($objectdesc);
+    		$rightRow->add($checkbox);
+    		
+    		$table->add($rightRow);
+    		
+    		$tableResourcename = $resourcename;
+    		$i++;
+    	}   
+    }  else {
+    	$unfoundRow  = $table->row(array("style"  => 'text-align:center;'));
+    	$unfoundRow->add("Aucune règle de permissions n' a été retrouvée dans le système", array("colspan"  => 7));
+    	$table->add($unfoundRow);
+    }
+     echo $table;
+     
+     if($this->isAjax) {
+     	echo $jq;
+     } else {
+     	echo "<div class='row col-md-12' >
+     	          <div class='col-md-3' >
+     	               <button type='submit' id='submitButton' class=\"btn btn-primary assign\" > Valider </button>
+     	               <button type='submit' id='cancelButton' class=\"btn btn-default cancel\" > Annuler </button>
+     	          </div>     	          
+     	          <div class='col-md-9' > &nbsp; </div>
+     	       </div>
+     	     ";
+     }    
+    ?>
+    <input type="hidden"  name="roleid"  id="roleid" value="<?php echo $roleid; ?>"  />
+  </form>     
+ </div>

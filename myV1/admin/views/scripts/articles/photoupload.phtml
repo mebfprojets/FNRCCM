@@ -1,0 +1,118 @@
+<?php 
+	$photosToken  = $this->photosToken;
+	$articleid   = $this->articleid;
+	$galleryid    = $this->galleryid;
+    $formSubmit   = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"addphotos","token"=>$photosToken), "default" );
+	$linkCancel   = $this->url(array("module"=>"admin","controller"=>"articles","action"=>"infos","articleid"=>$articleid,"token"=>$photosToken), "default" );
+ 
+    $basePath     = ROOT_PATH."/myTpl/sirahpro";
+            
+    $jq           =  $this->jQuery();
+    $onLoad       = "
+	    jQuery('#cancelBtn').click(function(event){event.preventDefault();document.location.href='".$linkCancel."';});
+		jQuery('#ignoreBtn').click(function(event){event.preventDefault();document.location.href='".$linkIgnore."';});
+		Dropzone.autoDiscover  = false;
+		var uploadPhotosFormDz = new Dropzone('#uploadPhotosForm', {
+			url:'".$formSubmit."',
+			paramName:'".$photosToken."',
+			method:'post',
+			autoProcessQueue: false,
+			maxFilesize:25,
+			maxFiles:10,
+			parallelUploads: 20,
+			uploadMultiple:true,
+			addRemoveLinks:true,
+			acceptedFiles:'.png,.jpg,.gif,.jpeg,.',
+			dictDefaultMessage:'Déposer des photos ici pour procéder au chargement',
+			dictFallbackMessage:'Votre navigateur ne supporte pas les envois de fichiers dragndrop',
+			dictFallbackText:'Veuillez utiliser le formulaire de secours ci-dessous pour télécharger vos fichiers comme auparavant.',
+			dictFileTooBig:'Le fichier est trop volumineux ({{filesize}}MiB). Taille maximale du fichier: {{maxFilesize}} MiB.',
+			dictInvalidFileType:'Vous ne pouvez pas télécharger de fichiers de ce type.',
+			dictResponseError:'Le serveur a répondu avec un code {{statusCode}}.',
+			dictCancelUpload:'Annuler le téléchargement',
+			dictCancelUploadConfirmation : 'Êtes-vous sûr de vouloir annuler ce téléchargement?',
+			dictRemoveFile:'Supprimer le fichier',
+			dictMaxFilesExceeded:'Vous ne pouvez plus télécharger de fichiers.',
+			init : function(){
+				var myDropzone   = this;
+				var uploadButton = jQuery('#uploadButton');
+                var startButton  = jQuery('#startUploadBtn');				
+				uploadButton.click(function(event){event.preventDefault();jQuery('#uploadPhotosForm').get(0).dropzone.hiddenFileInput.click();});
+				startButton.click(function(event) {event.preventDefault();myDropzone.processQueue();});
+			},
+			success : function(file, response) {
+				var objResponse = jQuery.parseJSON(response);
+				if( objResponse.error !== undefined ) {
+					alert(objResponse.error);
+					return;
+				} else {
+					SIRAH.error.raise(jQuery('#uploadPhotosForm'), objResponse.success , 'success');
+					setTimeout(function(){document.location.href=\"".$linkCancel."\";},2000);
+				}
+			}
+		});
+		uploadPhotosFormDz.on('addedfile', function(file) {
+			var removeFilesButton = jQuery('#cancelUploadBtn');
+			jQuery('#uploadButtons').removeClass('hidden');
+			file.previewElement.addEventListener('click', function() {uploadPhotosFormDz.removeFile(file);});
+            removeFilesButton.click(function(event){event.preventDefault();uploadPhotosFormDz.removeAllFiles(true);document.location.href=\"".$linkCancel."\";});			
+		});";    
+    $jq->addOnLoad($onLoad);	
+    $jq->addStyleSheet(    $basePath."/assets-minified/widgets/flip-box/flip-box.css");
+    $jq->addStyleSheet(    $basePath."/assets-minified/widgets/dropzone/dropzone.css");
+    $jq->addJavascriptFile($basePath."/assets-minified/widgets/dropzone/dropzone.js");  	
+?>
+<?php $this->headStyle()->captureStart() ?>
+#capturetButtonsRow,#uploadStartBtnRow{margin-top:10px !important}
+.captureButtons{text-align:left !important;width:50% !important;justify-content:left !important;float:left !important;}
+.dz-message{margin-top:-80px !important}
+form.dropzone{border: 2px dashed #0087F7;border-radius: 5px;}
+div.flip-box-row{margin-bottom:10px !important}
+div.flip-box{width:100% !important;float:none !important}
+img.scanned {width:400px !important;margin-right: 12px;}
+div#scanOption   .flip-box-front{background-color:rgba(2,78,203,0.9);color: white;}
+div#uploadOption .flip-box-front{background-color:red;color: white;}
+div#uploadOption{float:right;}
+<?php $this->headStyle()->captureEnd()   ?>
+<form method="post" action="<?php echo $formSubmit;?>" id="uploadPhotosForm" role="form" class="form-horizontal uploadPhotosForm" enctype="multipart/form-data">
+    <div id="captureOptions" class="row captureOptions" >		
+		<div class="col-md-12 col-sm-12" id="uploadOptionColumn"> 
+		    <div class="row flip-box-row">
+			    <div class="flip-box uploadOption push-right" id="uploadOption">
+					<div class="flip-box-inner">
+						<div class="flip-box-front">
+							<div class="flip-box-content-inner">
+								<span class="glyph-icon icon-upload" style="font-size:48px;"> </span>
+								<h2> Parcourir votre ordinateur portable </h2>
+								<p>  Vous pouvez récupérer les photos depuis votre machine.</p>
+								
+							</div>				  
+						</div>
+						<div class="flip-box-back">
+							<div class="flip-box-content-inner">
+								<h2> Parcourir votre ordinateur </h2>
+								<a id="uploadButton" class="btn btn-default uploadButton"> <i class="glyph-icon icon-upload"> </i> Commencer </a>
+							</div>
+						</div>
+					</div>			    
+				</div>
+			</div>		    
+			<div id="uploadPanel" class="uploadPanel captureFilePanel row">
+				<div class="fallback"><input name="file" type="file" multiple /></div>				
+				<input type="hidden" name="articleid"   id="articleid"   value="<?php echo $articleid; ?>" />
+				<input type="hidden" name="photostoken" id="photostoken" value="<?php echo $photosToken; ?>" />
+				<input type="hidden" name="galleryid"   id="galleryid"   value="<?php echo $galleryid; ?>" />
+			</div>
+			<div class="row uploadStartBtnRow" id="uploadStartBtnRow">
+			    <div class="btn-buttonbar sirah-ui-buttonbar uploadButtons hidden" id="uploadButtons"> 
+				    <div class="btn-group">
+					    <button type="submit" id="startUploadBtn"  class="btn sirah-ui-btn btn-success"><i class="glyph-icon icon-upload"></i> Transférer ces photos </button>
+						<button type="submit" id="cancelUploadBtn" class="btn sirah-ui-btn btn-danger"> <i class="glyph-icon icon-remove"></i> Supprimer les fichiers </button>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</div>	
+</form>
+
+             

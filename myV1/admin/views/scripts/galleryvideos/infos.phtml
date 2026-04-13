@@ -1,0 +1,27 @@
+<?php
+$video         = $this->video;
+$requestUri    = ($this->requestUri   )?$this->requestUri    : "";
+$requestHost   = ($this->requestHost  )?$this->requestHost   : "";
+$requestScheme = ($this->requestScheme)?$this->requestScheme : "";
+
+$videoSrc      = $video->videourl ;
+$outputVideo   = " <div class=\"embed-responsive embed-responsive-4by3\">
+						<iframe class=\"embed-responsive-item\" src=\"".$videoSrc."\"></iframe>
+					</div>";
+
+//print_r(APPLICATION_PATH); die();		
+if(!empty( $video ) ) {
+	$videoPathname   = str_replace(APPLICATION_PATH,VIEW_BASE_URI."/myV1", $video );
+	if( Sirah_Filesystem::exists( $video ) ) {
+		$videoFile   = str_replace( DS, "/", $videoPathname );
+	}
+	if(!empty( $videoFile )) {
+		$videoSrc    = $videoFile;//str_replace( ROOT_PATH ."/", $hostName, $videoFile );
+		$outputVideo = " <div align=\"center\" class=\"embed-responsive embed-responsive-4by3\">
+							  <video class=\"embed-responsive-item\" width=\"100%\" height=\"100%\" controls class=\"text-center\">
+								  <source src=\"".$videoSrc."\"  >
+							   </video>
+						 </div>";
+	}
+}		
+echo "<div class=\"row\"> ".$outputVideo." </div>";

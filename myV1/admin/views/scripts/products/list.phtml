@@ -1,0 +1,311 @@
+<?php 
+$produits          = $this->produits;
+$filters           = $this->filters;
+$paginator         = $this->paginator;
+$me                = Sirah_Fabric::getUser();
+
+$basePath          = VIEW_BASE_PATH;
+$avatarDefaultFile = $basePath."/images/login_avatar.png";
+$jq                = $this->jQuery();
+
+$linkSearch        = $this->url(array("module"=>"admin","controller"=>"products","action"=>"list") , "default",true);
+$linkCreate        = $this->url(array("module"=>"admin","controller"=>"products","action"=>"create"),"default",true);
+$linkEdit          = $this->url(array("module"=>"admin","controller"=>"products","action"=>"edit") , "default",true);
+$linkDelete        = $this->url(array("module"=>"admin","controller"=>"products","action"=>"delete"));
+$linkExport        = $this->url(array("module"=>"admin","controller"=>"products","action"=>"export"));
+
+$jq->addOnload("
+jQuery('.resetPage').click(function(){document.location.href = '".$linkSearch."'; });
+jQuery('.resetSearch').click(function(event){
+	   event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};			
+        var maincontent	    = jQuery('#maincontent');				
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : {},
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);}		
+		                  });				
+});
+jQuery('#globalFormSearch').find('#catid').change(function(){ jQuery('#simpleSearch').trigger('click'); });	
+jQuery('#advancedSearchBtn').click(function(event){event.preventDefault(); jQuery('.advancedSearchForm').eq(0).toggle();});
+jQuery('#simpleSearch,.simpleSearch').click(function( event ){
+		event.preventDefault();
+		var formSelector    = jQuery('#globalFormSearch') ;
+		var searchData      = {};
+		searchData.maxitems = parseInt(formSelector.find('#maxitems').val());
+		searchData.libelle  = formSelector.find('#libelle').val();
+		searchData.catid    = parseInt(formSelector.find('#catid').val());	
+        var maincontent	    = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);}		
+		                  });						
+});
+jQuery('.searchProducts,#searchProducts').click(function(    event ){
+		event.preventDefault();
+		var formSelector        = jQuery('#productsListSearchForm,.advancedSearchForm:first') ;					
+		var searchData          = {};
+		searchData.page         = parseInt(formSelector.find('#page').val());
+		searchData.maxitems     = parseInt(formSelector.find('#maxitems').val());
+		searchData.libelle      = formSelector.find('#libelle').val();
+		searchData.catid        = parseInt(formSelector.find('#catid').val());
+		searchData.registreid   = parseInt(formSelector.find('#registreid').val());
+		searchData.documentid   = parseInt(formSelector.find('#documentid').val());
+		searchData.documentcatid= parseInt(formSelector.find('#documentcatid').val());
+ 
+        var maincontent	        = jQuery('#maincontent');	
+		SIRAH.loading.on( maincontent , 'Chargement des données...' );
+		formSelector.attr('action', '".$linkSearch."');
+		SIRAH.request.post(jQuery('#productsListSearchForm') , '".$linkSearch."' , 
+		                   {
+		                      dataType   :'html' ,
+		                      async      : true,
+		                      data       : searchData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);}		
+		                  });		
+});
+jQuery('.sirahPaginationBtn').click(function(event){
+		event.preventDefault();
+		if(jQuery(this).is('.active') || jQuery(this).is('.disabled') || jQuery(this).is('.currentBtn')) {
+		     return false;
+		}
+		var formSelector             = jQuery('.advancedSearchForm').eq(0) ;
+		var pageNum                  = parseInt(jQuery(this).attr('id').replace('paginationBtnPage-' , ''));
+		var pageMaxitems             = formSelector.find('#maxitems').val();
+	    if( jQuery(this).is('.nextPage')) {
+		    var currentBtnNum        = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                  = parseInt( currentBtnNum +1);
+		}
+		if( jQuery(this).is('.prevPage')) {
+		    var currentBtnNum        = parseInt(jQuery('.currentBtn').first().attr('id').replace('paginationBtnPage-' , ''));
+		    pageNum                  = parseInt( currentBtnNum - 1);
+		}
+		var paginationData           = {};
+		paginationData.page          = pageNum;
+		paginationData.maxitems      = parseInt(formSelector.find('#maxitems').val());	
+		paginationData.libelle       = formSelector.find('#libelle').val();
+		paginationData.catid         = parseInt(formSelector.find('#catid').val());
+		paginationData.registreid    = parseInt(formSelector.find('#registreid').val());
+		paginationData.documentid    = parseInt(formSelector.find('#documentid').val());
+		paginationData.documentcatid = parseInt(formSelector.find('#documentcatid').val());
+		
+		var maincontent              = jQuery('#maincontent');			
+		SIRAH.loading.on(maincontent, 'Chargement des données...' );
+		SIRAH.request.post(formSelector, '".$linkSearch."' , 
+		                   {  dataType   :'html' ,
+		                      async      : true,
+		                      data       : paginationData,
+		                      beforeSend : function() { },
+		                      error      : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+	                          success    : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);},
+		                      update     : function(data){maincontent.html(data);basicLoadPage();SIRAH.loading.off(false);}		
+		                  });		
+	});
+jQuery('input:checkbox').uniform();
+jQuery('input[type=\'radio\'].custom-radio').uniform();
+jQuery('.checker span').append('<i class=\'glyph-icon icon-check\'></i>');
+jQuery('.radio   span').append('<i class=\'glyph-icon icon-circle\'></i>');
+var getCheckedProductsId = function() {
+		var checkedItems  = jQuery('#produitsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+        var checkedIds    = []; 
+		if( checkedItems) {
+		    checkedItems.each(function() {
+             	var productid   = parseInt(jQuery(this).attr('id').replace('productids',''));
+             	checkedIds.push(productid);
+            });
+		}
+		return checkedIds;
+  };
+jQuery('#produitsListTable').find('input[type=\'checkbox\']').bind('checkAll', function(event){enableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#produitsListTable').find('input[type=\'checkbox\']').bind('unCheckAll',function(event){disableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#produitsListTable').find('input[type=\'checkbox\']').bind('clickRow',function(event){enableButtons(['editButton','exportButton','deleteButton','updatealldocsButton']);});
+jQuery('#produitsListTable').find('input[type=\'checkbox\']').bind('unClickRow',function(event){
+	checkedItems = jQuery('#produitsListTable').find('input[type=\'checkbox\'][name!=\'checkall\']:checked');
+	if( checkedItems.length <= 0 ) {
+		disableButtons(['editButton','exportButton','deleteButton','releveButton']);
+	}
+});");
+$toolbar      = $this->supinaToolsbar(array() , $this->jqueryHandler());
+$toolCreate   = $toolbar->tool("Nouveau"  , "plus");
+$toolEdit     = $toolbar->tool("Modifier" , "edit");
+$toolDelete   = $toolbar->tool("Supprimer", "trash-o");
+$toolExport   = $toolbar->tool("Exporter" , "download");
+
+$toolbar->add( $toolCreate, "createButton");
+$toolbar->add( $toolEdit  , "editButton");
+$toolbar->add( $toolDelete, "deleteButton");
+
+$toolCreate->onClick(sprintf("event.preventDefault(); document.location.href='%s';" , $linkCreate ));
+$toolEdit->onClick("
+		            event.preventDefault();
+		            var isDisabled   = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+		            var checkedItem  = jQuery('#produitsListTable').find('input[type=\'checkbox\'][name=\'productids[]\']:checked').eq(0);
+		            if( isDisabled || !checkedItem) {
+		                SIRAH.dialog.alert('Vous devrez selectionner une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+		                return;
+                    }
+		            var productid    = parseInt(checkedItem.attr('id').replace('productids',''));
+		            var productName  = jQuery('#name-'+productid).text();
+		            var dialogEdit   = jQuery('<div></div>').attr('id','dialogEdit').addClass('modal-medium');
+		
+		            dialogEdit.dialog2({title:'Mettre à jour les informations du produit '+productName,content:'".$linkEdit."/productid/'+productid,autoOpen:false,modalClass:'modal-wide',removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});
+		            dialogEdit.dialog2('addButton','<span class=\'glyph-icon icon-edit\'></span> Enregistrer',{primary : true,click :
+		                               function(){var editForm = jQuery(this).find('form').eq(0);SIRAH.request.post(editForm,'".$linkEdit."/productid/'+productid);}});
+		            dialogEdit.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'> </i> Annuler', {primary:false,click:function(){jQuery(this).dialog2('close');}});
+		            dialogEdit.dialog2('open');");
+$toolDelete->onClick(" 
+					var isDisabled      = jQuery(this).is('.disabled') || jQuery(this).is('.btn-disabled');
+					var checkedProducts = getCheckedProductsId();
+					if( isDisabled || SIRAH.util.isEmpty( checkedProducts )) {
+					    SIRAH.dialog.alert('Vous devrez selectionner au moins une ligne avant d\'effectuer cette opération','Selectionnez une ligne');
+					    return;
+					}
+					var dialogDelete = jQuery('<div> Voulez-vous vraiment supprimer les produits selectionnés ? Ces matériaux/services seront définitivement supprimés du système </div>').attr('id','dialogDelete');             		 
+					dialogDelete.dialog2({title:'Attention , confirmer cette action !!',autoOpen:false,removeOnClose:true,closeOnEscape:false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...' });        		
+					dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-check\'> </i> Oui',{primary:true,click : 
+										function(){
+													jQuery.ajax({url:'".$linkDelete."',async:false,dataType:'json',data:{'productids[]':checkedProducts},type:'GET' ,
+																 success  : function(data) {
+																	if( data.error !== undefined) {
+																		SIRAH.error.raise(jQuery('#dialogDelete') , data.error);
+																		return;
+																	} else if(data.success !== undefined) {
+																		var checkedProducts = getCheckedProductsId();  	            		
+																		SIRAH.error.raise(jQuery('#dialogDelete'), data.success , 'success');
+																		setTimeout(function(){jQuery.each(checkedProducts,function(key,productid){jQuery('#produitRowId-'+productid).remove();});jQuery('#dialogDelete').dialog2('close');},2500);
+																	}
+																}
+														   });     		
+													}}); 
+					dialogDelete.dialog2('addButton','<i class=\'glyph-icon icon-chevron-left\'></i>Annuler', {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+					dialogDelete.dialog2('open'); ");
+$this->toolsbar = $toolbar;
+
+$pagination     = $this->pagination(array(),"Elastic","#",array(), array("class"=>"panel-footer paginationControl","style"=>"text-align:center;")); 
+?>
+<?php $this->headStyle()->captureStart() ?>
+ 
+<?php $this->headStyle()->captureEnd()   ?>
+<div id="produitsListListWrapper"  class="row">
+    <div  class="panel panel-default listPanel">
+		<div  class="panel-heading bg-blue-alt">
+			<form  class="form-horizontal" id="globalFormSearch" method="post" action="<?php echo $linkSearch; ?>" >
+			  <div class="input-group">
+			    <span class="input-group-btn selectBtn"> <?php echo $this->formSelect("documentcatid",intval($filters["documentcatid"]),array("class"=> "form-control"), $this->documentcategories); ?></span>
+				<span class="input-group-btn selectBtn"> <?php echo $this->formSelect("catid",intval($filters["catid"]),array("class"=> "form-control"), $this->categories); ?></span>
+				<input value="<?php echo $filters['libelle']; ?>" id="libelle" name="libelle"  type="text" class="form-control" placeholder="Désignation...">
+				<span class="input-group-btn ">
+				   <button id="simpleSearch"      class="btn btn-primary simpleSearch" type="button"><span class="glyph-icon icon-search"></span> Filtrer </button>
+				   <button id="advancedSearchBtn" class="btn btn-default advancedSearchBtn" type="button"> <span class="glyph-icon icon-chevron-down"></span> Recherche avancée</button>
+				   <button id="resetSearchBtn"    class="btn btn-danger resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Effacer </button>
+				</span>
+			  </div>
+				 <input type="hidden" name="page"      id="page"      value="<?php echo $this->pageNum; ?>" /> 
+				 <input type="hidden" name="maxitems"  id="maxitems"  value="<?php echo $this->pageSize;?>" />			 
+			</form>
+		</div>
+		<form id="productsListSearchForm"  method="post" role="form" class="form-horizontal advancedSearchForm" action="<?php echo $linkSearch; ?>" style="display:none;">
+		  <ul class="list-group">
+			<li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Désignation:</b> </label> 
+					<div   class="col-sm-4 col-md-4"><input value="<?php echo $filters['libelle']; ?>" type="text" name="libelle" id="libelle" class="form-control" placeholder="Désignation" /></div>
+					<label class="col-sm-2 control-label">  <b> Catégorie:</b> </label> 
+					<div   class="col-sm-4 col-md-4"><?php echo $this->formSelect("catid", intval($filters["catid"]),array("class" => "form-control"), $this->categories); ?> </div>					
+				</div>
+			</li>
+            <li class="list-group-item">
+				<div  class="form-group">
+					<label class="col-sm-2  control-label"><b>Type de documents:</b> </label> 
+					<div   class="col-sm-10 col-md-10"><?php echo $this->formSelect("documentcatid", intval($filters["documentcatid"]),array("class" => "form-control"), $this->documentypes); ?> </div>					
+				</div>
+			</li>			
+			<li class="list-group-item">
+				<div     class="form-group">
+					<label class="col-sm-2 col-md-2 control-label">  <b> Afficher:</b> </label> 
+					<div   class="col-sm-10 col-md-10">
+						<div class = "input-group">			 
+						<?php echo $this->formSelect("maxitems",$this->maxitems,array("class"=> "form-control chosen"), array("10"=>10,"25"=>25,"50"=>50,"100"=>100,"500"=>500,"1000"=> 1000, "2000" => 2000 , "5000" => 5000, "100000000" => "Tout")); ?> 
+						<span class="input-group-addon chosen-grp-addon bg-primary"> Elements</span>
+					   </div>
+					 </div>
+				</div>
+			</li>
+		</ul>
+		<div class="panel-footer"> 
+			<button id="searchProducts" class="btn btn-primary searchProducts advancedSearch" type="button"><span class="glyph-icon icon-search"></span> Rechercher</button>
+			<button id="resetSearch"    class="btn btn-danger  resetSearch" type="button"><span class="glyph-icon icon-remove"></span> Réinitialiser</button>
+		</div>
+		  <input type="hidden" name="page"     id="page"      value="<?php echo $this->pageNum;    ?>"           />
+		</form>
+		<table id="produitsListTable"  class="table table-hover table-bordered table-stripped table-responsive sirah-ui-table scrollable text-center">
+			<thead>
+					<tr> 
+						<th width="5%"> <input type="checkbox" name="checkall" id="checkAll" class="checkAll" /></th>
+						<th width="10%"> Codes    </th> 
+						<th width="25%"> Catégories    </th>  						
+						<th width="40%"> Désignations  </th> 
+						<th width="10%"> Coût HT </th>	
+						<th width="10%"> Coût TTC </th>				
+					</tr>
+			</thead>                
+			<tbody>
+			<?php 
+				$output   =  "";
+				$i        =  0;
+				if( count(   $produits ) ) {
+					foreach( $produits as $produit ) {
+							 $productid     = intval($produit['productid']);                              	  	        
+							 $libelle       = $produit["libelle"] ;
+							 $code          = $produit["code"] ;
+							 $categorie     = (!empty( $produit["categorie"]    ))? $produit["categorie"]     : "";
+							 $codeCategorie = (!empty( $produit["codeCategorie"]))? $produit["codeCategorie"] : "";
+							 $cout_ht       = (floatval($produit["cout_ht"]     ))? sprintf("%s F CFA",number_format($produit["cout_ht"] ,0, "," , " ")): $produit["cout_ht"];
+							 $cout_ttc      = (floatval($produit["cout_ttc"]    ))? sprintf("%s F CFA",number_format($produit["cout_ttc"],0, "," ," ")): $produit["cout_ttc"];
+							 $linkInfos     = $this->url(array("module"=>"admin","controller"=>"products","action"=>"infos", "productid" => $productid ), "default", true);
+							  
+							 $output .= "<tr   id=\"produitRowId-".$productid."\"> ";
+									$output.= "<td> <input type=\"checkbox\" name=\"productids[]\" id=\"productids".$productid."\" class=\"productids\" /> </td>";
+									$output.= "<td> <a title=\"Voir les informations de cet élement\" href=\"".$linkInfos."\"> ".$code." </a> </td>";	
+									$output.= "<td> <a title=\"Voir les informations de cet élement\" href=\"".$linkInfos."\"> ".$categorie  ." </a> </td>";										
+									$output.= "<td> <a title=\"Voir les informations de cet élement\" href=\"".$linkInfos."\"> ".$libelle    ." </a> </td>";
+									$output.= "<td> <a title=\"Voir les informations de cet élement\" href=\"".$linkInfos."\"> ".$cout_ht ." </a> </td>";
+									$output.= "<td> <a title=\"Voir les informations de cet élement\" href=\"".$linkInfos."\"> ".$cout_ttc ." </a> </td>";
+						     $output .= "</tr>";
+							
+					}                              	
+				}  else {
+							 $output .= "<tr  id=\"produitRowId-0\"> <td style=\"text-align:center;\" align=\"center\" colspan=\"8\"> AUCUN PRODUIT OU SERVICE N'A PU ETRE TROUVE </td> </tr>";
+				}                              
+				echo $output;                      
+			?>
+			</tbody>
+		</table>
+	<?php echo $pagination->render(); ?>
+  </div>
+</div>
+
+<?php 
+     if( $this->isAjax ) {
+     	 echo $this->jQuery();		 
+	     echo $this->headStyle();
+     }
+?>
+   
+   
+    

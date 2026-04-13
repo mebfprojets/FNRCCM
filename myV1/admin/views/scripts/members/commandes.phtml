@@ -1,0 +1,89 @@
+<?php 
+    $commandes     = $this->commandes;
+    $member        = $this->member;
+	$memberid      = $this->memberid;
+    $me            = Sirah_Fabric::getUser();
+ 
+    $canRemove     = $me->isAllowed("commandes", "delete");
+    $linkDelete    = $this->url(array("module"=>"admin","controller"=>"commandes","action"=>"delete"),"default",true) ;
+    $linkCreate    = $this->url(array("module"=>"admin","controller"=>"commandes","action"=>"create", "memberid"=>$memberid),"default",true) ;
+    $output        = "  <table id=\"commandesList\" class=\"table table-stripped table-responsive commandesList\">
+                            <thead>
+                                <tr>
+                                    <th width=\"width:2%\"> *         </th>
+                                    <th width=\"width:23%\"> Dates    </th>
+                                    <th width=\"width:25%\"> Numéros  </th>                                    
+									<th width=\"width:25%\"> Montants </th>
+									<th width=\"width:25%\"> Statuts  </th>
+                                </tr>
+                            </thead>";  
+    if( count(  $commandes ) ) {
+   	            $commandeTotal= 0;
+   	    foreach($commandes  as $commande ) {
+   	   	        $commandeid    = $commande["commandeid"];
+                $reference     = $commande["ref"];
+                $valeur        = number_format($commande["valeur"], 0 , ", "," ");
+                $date          = (isset($commande["date_commande"]))? $commande["date_commande"] : date("d/m/Y", $commande["date"]);                     	  	       
+                $statutLib     = (isset($commande["statut"]       ))? $commande["statut"]        : "";
+   	   	        $rowBg         = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+				$commandeTotal+= $commande["valeur"];
+   	   	        $linkCommande  = $this->url(array("module"=>"admin","controller"=>"commandes","action"=>"infos","commandeid"=>$commandeid),"default",true);
+   	   	        if( isset($commande["date"]) && intval($commande["date"])) {
+					$zendDate  = new Zend_Date($commande["date"],Zend_Date::TIMESTAMP);
+					if( $zendDate ) {
+						$date  = $zendDate->toString("dd MMM Y");
+					}
+				} 
+   	   	        $output      .="  <tr id=\"commandeId-".$commandeid ."\" style=\"background-color:".$rowBg."\"> ";
+				    if( $canRemove )
+   	   	              $output.="     <td><span title=\"Supprimer cette commande\" href=\"#\" id=\"delCommandeId-".$commandeid."\" class=\"glyph-icon icon-remove pull-left delCommande \"></span> </td>";
+   	   	            else
+                      $output.="     <td>  </td>";						
+					  $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$date     ." </a> </td>";
+   	   	              $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$reference." </a> </td>";   	   	              
+					  $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$valeur   ." </a> </td>";
+					  $output.="     <td> <a title=\"Voir les informations de la commande\" href=\"".$linkCommande."\">".$statutLib." </a> </td>";
+   	   	        $output      .=" </tr>";
+   	   }
+   	   $rowBg               = $this->cycle(array("#F0F0F0","#F5F5F5"))->next();
+   	   $commandeTotalFormat = number_format( $commandeTotal, 0 , ",", " " );
+   	   $output      .="<tr id=\"commandeId-Total\" style=\"background-color:".$rowBg."\"> 
+   	                        <td colspan=\"2\"> TOTAL </td><td colspan=\"2\"> ".$commandeTotalFormat." </td>
+   	                   </tr>";
+   } else {
+   	   $output     .=" <tr> <td style=\"text-align:center;\" colspan=\"6\"> Aucune commande n'a été trouvée </td> </tr>";
+   }
+   $output.= " </tbody></table>";   
+    
+   echo  $output ;
+        
+$jq      =  $this->jQuery();
+$onLoad  = "
+jQuery('.addCommande').click(function( event ){event.preventDefault();document.location.href='".$linkCreate."';});
+jQuery('.delCommande').css('cursor','pointer');
+jQuery('.delCommande').click(function( event ){      
+        var itemId               = parseInt(jQuery(this).attr('id').replace('delCommandeId-',''));
+        var dialogDeleteCommande = jQuery('<div> Etes-vous sur de supprimer cette commande ? </div>').attr('id','dialogDeleteCommande');
+        dialogDeleteCommande.dialog2({title:'Confirmer l\'action',autoOpen:false,removeOnClose:true,closeOnEscape: false,closeOnOverlayClick:true,showCloseHandle:true,initialLoadText: 'Chargement...'});   
+        dialogDeleteCommande.dialog2('addButton','Oui' , { primary : true , click : 
+             		                function(){
+             		                    jQuery.ajax({ url:'".$linkDelete."',async:false,dataType:'json',data: {'commandeid':itemId},type:'GET',
+             		                              success  : function(data) 
+             		                              {
+             		                                if( data.error !== undefined) {
+                                                        SIRAH.error.raise(jQuery('#dialogDeleteCommande') , data.error);
+             		                                    return;
+             		                                } else {
+             		                                    SIRAH.error.raise(jQuery('#dialogDeleteCommande'), data.success , 'success');
+             		                                    setTimeout(function(){jQuery('#commandeId-'+itemId).remove();jQuery('#dialogDeleteCommande').dialog2('close');},2500);
+             		                                }
+             		                              }
+             		                    });     		
+                                    }
+		}); 
+        dialogDeleteCommande.dialog2('addButton','Annuler' , {primary: false,click : function(){jQuery(this).dialog2('close');}});              		
+        dialogDeleteCommande.dialog2('open'); 
+});";    
+    $jq->addOnLoad($onLoad);
+?>
+             

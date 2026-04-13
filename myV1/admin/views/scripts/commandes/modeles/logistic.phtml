@@ -1,0 +1,187 @@
+<?php
+$me           = Sirah_Fabric::getUser();
+$commande     = $this->commande;
+$commandeid   = $this->commandeid;
+$lignes       = $this->lignes;
+$prestataire  = $fournisseur = $this->fournisseur;
+$modelProduit = $this->modelProduit;
+$produits     = $this->produits;
+$modalites    = $this->modalites;
+
+$demande      = $this->demande;
+$engindemande = $enginDemande = $this->engindemande;
+$engin        = $machine      = $this->engin;
+$engintype    = $this->engincategorie;
+$enginmarque  = $this->enginmarque;
+$centre       = $this->centre;
+$centreid     = $enginDemande->centreid;
+$centretype   = $this->centretype;
+$centreLibelle= ( $centre ) ? $centre->libelle : "";
+
+$commandeDate = date("d/m/Y", $commande->date);
+$zendDate     = new Zend_Date(array("year"=> date("Y",$commande->date),"month"=>date("m",$commande->date),"day"=>date("d",$commande->date)));
+
+if( $zendDate )  {
+	$commandeDate      = $zendDate->toString("d MMM yyyy");
+}
+$commandeDate          = "00/00/0000";
+$commandeDateLivraison = "00/00/0000";
+$livraisonDate         = "00/00/0000";
+
+if( $commande->delaiLivraison ) {
+	$zendDemandeDateLivraison = new Zend_Date( $commande->delaiLivraison, Zend_Date::TIMESTAMP );
+	$commandeDateLivraison    = $zendDemandeDateLivraison->toString("d MMM YYYY");
+}
+if( $commande->date) {
+	$zendDemandeDate = new Zend_Date($commande->date, Zend_Date::TIMESTAMP );
+	$commandeDate    = $zendDemandeDate->toString("dd MMMM Y");
+}
+$output  ="<table cellspacing=\"0\" cellpadding=\"2\" border=\"0\" width=\"100%\" >";
+	$output.="<tr>";
+	$output.="  <td width=\"50%\" align=\"left\">";
+		$output.=" <p style=\"font-size:32px;color: #666;\"><strong>  BON DE COMMANDE</strong></p>";
+		$output.=" <table cellspacing=\"1\" cellpadding=\"2\" border=\"0\" width='100%' >";
+			$output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> N°   :</strong> %s </td></tr>", $commande->ref);
+			$output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> DA N°:</strong> %s </td></tr>", $demande->numero);
+			$output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> Engin:</strong>  Parc n°:%s, Type:%s </td></tr>",$machine->numparc, $machine->type);
+			$output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> C.I:</strong> :%s </td></tr>",$centreLibelle);
+			$output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> Date :</strong> %s </td></tr>", $commandeDate);
+		    $output.=sprintf("<tr><td width=\"100%%\" colspan=\"2\"> <strong> Délai de livraison :</strong> %s </td></tr>",$commandeDateLivraison);
+		$output.=" </table>";
+	$output.="  </td>"; 
+	$output.="  <td width=\"50%\" align=\"right\">";
+		$output.=" <p align=\"right\" style=\"font-size:32px;color:#666666;text-align:right\"><strong>   FOURNISSEUR </strong></p>";
+		$output.=" <table cellspacing=\"1\" cellpadding=\"2\" border=\"0\" width='100%' >";
+			$output.= sprintf("<tr><td width=\"100%%\"> %s</td></tr>", stripslashes($prestataire->libelle));
+			$output.= sprintf("<tr><td width=\"100%%\"> <strong> Adresse: </strong> %s</td></tr>" ,stripslashes($prestataire->adresse));
+			$output.= sprintf("<tr><td width=\"100%%\"> <strong> Telephone:</strong> %s</td></tr>",stripslashes($prestataire->tel));
+			$output.= sprintf("<tr><td width=\"100%%\"> <strong> Email:</strong> %s</td></tr>"    ,stripslashes($prestataire->email));
+		$output.=" </table>";
+	$output.="  </td>";
+	$output.="</tr>";
+$output .="</table>";
+
+$output .= "<div>";
+$output .= "   <table cellspacing=\"0\" cellpadding=\"2\" width=\"100%\" border=\"1\" align=\"center\" style=\"text-align:center;line-height:2;\">";
+$output .="
+                <tr style=\"font-weight:bold;border:1px solid #cccccc;background-color:#f2f2f2;\">
+					<td width=\"14%\" style=\"border:1px solid #cccccc;\">Références</td>
+					<td width=\"22%\" style=\"border:1px solid #cccccc;\">Désignations/Types</td>
+					<td width=\"12%\" style=\"text-align:right;border:1px solid #cccccc;\">PU Brut.</td>
+					<td width=\"10%\" style=\"text-align:right;border:1px solid #cccccc;\">Remise</td>
+					<td width=\"8%\"  style=\"text-align:right;border:1px solid #cccccc;\">Qté</td>
+					<td width=\"17%\" style=\"text-align:right;border:1px solid #cccccc;\">Montants HTVA</td>
+				    <td width=\"17%\" style=\"text-align:right;border:1px solid #cccccc;\">Montants TTC </td>
+				</tr>";
+
+$valeurTotal    = $valeurSubTotal = 0;
+$valeurTotalTva = 0;
+$valeurTotalHt  = 0;
+$valeurTotalBic = 0; 
+ 
+$valeurTotal    = $valeurSubTotal = $totalRemise = 0;
+$valeurTotalTva = 0;
+$valeurTotalHt  = 0;
+$valeurTotalBic = 0; 
+if( count(  $lignes)) {
+	foreach($lignes as $ligne ) {
+		    $produit        = $ligne["libelle"];
+			$produitCode    = $ligne["code"];
+			$uniteMesure    = $ligne["uniteCode"];
+			$quantite       = sprintf("%s",number_format( $ligne["quantite"]  , 0 , "," , " "));
+			$prix_unit      = number_format( $ligne["prix_unit"] , 0 , "," , " ");
+			$valeur_remise  = number_format( $ligne["valeur_remise"] , 0 , "," , " ");
+			
+			$montantRemise  = $ligne["quantite"]*$ligne["valeur_remise"];
+			$totalRemise    = $totalRemise + $montantRemise;
+			
+			$valeurHT       = $ligne["valeur_ht"] - $montantRemise;
+			$valeurTTC      = $valeurHT + $ligne["valeur_tva"] + $ligne["valeur_bic"];
+			$valeurTotalHt += $ligne["valeur_ht"];
+			$valeurTotalTva+= $ligne["valeur_tva"];
+			$valeurTotalBic+= $ligne["valeur_bic"];
+			$valeurTotal   += $ligne["valeur_ht"] + $ligne["valeur_tva"] + $ligne["valeur_bic"];
+			
+			$montantHT      = (floatval($valeurHT ))?number_format($valeurHT ,0," "," ") : $valeurHT;
+			$montantTTC     = (floatval($valeurTTC))?number_format($valeurTTC,0," "," ") : $valeurTTC;
+			  
+			$output.="
+					<tr>
+						<td width=\"14%\" style=\"border:1px solid #cccccc;\">".$produitCode."</td>
+						<td width=\"22%\" style=\"border:1px solid #cccccc;\">".$produit."</td>
+						<td width=\"12%\" style=\"text-align:right;border:1px solid #cccccc;\">".$prix_unit ."</td>
+						<td width=\"10%\" style=\"text-align:right;border:1px solid #cccccc;\">".$valeur_remise ."</td>
+						<td width=\"8%\"  style=\"text-align:right;border:1px solid #cccccc;\">".$quantite  ."</td>
+						<td width=\"17%\" style=\"text-align:right;border:1px solid #cccccc;\">".$montantHT ."</td>
+						<td width=\"17%\" style=\"text-align:right;border:1px solid #cccccc;\">".$montantTTC."</td>
+					</tr>";
+	}	
+	$valeurRemise   = (floatval($totalRemise))?$totalRemise : floatval($commande->valeur_remise);
+	$valeurTotalHt  = $valeurTotalHt - $valeurRemise;
+    $output        .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> MONTANT TOTAL HTVA :</td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($valeurTotalHt,0," "," ") ."</td>
+					</tr>";
+	if( APPLY_TVA && $commande->valeur_tva && VAL_TVA) {
+		$output   .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> TVA (".VAL_TVA."%) : </td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($valeurTotalTva,0," "," ") ."</td>
+					</tr>";
+	}
+    if( APPLY_BIC && VAL_BIC && $commande->valeur_bic) {
+		$output   .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> BIC (".VAL_BIC."%) : </td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($valeurTotalBic,0," "," ") ."</td>
+					</tr>";
+	}
+	
+	if( $commande->frais) {
+		$output   .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> FRAIS ADDITIONNELS :</td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($commande->frais,0," "," ") ."</td>
+					</tr>";
+	}
+	
+	if( floatval($valeurRemise) ) {
+		$output   .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> REMISE :</td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($valeurRemise,0," "," ") ."</td>
+					</tr>";
+	}
+	
+	$total        = $valeurTotalHt+$valeurTotalTva+$valeurTotalBic+floatval($commande->frais); 
+    $output      .="
+	                <tr style=\"font-weight:bold;\">
+					    <td align=\"right\" width=\"66%\" colspan=\"5\" style=\"text-align:right;border:1px solid #cccccc;\"> MONTANT TTC:</td>
+					    <td align=\"right\" width=\"34%\" colspan=\"2\" style=\"text-align:right;border:1px solid #cccccc;\">".number_format($total,0," "," ") ."</td>
+					</tr>";	
+}
+$output .="     </table>";
+$output .="</div>";
+if( $commande->montant_avance) {
+	$output.= sprintf("<h5><strong><i> Est autorisé(e) à recevoir une avance de paiement d'une valeur : %s F CFA</i></strong> </h5>", number_format($commande->montant_avance,0, " ", " "));
+}
+$output.=<<<EOF
+<table width="100%" cellspacing="0" border="0" cellpadding="1">   
+ 
+    <tr>
+        <td width="32%" align="left">
+            <p><b> DIRECTEUR DES ACHATS</b><br/> </p> 
+        </td>
+		<td width="35%" align="center">
+            <p><b> DIRECTION FINANCIERE ET COMPTABLE </b><br/> </p> 
+        </td>
+        <td width="33%" align="right">
+            <p><b>ADMINISTRATEUR GENERAL</b></p> 
+        </td> 
+    </tr>
+
+</table> 
+EOF;
+echo $output;
+ 

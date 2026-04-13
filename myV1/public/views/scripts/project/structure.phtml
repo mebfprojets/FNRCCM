@@ -1,0 +1,29 @@
+<?php
+   $defaultImgPath = APPLICATION_TEMPLATES."public/assets/images/product.png";
+   $basePath       = ROOT_PATH ."/myTpl/public/";
+?>
+<?php $this->headStyle()->captureStart() ?>
+.panel .panel-heading {padding-top: 14px;padding-bottom: 14px;}
+.panel-more-shadow{box-shadow:0 1px 6px rgb(31 31 31 / 12%), 0 1px 4px rgb(31 31 31 / 12%)}
+body{background-color:#f1f1f1 !important}
+.panel-body{padding:20px;}
+.panel-desc{font-size:28px !important;font-weight:bold}
+<?php $this->headStyle()->captureEnd()   ?>
+
+<div class="container section-content">
+    <div id="about-us" class="col-xs-12 col-sm-12 col-md-8 equal-height-panels about-us-content margin-center">
+	    <div class="panel panel-white panel-more-shadow"> 
+			<div class="panel-body panel-body-lg"> 
+                <div class="panel-desc"> Qui sommes-nous ?</div>
+				<p style="text-align:justify !important"> <?php echo $this->contenu; ?></p>
+			</div>
+		</div>
+	</div>
+	<div class="col-xs-12 col-sm-12 col-md-4">
+	    <div class="panel panel-danger">
+	        <div class="panel-heading"><h4 class="panel-title"> <span class="glyph-icon icon-credit-card"></span> Mon Panier </h4> </div>
+		    <?php echo $this->partial("orders/articles.phtml", array()); ?>
+		</div>
+	</div>
+</div>
+

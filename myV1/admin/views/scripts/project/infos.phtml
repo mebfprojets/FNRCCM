@@ -1,0 +1,131 @@
+<?php 
+   $project        = $this->project;
+   $params         = $this->params;
+   $projectid      = $project->projectid;
+   
+   $linkEdit       = $this->url(array("controller" => "project", "action" => "edit" , "id" => $projectid, "module" => "admin"), "default" ) ;
+   $linkParams     = $this->url(array("controller" => "project", "action" => "params" , "id" => $projectid, "module" => "admin"), "default" ) ;
+   $linkCancel     = $this->url(array("controller" => "project", "action" => "list", "module" => "admin"), "default" ) ;
+     
+   $buttonbar      = $this->Btnbar(array("class" => "button-pane"), $this->jqueryHandler());
+   $buttonEdit     = $buttonbar->button(" Mettre à jour les informations", "edit")->setPriority("primary");
+   $buttonParams   = $buttonbar->button(" Mettre à jour les paramètres"  , "cog")->setPriority("primary");
+   $buttonCancel   = $buttonbar->button(" Revenir sur la liste", "ban");
+   
+   $buttonbar->add( $buttonEdit   , "editButton");
+   $buttonbar->add( $buttonParams , "settingsButton");
+   $buttonbar->add( $buttonCancel , "cancelButton");
+   
+   $buttonParams->onClick("event.preventDefault(); document.location.href= '".$linkParams."';");
+   $buttonEdit->onClick("  event.preventDefault(); document.location.href= '".$linkEdit."'  ;");
+   $buttonCancel->onClick("event.preventDefault(); document.location.href= '".$linkCancel."';");
+   
+$jq            = $this->jQuery();  
+$jq->addOnLoad("");
+
+$creator                    = Sirah_Fabric::getUser( $project->creatorid     );
+$updatedUser                = Sirah_Fabric::getUser( $project->updateduserid );					
+$creationDate               = "00/00/0000";
+$updateDate                 = "00/00/0000";
+$startimeDate               = "00/00/0000";
+$endtimeDate                = "00/00/0000";
+if( $project->startime     ) {
+	$zendStartimeDate       = new Zend_Date( $project->startime, Zend_Date::TIMESTAMP );
+    $startimeDate           = $zendStartimeDate->toString("d MMM yyyy à H:m");
+}
+if( $project->endtime     ) {
+	$zendEndtimeDate        = new Zend_Date($project->endtime, Zend_Date::TIMESTAMP );
+    $endtimeDate            = $zendEndtimeDate->toString("d MMMM yyyy à H:m");
+}
+if( $project->creationdate ) {
+       $zendCreationdate    = new Zend_Date( $project->creationdate, Zend_Date::TIMESTAMP );
+       $entrepriseCreationDate = $zendCreationdate->toString("d MMMM yyyy à H:m");
+}
+if( $project->updatedate ) {
+       $zendUpdatedate    = new Zend_Date( $project->updatedate , Zend_Date::TIMESTAMP );
+       $updateDate        = $zendUpdatedate->toString("d MMMM yyyy à H:m");
+}
+$this->toolsbar = $buttonbar ;					
+?>
+<div  class="container" style="text-align:left;">
+  <div class="row">
+   <div class="col-md-7">
+    <div class="panel panel-default">
+	<div class="panel-heading"> <h4 class="panel-title"> <span class='glyph-icon icon-home'></span> Les informations du projet </h4> </div>
+    <ul class="list-group">
+     <li class="list-group-item">
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="libelle"> <b> Intitulé:</b> </label></div> 
+            <div class="col-md-8"><?php echo $this->escape($project->libelle);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="objectif_nb_clients"> <b> Objectif Nb RCCM: </b> </label> </div> 
+            <div class="col-md-8"><?php echo $this->escape($project->objectif_nb_rccm);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="periode"> <b> Période: </b> </label> </div> 
+            <div class="col-md-8"><?php printf("Du %s au %s", $startimeDate , $endtimeDate);  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">   
+       <div class="row"> 
+            <div class="col-md-4"> <label class="label" for="current"> <b> Projet en cours ?: </b> </label> </div> 
+            <div class="col-md-8"><?php echo ($project->current) ? "Oui" : "Non";  ?></div>
+       </div>
+    </li>
+	<li class="list-group-item">
+        <div class="row"> 
+            <div class="col-md-5"> <b> Description du projet:</b></div> 
+            <div class="col-md-7"><?php echo $project->presentation; ?></div>
+        </div>
+    </li>
+	 <?php if($creator->userid) : ?>
+   <li class="list-group-item">
+    <div class="row"> 
+        <div class="col-md-12 "> Enregistrée le <?php echo $creationDate; ?> par <?php echo sprintf(" %s %s" , $creator->lastname , $creator->firstname ); ?>    </div> 
+    </div>
+   </li>
+  <?php endif; ?>
+  <?php if($updatedUser->userid) : ?>
+   <li class="list-group-item">
+     <div class="row"> 
+        <div class="col-md-12 "> Mis à jour le <?php echo $updateDate; ?> par <?php echo sprintf(" %s %s" , $updatedUser->lastname , $updatedUser->firstname ); ?>    </div> 
+     </div>
+   </li>
+   <?php endif; ?>
+   </ul>
+   </div>
+  </div>
+  
+  <div class="col-md-5">
+		<div class="panel-group" id="accordion">
+		   
+			<div class="panel panel-default">
+			    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#documentSettingsHeader"><span class='glyph-icon icon-th'></span> Entete des documents PDF </a></h4> </div>
+			    <div id="documentSettingsHeader" class="panel-collapse collapse">
+				   <?php echo $params->default_pdf_header;  ?>
+				</div>
+			</div>
+			<div class="panel panel-default">
+			    <div class="panel-heading"><h4 class="panel-title"><a data-parent="#accordion" data-toggle="collapse" href="#documentSettingsFooter"><span class='glyph-icon icon-th'></span> Pied de page des documents PDF </a></h4> </div>
+			    <div id="documentSettingsFooter" class="panel-collapse collapse">
+				   <?php echo $params->default_pdf_footer;  ?>
+				</div>
+			</div>
+     </div>	 	 
+   </div>
+    
+  </div>  
+</div>	
+</div>
+
+
+    <?php 
+          if($this->isAjax) {
+          	 echo $this->jQuery();
+          }
+      ?>   

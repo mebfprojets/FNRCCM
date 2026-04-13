@@ -1,0 +1,52 @@
+<?php 
+$me         = Sirah_Fabric::getUser();
+$client     = $this->client;
+$travels    = $this->travels;
+$documents  = $this->documents;
+$basePath   = VIEW_BASE_PATH;
+$jq         = $this->jQuery();
+
+$linkCancel   = $this->url(array("module"=>"public","controller"=>"travels","action"=>"list"  ),"default");
+$linkCreate   = $this->url(array("module"=>"public","controller"=>"travels","action"=>"create"),"default");
+$linkConsign  = $this->url(array("module"=>"public","controller"=>"travels","action"=>"consign"),"default") ;
+
+$jq->addOnload("");
+
+$buttonBar    = $buttonbar  = $this->buttonsbar(array()  , $this->jqueryHandler());
+$buttonCreate = $buttonBar->button("Nouvelle annonce"    ,"plus");
+$buttonConsign= $buttonBar->button("Livrer un colis"     ,"plus");
+$buttonCancel = $buttonBar->button("Revenir sur la liste","ban-circle");
+
+$buttonBar->add($buttonCreate, "createButton");
+$buttonBar->add($buttonCancel, "cancelButton");
+
+$buttonCreate->setAttributes(array("type"=>"submit","class"=>"btn btn-primary"));
+$buttonConsign->setAttributes(array("type"=>"submit","class"=>"btn btn-success"));
+$buttonCancel->setAttributes(array("type"=>"submit"));
+
+$buttonCreate->onClick(sprintf("event.preventDefault();document.location.href='%s';" , $linkCreate));
+$buttonConsign->onClick(sprintf("event.preventDefault();document.location.href='%s';" , $linkConsign));
+$buttonCancel->onClick(sprintf("event.preventDefault();document.location.href='%s';" , $linkCancel));
+?>
+<div class="row">
+    <div class="col-md-7">
+	    <div class="panel panel-success">
+		    <div class="panel-heading"> <h4 class="panel-title"> <span class="glyph-icon icon-user"></span> Mes informations Personnelles </h4> </div>
+		    <?php echo $this->partial("members/profile.phtml", array("client"=>$client,"clientid"=>$clientid)); ?>
+	        <div class="panel-footer"><?php echo $buttonBar; ?></div>
+		</div>
+	</div>
+	<div class="col-md-5">
+		<div class="panel panel-danger">
+			<div class="panel-heading"><h4 class="panel-title"> <span class='glyph-icon icon-list-alt'></span> Mes annonces </h4> </div>
+			<?php echo $this->partial("members/travels.phtml", array("travels"=>$travels)); ?> </div>			
+		</div>
+	</div>
+</div>
+<?php 
+    if( $this->isAjax ) {
+     	echo $this->jQuery();
+	    echo $this->headStyle();
+    }
+?>
+ 

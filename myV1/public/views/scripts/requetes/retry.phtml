@@ -1,0 +1,137 @@
+<?php 
+$messages           = $this->messages;
+$data               = $this->data;
+$promoteurData      = $this->promoteurData;
+$demandeurid        = $this->demandeurid;
+$demandeid          = $this->demandeid;
+$promoteurInfos     = "";
+
+if( isset($promoteurData["name"]) && !empty($promoteurData["name"])) {
+	$promoteurInfos = sprintf("%s, %s ", $promoteurData["name"], $promoteurData["numidentite"]);
+}
+
+$urlCreationDone    = Sirah_Functions::url($this->url(array("module"=>"public","controller"=>"members","action"=>"dashboard","module"=>"public"),"default",true),"" , 81 , APPLICATION_HOST);
+$formSubmit         = $this->url(array("module"=>"public","controller"=>"requetes","action"=>"retry","id"=>$demandeid),"default",true);
+$linkCancel         = $this->url(array("module"=>"public","controller"=>"members" ,"action"=>"dashboard") ,"default",true);
+
+$basePath           = ROOT_PATH ."/myTpl/public/";
+?>
+<?php $this->headStyle()->captureStart() ?>
+<?php $this->headStyle()->captureEnd()   ?>
+<?php
+$jq                 = $this->jQuery();  
+$onLoad             = " 
+jQuery('#domaineid').chosen({allow_single_deselect:true,no_results_text:'Aucun secteur d\'activité ne correspond à ', width:'100%'});
+jQuery('#createButton').click(function(e){
+	e.preventDefault();
+	var formSelector    = jQuery('#editReservationForm');
+	var nouveauNom      = jQuery.trim(formSelector.find('#nouveau_nom').val());
+	var domaineid       = parseInt(formSelector.find('#domaineid').val());
+      
+	if( SIRAH.util.isEmpty(nouveauNom)){
+        formSelector.find('#nouveau_nom').addClass('input-error');
+        formSelector.find('#nouveau_nom-validation-message').html('');
+        SIRAH.error.raise('nouveau_nom-validation-message','Veuillez saisir le nouveau nom commercial');
+        return;
+    } else {
+        formSelector.find('#nouveau_nom').removeClass('input-error');
+        formSelector.find('#nouveau_nom-validation-message').html('');
+    }	 
+    if(!domaineid){
+        formSelector.find('#domaineid').addClass('input-error');
+        formSelector.find('#domaine-validation-message').html('');
+        SIRAH.error.raise('domaine-validation-message','Sélectionnez un secteur d\'activités.');
+        return;
+    }  else {
+        formSelector.find('#domaineid').removeClass('input-error');
+        formSelector.find('#domaine-validation-message').html('');
+    }
+    formSelector.find('#domaineid').val(domaineid);
+    formSelector.submit();
+});
+ jQuery('#cancelButton').click(function(e){e.preventDefault();document.location.href='".$linkCancel."';}); ";
+$jq->addOnLoad($onLoad);
+$step               = 1;
+$headScript         = $this->headScript();
+//$headScript->appendFile("https://www.google.com/recaptcha/api.js","text/javascript");
+?>
+<form method="post" action="<?php echo $formSubmit; ?>" id="editReservationForm"  class="form-horizontal" role="form" >
+    <div class="panel panel-default">
+        <ul class="list-group">		     
+			<li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-md-2  col-sm-2 control-label" for="promoteur">Promoteur:</label>
+				    <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="promoteurname" name="promoteurname" type="text" disabled="disabled" class="form-control" title="Les informations du promoteur" placeholder="Les informations du promoteur" value="<?php echo $promoteurInfos; ?>">
+					        <input id="promoteurid"   name="promoteurid"   type="hidden" value="<?php echo $data["promoteurid"]; ?>" />
+						</div>
+					</div> 			   				   
+				</div>     
+				<p id="promoteur-validation-message" class="validation-message"></p> 
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-md-2  col-sm-2 control-label" for="nomcommercial">Nom commercial*:</label>
+				    <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="ancien_nom2" name="ancien_nom2" type="text" disabled="disabled" class="form-control" title="L'ancien nom commercial" placeholder="L'ancien nom commercial" value="<?php echo $data["ancien_nom"]; ?>">
+					        <input id="ancien_nom"  name="ancien_nom"  type="hidden" value="<?php echo $data["ancien_nom"]; ?>" />
+							<span class="input-group-btn btn-sucess" style="width:0px;"> devient : </span>
+						    <input type="text" name="nouveau_nom" id="nouveau_nom" class="form-control" value="<?php echo $data["nouveau_nom"]; ?>" placeholder="Veuillez saisir le nouveau nom commercial" title="Le nouveau nom commercial de l'entreprise" />
+						</div>
+					</div> 			   				   
+				</div>     
+				<p id="nomcommercial-validation-message" class="validation-message"></p> 
+			</li>
+            <li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-md-2  col-sm-2 control-label" for="sigle">Sigle:</label>
+				    <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="ancien_sigle2" name="ancien_sigle2" type="text" disabled="disabled" class="form-control" title="L'ancien sigle" placeholder="L'ancien sigle" value="<?php echo $data["ancien_sigle"]; ?>">
+					        <input id="ancien_sigle"  name="ancien_sigle"  type="hidden" value="<?php echo $data["ancien_sigle"]; ?>" />
+							<span class="input-group-btn" style="width:0px;"> devient : </span>
+						    <input type="text" name="nouveau_sigle" id="nouveau_sigle" class="form-control" value="<?php echo $data["nouveau_sigle"]; ?>" placeholder="Veuillez saisir le nouveau sigle" title="Veuillez saisir le nouveau sigle" />
+						</div>
+					</div> 			   				   
+				</div>     
+				<p id="sigle-validation-message" class="validation-message"></p> 
+			</li>
+			<li class="list-group-item">
+				<div class="form-group">
+				    <label class="col-md-2  col-sm-2 control-label" for="denomination">Dénomination:</label>
+				    <div   class="col-md-10 col-sm-10">
+				        <div class="input-group">
+				            <input id="ancien_denomination2" name="ancien_denomination2" type="text" disabled="disabled" class="form-control" title="L'ancienne dénomination" placeholder="L'ancienne dénomination" value="<?php echo $data["ancien_denomination"]; ?>">
+					        <input id="ancien_denomination"  name="ancien_denomination"  type="hidden" value="<?php echo $data["ancien_denomination"]; ?>" />
+							<span class="input-group-btn" style="width:0px;"> devient : </span>
+						    <input type="text" name="nouveau_denomination" id="nouveau_denomination" class="form-control" value="<?php echo $data["nouveau_denomination"]; ?>" placeholder="La nouvelle dénomination de l'entreprise" title="La nouvelle dénomination de l'entreprise" />
+						</div>
+					</div> 			   				   
+				</div>     
+				<p id="denomination-validation-message" class="validation-message"></p> 
+			</li>			
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				    <label class="col-md-2  col-sm-2 control-label" for="domaineid"> Secteur activité*: </label>
+				    <div   class="col-md-10 col-sm-10"> <?php echo $this->formSelect("domaineid", intval( $data["domaineid"]), array("style"=> "width:360px !important;","class"=>"form-control chosen"), $this->domaines ); ?> </div>       
+			    </div>
+				<p id="domaine-validation-message" class="validation-message"></p>  
+			</li>
+			<li class="list-group-item">
+			    <div class="form-group"> 
+				   <label class="col-md-2  col-sm-2 control-label" for="activite"> Activité déclarée*: </label>
+				   <div   class="col-md-10 col-sm-10"><input type="text" title="Décrire l'activité de l'entreprise en quelques mots" name="activite" id="activite" class="form-control" value="<?php echo $data["activite"]; ?>" placeholder="Saisissez les informations de l'activité déclarée par le promoteur" /></div>       
+			    </div>
+				<p id="activite-validation-message" class="validation-message"></p>  
+			</li>
+ 
+        </ul>	
+		<div class="panel-footer">
+			<div class="btn-group"><button id="cancelButton" class="btn btn-danger  cancelButton"><i class="glyph-icon icon-chevron-left"> </i>  Annuler </button></div> 
+			<div class="btn-group"><button id="createButton" class="btn btn-primary createButton"> Soumettre <i class="glyph-icon icon-chevron-right"> </i> </button></div>	
+		</div>
+	</div>	 
+	<input id="demandeid" name="demandeid" type="hidden" value="<?php echo $demandeid; ?>" />
+</form>
