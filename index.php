@@ -1,9 +1,5 @@
 <?php
-/*
-echo "<div style=\"position:relative;width:100%;height:30px;background-color:#f8d7da;border:#f5c6cb;color:#721c24;padding:.75rem 1.25rem\"><font style=\"color:#721c24\"><i>UNE MAINTENANCE DE LA PLATEFORME EST EN COURS !. DESOLE DU DESAGREMENT,UNE SOLUTION EST EN COURS DE MISE EN OEUVRE. NOUS VOUS PROPOSONS DE REVENIR SOUS PEU. MERCI DE LA COMPREHENSION</i> </font></div>";
-
-die();
-*/
+ 
 try {
     require_once("myV1/cfg/application.php");
     ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . getcwd() . '/libraries/');
