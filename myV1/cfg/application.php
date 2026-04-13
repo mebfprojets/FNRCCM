@@ -123,12 +123,6 @@ defined("SIGUEDB_PWD")
 defined("SIGUEDB_PORT")
       || DEFINE("SIGUEDB_PORT","8014");	
 	  
-defined("TWILIO_MSG_SID")
-      || DEFINE("TWILIO_MSG_SID","MG43702feee1aa008937901f42ac1e96be");
-defined("TWILIO_ACCOUNT_SID")
-      || DEFINE("TWILIO_ACCOUNT_SID", "ACb78e134ab685908e3e6914be15c1aefc");
-defined("TWILIO_AUTH_TOKEN")
-      || DEFINE("TWILIO_AUTH_TOKEN", "0a9fbea7e6afc0a1db73e1c272c7086a");
 defined("VIEW_BASE_URI")
      || DEFINE("VIEW_BASE_URI", "http://localhost/erccm");
 defined("DEFAULT_UPLOAD_MAXSIZE")
